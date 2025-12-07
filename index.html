@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>God's Plan | Hub</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,223 +13,136 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; overflow-x: hidden; }
         
-        /* --- FONDOS ANIMADOS --- */
-        .bg-gradient {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-            background: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 100%);
-        }
-        .bg-orb {
-            position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(220,38,38,0.15) 0%, rgba(0,0,0,0) 70%);
-            border-radius: 50%; animation: float 10s infinite ease-in-out; pointer-events: none;
-        }
+        /* FONDOS */
+        .bg-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 100%); }
+        .bg-orb { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(220,38,38,0.15) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; animation: float 10s infinite ease-in-out; pointer-events: none; }
         @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -30px); } }
 
-        /* --- EFECTO CRISTAL (GLASSMORPHISM) --- */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .glass-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(220, 38, 38, 0.4);
-            box-shadow: 0 20px 40px -10px rgba(220, 38, 38, 0.2);
-        }
-        /* Botones pequeños estilo cristal */
-        .glass-btn {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-        .glass-btn:hover {
-            background: rgba(220, 38, 38, 0.2);
-            border-color: rgba(220, 38, 38, 0.5);
-            transform: translateY(-3px);
-        }
-
-        /* --- TEXTO Y ANIMACIONES DE TEXTO --- */
-        .text-gradient {
-            background: linear-gradient(to right, #f87171, #ef4444, #dc2626);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: titleGlow 3s ease-in-out infinite alternate;
-        }
-        @keyframes titleGlow {
-            from { text-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
-            to { text-shadow: 0 0 30px rgba(239, 68, 68, 0.6), 0 0 10px rgba(239, 68, 68, 0.4); }
-        }
-
-        /* --- SCROLL REVEAL ANIMATION (NUEVO) --- */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
-        }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        /* CRISTAL */
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-card:hover { transform: translateY(-5px) scale(1.02); background: rgba(255, 255, 255, 0.06); border-color: rgba(220, 38, 38, 0.4); box-shadow: 0 20px 40px -10px rgba(220, 38, 38, 0.2); }
         
-        /* Retrasos para elementos en grupo */
-        .delay-100 { transition-delay: 0.1s; }
-        .delay-200 { transition-delay: 0.2s; }
-        .delay-300 { transition-delay: 0.3s; }
+        .glass-btn { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; }
+        .glass-btn:hover { background: rgba(220, 38, 38, 0.2); border-color: rgba(220, 38, 38, 0.5); transform: translateY(-3px); }
+
+        .text-gradient { background: linear-gradient(to right, #f87171, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: titleGlow 3s ease-in-out infinite alternate; }
+        @keyframes titleGlow { from { text-shadow: 0 0 10px rgba(239, 68, 68, 0.2); } to { text-shadow: 0 0 30px rgba(239, 68, 68, 0.6), 0 0 10px rgba(239, 68, 68, 0.4); } }
+
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .delay-100 { transition-delay: 0.1s; } .delay-200 { transition-delay: 0.2s; } .delay-300 { transition-delay: 0.3s; }
     </style>
 </head>
-<body class="flex flex-col min-h-screen items-center justify-center p-6">
+<body class="flex flex-col min-h-screen items-center justify-center p-4 sm:p-6">
 
-    <!-- Fondo -->
     <div class="bg-gradient">
         <div class="bg-orb" style="top: -10%; left: -10%;"></div>
         <div class="bg-orb" style="bottom: -10%; right: -10%; animation-delay: 5s;"></div>
     </div>
 
-    <!-- Contenido Principal -->
-    <main class="w-full max-w-5xl z-10 py-10">
+    <main class="w-full max-w-5xl z-10 py-6 sm:py-10">
         
-        <!-- Encabezado (Animación inicial inmediata) -->
-        <div class="text-center mb-16 reveal active">
-            <p class="text-red-500 font-mono text-xs tracking-[0.4em] mb-4 uppercase font-bold">Ecosistema Empresarial</p>
-            <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-4 text-white">
+        <!-- Encabezado Ajustado -->
+        <div class="text-center mb-10 sm:mb-16 reveal active">
+            <p class="text-red-500 font-mono text-[10px] sm:text-xs tracking-[0.4em] mb-2 sm:mb-4 uppercase font-bold">Ecosistema Empresarial</p>
+            <h1 class="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter mb-4 text-white">
                 GOD'S <span class="text-gradient">PLAN</span>
             </h1>
-            <p class="text-gray-400 text-lg font-light max-w-xl mx-auto leading-relaxed">
-                Centro de control unificado. Supervisión operativa, comunicación segura y gestión estratégica.
+            <p class="text-gray-400 text-base sm:text-lg font-light max-w-xl mx-auto leading-relaxed px-4">
+                Centro de control unificado.
             </p>
         </div>
 
-        <!-- Grid de Aplicaciones Principales -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <!-- Grid Ajustado para Móvil -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-10">
 
             <!-- APP 1: ADHERENCIA -->
-            <a href="https://adherencia.godsplan.site" class="glass-card rounded-2xl p-8 group relative overflow-hidden reveal delay-100">
-                <div class="absolute top-0 right-0 p-5 opacity-40 group-hover:opacity-100 transition-opacity duration-300">
-                    <i class="ph-bold ph-arrow-up-right text-white text-2xl group-hover:text-blue-400 transition-colors"></i>
+            <a href="https://adherencia.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-100">
+                <div class="absolute top-0 right-0 p-4 opacity-50"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
+                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-blue-900/30 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-blue-400 group-hover:text-blue-300 group-hover:scale-110 transition-all duration-300">
+                    <i class="ph-fill ph-clock-user text-3xl sm:text-4xl"></i>
                 </div>
-                <div class="w-16 h-16 bg-blue-900/30 rounded-2xl flex items-center justify-center mb-6 text-blue-400 group-hover:text-blue-300 group-hover:scale-110 transition-all duration-300 shadow-[0_0_30px_-10px_rgba(37,99,235,0.3)]">
-                    <i class="ph-fill ph-clock-user text-4xl"></i>
-                </div>
-                <h3 class="text-3xl font-bold mb-3 text-gray-100 group-hover:text-blue-100 transition-colors">Adherencia</h3>
-                <p class="text-gray-400 text-sm leading-relaxed line-clamp-3">
-                    Sistema avanzado de control de asistencia, gestión de descansos (baño/comida) y cálculo de nómina en tiempo real.
+                <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">Adherencia</h3>
+                <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                    Control de asistencia, descansos y nómina.
                 </p>
-                <div class="mt-8 flex items-center gap-3 text-xs font-mono text-blue-400/80 uppercase tracking-wider font-bold">
-                    <span class="relative flex h-2.5 w-2.5">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
-                    </span>
-                    Operativo
+                <div class="mt-4 sm:mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono text-blue-400/80 uppercase tracking-wider font-bold">
+                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Operativo
                 </div>
             </a>
 
-            <!-- APP 2: CHAT CORPORATIVO -->
-            <a href="https://chat.godsplan.site/corpodatos" class="glass-card rounded-2xl p-8 group relative overflow-hidden reveal delay-200">
-                <div class="absolute top-0 right-0 p-5 opacity-40 group-hover:opacity-100 transition-opacity duration-300">
-                    <i class="ph-bold ph-arrow-up-right text-white text-2xl group-hover:text-red-400 transition-colors"></i>
+            <!-- APP 2: CHAT (Link Corregido) -->
+            <a href="https://chat.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-200">
+                <div class="absolute top-0 right-0 p-4 opacity-50"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
+                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-red-900/30 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-red-400 group-hover:text-red-300 group-hover:scale-110 transition-all duration-300">
+                    <i class="ph-fill ph-chats-teardrop text-3xl sm:text-4xl"></i>
                 </div>
-                <div class="w-16 h-16 bg-red-900/30 rounded-2xl flex items-center justify-center mb-6 text-red-400 group-hover:text-red-300 group-hover:scale-110 transition-all duration-300 shadow-[0_0_30px_-10px_rgba(220,38,38,0.3)]">
-                    <i class="ph-fill ph-chats-teardrop text-4xl"></i>
-                </div>
-                <h3 class="text-3xl font-bold mb-3 text-gray-100 group-hover:text-red-100 transition-colors">CorpoChat</h3>
-                <p class="text-gray-400 text-sm leading-relaxed line-clamp-3">
-                    Plataforma de comunicación interna segura. Canales exclusivos para avisos urgentes y gestión de solicitudes de paquetes.
+                <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">CorpoChat</h3>
+                <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                    Comunicación interna y solicitudes.
                 </p>
-                <div class="mt-8 flex items-center gap-3 text-xs font-mono text-red-400/80 uppercase tracking-wider font-bold">
-                    <span class="relative flex h-2.5 w-2.5">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-                    </span>
-                    En Línea
+                <div class="mt-4 sm:mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono text-red-400/80 uppercase tracking-wider font-bold">
+                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> En Línea
                 </div>
             </a>
 
-            <!-- APP 3: PRÓXIMAMENTE -->
-            <div class="glass-card rounded-2xl p-8 opacity-50 cursor-not-allowed border-dashed border-gray-800 reveal delay-300 grayscale transition-all hover:grayscale-0 hover:opacity-70">
-                <div class="w-16 h-16 bg-gray-800/50 rounded-2xl flex items-center justify-center mb-6 text-gray-500 shadow-inner">
-                    <i class="ph-fill ph-lock-key text-4xl"></i>
+            <!-- APP 3: Recursos -->
+            <div class="glass-card rounded-2xl p-6 sm:p-8 opacity-50 cursor-not-allowed border-dashed border-gray-800 reveal delay-300">
+                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-800/50 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-gray-500">
+                    <i class="ph-fill ph-lock-key text-3xl sm:text-4xl"></i>
                 </div>
-                <h3 class="text-3xl font-bold mb-3 text-gray-500">Gestor de Recursos</h3>
-                <p class="text-gray-600 text-sm leading-relaxed">
-                    Módulo confidencial en desarrollo para control de inventarios y asignación de equipos. Acceso restringido.
+                <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-500">Recursos</h3>
+                <p class="text-gray-600 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                    Gestión de inventarios (Próximamente).
                 </p>
-                <div class="mt-8 flex items-center gap-3 text-xs font-mono text-yellow-600/80 uppercase tracking-wider font-bold">
-                    <span class="flex h-2.5 w-2.5 relative justify-center items-center">
-                        <span class="animate-spin absolute h-full w-full rounded-full border-2 border-yellow-600 border-t-transparent"></span>
-                    </span>
-                    Desarrollo
+                <div class="mt-4 sm:mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono text-yellow-600/80 uppercase tracking-wider font-bold">
+                    <span class="w-2 h-2 rounded-full bg-yellow-600"></span> Desarrollo
                 </div>
             </div>
 
         </div>
 
-        <!-- Sección Secundaria: Sobre Mí y Contacto (Se revelan al scrollear) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mb-16">
-            
-            <!-- Botón Sobre Mí (APUNTA AL PORTAFOLIO COMPLETO) -->
-            <a href="https://godsplan.site/proyectos" target="_blank" class="glass-btn rounded-xl px-6 py-5 flex items-center gap-5 group reveal delay-100">
-                <div class="w-12 h-12 bg-gray-100/10 rounded-full flex items-center justify-center text-gray-300 group-hover:text-white group-hover:bg-red-500/20 transition-all">
-                    <i class="ph-fill ph-user-circle text-2xl"></i>
+        <!-- Botones Inferiores -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mb-10 reveal delay-300">
+            <!-- Botón Sobre Mí (Va a la lista de proyectos) -->
+            <a href="https://godsplan.site/proyectos/" class="glass-btn rounded-xl p-4 flex items-center gap-4 group">
+                <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-gray-300 group-hover:text-white">
+                    <i class="ph-fill ph-folder-open text-xl"></i>
                 </div>
                 <div>
-                    <h4 class="font-bold text-lg text-gray-200 group-hover:text-white transition-colors">Sobre Mí</h4>
-                    <p class="text-gray-500 text-xs font-mono uppercase tracking-wider group-hover:text-red-300/70 transition-colors">El Creador</p>
+                    <h4 class="font-bold text-base text-gray-200">Ver Proyectos</h4>
+                    <p class="text-gray-500 text-[10px] font-mono uppercase">Portafolio Completo</p>
                 </div>
-                <i class="ph-bold ph-caret-right ml-auto text-gray-600 group-hover:text-red-400 transition-all group-hover:translate-x-1"></i>
             </a>
 
-            <!-- Botón Contacto (APUNTA A WHATSAPP) -->
-            <a href="https://wa.me/525510590927" target="_blank" class="glass-btn rounded-xl px-6 py-5 flex items-center gap-5 group reveal delay-200">
-                <div class="w-12 h-12 bg-gray-100/10 rounded-full flex items-center justify-center text-gray-300 group-hover:text-white group-hover:bg-red-500/20 transition-all">
-                    <i class="ph-fill ph-paper-plane-tilt text-2xl"></i>
+            <a href="https://wa.me/525510590927" target="_blank" class="glass-btn rounded-xl p-4 flex items-center gap-4 group">
+                <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-gray-300 group-hover:text-white">
+                    <i class="ph-fill ph-whatsapp-logo text-xl"></i>
                 </div>
                 <div>
-                    <h4 class="font-bold text-lg text-gray-200 group-hover:text-white transition-colors">Contacto</h4>
-                    <p class="text-gray-500 text-xs font-mono uppercase tracking-wider group-hover:text-red-300/70 transition-colors">Soporte & Info</p>
+                    <h4 class="font-bold text-base text-gray-200">Contacto</h4>
+                    <p class="text-gray-500 text-[10px] font-mono uppercase">WhatsApp Directo</p>
                 </div>
-                <i class="ph-bold ph-caret-right ml-auto text-gray-600 group-hover:text-red-400 transition-all group-hover:translate-x-1"></i>
             </a>
-
         </div>
 
-        <!-- Footer Info -->
-        <div class="flex flex-col md:flex-row justify-between items-center border-t border-gray-800/50 pt-8 text-xs text-gray-600 font-mono reveal delay-300 gap-4">
-            <div class="flex items-center gap-2">
-                <span class="relative flex h-2 w-2">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-duration-[3s]"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
-                </span>
-                SYSTEM STATUS: STABLE
-            </div>
-            <div class="uppercase tracking-widest font-bold">
-                © 2025 GOD'S PLAN INC. | BLQA LEGACY
-            </div>
+        <div class="border-t border-gray-800/50 pt-6 text-[10px] sm:text-xs text-gray-600 font-mono text-center reveal delay-300">
+            © 2025 GOD'S PLAN INC. | BLQA LEGACY
         </div>
 
     </main>
 
     <script>
-        // --- MOTOR DE ANIMACIÓN SCROLL (INTERSECTION OBSERVER) ---
         document.addEventListener('DOMContentLoaded', () => {
-            const observerOptions = {
-                root: null,
-                rootMargin: '0px',
-                threshold: 0.1 // Se activa cuando el 10% del elemento es visible
-            };
-
-            const observer = new IntersectionObserver((entries, observer) => {
+            const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('active');
-                        observer.unobserve(entry.target); // Solo animar una vez
+                        observer.unobserve(entry.target);
                     }
                 });
-            }, observerOptions);
-
-            const elementsToReveal = document.querySelectorAll('.reveal');
-            elementsToReveal.forEach(el => observer.observe(el));
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
         });
     </script>
 </body>
