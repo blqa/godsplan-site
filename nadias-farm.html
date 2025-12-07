@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nadia's Farm FINAL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="top-header">
+        <div class="header-content">
+            <h1 onclick="triggerAdmin()" style="cursor: help;">🌸 Nadia's Farm 🌸</h1>
+            <div id="farm-stars" class="stars-container">⭐</div>
+        </div>
+    </div>
+
+    <div id="weather-layer"></div>
+    <div id="day-night-overlay"></div>
+
+    <div id="trophy-case" class="trophy-row"></div>
+
+    <div class="game-layout">
+
+        <aside class="sidebar left-panel">
+            <div class="panel-header">📋 Tablón</div>
+            <div class="panel-section quest-box">
+                <div class="click-header" onclick="toggleQuest()"
+                    style="padding: 0; cursor: pointer; display: flex; justify-content: space-between;">
+                    <span>📜 Encargo Diario</span> <span id="quest-arrow">▼</span>
+                </div>
+                <div id="quest-menu" class="collapsible">
+                    <div id="daily-quest-display" style="margin-top:5px; font-size:0.8rem;">...</div>
+                    <button class="btn-claim hidden" id="btn-claim-quest" onclick="entregarQuest()">¡Entregar!</button>
+                </div>
+            </div>
+
+            <div class="panel-header" style="margin-top:10px;">🏪 Mercado</div>
+
+            <div class="panel-section">
+                <h3>🎒 Mochila <small>(Shift+Clic: Todo)</small></h3>
+                <div id="inventory-display" class="grid-inv"></div>
+            </div>
+
+            <div class="panel-section grow">
+                <div class="tabs">
+                    <button onclick="setTab('animals')" class="active">🐾</button>
+                    <button onclick="setTab('crops')">🌱</button>
+                    <button onclick="setTab('decor')">🌻</button>
+                </div>
+                <div id="shop-content" class="shop-grid-container"></div>
+            </div>
+        </aside>
+
+        <main id="main-area">
+            <div class="scroll-container">
+                <div id="farm-grid" class="farm-grid"></div>
+            </div>
+            <div id="pet-entity" onclick="petMascot()"></div>
+        </main>
+
+        <aside class="sidebar right-panel">
+
+            <div class="panel-header click-header" onclick="toggleManagement()">
+                <span>⚡ Gestión</span> <span id="mgmt-arrow">▼</span>
+            </div>
+            <div id="mgmt-menu" class="panel-section collapsible">
+                <div class="mgmt-grid">
+                    <button class="btn-gestion bg-blue" onclick="contratar()">
+                        <div class="icon">👷</div>
+                        <div class="info">
+                            <div class="title">Contratar</div>
+                            <div class="desc">Staff: <span id="workers-count">0</span></div>
+                        </div>
+                        <div class="price-tag">$1500</div>
+                    </button>
+                    <button class="btn-gestion bg-orange" onclick="expandirTierra()">
+                        <div class="icon">🚜</div>
+                        <div class="info">
+                            <div class="title">Expandir</div>
+                            <div class="desc">Terreno</div>
+                        </div>
+                        <div class="price-tag">$$$</div>
+                    </button>
+                    <button class="btn-gestion bg-purple" onclick="abrirLaboratorio()">
+                        <div class="icon">🧬</div>
+                        <div class="info">
+                            <div class="title">Mejoras</div>
+                            <div class="desc">Labs</div>
+                        </div>
+                    </button>
+
+                    <button class="btn-gestion bg-red" style="background: linear-gradient(135deg, #673AB7, #512DA8);"
+                        onclick="abrirExposicion()">
+                        <div class="icon">💎</div>
+                        <div class="info">
+                            <div class="title">Exposición</div>
+                            <div class="desc">Lujo</div>
+                        </div>
+                    </button>
+
+                    <button class="btn-gestion bg-gold" onclick="abrirBlackjack()">
+                        <div class="icon">🎰</div>
+                        <div class="info">
+                            <div class="title">Casino</div>
+                            <div class="desc">Jugar</div>
+                        </div>
+                    </button>
+                    <button class="btn-gestion bg-green" onclick="abrirLogros()">
+                        <div class="icon">🏆</div>
+                        <div class="info">
+                            <div class="title">Logros</div>
+                            <div class="desc">Ver</div>
+                        </div>
+                    </button>
+                    <button class="btn-gestion bg-red" onclick="activarDemolicion()">
+                        <div class="icon">🏚️</div>
+                        <div class="info">
+                            <div class="title">Vender</div>
+                            <div class="desc">Objeto</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-header click-header" onclick="toggleCrafting()" style="margin-top: 10px;">
+                <span>🏭 Taller</span> <span id="crafting-arrow">▼</span>
+            </div>
+            <div id="crafting-menu" class="panel-section grow collapsible">
+                <div id="crafting-list" class="shop-list"></div>
+            </div>
+
+            <div class="panel-section mt-auto">
+                <button class="btn-pause" onclick="togglePause()">⏸️ PAUSA</button>
+            </div>
+        </aside>
+    </div>
+
+    <div class="dock-container">
+        <div id="island-left" class="dynamic-island side hidden"><span id="toast-msg">...</span></div>
+        <div class="dynamic-island center">
+            <div class="island-item">
+                💰 <span id="money-display">0</span>
+                <small id="mps-display" style="color:#00E676; font-size:0.7rem; margin-left:5px;">+$0/s</small>
+            </div>
+
+            <div class="divider"></div>
+            <div class="island-item level-box">⭐ <span id="level-display">1</span>
+                <div class="xp-bar-bg">
+                    <div id="xp-bar-fill" class="xp-fill"></div>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="island-item" id="season-pill">📅 <span id="season-display">Primavera</span></div>
+            <div class="divider"></div>
+            <div class="island-item" onclick="triggerEasterEgg()" style="cursor:pointer;">🌞 <span
+                    id="day-display">1</span></div>
+        </div>
+        <div id="island-right" class="dynamic-island side hidden">
+            <span id="hand-icon"></span>
+            <span id="hand-name" style="margin-left:5px; font-size:0.8rem;"></span>
+            <button class="btn-cancel-tool" onclick="cancelarMano()">✖</button>
+        </div>
+    </div>
+
+    <div id="luxury-modal" class="levelup-overlay hidden">
+        <div class="levelup-box" style="max-width: 650px;">
+            <h1>💎 Exposición Mítica</h1>
+            <p>Gasta tu fortuna en objetos de prestigio.</p>
+            <div id="luxury-list" class="upgrade-grid"></div>
+            <button class="btn-resume" style="margin-top:20px" onclick="cerrarExposicion()">Cerrar</button>
+        </div>
+    </div>
+
+    <div id="pet-modal" class="levelup-overlay hidden">
+        <div class="levelup-box">
+            <h1>🐾 ¡COMPAÑERO!</h1>
+            <div class="pet-choices">
+                <div class="pet-card" onclick="elegirMascota('dog')">
+                    <div class="pet-icon">🐶</div>
+                    <h3>Perro</h3>
+                </div>
+                <div class="pet-card" onclick="elegirMascota('cat')">
+                    <div class="pet-icon">🐱</div>
+                    <h3>Gato</h3>
+                </div>
+            </div><input type="text" id="pet-name-input" placeholder="Nombre..." maxlength="10">
+        </div>
+    </div>
+    <div id="bj-modal" class="levelup-overlay hidden">
+        <div class="levelup-box bj-table">
+            <h1>🃏 BLACKJACK</h1>
+            <div class="bj-area">
+                <div class="bj-hand"><small>Croupier</small>
+                    <div id="dealer-cards" class="cards-row"></div>
+                    <div id="dealer-score">?</div>
+                </div>
+                <div class="bj-hand"><small>Tú</small>
+                    <div id="player-cards" class="cards-row"></div>
+                    <div id="player-score">0</div>
+                </div>
+            </div>
+
+            <div id="bj-controls">
+                <input type="number" id="bj-bet" value="100" min="100">
+                <button class="btn-resume" onclick="bjDeal()">JUGAR</button>
+            </div>
+
+            <div id="bj-actions" class="hidden" style="display:flex; gap:10px; justify-content:center;">
+                <button class="btn-resume bg-green" onclick="bjHit()">PEDIR</button>
+                <button class="btn-resume bg-red" onclick="bjStand()">PLANTARSE</button>
+                <button class="btn-resume bg-purple" id="btn-double" onclick="bjDouble()">DOBLAR (x2)</button>
+            </div>
+
+            <p id="bj-msg"></p>
+            <button class="btn-reset" onclick="cerrarBlackjack()">Salir</button>
+        </div>
+    </div>
+    <div id="levelup-modal" class="levelup-overlay hidden">
+        <div class="levelup-box">
+            <h1>🌟 ¡NIVEL SUBIDO! 🌟</h1>
+            <h2 id="new-level-title"></h2>
+            <div id="unlocked-items" class="unlocked-grid"></div><button class="btn-resume"
+                onclick="closeLevelUp()">¡GENIAL!</button>
+        </div>
+    </div>
+    <div id="lab-modal" class="levelup-overlay hidden">
+        <div class="levelup-box">
+            <h1>🧬 Laboratorio</h1>
+            <div id="upgrades-list" class="upgrade-grid"></div><button class="btn-resume" style="margin-top:20px"
+                onclick="cerrarLaboratorio()">Cerrar</button>
+        </div>
+    </div>
+    <div id="achieve-modal" class="levelup-overlay hidden">
+        <div class="levelup-box" style="max-width:600px;">
+            <h1>🏆 Trofeos</h1>
+            <div id="achieve-list" class="shop-list" style="height:300px;"></div><button class="btn-resume"
+                onclick="document.getElementById('achieve-modal').classList.add('hidden')">Cerrar</button>
+        </div>
+    </div>
+    <div id="npc-modal" class="levelup-overlay hidden">
+        <div class="levelup-box">
+            <h1>👋 ¡Visita!</h1>
+            <p id="npc-msg"></p>
+            <div style="font-size:3rem; margin:10px;">🤠</div><button class="btn-resume" id="btn-npc-accept">✅
+                ACEPTAR</button><button class="btn-reset" onclick="cerrarNPC()">❌ Rechazar</button>
+        </div>
+    </div>
+    <div id="pause-menu" class="pause-overlay hidden">
+        <div class="pause-box">
+            <h1>⏸️ PAUSA</h1>
+            <div class="pause-stats">
+                <p>Dinero: <span id="pause-money"></span></p>
+                <p>Total: <span id="pause-total"></span></p>
+            </div>
+
+            <button class="btn-resume" onclick="togglePause()">▶️ CONTINUAR</button>
+
+            <button class="btn-data" id="btn-particles" onclick="toggleParticles()"
+                style="background:#FF9800; color:white; margin-bottom:10px; width:100%;">✨ Partículas: ON</button>
+
+            <div class="save-controls">
+                <button class="btn-data btn-export" onclick="exportSave()">💾 Guardar</button>
+                <button class="btn-data btn-import" onclick="importSave()">📂 Cargar</button>
+            </div>
+
+            <button class="btn-reset" onclick="borrar()">🗑️ BORRAR TODO</button>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/logic.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>

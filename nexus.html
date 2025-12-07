@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS: ULTIMATE</title>
+
+    <style>
+        /* --- CORE SYSTEM STYLES --- */
+        :root {
+            --neon-green: #0f0;
+            --neon-pink: #f0f;
+            --neon-blue: #0ff;
+            --bg-dark: #000000;
+            --panel-bg: rgba(10, 10, 10, 0.7);
+            --border-color: rgba(0, 255, 255, 0.3);
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: var(--neon-blue) var(--bg-dark);
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-dark);
+            color: var(--neon-blue);
+            font-family: var(--font-mono);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* --- HYPERSPACE BACKGROUND --- */
+        #warp-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* --- GLITCH HEADER --- */
+        header {
+            text-align: center;
+            padding: 4rem 1rem;
+            position: relative;
+            z-index: 10;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        h1 {
+            font-size: 4rem;
+            margin: 0;
+            position: relative;
+            display: inline-block;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        h1::before,
+        h1::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+        }
+
+        h1::before {
+            left: 2px;
+            text-shadow: -1px 0 var(--neon-pink);
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+
+        h1::after {
+            left: -2px;
+            text-shadow: -1px 0 var(--neon-green);
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% {
+                clip: rect(10px, 9999px, 30px, 0);
+            }
+
+            20% {
+                clip: rect(80px, 9999px, 100px, 0);
+            }
+
+            40% {
+                clip: rect(30px, 9999px, 60px, 0);
+            }
+
+            60% {
+                clip: rect(60px, 9999px, 10px, 0);
+            }
+
+            80% {
+                clip: rect(100px, 9999px, 5px, 0);
+            }
+
+            100% {
+                clip: rect(50px, 9999px, 80px, 0);
+            }
+        }
+
+        @keyframes glitch-anim-2 {
+            0% {
+                clip: rect(60px, 9999px, 80px, 0);
+            }
+
+            20% {
+                clip: rect(10px, 9999px, 50px, 0);
+            }
+
+            40% {
+                clip: rect(90px, 9999px, 10px, 0);
+            }
+
+            60% {
+                clip: rect(20px, 9999px, 70px, 0);
+            }
+
+            80% {
+                clip: rect(50px, 9999px, 20px, 0);
+            }
+
+            100% {
+                clip: rect(10px, 9999px, 90px, 0);
+            }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* --- CYBER PANELS --- */
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            position: relative;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+            transition: 0.3s;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid var(--neon-blue);
+            border-left: 2px solid var(--neon-blue);
+        }
+
+        .panel::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            border-bottom: 2px solid var(--neon-blue);
+            border-right: 2px solid var(--neon-blue);
+        }
+
+        .panel:hover {
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);
+            border-color: var(--neon-green);
+        }
+
+        h2 {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+            color: var(--neon-green);
+            text-transform: uppercase;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+
+        /* --- AUDIO VISUALIZER --- */
+        #audio-canvas {
+            width: 100%;
+            height: 150px;
+            background: black;
+            border: 1px solid #333;
+        }
+
+        /* --- HARDWARE STATS --- */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: rgba(0, 255, 255, 0.05);
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            color: white;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--neon-blue);
+        }
+
+        /* --- WEBCAM FEED --- */
+        #video-container {
+            width: 100%;
+            height: 200px;
+            background: #000;
+            overflow: hidden;
+            position: relative;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%) contrast(1.2) brightness(1.1) drop-shadow(0 0 5px var(--neon-green));
+            transform: scaleX(-1);
+            /* Espejo */
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(0, 255, 0, 0.5);
+            animation: scan 2s linear infinite;
+            pointer-events: none;
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+            }
+
+            100% {
+                top: 100%;
+            }
+        }
+
+        /* --- CONTROLS --- */
+        button {
+            background: transparent;
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 10px 20px;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        button:hover {
+            background: var(--neon-blue);
+            color: black;
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+
+        /* --- NOTIFICATION AREA --- */
+        #console-log {
+            font-size: 0.8rem;
+            height: 100px;
+            overflow-y: auto;
+            color: #aaa;
+            border-top: 1px solid #333;
+            margin-top: 10px;
+            padding-top: 5px;
+            font-family: monospace;
+        }
+
+        .log-entry {
+            margin-bottom: 2px;
+        }
+
+        .log-success {
+            color: var(--neon-green);
+        }
+
+        .log-warn {
+            color: var(--neon-pink);
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="warp-canvas"></canvas>
+
+    <header>
+        <h1 data-text="NEXUS ULTIMATE">NEXUS ULTIMATE</h1>
+        <p style="letter-spacing: 5px; color: var(--neon-green);">SISTEMA OPERATIVO WEB v9.0</p>
+    </header>
+
+    <div class="container">
+
+        <!-- PANEL 1: AUDIO SYNTHESIS -->
+        <div class="panel">
+            <h2>1. Synesthesia Core</h2>
+            <p>Generador de ondas de audio y visualización de frecuencia en tiempo real. Cuidado con el volumen.</p>
+            <canvas id="audio-canvas"></canvas>
+            <div style="display: flex; gap: 10px;">
+                <button id="btn-audio-start">INICIAR SISTEMA</button>
+                <button id="btn-audio-stop"
+                    style="border-color: var(--neon-pink); color: var(--neon-pink);">APAGAR</button>
+            </div>
+            <input type="range" id="freq-slider" min="50" max="1000" value="440"
+                style="width: 100%; margin-top: 15px; accent-color: var(--neon-blue);">
+            <label>Frecuencia Oscilador</label>
+        </div>
+
+        <!-- PANEL 2: HARDWARE ACCESS -->
+        <div class="panel">
+            <h2>2. Bio-Metrics</h2>
+            <p>Escaneando hardware del dispositivo anfitrión...</p>
+
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div class="stat-value" id="cpu-cores">--</div>
+                    <div class="stat-label">NÚCLEOS CPU</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="ram-val">--</div>
+                    <div class="stat-label">RAM (GB)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="battery-level">--</div>
+                    <div class="stat-label">ENERGÍA</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="net-status">ON</div>
+                    <div class="stat-label">RED</div>
+                </div>
+            </div>
+            <div id="battery-bar" style="height: 5px; background: #333; margin-top: 10px; width: 100%;">
+                <div id="battery-fill"
+                    style="height: 100%; width: 0%; background: var(--neon-green); transition: width 0.5s;"></div>
+            </div>
+        </div>
+
+        <!-- PANEL 3: CYBER MIRROR -->
+        <div class="panel">
+            <h2>3. Cyber Vision</h2>
+            <p>Acceso directo a getUserMedia() con post-procesamiento CSS.</p>
+            <div id="video-container">
+                <div class="scan-line"></div>
+                <video id="webcam" autoplay playsinline muted></video>
+                <div id="cam-error"
+                    style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color: var(--neon-pink); text-align: center;">
+                    [SEÑAL PERDIDA]<br>GENERANDO RUIDO ESTÁTICO
+                </div>
+                <canvas id="noise-canvas"
+                    style="position:absolute; top:0; left:0; width:100%; height:100%; display:none;"></canvas>
+            </div>
+            <button id="btn-cam">ACTIVAR CÁMARA</button>
+        </div>
+
+        <!-- PANEL 4: TERMINAL -->
+        <div class="panel">
+            <h2>4. System Log</h2>
+            <p>Registro de eventos del navegador.</p>
+            <div id="console-log"></div>
+            <button onclick="logSystem('Prueba manual iniciada por usuario.', 'normal')">Test Log</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- UTILS: LOGGING ---
+        const consoleLog = document.getElementById('console-log');
+        function logSystem(msg, type = 'success') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const time = new Date().toLocaleTimeString();
+
+            if (type === 'success') entry.classList.add('log-success');
+            if (type === 'error') entry.classList.add('log-warn');
+
+            entry.innerHTML = `[${time}] > ${msg}`;
+            consoleLog.prepend(entry);
+        }
+
+        // --- 1. WARP SPEED BACKGROUND (CANVAS) ---
+        const canvas = document.getElementById('warp-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let stars = [];
+        let speed = 2;
+        let mouseX = 0;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            stars = [];
+            for (let i = 0; i < 800; i++) {
+                stars.push({
+                    x: Math.random() * width - width / 2,
+                    y: Math.random() * height - height / 2,
+                    z: Math.random() * width
+                });
+            }
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', (e) => {
+            // Mouse afecta la velocidad
+            const center = window.innerWidth / 2;
+            speed = 2 + (Math.abs(e.clientX - center) / center) * 20;
+        });
+
+        resize();
+
+        function drawWarp() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; // Trail effect
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.fillStyle = '#ffffff';
+
+            stars.forEach(star => {
+                star.z -= speed;
+                if (star.z <= 0) {
+                    star.z = width;
+                    star.x = Math.random() * width - width / 2;
+                    star.y = Math.random() * height - height / 2;
+                }
+
+                const x = (star.x / star.z) * width + width / 2;
+                const y = (star.y / star.z) * height + height / 2;
+                const size = (1 - star.z / width) * 3;
+
+                // Color shift based on speed
+                const r = 255;
+                const g = Math.max(0, 255 - speed * 5);
+                const b = Math.max(0, 255 - speed * 5);
+                ctx.fillStyle = `rgb(${r},${g},${b})`;
+
+                if (x > 0 && x < width && y > 0 && y < height) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            requestAnimationFrame(drawWarp);
+        }
+        drawWarp();
+
+        // --- 2. AUDIO API (VISUALIZER + OSCILLATOR) ---
+        let audioCtx, oscillator, analyser, dataArray, bufferLength;
+        let isAudioOn = false;
+        const audioCanvas = document.getElementById('audio-canvas');
+        const audioCtxCanvas = audioCanvas.getContext('2d');
+        const btnStart = document.getElementById('btn-audio-start');
+        const btnStop = document.getElementById('btn-audio-stop');
+        const freqSlider = document.getElementById('freq-slider');
+
+        function initAudio() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
+            bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+            logSystem("AudioContext inicializado.", 'success');
+        }
+
+        function drawVisualizer() {
+            if (!isAudioOn) return;
+            requestAnimationFrame(drawVisualizer);
+            analyser.getByteFrequencyData(dataArray);
+
+            audioCtxCanvas.fillStyle = 'rgb(0, 0, 0)';
+            audioCtxCanvas.fillRect(0, 0, audioCanvas.width, audioCanvas.height);
+
+            const barWidth = (audioCanvas.width / bufferLength) * 2.5;
+            let barHeight;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                barHeight = dataArray[i] / 2;
+                audioCtxCanvas.fillStyle = `rgb(${barHeight + 100}, 50, 255)`;
+                audioCtxCanvas.fillRect(x, audioCanvas.height - barHeight, barWidth, barHeight);
+                x += barWidth + 1;
+            }
+        }
+
+        btnStart.addEventListener('click', () => {
+            initAudio();
+            if (isAudioOn) return;
+
+            oscillator = audioCtx.createOscillator();
+            oscillator.type = 'sawtooth'; // Sonido "cyberpunk"
+            oscillator.frequency.value = freqSlider.value;
+
+            // Gain node para volumen bajo
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.value = 0.1;
+
+            oscillator.connect(gainNode);
+            gainNode.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            oscillator.start();
+            isAudioOn = true;
+            drawVisualizer();
+            logSystem("Oscilador activado. Visualización en curso.", 'success');
+        });
+
+        btnStop.addEventListener('click', () => {
+            if (oscillator) {
+                oscillator.stop();
+                oscillator.disconnect();
+                isAudioOn = false;
+                // Limpiar canvas
+                audioCtxCanvas.fillStyle = 'black';
+                audioCtxCanvas.fillRect(0, 0, audioCanvas.width, audioCanvas.height);
+                logSystem("Oscilador detenido.", 'error');
+            }
+        });
+
+        freqSlider.addEventListener('input', (e) => {
+            if (oscillator) {
+                oscillator.frequency.value = e.target.value;
+            }
+        });
+
+        // --- 3. HARDWARE INFO ---
+        if (navigator.hardwareConcurrency) {
+            document.getElementById('cpu-cores').textContent = navigator.hardwareConcurrency;
+        }
+
+        if (navigator.deviceMemory) {
+            document.getElementById('ram-val').textContent = navigator.deviceMemory;
+        } else {
+            document.getElementById('ram-val').textContent = "N/A";
+        }
+
+        // Battery API
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(battery => {
+                function updateBattery() {
+                    const level = Math.round(battery.level * 100);
+                    document.getElementById('battery-level').textContent = level + '%';
+                    document.getElementById('battery-fill').style.width = level + '%';
+
+                    if (battery.charging) {
+                        document.getElementById('battery-level').textContent += ' ⚡';
+                        document.getElementById('battery-fill').style.backgroundColor = '#0f0';
+                    }
+                    logSystem(`Batería actualizada: ${level}%`, 'success');
+                }
+                updateBattery();
+                battery.addEventListener('levelchange', updateBattery);
+                battery.addEventListener('chargingchange', updateBattery);
+            });
+        } else {
+            document.getElementById('battery-level').textContent = "??";
+        }
+
+        // Network
+        window.addEventListener('online', () => document.getElementById('net-status').textContent = 'ONLINE');
+        window.addEventListener('offline', () => {
+            document.getElementById('net-status').textContent = 'OFFLINE';
+            document.getElementById('net-status').style.color = 'red';
+            logSystem("CONEXIÓN DE RED PERDIDA", 'error');
+        });
+
+        // --- 4. WEBCAM & NOISE FALLBACK ---
+        const video = document.getElementById('webcam');
+        const noiseCanvas = document.getElementById('noise-canvas');
+        const camBtn = document.getElementById('btn-cam');
+        const camError = document.getElementById('cam-error');
+
+        function startNoise() {
+            noiseCanvas.style.display = 'block';
+            camError.style.display = 'block';
+            noiseCanvas.width = 300;
+            noiseCanvas.height = 200;
+            const nCtx = noiseCanvas.getContext('2d');
+
+            function noiseLoop() {
+                const w = noiseCanvas.width;
+                const h = noiseCanvas.height;
+                const idata = nCtx.createImageData(w, h);
+                const buffer32 = new Uint32Array(idata.data.buffer);
+                const len = buffer32.length;
+
+                for (let i = 0; i < len; i++) {
+                    if (Math.random() < 0.5) buffer32[i] = 0xff000000;
+                    else buffer32[i] = 0xffffffff;
+                }
+                nCtx.putImageData(idata, 0, 0);
+                requestAnimationFrame(noiseLoop);
+            }
+            noiseLoop();
+        }
+
+        camBtn.addEventListener('click', async () => {
+            logSystem("Solicitando acceso a óptica...", 'normal');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                logSystem("Acceso a cámara concedido.", 'success');
+                noiseCanvas.style.display = 'none';
+                camError.style.display = 'none';
+            } catch (err) {
+                logSystem("Acceso denegado o no disponible: " + err, 'error');
+                startNoise();
+            }
+        });
+
+        // Intro Log
+        logSystem("Sistema NEXUS v9.0 cargado correctamente.");
+        logSystem("Motor de renderizado: CSS3 + Canvas2D");
+
+    </script>
+</body>
+
+</html>

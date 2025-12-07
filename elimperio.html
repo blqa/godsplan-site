@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EL IMPERIO: EMPORIO TOTAL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rajdhani:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* --- ESTILOS --- */
+        :root {
+            --gold: #ffd700;
+            --neon-red: #ff003c;
+            --neon-blue: #00f3ff;
+            --neon-green: #00ff66;
+            --bg-dark: #050505;
+            --panel-bg: rgba(15, 15, 15, 0.95);
+            --border: rgba(255, 255, 255, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            color: #e0e0e0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%);
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 2px;
+        }
+
+        /* Dynamic Island */
+        .dynamic-island {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            padding: 8px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+            white-space: nowrap;
+        }
+
+        .stat-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.6rem;
+            color: #888;
+            letter-spacing: 2px;
+            margin-bottom: 2px;
+        }
+
+        .stat-val {
+            font-family: 'Black Ops One';
+            font-size: 1.2rem;
+            color: var(--gold);
+        }
+
+        .stat-val.debt {
+            color: var(--neon-red);
+        }
+
+        /* Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr 280px;
+            gap: 15px;
+            padding: 80px 15px 15px;
+            height: 100%;
+            width: 100%;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .panel,
+        .game-screen {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .panel-header {
+            padding: 12px;
+            background: linear-gradient(90deg, rgba(0, 0, 0, 0.9), transparent);
+            border-bottom: 1px solid var(--border);
+            font-family: 'Black Ops One';
+            color: var(--gold);
+            font-size: 1.1rem;
+            text-align: center;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .panel-content {
+            padding: 10px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Botones */
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 10px;
+            font-family: 'Black Ops One';
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.2s;
+            width: 100%;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-action {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            font-size: 1.1rem;
+        }
+
+        .btn-action:hover:not(:disabled) {
+            background: #fff;
+            box-shadow: 0 0 15px var(--gold);
+        }
+
+        .btn-danger {
+            border-color: #500;
+            color: var(--neon-red);
+        }
+
+        /* Tabs */
+        .tabs-nav {
+            display: flex;
+            background: rgba(0, 0, 0, 0.6);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            color: #666;
+            border: none;
+            cursor: pointer;
+            font-family: 'Black Ops One';
+            transition: 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+            background: linear-gradient(to top, rgba(255, 215, 0, 0.1), transparent);
+        }
+
+        /* Shop */
+        .shop-filter-scroll {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        .filter-btn {
+            background: #222;
+            border: 1px solid #333;
+            color: #aaa;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Rajdhani';
+            font-weight: bold;
+        }
+
+        .filter-btn.active {
+            background: var(--gold);
+            color: #000;
+            border-color: var(--gold);
+        }
+
+        .shop-item {
+            background: linear-gradient(45deg, rgba(30, 30, 30, 0.6), rgba(10, 10, 10, 0.8));
+            border: 1px solid #333;
+            border-left: 3px solid #444;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shop-item:hover {
+            transform: translateX(3px);
+            border-color: #666;
+            background: #222;
+        }
+
+        .shop-item.owned {
+            border-left-color: var(--neon-green);
+            opacity: 0.8;
+        }
+
+        /* Game Areas */
+        #content-area {
+            padding: 15px;
+            height: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Blackjack Cards */
+        .card-flex {
+            display: flex;
+            gap: 8px;
+            height: 90px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .playing-card {
+            width: 60px;
+            height: 85px;
+            background: #fff;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: #000;
+            font-family: serif;
+            font-weight: bold;
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        .playing-card.red {
+            color: #d00;
+        }
+
+        .playing-card-back {
+            background: repeating-linear-gradient(45deg, #000 0, #000 10px, #222 10px, #222 20px);
+            border: 2px solid #fff;
+        }
+
+        /* Heist Cards */
+        .heist-card {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .heist-card:hover:not(.locked) {
+            border-color: var(--neon-blue);
+        }
+
+        .heist-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #222;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--neon-blue);
+            width: 0%;
+        }
+
+        /* Toasts */
+        #toast-area {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: rgba(0, 0, 0, 0.9);
+            border-left: 4px solid #fff;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+                padding-top: 70px;
+            }
+
+            .panel {
+                max-height: 250px;
+            }
+
+            .dynamic-island {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="toast-area"></div>
+
+    <div class="dynamic-island">
+        <div class="stat-group">
+            <span class="stat-label">EFECTIVO</span>
+            <span class="stat-val" id="ui-cash">$0</span>
+        </div>
+        <div class="stat-group">
+            <span class="stat-label">DEUDA</span>
+            <span class="stat-val debt" id="ui-debt">$0</span>
+        </div>
+        <div class="stat-group">
+            <span class="stat-label">RANGO</span>
+            <span class="stat-val" style="color:#fff;" id="ui-rank">...</span>
+        </div>
+    </div>
+
+    <main class="main-layout">
+
+        <section class="panel">
+            <div class="panel-header">MERCADO NEGRO</div>
+            <div class="panel-content">
+                <div
+                    style="background:rgba(0,255,100,0.1); padding:10px; border-radius:6px; margin-bottom:10px; text-align:center;">
+                    <small style="color:#8f8;">INGRESOS PASIVOS</small>
+                    <div id="ui-passive" style="font-weight:bold; color:#bfb; font-size:1.1rem;">+$0/s</div>
+                </div>
+
+                <div class="shop-filter-scroll">
+                    <div class="filter-btn active" onclick="UI.filterShop('all', this)">TODO</div>
+                    <div class="filter-btn" onclick="UI.filterShop('personal', this)">PERSONAL</div>
+                    <div class="filter-btn" onclick="UI.filterShop('auto', this)">AUTOS</div>
+                    <div class="filter-btn" onclick="UI.filterShop('prop', this)">INMUEBLES</div>
+                    <div class="filter-btn" onclick="UI.filterShop('lujo', this)">LUJOS</div>
+                </div>
+
+                <div id="shop-container"></div>
+            </div>
+        </section>
+
+        <section class="game-screen">
+            <nav class="tabs-nav">
+                <button class="tab active" onclick="UI.switchTab('map', this)">🗺️ MAPA</button>
+                <button class="tab" onclick="UI.switchTab('blackjack', this)">♠️ 21</button>
+                <button class="tab" onclick="UI.switchTab('slots', this)">🎰 SLOTS</button>
+                <button class="tab" onclick="UI.switchTab('crypto', this)">📈 CRIPTO</button>
+            </nav>
+
+            <div id="content-area"></div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">ESTADO</div>
+            <div class="panel-content">
+                <div style="text-align:center; margin-bottom:15px; background:#111; padding:10px; border-radius:8px;">
+                    <div style="color:#666; font-size:0.7rem;">NIVEL DE BÚSQUEDA</div>
+                    <div id="wanted-level" style="color:#333; font-size:1.5rem; letter-spacing:5px;">☆☆☆☆☆</div>
+                </div>
+
+                <div
+                    style="border:1px solid #500; background:rgba(50,0,0,0.3); padding:10px; border-radius:8px; margin-bottom:15px;">
+                    <div style="color:var(--neon-red); font-weight:bold; font-size:0.9rem; margin-bottom:5px;">🦈
+                        PRESTAMISTA</div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn btn-danger" style="margin:0; font-size:0.8rem;"
+                            onclick="Game.takeLoan()">PEDIR (+50k)</button>
+                        <button class="btn" style="margin:0; font-size:0.8rem;" onclick="Game.payLoan()">PAGAR</button>
+                    </div>
+                </div>
+
+                <div id="emergency-work" style="display:none; margin-bottom:15px;">
+                    <button class="btn" style="background:#333;" onclick="Game.manualWork()">🧹 LIMPIAR BAÑOS
+                        (+$100)</button>
+                </div>
+
+                <div style="margin-top:auto; text-align:center;">
+                    <button class="btn" style="background:transparent; color:#555; font-size:0.8rem; border:none;"
+                        onclick="Game.reset()">RESET HARD</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        /** DATOS Y CONFIG **/
+        const CONSTANTS = {
+            shop: [
+                { id: 'p1', name: 'Halcón', cat: 'personal', price: 2000, income: 15, desc: 'Vigila la zona' },
+                { id: 'p2', name: 'Dealer', cat: 'personal', price: 10000, income: 50, desc: 'Mueve mercancía' },
+                { id: 'p3', name: 'Sicario', cat: 'personal', price: 50000, income: 180, desc: 'Seguridad privada' },
+                { id: 'v1', name: 'Italika 150z', cat: 'auto', price: 25000, income: 20, desc: 'Moto de trabajo' },
+                { id: 'v2', name: 'RZR Turbo', cat: 'auto', price: 500000, income: 100, desc: 'Para las dunas' },
+                { id: 'v3', name: 'Cheyenne High', cat: 'auto', price: 2000000, income: 300, desc: 'Blindada Nivel 5' },
+                { id: 'r1', name: 'Casa Seguridad', cat: 'prop', price: 400000, income: 80, desc: 'Escondite' },
+                { id: 'r2', name: 'Depa de Lujo', cat: 'prop', price: 5000000, income: 800, desc: 'Zona exclusiva' },
+                { id: 'l1', name: 'AK-47 Dorada', cat: 'lujo', price: 700000, desc: 'Puro estilo' }
+            ],
+            heists: [
+                { id: 'h1', name: 'TIENDA DE ESQUINA', cost: 0, reward: 500, risk: 0.1, cooldown: 5 },
+                { id: 'h2', name: 'LOCAL DE ROPA', cost: 1000, reward: 6000, risk: 0.3, cooldown: 30 },
+                { id: 'h3', name: 'CAMIÓN DE VALORES', cost: 10000, reward: 50000, risk: 0.5, cooldown: 120 },
+                { id: 'h4', name: 'BANCO CENTRAL', cost: 500000, reward: 3000000, risk: 0.8, cooldown: 600 }
+            ]
+        };
+
+        /** LÓGICA DEL JUEGO **/
+        const Game = {
+            state: {
+                cash: 500, debt: 0, inventory: [], cooldowns: {}, wanted: 0,
+                crypto: { btc: 45000, eth: 3000 }, wallet: { btc: 0, eth: 0 }
+            },
+            init: () => {
+                Game.load();
+                UI.init();
+                setInterval(() => { Game.passiveLoop(); Game.wantedDecay(); if (UI.tab === 'map') UI.renderMap(); }, 1000);
+                setInterval(Game.marketLoop, 5000);
+                setInterval(Game.debtLoop, 30000);
+                setInterval(Game.save, 10000);
+            },
+            spend: (n) => {
+                if (Game.state.cash >= n) { Game.state.cash -= n; UI.update(); return true; }
+                UI.toast("🚫 Falta feria, compa.", "error"); return false;
+            },
+            addCash: (n) => { Game.state.cash += n; UI.update(); },
+
+            // Acciones Básicas
+            buy: (id) => {
+                const i = CONSTANTS.shop.find(x => x.id === id);
+                if (Game.spend(i.price)) {
+                    Game.state.inventory.push(id);
+                    UI.toast(`Compraste: ${i.name}`, "success");
+                    UI.renderShop(UI.filter);
+                }
+            },
+            doHeist: (id) => {
+                const h = CONSTANTS.heists.find(x => x.id === id);
+                const now = Math.floor(Date.now() / 1000);
+                if (Game.state.cooldowns[id] && now < Game.state.cooldowns[id]) return UI.toast("Zona caliente, espera...", "error");
+
+                if (Game.spend(h.cost)) {
+                    UI.toast("🔫 Iniciando vuelta...", "info");
+                    setTimeout(() => {
+                        const win = Math.random() > h.risk;
+                        Game.state.cooldowns[id] = Math.floor(Date.now() / 1000) + h.cooldown;
+                        if (win) { Game.addCash(h.reward); UI.toast(`✅ ¡CORONAMOS! +${UI.fmt(h.reward)}`, "success"); }
+                        else { Game.state.wanted = Math.min(5, Game.state.wanted + 1); UI.toast("🚨 ¡LA LEY! Te cayó la tira.", "error"); }
+                        UI.update(); UI.renderMap();
+                    }, 1000);
+                }
+            },
+
+            // --- BLACKJACK LOGIC (AQUI ESTÁ WEY) ---
+            BJ: {
+                deck: [], pHand: [], dHand: [], active: false,
+                createDeck: () => {
+                    const suits = ['♥', '♦', '♣', '♠']; const vals = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+                    let d = [];
+                    for (let s of suits) for (let v of vals) d.push({ s, v, val: (parseInt(v) || (v === 'A' ? 11 : 10)) });
+                    return d.sort(() => Math.random() - 0.5);
+                },
+                calc: (h) => {
+                    let sum = h.reduce((a, b) => a + b.val, 0);
+                    let aces = h.filter(c => c.v === 'A').length;
+                    while (sum > 21 && aces > 0) { sum -= 10; aces--; }
+                    return sum;
+                },
+                start: () => {
+                    const bet = parseInt(document.getElementById('bj-bet').value) || 0;
+                    if (bet <= 0) return UI.toast("Apuesta algo real", "error");
+                    if (!Game.spend(bet)) return;
+
+                    Game.BJ.deck = Game.BJ.createDeck();
+                    Game.BJ.pHand = [Game.BJ.deck.pop(), Game.BJ.deck.pop()];
+                    Game.BJ.dHand = [Game.BJ.deck.pop(), Game.BJ.deck.pop()];
+                    Game.BJ.active = true;
+                    UI.renderBJ();
+
+                    if (Game.BJ.calc(Game.BJ.pHand) === 21) Game.BJ.end(true);
+                },
+                hit: () => {
+                    if (!Game.BJ.active) return;
+                    Game.BJ.pHand.push(Game.BJ.deck.pop());
+                    UI.renderBJ();
+                    if (Game.BJ.calc(Game.BJ.pHand) > 21) Game.BJ.end(false);
+                },
+                stand: () => {
+                    if (!Game.BJ.active) return;
+                    // Dealer hits on soft 17
+                    while (Game.BJ.calc(Game.BJ.dHand) < 17) Game.BJ.dHand.push(Game.BJ.deck.pop());
+                    const p = Game.BJ.calc(Game.BJ.pHand);
+                    const d = Game.BJ.calc(Game.BJ.dHand);
+
+                    if (d > 21) Game.BJ.end(true);
+                    else if (p > d) Game.BJ.end(true);
+                    else if (p === d) Game.BJ.end('push');
+                    else Game.BJ.end(false);
+                },
+                end: (res) => {
+                    Game.BJ.active = false;
+                    UI.renderBJ(true); // Reveal dealer
+                    const bet = parseInt(document.getElementById('bj-bet').value);
+                    if (res === true) {
+                        Game.addCash(bet * 2);
+                        UI.toast("GANASTE", "success");
+                    } else if (res === 'push') {
+                        Game.addCash(bet);
+                        UI.toast("EMPATE (PUSH)", "warning");
+                    } else {
+                        UI.toast("LA CASA GANA", "error");
+                    }
+                }
+            },
+
+            // Finanzas y Loops
+            takeLoan: () => { if (Game.state.debt < 200000) { Game.state.cash += 50000; Game.state.debt += 50000; UI.toast("💰 Préstamo recibido", "warning"); UI.update(); } else UI.toast("Debes mucho ya", "error"); },
+            payLoan: () => { const p = Math.min(Game.state.cash, Game.state.debt); if (p > 0) { Game.state.cash -= p; Game.state.debt -= p; UI.update(); } },
+            manualWork: () => { Game.addCash(100); UI.toast("+100 Pesos honestos", "success"); },
+
+            passiveLoop: () => {
+                let inc = 0; CONSTANTS.shop.forEach(i => { if (i.income) inc += (i.income * Game.state.inventory.filter(id => id === i.id).length); });
+                if (inc > 0) { Game.addCash(inc); document.getElementById('ui-passive').innerText = `+${UI.fmt(inc)}/s`; }
+            },
+            marketLoop: () => { ['btc', 'eth'].forEach(k => { Game.state.crypto[k] = Math.max(100, Math.floor(Game.state.crypto[k] * (1 + (Math.random() - 0.45) * 0.1))); }); if (UI.tab === 'crypto') UI.renderCrypto(); },
+            debtLoop: () => { if (Game.state.debt > 0) { Game.state.debt = Math.floor(Game.state.debt * 1.05); UI.toast("📉 Intereses aplicados", "error"); UI.update(); } },
+            wantedDecay: () => { if (Game.state.wanted > 0 && Math.random() > 0.9) { Game.state.wanted--; UI.update(); } },
+
+            save: () => localStorage.setItem('imperio_v4', JSON.stringify(Game.state)),
+            load: () => { const d = localStorage.getItem('imperio_v4'); if (d) Game.state = { ...Game.state, ...JSON.parse(d) }; },
+            reset: () => { if (confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
+        };
+
+        /** INTERFAZ **/
+        const UI = {
+            tab: 'map', filter: 'all',
+            fmt: (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n),
+            init: () => { UI.update(); UI.renderShop('all'); UI.switchTab('map'); },
+            toast: (msg, type) => {
+                const d = document.createElement('div'); d.className = 'toast';
+                d.style.borderLeftColor = type === 'error' ? '#f00' : (type === 'success' ? '#0f0' : '#fc0');
+                d.innerText = msg; document.getElementById('toast-area').appendChild(d); setTimeout(() => d.remove(), 3000);
+            },
+            update: () => {
+                document.getElementById('ui-cash').innerText = UI.fmt(Game.state.cash);
+                document.getElementById('ui-debt').innerText = UI.fmt(Game.state.debt);
+                let r = "Mecánico"; if (Game.state.cash > 50000) r = "Puntero"; if (Game.state.cash > 1000000) r = "Jefe de Plaza"; if (Game.state.cash > 50000000) r = "CAPO";
+                document.getElementById('ui-rank').innerText = r;
+                document.getElementById('wanted-level').innerText = "★".repeat(Game.state.wanted) + "☆".repeat(5 - Game.state.wanted);
+                document.getElementById('wanted-level').style.color = Game.state.wanted > 0 ? '#f00' : '#333';
+                document.getElementById('emergency-work').style.display = Game.state.cash < 500 ? 'block' : 'none';
+            },
+            switchTab: (t, el) => {
+                UI.tab = t; document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+                if (el) el.classList.add('active');
+                const area = document.getElementById('content-area'); area.innerHTML = '';
+                if (t === 'map') UI.renderMap();
+                if (t === 'blackjack') UI.renderBJ();
+                if (t === 'slots') UI.renderSlots();
+                if (t === 'crypto') UI.renderCrypto();
+            },
+            filterShop: (cat, el) => { UI.filter = cat; document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active')); if (el) el.classList.add('active'); UI.renderShop(cat); },
+
+            // RENDERS
+            renderShop: (cat) => {
+                const c = document.getElementById('shop-container'); c.innerHTML = '';
+                CONSTANTS.shop.forEach(i => {
+                    if (cat !== 'all' && i.cat !== cat) return;
+                    const count = Game.state.inventory.filter(x => x === i.id).length;
+                    const d = document.createElement('div'); d.className = `shop-item ${count > 0 ? 'owned' : ''}`;
+                    d.onclick = () => Game.buy(i.id);
+                    d.innerHTML = `<div><div style="font-weight:bold; color:#fff;">${i.name} <span style="color:var(--gold)">x${count}</span></div><div style="font-size:0.7rem; color:#888;">${i.desc} | <span style="color:#bfb">+$${i.income || 0}/s</span></div></div><div style="font-family:'Rajdhani'; font-weight:bold; color:var(--gold);">${UI.fmt(i.price)}</div>`;
+                    c.appendChild(d);
+                });
+            },
+            renderMap: () => {
+                const c = document.getElementById('content-area');
+                const now = Math.floor(Date.now() / 1000);
+                c.innerHTML = '<h3 style="text-align:center; color:var(--gold); margin-top:0;">OPERACIONES</h3>';
+                CONSTANTS.heists.forEach(h => {
+                    const cdEnd = Game.state.cooldowns[h.id] || 0; const isCD = now < cdEnd; const left = cdEnd - now;
+                    const d = document.createElement('div'); d.className = `heist-card ${isCD ? 'locked' : ''}`;
+                    if (!isCD) d.onclick = () => Game.doHeist(h.id);
+                    d.innerHTML = `<div style="display:flex; justify-content:space-between;"><span style="color:#fff; font-weight:bold;">${h.name}</span><span style="color:${isCD ? '#666' : 'var(--gold)'}">${isCD ? `⏳ ${left}s` : UI.fmt(h.reward)}</span></div><div style="font-size:0.8rem; color:#888;">Riesgo: ${h.risk * 100}% | Costo: ${UI.fmt(h.cost)}</div>${isCD ? `<div class="progress-bar"><div class="progress-fill" style="width:${100 - (left / h.cooldown * 100)}%"></div></div>` : ''}`;
+                    c.appendChild(d);
+                });
+            },
+            renderBJ: (reveal = false) => {
+                const c = document.getElementById('content-area');
+                if (!Game.BJ.active && !reveal && c.innerHTML === '') {
+                    // Pantalla de inicio de BJ
+                    c.innerHTML = `
+                        <div style="text-align:center; padding:20px; flex:1; display:flex; flex-direction:column; justify-content:center;">
+                            <h2 style="color:var(--gold); font-size:2rem; margin:0;">BLACKJACK 21</h2>
+                            <p style="color:#888;">Apuesta mínima $100</p>
+                            <input type="number" id="bj-bet" value="1000" style="background:#000; border:1px solid #444; color:#fff; padding:15px; font-size:1.2rem; text-align:center; width:100%; border-radius:8px; margin:20px 0;">
+                            <button class="btn btn-action" onclick="Game.BJ.start()">REPARTIR</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Pantalla de juego
+                if (Game.BJ.active || reveal) {
+                    const renderHand = (h, hideFirst) => h.map((card, i) => {
+                        if (hideFirst && i === 0) return `<div class="playing-card playing-card-back"></div>`;
+                        return `<div class="playing-card ${['♥', '♦'].includes(card.s) ? 'red' : ''}">${card.v}${card.s}</div>`;
+                    }).join('');
+
+                    c.innerHTML = `
+                        <div style="text-align:center; padding:10px; flex:1; display:flex; flex-direction:column;">
+                            <small style="color:#888;">CASA (${reveal ? Game.BJ.calc(Game.BJ.dHand) : '?'})</small>
+                            <div class="card-flex">${renderHand(Game.BJ.dHand, !reveal)}</div>
+                            
+                            <div style="flex:1;"></div>
+                            
+                            <div class="card-flex">${renderHand(Game.BJ.pHand, false)}</div>
+                            <small style="color:#888;">TÚ (${Game.BJ.calc(Game.BJ.pHand)})</small>
+                            
+                            <div style="margin-top:20px; display:flex; gap:10px;">
+                                <button class="btn btn-action" onclick="Game.BJ.hit()" ${!Game.BJ.active ? 'disabled' : ''}>PEDIR</button>
+                                <button class="btn" style="border-color:var(--neon-red);" onclick="Game.BJ.stand()" ${!Game.BJ.active ? 'disabled' : ''}>PLANTAR</button>
+                                ${!Game.BJ.active ? `<button class="btn" onclick="UI.renderBJ(false); document.getElementById('content-area').innerHTML=''; UI.switchTab('blackjack')">OTRA VEZ</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+            renderCrypto: () => {
+                const c = document.getElementById('content-area');
+                c.innerHTML = '<h3 style="text-align:center; color:var(--neon-blue); margin-top:0;">MERCADO CRIPTO</h3>';
+                ['btc', 'eth'].forEach(k => {
+                    const d = document.createElement('div'); d.style = "background:#111; padding:15px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;";
+                    d.innerHTML = `<div><div style="color:var(--neon-blue); font-weight:bold;">${k.toUpperCase()}</div><div style="color:#fff; font-size:1.2rem;">$${Game.state.crypto[k]}</div></div><div style="text-align:right;"><div style="color:#888; font-size:0.8rem;">Cartera: ${Game.state.wallet[k]}</div><button class="btn" style="width:auto; display:inline-block; padding:5px 10px; margin:2px;" onclick="if(Game.spend(${Game.state.crypto[k]})){Game.state.wallet['${k}']++; UI.renderCrypto();}">C</button><button class="btn btn-danger" style="width:auto; display:inline-block; padding:5px 10px; margin:2px;" onclick="if(Game.state.wallet['${k}']>0){Game.state.wallet['${k}']--; Game.addCash(${Game.state.crypto[k]}); UI.renderCrypto();}">V</button></div>`;
+                    c.appendChild(d);
+                });
+            },
+            renderSlots: () => {
+                const c = document.getElementById('content-area');
+                c.innerHTML = `
+                    <div style="text-align:center; padding:20px; flex:1; display:flex; flex-direction:column; justify-content:center;">
+                        <h2 style="color:var(--gold); font-size:2rem;">777</h2>
+                        <div style="display:flex; justify-content:center; gap:10px; font-size:3rem; margin:20px 0; background:#222; padding:15px; border-radius:10px; border:2px solid var(--gold);">
+                            <div id="s1">🍒</div><div id="s2">🍒</div><div id="s3">🍒</div>
+                        </div>
+                        <input type="number" id="slot-bet" value="500" style="background:#000; border:1px solid #444; color:#fff; padding:10px; width:100%; text-align:center; margin-bottom:10px;">
+                        <button class="btn btn-action" onclick="UI.spinSlots()">GIRAR</button>
+                    </div>
+                `;
+            },
+            spinSlots: () => {
+                const bet = parseInt(document.getElementById('slot-bet').value);
+                if (!Game.spend(bet)) return;
+                let s = 0; const sym = ['🍒', '🔔', '💎', '7️⃣'];
+                const t = setInterval(() => {
+                    s++;[1, 2, 3].forEach(n => document.getElementById('s' + n).innerText = sym[Math.floor(Math.random() * 4)]);
+                    if (s > 10) {
+                        clearInterval(t);
+                        const r = [1, 2, 3].map(n => document.getElementById('s' + n).innerText);
+                        if (r[0] === r[1] && r[1] === r[2]) {
+                            const m = { '🍒': 5, '🔔': 15, '💎': 50, '7️⃣': 100 };
+                            const w = bet * m[r[0]];
+                            Game.addCash(w); UI.toast(`¡JACKPOT! +$${w}`, "success");
+                        }
+                    }
+                }, 80);
+            }
+        };
+
+        window.onload = Game.init;
+    </script>
+</body>
+
+</html>

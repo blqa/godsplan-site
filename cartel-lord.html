@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARTEL LORD: RELOADED</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: #050505;
+            color: #00ff41;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff41;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 5px #00ff41;
+        }
+
+        .danger-text {
+            color: #ff2a2a;
+            text-shadow: 0 0 5px #ff2a2a;
+        }
+
+        .health-text {
+            color: #ff00de;
+            text-shadow: 0 0 5px #ff00de;
+        }
+
+        .influence-text {
+            color: #00bfff;
+            text-shadow: 0 0 5px #00bfff;
+        }
+
+        /* Color para Influencia */
+        .xp-bar {
+            background-color: #8a2be2;
+        }
+
+        /* Color para XP */
+        .clean-money {
+            color: #00ff41;
+            text-shadow: 0 0 5px #00ff41;
+        }
+
+        /* Color para Dinero Limpio */
+        .achieved {
+            background-color: #166534;
+            border-color: #4ade80;
+        }
+
+        /* Color para logro conseguido */
+
+        .btn-action {
+            transition: all 0.1s;
+        }
+
+        .btn-action:active {
+            transform: scale(0.95);
+        }
+
+        /* Scanline Effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(8px);
+        }
+
+        .glitch-text {
+            animation: glitch 1s linear infinite;
+        }
+
+        @keyframes glitch {
+
+            2%,
+            64% {
+                transform: translate(2px, 0) skew(0deg);
+            }
+
+            4%,
+            60% {
+                transform: translate(-2px, 0) skew(0deg);
+            }
+
+            62% {
+                transform: translate(0, 0) skew(5deg);
+            }
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+        }
+
+        @keyframes shake {
+
+            10%,
+            90% {
+                transform: translate3d(-1px, 0, 0);
+            }
+
+            20%,
+            80% {
+                transform: translate3d(2px, 0, 0);
+            }
+
+            30%,
+            50%,
+            70% {
+                transform: translate3d(-4px, 0, 0);
+            }
+
+            40%,
+            60% {
+                transform: translate3d(4px, 0, 0);
+            }
+        }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col">
+
+    <div class="scanlines"></div>
+
+    <!-- HEADER STATS -->
+    <header
+        class="bg-gray-900 border-b border-green-700 p-2 flex flex-wrap justify-between items-center sticky top-0 z-40">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-biohazard text-red-600 text-xl animate-pulse"></i>
+            <h1 class="text-lg font-bold neon-text tracking-widest">NARCO v6.0</h1>
+        </div>
+        <div class="flex gap-4 text-sm font-bold">
+            <div class="text-yellow-400"><i class="fa-solid fa-sack-dollar"></i> $<span id="ui-money">150</span></div>
+            <div class="clean-money"><i class="fa-solid fa-piggy-bank"></i> L: <span id="ui-clean-money">0</span></div>
+            <div class="text-blue-400"><i class="fa-solid fa-calendar-days"></i> Día <span id="ui-day">1</span></div>
+        </div>
+    </header>
+
+    <!-- STATUS BAR (Health/Heat/Influence) -->
+    <div class="bg-gray-800 p-2 text-xs grid grid-cols-4 gap-2 border-b border-gray-700">
+        <!-- Storage -->
+        <div>
+            <div class="flex justify-between mb-1">
+                <span class="text-blue-300"><i class="fa-solid fa-box"></i> STOCK</span>
+                <span id="ui-storage">0/10</span>
+            </div>
+            <div class="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden">
+                <div id="bar-storage" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
+            </div>
+        </div>
+        <!-- Heat -->
+        <div>
+            <div class="flex justify-between mb-1">
+                <span class="danger-text"><i class="fa-solid fa-fire"></i> HEAT</span>
+                <span id="ui-heat" class="danger-text">0%</span>
+            </div>
+            <div class="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden">
+                <div id="bar-heat" class="bg-red-600 h-full w-0 transition-all duration-300"></div>
+            </div>
+        </div>
+        <!-- Health -->
+        <div>
+            <div class="flex justify-between mb-1">
+                <span class="health-text"><i class="fa-solid fa-heart-pulse"></i> VIDA</span>
+                <span id="ui-health" class="health-text">100%</span>
+            </div>
+            <div class="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden">
+                <div id="bar-health" class="bg-pink-600 h-full w-100 transition-all duration-300"></div>
+            </div>
+        </div>
+        <!-- Influence -->
+        <div>
+            <div class="flex justify-between mb-1">
+                <span class="influence-text"><i class="fa-solid fa-handshake"></i> INFLUENCIA</span>
+                <span id="ui-influence" class="influence-text">0</span>
+            </div>
+            <div class="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden">
+                <div id="bar-influence" class="bg-cyan-500 h-full w-0 transition-all duration-300"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CURRENT LOCATION INFO -->
+    <div class="bg-black p-3 flex justify-between items-center border-b border-green-900 shadow-lg z-30">
+        <div>
+            <h2 class="text-xl text-white font-bold uppercase tracking-widest leading-none"><i
+                    class="fa-solid fa-location-dot text-red-500"></i> <span id="ui-location">BARRIO BAJO</span></h2>
+            <p class="text-xs text-gray-500 mt-1" id="ui-loc-desc">Zona pobre.</p>
+        </div>
+        <div id="weapon-icon" class="text-gray-700 text-2xl">
+            <i class="fa-solid fa-fist-raised"></i>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <main id="main-view" class="flex-grow overflow-y-auto p-4 pb-24 relative bg-opacity-10 bg-green-900">
+        <!-- Views will be injected here via JS -->
+    </main>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav
+        class="bg-black border-t-2 border-green-800 p-2 fixed bottom-0 w-full z-40 shadow-[0_-5px_20px_rgba(0,0,0,0.8)]">
+        <div class="flex justify-around">
+            <button onclick="Game.setView('market')"
+                class="flex flex-col items-center p-2 text-gray-400 hover:text-green-400 transition-colors">
+                <i class="fa-solid fa-shop text-xl mb-1"></i>
+                <span class="text-[10px] uppercase">Tratos</span>
+            </button>
+            <button onclick="Game.setView('travel')"
+                class="flex flex-col items-center p-2 text-gray-400 hover:text-blue-400 transition-colors">
+                <i class="fa-solid fa-plane-departure text-xl mb-1"></i>
+                <span class="text-[10px] uppercase">Moverse</span>
+            </button>
+            <button onclick="Game.setView('empire')"
+                class="flex flex-col items-center p-2 text-gray-400 hover:text-yellow-400 transition-colors">
+                <i class="fa-solid fa-gun text-xl mb-1"></i>
+                <span class="text-[10px] uppercase">Black Market</span>
+            </button>
+            <button onclick="Game.setView('status')"
+                class="flex flex-col items-center p-2 text-gray-400 hover:text-purple-400 transition-colors">
+                <i class="fa-solid fa-id-card text-xl mb-1"></i>
+                <span class="text-[10px] uppercase">Jefe</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- URGENT MESSAGE MODAL (Replaced alert/showModal) -->
+    <div id="message-modal" class="hidden fixed inset-0 modal-overlay z-[60] flex items-center justify-center p-4">
+        <div
+            class="bg-gray-900 border border-yellow-600 p-1 rounded-lg w-full max-w-sm shadow-[0_0_50px_rgba(255,255,0,0.2)]">
+            <div class="bg-black border border-gray-800 p-5 rounded relative overflow-hidden">
+                <h3 id="msg-modal-title"
+                    class="text-2xl font-bold mb-2 text-yellow-500 uppercase tracking-tighter relative z-10">ALERTA DEL
+                    SISTEMA</h3>
+                <div id="msg-modal-content" class="text-gray-300 mb-6 text-sm relative z-10 font-mono"></div>
+                <button onclick="Game.closeMessageModal()"
+                    class="w-full bg-yellow-700 text-black font-bold p-3 hover:bg-yellow-600">
+                    Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TUTORIAL MODAL (NEW COMPACT/PAGINATED) -->
+    <div id="tutorial-modal" class="hidden fixed inset-0 modal-overlay z-[65] flex items-center justify-center p-4">
+        <div
+            class="bg-gray-900 border border-green-600 p-1 rounded-lg w-full max-w-md shadow-[0_0_50px_rgba(0,255,0,0.2)]">
+            <div class="bg-black border border-gray-800 p-5 rounded relative overflow-hidden">
+                <h3 class="text-xl font-bold mb-3 text-green-500 uppercase tracking-tighter text-center">GUÍA DEL PATRÓN
+                </h3>
+
+                <!-- TUTORIAL CONTENT CONTAINER (PAGES) -->
+                <div id="tutorial-content" class="text-gray-300 mb-4 text-xs font-mono space-y-3 min-h-[150px]">
+                    <!-- Content injected by JS renderTutorialPage(page) -->
+                </div>
+
+                <!-- NAVIGATION / FOOTER -->
+                <div class="flex justify-between items-center border-t border-gray-700 pt-3">
+                    <button id="tutorial-prev" onclick="Game.changeTutorialPage(-1)"
+                        class="py-1 px-3 text-xs font-bold uppercase bg-gray-700 text-gray-400 hover:bg-gray-600 disabled:opacity-30">
+                        <i class="fa-solid fa-arrow-left"></i> Anterior
+                    </button>
+                    <span id="tutorial-page-count" class="text-xs text-gray-500 font-mono">Página 1/3</span>
+                    <button id="tutorial-next" onclick="Game.changeTutorialPage(1)"
+                        class="py-1 px-3 text-xs font-bold uppercase bg-green-700 text-black hover:bg-green-600">
+                        Siguiente <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <button onclick="document.getElementById('tutorial-modal').classList.add('hidden')"
+                    class="w-full bg-red-700 text-black font-bold p-2 text-xs uppercase hover:bg-red-600 mt-3">
+                    Cerrar Guía
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- INTERACTIVE EVENT MODAL -->
+    <div id="event-modal" class="hidden fixed inset-0 modal-overlay z-[60] flex items-center justify-center p-4">
+        <div
+            class="bg-gray-900 border border-red-600 p-1 rounded-lg w-full max-w-sm shadow-[0_0_50px_rgba(255,0,0,0.2)]">
+            <div class="bg-black border border-gray-800 p-5 rounded relative overflow-hidden">
+                <!-- Background Icon Faded -->
+                <i id="modal-bg-icon"
+                    class="fa-solid fa-siren-on absolute -right-4 -bottom-4 text-9xl text-gray-800 opacity-20 transform -rotate-12"></i>
+
+                <h3 id="modal-title"
+                    class="text-2xl font-bold mb-2 text-red-500 uppercase tracking-tighter relative z-10">¡ALTO AHÍ!
+                </h3>
+                <div id="modal-content" class="text-gray-300 mb-6 text-sm relative z-10 font-mono">
+                    La policía te ha rodeado. ¿Qué haces?
+                </div>
+
+                <!-- Action Buttons Container -->
+                <div id="modal-actions" class="grid gap-2 relative z-10">
+                    <!-- Buttons injected via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME OVER MODAL -->
+    <div id="gameover-modal"
+        class="hidden fixed inset-0 bg-black z-[70] flex flex-col items-center justify-center p-6 text-center">
+        <i class="fa-solid fa-skull text-6xl text-red-800 mb-4 animate-pulse"></i>
+        <h1 class="text-5xl text-red-600 font-bold mb-2 glitch-text tracking-widest">WASTED</h1>
+        <p class="text-gray-400 text-sm mb-6 uppercase tracking-widest">Tu imperio ha caído.</p>
+        <p id="gameover-reason"
+            class="text-white mb-8 text-lg font-mono border-l-2 border-red-600 pl-4 text-left max-w-xs">
+            Motivo de muerte desconocido.
+        </p>
+        <button onclick="location.reload()"
+            class="bg-red-600 text-black font-bold px-8 py-3 hover:bg-white transition-all skew-x-[-10deg]">
+            REINICIAR VIDA
+        </button>
+    </div>
+
+    <!-- GAME WIN MODAL -->
+    <div id="gamewin-modal"
+        class="hidden fixed inset-0 bg-black z-[70] flex flex-col items-center justify-center p-6 text-center">
+        <i class="fa-solid fa-crown text-6xl text-yellow-500 mb-4 animate-pulse"></i>
+        <h1 class="text-5xl text-green-600 font-bold mb-2 neon-text tracking-widest">¡PATRÓN DEL MUNDO!</h1>
+        <p class="text-gray-400 text-sm mb-6 uppercase tracking-widest">Acumulaste suficiente para retirarte.</p>
+        <p class="text-white mb-8 text-lg font-mono border-l-2 border-green-600 pl-4 text-left max-w-xs">
+            Lograste escapar de la vida criminal con $1,000,000 LIMPIOS.
+        </p>
+        <button onclick="location.reload()"
+            class="bg-green-600 text-black font-bold px-8 py-3 hover:bg-white transition-all skew-x-[-10deg]">
+            EMPEZAR NUEVO JUEGO
+        </button>
+    </div>
+
+    <!-- NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        // --- DATA & CONFIG ---
+        const WIN_GOAL = 1000000; // Objetivo de dinero para ganar (DINERO LIMPIO)
+        const MAX_INFLUENCE = 100;
+
+        // Costos base de personal
+        const MULA_SALARY = 40;
+        const MULA_INCOME = 75;
+        const SICARIO_SALARY = 150;
+        const SICARIO_ATTACK = 8;
+        const INFLUENCE_GAIN_RATE = 5;
+        const BASE_PROTECTION_COST = 2000; // Nuevo costo base para adquirir zona
+
+        // Nuevos productos e ingredientes
+        const PRODUCTS = [
+            { id: 'hierba', name: 'Hierba', basePrice: 20, volatility: 0.9, icon: 'fa-cannabis', color: 'text-green-500', type: 'drug', marketSale: true },
+            { id: 'pildoras', name: 'Éxtasis', basePrice: 70, volatility: 1.1, icon: 'fa-tablets', color: 'text-yellow-400', type: 'drug', marketSale: true },
+            { id: 'armas', name: 'AK-47s', basePrice: 1500, volatility: 1.5, icon: 'fa-person-rifle', color: 'text-orange-500', type: 'weapon', marketSale: true },
+            { id: 'base', name: 'Pasta Base', basePrice: 100, volatility: 0.5, icon: 'fa-cube', color: 'text-gray-400', type: 'ingredient', marketSale: true, produces: 'polvo' },
+            { id: 'quimicos', name: 'Químicos', basePrice: 50, volatility: 0.6, icon: 'fa-flask', color: 'text-cyan-400', type: 'ingredient', marketSale: true, produces: 'cristal' },
+            { id: 'polvo', name: 'Coca', basePrice: 450, volatility: 0.8, icon: 'fa-snowflake', color: 'text-white', type: 'drug', marketSale: false, ingredient: 'base' },
+            { id: 'cristal', name: 'Cristal', basePrice: 180, volatility: 0.7, icon: 'fa-icicles', color: 'text-blue-300', type: 'drug', marketSale: false, ingredient: 'quimicos' }
+        ];
+
+        const LOCATIONS = [
+            { id: 0, name: 'La Favela', desc: 'Zona sin ley. Potencial de dominio: Alto.', riskMod: 1.8, priceMod: 0.7, eventChance: 0.4, controlIncome: 500, localPower: 10, controlChance: 0.15 },
+            { id: 1, name: 'Centro', desc: 'Vigilancia moderada. Precios estándar. Potencial de dominio: Medio.', riskMod: 1.0, priceMod: 1.0, eventChance: 0.2, controlIncome: 1500, localPower: 10, controlChance: 0.05 },
+            { id: 2, name: 'Puerto', desc: 'Aduanas agresivas. Importación barata. Potencial de dominio: Medio.', riskMod: 1.5, priceMod: 0.8, eventChance: 0.3, controlIncome: 1000, localPower: 20, controlChance: 0.10 },
+            { id: 3, name: 'Zona Vip', desc: 'Seguridad privada. Precios de venta altos. Potencial de dominio: Bajo.', riskMod: 0.6, priceMod: 1.5, eventChance: 0.1, controlIncome: 3000, localPower: 40, controlChance: 0.02 },
+            { id: 4, name: 'Frontera', desc: 'Zona de guerra. Máximo riesgo. Potencial de dominio: Alto.', riskMod: 2.5, priceMod: 0.5, eventChance: 0.6, controlIncome: 2000, localPower: 30, controlChance: 0.20 }
+        ];
+
+        const UPGRADES = [
+            { id: 'knife', name: 'Navaja', desc: '+10% Daño en peleas (Inicial)', cost: 0, type: 'weapon', val: 10, purchased: true },
+            { id: 'glock', name: 'Glock 19', desc: '+40% Daño, Intimidación', cost: 1500, type: 'weapon', val: 40, purchased: false },
+            { id: 'vest', name: 'Chaleco Kevlar', desc: '-50% Daño recibido', cost: 3000, type: 'defense', val: 0.5, purchased: false },
+            { id: 'medkit', name: 'Kit de Primeros Auxilios', desc: 'Cura 50% de Vida', cost: 1000, type: 'consumable', val: 0.5, purchased: false },
+            { id: 'pockets', name: 'Mochila Táctica', desc: '+15 Capacidad (Recomendado Early Game)', cost: 250, type: 'storage', val: 15, purchased: false },
+            { id: 'suv', name: 'Camioneta Blindada', desc: '+30 Capacidad, huida segura', cost: 8000, type: 'storage_risk', val: 30, purchased: false },
+            { id: 'lawyer', name: 'Abogado Saul', desc: 'Baja Heat pasivamente. Gana 5 Influencia/Viaje.', cost: 12000, type: 'passive_heat', val: 1, purchased: false },
+            { id: 'laboratory', name: 'Laboratorio Clandestino', desc: '¡Desbloquea Contratación y Producción!', cost: 25000, type: 'staff_unlock', val: 1, purchased: false },
+            { id: 'refinery', name: 'Refinería Industrial', desc: 'Aumenta eficiencia de producción (2x)', cost: 35000, type: 'production_boost', val: 2, purchased: false },
+            { id: 'base', name: 'Base Clandestina', desc: 'Regeneración pasiva de salud (2% / viaje), -10 Heat pasivo', cost: 50000, type: 'passive_all', val: 1, purchased: false },
+            { id: 'judge', name: 'Juez Comprado', desc: 'Reduce masivamente el Heat y aumenta la defensa territorial.', cost: 100000, type: 'high_level_corrupt', val: 1, purchased: false },
+            { id: 'watchtowers', name: 'Torres de Vigilancia', desc: 'Reduce el riesgo de ataque territorial en un 50% en todas tus zonas.', cost: 75000, type: 'passive_defense', val: 0.5, purchased: false },
+            { id: 'facade', name: 'Fachada de Negocio', desc: '¡Desbloquea el Lavado de Dinero!', cost: 150000, type: 'money_laundry_unlock', val: 1, purchased: false }
+        ];
+
+        // --- LOGROS (ACHIEVEMENTS) ---
+        const ACHIEVEMENTS = [
+            { id: 'starter_cash', name: 'Primeros $1000', desc: 'Acumula $1,000 de Dinero Sucio.', achieved: false, check: (state) => state.money >= 1000 },
+            { id: 'clean_start', name: 'Bautismo de Limpieza', desc: 'Blanquea dinero por primera vez.', achieved: false, check: (state) => state.cleanMoney > 0 },
+            { id: 'prospect', name: 'El Prospecto', desc: 'Alcanza el Nivel 3 en cualquier atributo (Skill, Strength, o Negotiation).', achieved: false, check: (state) => Object.values(state.attributes).some(attr => attr.level >= 3) },
+            { id: 'warlord', name: 'Jefe de Guerra', desc: 'Controla el 60% de las zonas de la ciudad (3/5).', achieved: false, check: (state) => state.controlledZones.length >= 3 },
+            { id: 'factory', name: 'Se Abre la Fábrica', desc: 'Compra el Laboratorio Clandestino.', achieved: false, check: (state) => state.upgrades.includes('laboratory') },
+            { id: 'untouchable', name: 'Intocable', desc: 'Reduce tu Heat a 0% con más de $50,000 en Dinero Sucio.', achieved: false, check: (state) => state.heat === 0 && state.money >= 50000 },
+            { id: 'legit', name: 'El Empresario', desc: 'Compra la Fachada de Negocio (Blanqueo).', achieved: false, check: (state) => state.upgrades.includes('facade') },
+            { id: 'debt_free', name: 'Sin Cadenas', desc: 'Paga tu primera deuda con el Padrino.', achieved: false, check: (state) => state.paidDebt === true }
+        ];
+
+
+        // --- ENGINE ---
+        const Game = {
+            state: {
+                money: 150, // Dinero Sucio
+                cleanMoney: 0, // Dinero Limpio (Objetivo de victoria)
+                day: 1,
+                locationIndex: 0,
+                heat: 0,
+                health: 100,
+                maxStorage: 10,
+                inventory: {},
+                prices: {},
+                upgrades: [],
+                combatPower: 5,
+                debt: 0,
+                medkits: 0,
+                mules: 0,
+                sicarios: 0,
+                influence: 0,
+                controlledZones: [0],
+                paidDebt: false,
+                achievements: ACHIEVEMENTS.map(a => ({ id: a.id, achieved: false })),
+                // RPG Attributes
+                attributes: {
+                    strength: { level: 1, xp: 0, needed: 100, basePower: 15 },
+                    skill: { level: 1, xp: 0, needed: 100, boost: 0 },
+                    negotiation: { level: 1, xp: 0, needed: 100, successRate: 0 }
+                },
+                tutorialPage: 1
+            },
+
+            formatCurrency(amount) {
+                return `$${amount.toLocaleString()}`;
+            },
+
+            init() {
+                PRODUCTS.forEach(p => this.state.inventory[p.id] = 0);
+
+                // --- EARLY GAME BOOSTS (V4.1) ---
+                const knifeUpg = UPGRADES.find(u => u.id === 'knife');
+                knifeUpg.purchased = true;
+                this.state.upgrades.push('knife');
+
+                // Inicializar Fuerza
+                this.state.attributes.strength.basePower = 5 + knifeUpg.val; // 15
+                this.state.combatPower = this.state.attributes.strength.basePower;
+                // ---------------------------------
+
+                this.updatePrices();
+                this.renderUI();
+                this.setView('market');
+                this.showToast('JUEGO REINICIADO (v6.0 - Corrupción Territorial)', 'success');
+
+                // Set initial tutorial page content
+                this.renderTutorialPage(1);
+
+                // Mostrar el tutorial al inicio
+                document.getElementById('tutorial-modal').classList.remove('hidden');
+            },
+
+            // --- TUTORIAL / RULES MECHANICS ---
+            renderTutorialPage(page) {
+                this.state.tutorialPage = page;
+                const contentDiv = document.getElementById('tutorial-content');
+                const pageCountSpan = document.getElementById('tutorial-page-count');
+                const prevButton = document.getElementById('tutorial-prev');
+                const nextButton = document.getElementById('tutorial-next');
+
+                let html = '';
+
+                const pocketsUpgrade = UPGRADES.find(u => u.id === 'pockets');
+
+                if (page === 1) {
+                    html = `
+                        <h4 class="font-bold text-lg text-green-400 border-b border-gray-700">1. PRIMEROS PASOS Y ECONOMÍA</h4>
+                        <p>Tu objetivo final es acumular <strong>${this.formatCurrency(WIN_GOAL)}</strong> de <span class="clean-money">DINERO LIMPIO</span> (L:).</p>
+                        
+                        <p><i class="fa-solid fa-shop text-green-400"></i> **¡DEBES MOVERTE!** Compra bajo en la Favela y vende alto en otras zonas.</p>
+                        
+                        <p class="text-sm text-red-400 font-bold">🎯 PRIORIDAD: Compra la "Mochila Táctica" en el Black Market (${this.formatCurrency(pocketsUpgrade.cost)}). Aumenta tu capacidad de stock. ¡Más volumen, más ganancia!</p>
+
+                        <p><i class="fa-solid fa-flask text-cyan-400"></i> Los productos Coca y Cristal requieren que compres **Ingredientes** y los **Produzcas** en tu base (Jefe > Operaciones).</p>
+                    `;
+                } else if (page === 2) {
+                    html = `
+                        <h4 class="font-bold text-lg text-red-400 border-b border-gray-700">2. RIESGO Y SUPERVIVENCIA</h4>
+                        
+                        <p><i class="fa-solid fa-fire danger-text"></i> <strong>HEAT (Riesgo Policial):</strong> Sube con cada venta. Causa eventos hostiles al viajar.</p>
+                        
+                        <p><i class="fa-solid fa-handshake influence-text"></i> <strong>INFLUENCIA y Corrupción:</strong> Gasta este recurso (Jefe > Atributos) para reducir el Heat de forma masiva y segura. Necesitas el Abogado Saul para ganar Influencia.</p>
+                        
+                        <p><i class="fa-solid fa-heart-pulse health-text"></i> <strong>VIDA:</strong> Si llega a 0, pierdes el juego. Cúrate con Kits de salud (Black Market) o el Médico Clandestino (Jefe > Operaciones).</p>
+                        
+                        <p><i class="fa-solid fa-gun text-yellow-500"></i> <strong>COMBATE:</strong> Tu poder (${this.state.combatPower}) solo se usa para defenderte de eventos aleatorios (emboscadas), no para adquirir territorios.</p>
+                    `;
+                } else if (page === 3) {
+                    html = `
+                        <h4 class="font-bold text-lg text-purple-400 border-b border-gray-700">3. CORRUPCIÓN Y DOMINIO</h4>
+                        
+                        <p><i class="fa-solid fa-map-marked-alt text-green-500"></i> <strong>ADQUISICIÓN:</strong> Compra zonas invirtiendo **Dinero e Influencia** en la pestaña **Jefe > Operaciones**. Tu atributo de **NEGOCIACIÓN** es vital para el éxito.</p>
+                        
+                        <p><i class="fa-solid fa-shield-halved text-red-400"></i> <strong>DEFENSA:</strong> Los **Sicarios** (personal armado) son cruciales para defender las zonas que ya posees de ataques rivales y mantener el ingreso pasivo.</p>
+                        
+                        <p><i class="fa-solid fa-money-bill-transfer clean-money"></i> <strong>BLANQUEO:</strong> Compra la **Fachada de Negocio** para blanquear dinero sucio en **Dinero Limpio** (L:), necesario para ganar el juego.</p>
+                    `;
+                }
+
+                contentDiv.innerHTML = html;
+                pageCountSpan.innerText = `Página ${page}/3`;
+                prevButton.disabled = page === 1;
+                nextButton.disabled = page === 3;
+
+                // Estilo visual para botones deshabilitados
+                prevButton.classList.toggle('opacity-30', page === 1);
+                nextButton.classList.toggle('opacity-30', page === 3);
+            },
+
+            changeTutorialPage(delta) {
+                const newPage = this.state.tutorialPage + delta;
+                if (newPage >= 1 && newPage <= 3) {
+                    this.renderTutorialPage(newPage);
+                }
+            },
+            // --- END TUTORIAL MECHANICS ---
+
+            // --- RPG MECHANICS ---
+            gainXP(type, amount) {
+                const attr = this.state.attributes[type];
+                if (!attr) return;
+
+                attr.xp += amount;
+
+                while (attr.xp >= attr.needed) {
+                    attr.level++;
+                    attr.xp -= attr.needed;
+                    attr.needed = Math.floor(attr.needed * 1.5);
+                    this.levelUp(type, attr);
+                    this.showToast(`¡ATRIBUTO SUBIDO! ${type.toUpperCase()} Nivel ${attr.level}`, 'influence');
+                    this.checkAchievements(); // Check for level up achievements
+                }
+            },
+
+            levelUp(type, attr) {
+                if (type === 'strength') {
+                    attr.basePower += 5;
+                    this.state.combatPower = attr.basePower + (this.state.sicarios * SICARIO_ATTACK);
+                } else if (type === 'skill') {
+                    attr.boost += 0.05; // 5% de boost a la producción
+                } else if (type === 'negotiation') {
+                    attr.successRate += 0.03; // 3% de mejora en lavado/sobornos
+                }
+                this.renderUI();
+            },
+
+            // --- CORE MECHANICS ---
+
+            updatePrices() {
+                const loc = LOCATIONS[this.state.locationIndex];
+                PRODUCTS.forEach(p => {
+                    let variance = (Math.random() - 0.5) * 2 * p.volatility;
+                    let price = Math.floor(p.basePrice * loc.priceMod * (1 + variance));
+
+                    if (Math.random() < 0.08) price = price * 3;
+                    if (Math.random() < 0.08) price = Math.floor(price * 0.2);
+
+                    price = Math.max(Math.floor(p.basePrice * 0.15), price);
+                    this.state.prices[p.id] = price;
+                });
+            },
+
+            getTravelCost() {
+                return 10 + Math.floor(this.state.day * 1.5);
+            },
+
+            getSalaryCost() {
+                return (this.state.mules * MULA_SALARY) + (this.state.sicarios * SICARIO_SALARY);
+            },
+
+            hireSicario() {
+                if (!this.hasUpgrade('laboratory')) {
+                    this.showToast('¡Necesitas el Laboratorio Clandestino para reclutar hombres!', 'error');
+                    return;
+                }
+                const cost = 1000 + (this.state.sicarios * 250);
+                if (this.state.money < cost) {
+                    this.showToast(`Costo de reclutamiento: ${this.formatCurrency(cost)}. Faltan fondos.`, 'error');
+                    return;
+                }
+
+                this.state.money -= cost;
+                this.state.sicarios++;
+                this.state.combatPower = this.state.attributes.strength.basePower + (this.state.sicarios * SICARIO_ATTACK);
+                this.showToast(`Sicario reclutado. Costo ${this.formatCurrency(cost)}.`, 'success');
+                this.renderUI();
+                this.renderEmpire();
+            },
+
+            fireSicario() {
+                if (this.state.sicarios <= 0) return;
+
+                this.state.sicarios--;
+                this.state.combatPower = this.state.attributes.strength.basePower + (this.state.sicarios * SICARIO_ATTACK);
+                this.showToast(`Sicario despedido. Poder de combate reducido.`, 'warning');
+                this.renderUI();
+                this.renderStatus();
+            },
+
+            hireMule() {
+                if (!this.hasUpgrade('laboratory')) {
+                    this.showToast('¡Necesitas el Laboratorio Clandestino para contratar mulas!', 'error');
+                    return;
+                }
+                const cost = 500 + (this.state.mules * 100);
+                if (this.state.money < cost) {
+                    this.showToast(`Costo de contratación: ${this.formatCurrency(cost)}. Faltan fondos.`, 'error');
+                    return;
+                }
+
+                this.state.money -= cost;
+                this.state.mules++;
+                this.showToast(`Mula contratada. Costo ${this.formatCurrency(cost)}.`, 'success');
+                this.renderUI();
+                this.renderEmpire();
+            },
+
+            fireMule(count = 1) {
+                if (this.state.mules <= 0) return;
+
+                this.state.mules = Math.max(0, this.state.mules - count);
+                this.showToast(`Mula despedida. Salarios reducidos.`, 'warning');
+                this.renderUI();
+                this.renderStatus();
+            },
+
+            corruptOfficial() {
+                const influenceCost = 25;
+                const successRate = 60 + (this.state.attributes.negotiation.successRate * 100);
+
+                if (this.state.influence < influenceCost) {
+                    this.showToast(`Faltan ${influenceCost - this.state.influence} de Influencia.`, 'error');
+                    return;
+                }
+
+                this.state.influence -= influenceCost;
+
+                if (Math.random() * 100 < successRate) {
+                    this.state.heat = Math.max(0, this.state.heat - 30);
+                    this.showToast(`¡Corrupción exitosa! Heat reducido en 30%.`, 'success');
+                } else {
+                    this.state.heat = Math.min(100, this.state.heat + 10);
+                    this.showToast(`¡Fallo de Corrupción! El oficial te traicionó. Heat +10.`, 'error');
+                }
+
+                this.renderUI();
+                this.renderStatus();
+            },
+
+            // NUEVA FUNCIÓN PARA ADQUIRIR TERRITORIO POR CORRUPCIÓN
+            acquireProtection(locationIndex) {
+                if (this.isControlled(locationIndex)) {
+                    this.showToast('Ya controlas esta zona.', 'info');
+                    return;
+                }
+                const loc = LOCATIONS[locationIndex];
+
+                // Costo: Dinero = Costo base + Modificador de precio de la zona (Zona Vip es más cara)
+                const moneyCost = Math.floor(BASE_PROTECTION_COST * loc.priceMod * 1.5);
+                const influenceCost = 30 + (loc.localPower / 2); // Influencia basada en poder local
+
+                if (this.state.money < moneyCost || this.state.influence < influenceCost) {
+                    this.showToast(`Faltan recursos. Costo: ${this.formatCurrency(moneyCost)} y ${influenceCost} Influencia.`, 'error');
+                    return;
+                }
+
+                const baseSuccess = 50;
+                const negotiationBonus = this.state.attributes.negotiation.successRate * 100;
+                const successRate = Math.min(95, baseSuccess + negotiationBonus);
+
+                this.state.money -= moneyCost; // Se gasta el dinero inmediatamente al hacer el intento
+                this.state.influence -= influenceCost; // Se gasta la influencia
+
+                if (Math.random() * 100 < successRate) {
+                    // Éxito: Gana XP, Heat bajo, control de zona
+                    this.gainXP('negotiation', 100);
+                    this.state.controlledZones.push(locationIndex);
+                    this.state.heat = Math.max(0, this.state.heat - 20);
+                    this.showToast(`¡ÉXITO! ${loc.name} ahora es territorio tuyo. Ingreso Pasivo activado.`, 'success');
+                } else {
+                    // Fracaso: Gran penalización
+                    this.state.heat = Math.min(100, this.state.heat + 35);
+                    this.state.health = Math.max(1, this.state.health - 15);
+                    this.showToast(`¡FRACASO! Tu contacto te traicionó. Pierdes la inversión, -15 Vida y Heat +35.`, 'error');
+                }
+
+                this.renderUI();
+                this.renderStatusTab('operations');
+                this.checkAchievements();
+            },
+
+            travel(targetIndex) {
+                if (targetIndex === this.state.locationIndex) return;
+
+                const travelCost = this.getTravelCost();
+                if (this.state.money < travelCost) {
+                    this.showToast(`Faltan fondos. Costo de viaje: ${this.formatCurrency(travelCost)}.`, 'error');
+                    this.blinkTab('status');
+                    return;
+                }
+
+                // 1. DEDUCT SALARIES AND DEBT INTEREST
+                const salaryCost = this.getSalaryCost();
+                const totalCost = travelCost + salaryCost;
+
+                if (this.state.money < totalCost) {
+                    this.showToast(`ERROR: Faltan ${this.formatCurrency(totalCost - this.state.money)} para pagar salarios (${this.formatCurrency(salaryCost)}) y viaje. ¡Las Mulas y Sicarios te dejan!`, 'error');
+                    this.state.money -= travelCost; // Only travel cost is paid
+                    this.fireMule(this.state.mules);
+                    this.state.sicarios = 0;
+                    this.state.combatPower = UPGRADES.find(u => u.id === 'knife').val; // Reset base combat power (15)
+                } else {
+                    this.state.money -= totalCost;
+                    if (salaryCost > 0) this.showToast(`Salarios (${this.formatCurrency(salaryCost)}) pagados.`, 'warning');
+                }
+
+                if (this.state.debt > 0) {
+                    const interest = Math.floor(this.state.debt * 0.05);
+                    this.state.debt += interest;
+                    this.showToast(`Deuda: Se acumuló un interés de ${this.formatCurrency(interest)}. Total: ${this.formatCurrency(this.state.debt)}`, 'warning');
+                }
+
+                // 2. DAILY CHECKS
+                this.checkControlledZonesDefense(); // Check for attacks
+
+                // 3. PASSIVE INCOME & HEAT (Mules & Control)
+                const passiveGain = this.state.mules * MULA_INCOME;
+                let controlIncome = 0;
+
+                this.state.controlledZones.forEach(idx => {
+                    const income = LOCATIONS[idx].controlIncome;
+                    controlIncome += income;
+                });
+
+                this.state.money += passiveGain + controlIncome;
+                if (passiveGain > 0 || controlIncome > 0) {
+                    this.showToast(`Ingreso Pasivo: ${this.formatCurrency(passiveGain + controlIncome)} (Mulas + Control)`, 'success');
+                }
+
+                // 4. APPLY HEAT & INFLUENCE GAIN
+                let heatIncrease = 0;
+                if (this.state.mules > 0) heatIncrease += Math.floor(this.state.mules * 0.8);
+                if (this.state.sicarios > 0) heatIncrease += Math.floor(this.state.sicarios * 1.5);
+                this.state.heat = Math.min(100, this.state.heat + heatIncrease);
+
+                if (this.hasUpgrade('lawyer')) {
+                    this.state.influence = Math.min(MAX_INFLUENCE, this.state.influence + INFLUENCE_GAIN_RATE);
+                }
+
+
+                const currentLoc = LOCATIONS[this.state.locationIndex];
+                const baseChance = currentLoc.eventChance + (this.state.heat / 200);
+
+                // NO FORCED TERRITORY CONFLICTS ON ARRIVAL (v6.0 CHANGE)
+                if (Math.random() < baseChance) {
+                    this.triggerRandomEvent(targetIndex);
+                } else {
+                    this.finishTravel(targetIndex);
+                }
+            },
+
+            checkControlledZonesDefense() {
+                const watchtowerMod = this.hasUpgrade('watchtowers') ? 0.5 : 1;
+                const judgeMod = this.hasUpgrade('judge') ? 0.7 : 1;
+
+                for (let i = 0; i < this.state.controlledZones.length; i++) {
+                    const locIndex = this.state.controlledZones[i];
+                    const loc = LOCATIONS[locIndex];
+
+                    // Probabilidad de ataque (basada en el riesgo local)
+                    let defenseChance = loc.controlChance * (1 + (this.state.heat / 500)) * watchtowerMod;
+
+                    if (Math.random() < defenseChance) {
+                        // Poder rival que ataca (más fuerte si hay más heat)
+                        const powerLost = Math.floor(loc.localPower * (Math.random() * 0.3 + 0.1) * judgeMod);
+
+                        // Si tienes suficientes sicarios, te defiendes
+                        if (this.state.sicarios * 10 >= powerLost) {
+                            // Consecuencia: pierdes algunos sicarios por la defensa exitosa
+                            this.state.sicarios = Math.max(0, this.state.sicarios - Math.floor(powerLost / 15));
+                            this.showToast(`DEFENSA EXITOSA en ${loc.name}. Perdiste ${Math.floor(powerLost / 15)} Sicarios.`, 'warning');
+                        } else {
+                            // Fracaso: Pierdes el control (v6.0 - Sin combate, solo pérdida)
+                            this.state.controlledZones.splice(i, 1);
+                            i--;
+                            this.state.heat = Math.min(100, this.state.heat + 10);
+                            this.showToast(`¡PERDISTE EL CONTROL de ${loc.name}! Tus sicarios fueron superados. Heat +10.`, 'error');
+                            this.checkAchievements(); // Check for territorial achievements on loss
+                        }
+                    }
+                }
+            },
+
+            // --- SE REMUEVEN FUNCIONES DE COMBATE TERRITORIAL FORZADO (v6.0) ---
+            // triggerTerritoryConflict(targetIndex) { ... }
+            // resolveTerritoryConflict(action, targetIndex, playerPower, localPower) { ... }
+
+            getClosestControlledZone() {
+                return this.state.controlledZones.length > 0 ? this.state.controlledZones[0] : 0;
+            },
+
+            finishTravel(targetIndex) {
+                this.state.locationIndex = targetIndex;
+                this.state.day++;
+
+                // Passive upgrades benefits
+                if (this.hasUpgrade('lawyer')) {
+                    this.state.heat = Math.max(0, this.state.heat - 5);
+                    this.state.influence = Math.min(MAX_INFLUENCE, this.state.influence + INFLUENCE_GAIN_RATE);
+                }
+
+                if (this.hasUpgrade('base')) {
+                    this.state.heat = Math.max(0, this.state.heat - 10);
+                    this.state.health = Math.min(100, this.state.health + 2);
+                }
+
+                if (this.hasUpgrade('judge')) {
+                    this.state.heat = Math.max(0, this.state.heat - 15);
+                }
+
+                this.updatePrices();
+                this.renderUI();
+                this.setView('market');
+                this.showToast(`Llegada: ${LOCATIONS[targetIndex].name}`, 'success');
+
+                this.checkWinCondition();
+                this.checkBankruptcy();
+                this.checkAchievements(); // Check achievements after passive actions
+            },
+
+            // Production logic
+            produce(productId) {
+                if (!this.hasUpgrade('laboratory')) {
+                    this.showToast('Necesitas el Laboratorio Clandestino para producir.', 'error');
+                    return;
+                }
+
+                const product = PRODUCTS.find(p => p.id === productId);
+                if (!product || product.type !== 'drug' || product.marketSale) return;
+
+                const ingredientId = product.ingredient;
+                if (this.state.inventory[ingredientId] <= 0) {
+                    this.showToast(`Faltan ingredientes (${PRODUCTS.find(p => p.id === ingredientId).name}). Compra en el Mercado.`, 'error');
+                    return;
+                }
+
+                const skillBoost = 1 + this.state.attributes.skill.boost;
+                const productionBoost = this.hasUpgrade('refinery') ? 2 : 1;
+                const finalProduction = Math.ceil(productionBoost * skillBoost);
+
+                // Costos y ganancias
+                this.state.inventory[ingredientId]--; // Consume 1 ingredient
+                this.state.inventory[productId] += finalProduction; // Produce 1 or 2 units
+                this.state.day += 0.25; // Time cost
+                this.state.heat = Math.max(0, this.state.heat - 5); // Heat reduction for controlled production
+
+                // Gain Skill XP for successful production (Anti-Exploit: reduced constant gain)
+                this.gainXP('skill', 20);
+
+                this.showToast(`¡Producción exitosa! Se crearon ${finalProduction} und. de ${product.name}. Heat -5.`, 'success');
+                this.renderUI();
+                this.renderStatus();
+                this.checkAchievements(); // Check achievement for factory
+            },
+
+            // --- NEW: MONEY LAUNDERING ---
+            launderMoney(amount) {
+                if (!this.hasUpgrade('facade')) {
+                    this.showToast('Necesitas la Fachada de Negocio para blanquear dinero.', 'error');
+                    return;
+                }
+                if (amount <= 0 || amount > this.state.money) {
+                    this.showToast('Monto inválido o sin fondos.', 'error');
+                    return;
+                }
+
+                const feeRate = 0.15; // 15% fee
+                const fee = Math.ceil(amount * feeRate);
+                const netAmount = amount - fee;
+
+                const baseSuccess = 60;
+                const negotiationBonus = this.state.attributes.negotiation.successRate * 100;
+                const successRate = Math.min(95, baseSuccess + negotiationBonus);
+
+                this.state.money -= amount; // Deduct dirty money immediately
+                this.state.day += 1; // Time cost for laundering
+
+                if (Math.random() * 100 < successRate) {
+                    // Success!
+                    this.state.cleanMoney += netAmount;
+                    this.state.heat = Math.max(0, this.state.heat - 25);
+                    // Anti-Exploit: XP gain significantly reduced/slowed down
+                    this.gainXP('negotiation', Math.floor(netAmount / 5000));
+                    this.showToast(`BLANQUEO EXITOSO: ${this.formatCurrency(netAmount)} Limpio. Heat -25.`, 'clean');
+                    this.checkAchievements(); // Check achievements for first clean money
+                } else {
+                    // Failure!
+                    this.state.heat = 100; // Major police attention
+                    this.state.debt += amount; // The money is lost and you take a debt to cover it
+                    this.showToast(`¡FALLO CRÍTICO! La policía incautó el dinero y subió tu Heat a 100. Adquieres una deuda por el monto perdido.`, 'error');
+                }
+
+                this.renderUI();
+                this.renderStatus();
+            },
+            // --- END: MONEY LAUNDERING ---
+
+            checkWinCondition() {
+                if (this.state.cleanMoney >= WIN_GOAL) { // Solo dinero limpio cuenta
+                    document.getElementById('gamewin-modal').classList.remove('hidden');
+                }
+            },
+
+            checkBankruptcy() {
+                const stock = this.getInventoryCount();
+
+                if (this.state.money < 15 && stock === 0 && this.state.debt === 0) {
+                    const randomIngredient = ['base', 'quimicos'][Math.floor(Math.random() * 2)];
+                    this.state.inventory[randomIngredient] += 1;
+
+                    this.showMessageModal('PRESTAMO FORZADO', `¡El Padrino te ha forzado un préstamo de ${this.formatCurrency(200)}! Tu nueva deuda es de ${this.formatCurrency(240)} (20% interés) y tu Heat sube +30%. Recibes 1 unidad de Ingrediente para seguir trabajando. Pierdes 20 de Vida.`);
+                    this.state.money += 200;
+                    this.state.debt = 240;
+                    this.state.heat = Math.min(100, this.state.heat + 30);
+                    this.state.health = Math.max(1, this.state.health - 20);
+                    this.renderUI();
+                }
+            },
+
+            buy(productId) {
+                const product = PRODUCTS.find(p => p.id === productId);
+                const price = this.state.prices[productId];
+
+                if (this.state.money < price) {
+                    this.showToast('Sin dinero.', 'error');
+                    return;
+                }
+
+                if (productId === 'medkit') {
+                    if (this.state.medkits >= 5) {
+                        this.showToast('Ya tienes suficientes Kits. Máx: 5.', 'warning');
+                        return;
+                    }
+                    this.state.money -= price;
+                    this.state.medkits++;
+                    this.showToast('Kit de salud adquirido.', 'success');
+                    this.renderEmpire();
+                    this.renderUI();
+                    return;
+                }
+
+                if (!product || !product.marketSale) {
+                    this.showToast('Este producto no se vende aquí.', 'error');
+                    return;
+                }
+
+                const currentStock = this.getInventoryCount();
+                if (currentStock >= this.state.maxStorage) {
+                    this.showToast('Lleno.', 'error');
+                    return;
+                }
+
+                this.state.money -= price;
+                this.state.inventory[productId]++;
+
+                // Gain Skill XP for buying supplies (Anti-Exploit: reduced constant gain)
+                this.gainXP('skill', 2);
+
+                this.renderUI();
+                this.renderMarket();
+            },
+
+            sell(productId) {
+                if (this.state.inventory[productId] <= 0) return;
+
+                const price = this.state.prices[productId];
+                const loc = LOCATIONS[this.state.locationIndex];
+
+                this.state.money += price; // Dinero Sucio
+                this.state.inventory[productId]--;
+
+                const product = PRODUCTS.find(p => p.id === productId);
+                const baseHeat = (product && product.type === 'drug') ? 1.5 : 1;
+
+                const heatInc = Math.max(1, Math.ceil((price / 300) * loc.riskMod * baseHeat));
+                this.state.heat = Math.min(100, this.state.heat + heatInc);
+
+                // Gain Negotiation XP for selling (Anti-Exploit: XP proportional to heat generated/risk taken)
+                this.gainXP('negotiation', Math.max(1, Math.floor(heatInc / 2)));
+
+                this.renderUI();
+                this.renderMarket();
+
+                if (this.state.heat >= 100 && Math.random() < 0.3) {
+                    this.triggerEvent('RAID_MAX');
+                }
+
+                this.checkAchievements(); // Check achievement for money
+            },
+
+            sellAll(productId) {
+                const count = this.state.inventory[productId];
+                if (count <= 0) return;
+
+                let totalSold = 0;
+                let totalHeatInc = 0;
+
+                for (let i = 0; i < count; i++) {
+                    const price = this.state.prices[productId];
+                    this.state.money += price;
+                    totalSold += price;
+
+                    const product = PRODUCTS.find(p => p.id === productId);
+                    const loc = LOCATIONS[this.state.locationIndex];
+                    const baseHeat = (product && product.type === 'drug') ? 1.5 : 1;
+                    const heatInc = Math.max(1, Math.ceil((price / 300) * loc.riskMod * baseHeat));
+                    totalHeatInc += heatInc;
+
+                    this.state.heat = Math.min(100, this.state.heat + heatInc);
+                    // XP gain calculation is moved outside the loop, based on totalHeatInc
+                }
+
+                // XP gain based on total risk taken (Anti-Exploit)
+                this.gainXP('negotiation', Math.max(1, Math.floor(totalHeatInc / 2)));
+
+                this.state.inventory[productId] = 0;
+                this.showToast(`¡Venta rápida! ${count} und. vendidas por ${this.formatCurrency(totalSold)}.`, 'warning');
+                this.renderUI();
+                this.renderMarket();
+
+                if (this.state.heat >= 100 && Math.random() < 0.3) {
+                    this.triggerEvent('RAID_MAX');
+                }
+
+                this.checkAchievements();
+            },
+
+            buyUpgrade(idx) {
+                const upg = UPGRADES[idx];
+                if (upg.purchased || this.state.money < upg.cost) return;
+
+                if (upg.type === 'consumable') {
+                    this.buy(upg.id);
+                    return;
+                }
+
+                this.state.money -= upg.cost;
+                upg.purchased = true;
+                this.state.upgrades.push(upg.id);
+
+                if (upg.id === 'pockets') {
+                    this.state.maxStorage = 25; // Hard set to 25 for early game stability (10 + 15)
+                } else if (upg.type === 'storage' || upg.type === 'storage_risk') {
+                    this.state.maxStorage += upg.val;
+                }
+
+                if (upg.type === 'weapon') this.state.combatPower += upg.val;
+
+                this.showToast(`Mejora: ${upg.name}`, 'success');
+                this.renderUI();
+                this.renderEmpire();
+                this.checkAchievements(); // Check achievement for upgrades
+            },
+
+            payDebt() {
+                if (this.state.debt === 0) {
+                    this.showToast('No tienes deudas.', 'info');
+                    return;
+                }
+                if (this.state.money < this.state.debt) {
+                    this.showToast(`Faltan ${this.formatCurrency(this.state.debt - this.state.money)} para liquidar.`, 'error');
+                    return;
+                }
+
+                this.state.money -= this.state.debt;
+                this.state.debt = 0;
+                this.state.paidDebt = true; // Marca que pagó una deuda
+                this.showToast('¡Deuda pagada! El Padrino está satisfecho.', 'success');
+                this.renderUI();
+                this.renderStatus();
+                this.checkAchievements(); // Check achievement for debt
+            },
+
+            useMedkit() {
+                if (this.state.medkits <= 0) {
+                    this.showToast('No tienes Kits de Primeros Auxilios.', 'error');
+                    return;
+                }
+                if (this.state.health === 100) {
+                    this.showToast('Tu salud está al máximo.', 'info');
+                    return;
+                }
+
+                this.state.medkits--;
+                this.state.health = Math.min(100, this.state.health + 50);
+                this.showToast('Kit usado. Salud restaurada (+50%).', 'success');
+                this.renderUI();
+                this.renderStatus();
+            },
+
+            visitDoctor() {
+                const cost = 200 + Math.floor(this.state.day * 2);
+                if (this.state.money < cost) {
+                    this.showToast(`Faltan ${this.formatCurrency(cost)} para el médico.`, 'error');
+                    return;
+                }
+                if (this.state.health === 100) {
+                    this.showToast('Tu salud está al máximo.', 'info');
+                    return;
+                }
+
+                this.state.money -= cost;
+                this.state.health = 100;
+                this.state.day += 0.5;
+
+                this.showToast('Médico clandestino. Salud al 100%.', 'success');
+                this.renderUI();
+                this.renderStatus();
+            },
+
+            doPettyCrime() {
+                const gain = Math.floor(Math.random() * 30) + 10;
+                const skillBonus = this.state.attributes.skill.boost * 50;
+                const finalGain = gain + skillBonus;
+
+                const heatGain = Math.floor(Math.random() * 5) + 1;
+
+                this.state.money += finalGain;
+                this.state.heat = Math.min(100, this.state.heat + heatGain);
+                this.state.day += 0.5;
+
+                // Gain Skill XP for doing petty crime (Anti-Exploit: reduced constant gain)
+                this.gainXP('skill', 3);
+
+                this.showToast(`Ganaste ${this.formatCurrency(finalGain.toFixed(0))} asaltando turistas. Heat +${heatGain}`, 'warning');
+                this.renderUI();
+                this.renderStatus();
+                this.checkAchievements(); // Check achievement for money
+            },
+
+            // --- LOGROS ACHIEVEMENTS ---
+            checkAchievements() {
+                ACHIEVEMENTS.forEach(achievementDef => {
+                    const currentState = this.state.achievements.find(a => a.id === achievementDef.id);
+
+                    if (!currentState.achieved && achievementDef.check(this.state)) {
+                        currentState.achieved = true;
+                        this.showToast(`🏆 ¡LOGRO DESBLOQUEADO! ${achievementDef.name}`, 'clean');
+                    }
+                });
+            },
+
+            // --- EVENT SYSTEM ---
+
+            triggerRandomEvent(pendingDestination) {
+                const roll = Math.random();
+                if (this.state.heat > 50 && Math.random() < 0.6) {
+                    this.triggerEvent('POLICE', pendingDestination);
+                } else if (roll < 0.4) {
+                    this.triggerEvent('GANG', pendingDestination);
+                } else if (roll < 0.6) {
+                    this.triggerEvent('FIND', pendingDestination);
+                } else {
+                    this.triggerEvent('ACCIDENT', pendingDestination);
+                }
+            },
+
+            triggerEvent(type, pendingDestination) {
+                const modal = document.getElementById('event-modal');
+                const title = document.getElementById('modal-title');
+                const content = document.getElementById('modal-content');
+                const actions = document.getElementById('modal-actions');
+                const icon = document.getElementById('modal-bg-icon');
+
+                actions.innerHTML = '';
+                modal.classList.remove('hidden');
+
+                if (type === 'POLICE') {
+                    title.innerText = "¡LA POLICÍA!";
+                    content.innerText = `Patrulla corrupta te intercepta. Tienes ${this.state.heat}% de Heat.`;
+                    icon.className = "fa-solid fa-siren-on absolute -right-4 -bottom-4 text-9xl text-blue-900 opacity-20 transform -rotate-12";
+
+                    const bribeCost = 100 + (this.state.heat * 10);
+                    const canBribe = this.state.money >= bribeCost;
+                    const bribeChance = Math.min(80, 50 + (this.state.attributes.negotiation.successRate * 100)); // Negociación ayuda a sobornar
+
+                    actions.innerHTML += `
+                        <button onclick="Game.resolveEvent('POLICE_BRIBE', ${bribeCost}, ${bribeChance})" class="w-full bg-green-900 border border-green-600 p-2 text-white hover:bg-green-700 ${!canBribe ? 'opacity-50 cursor-not-allowed' : ''}" ${!canBribe ? 'disabled' : ''}>
+                            <div class="font-bold">SOBORNAR (${this.formatCurrency(bribeCost)}) (${bribeChance.toFixed(0)}% Éxito)</div>
+                        </button>`;
+
+                    actions.innerHTML += `
+                        <button onclick="Game.resolveEvent('POLICE_RUN')" class="w-full bg-yellow-900 border border-yellow-600 p-2 text-white hover:bg-yellow-700">
+                            <div class="font-bold">HUIR (RIESGO)</div>
+                        </button>`;
+
+                    actions.innerHTML += `
+                        <button onclick="Game.resolveEvent('POLICE_SURRENDER')" class="w-full bg-gray-800 border border-gray-600 p-2 text-white hover:bg-gray-700">
+                            <div class="font-bold">RENDIRSE (PERDER STOCK)</div>
+                        </button>`;
+                }
+                else if (type === 'GANG') {
+                    title.innerText = "EMBOSCADA";
+                    content.innerText = "Banda rival. Pelear o pagar.";
+                    icon.className = "fa-solid fa-skull-crossbones absolute -right-4 -bottom-4 text-9xl text-red-900 opacity-20 transform -rotate-12";
+
+                    const winChance = Math.min(90, 20 + this.state.combatPower);
+
+                    actions.innerHTML += `
+                        <button onclick="Game.resolveEvent('GANG_FIGHT', ${winChance})" class="w-full bg-red-900 border border-red-600 p-2 text-white hover:bg-red-700">
+                            <div class="font-bold">PELEAR (${winChance}%)</div>
+                        </button>`;
+
+                    const payCost = Math.floor(this.state.money * 0.5);
+                    actions.innerHTML += `
+                        <button onclick="Game.resolveEvent('GANG_PAY', ${payCost})" class="w-full bg-blue-900 border border-blue-600 p-2 text-white hover:bg-blue-700">
+                            <div class="font-bold">PAGAR (${this.formatCurrency(payCost)})</div>
+                        </button>`;
+                }
+                else if (type === 'FIND') {
+                    title.innerText = "OPORTUNIDAD";
+                    content.innerText = "Encuentras mercancía abandonada.";
+                    icon.className = "fa-solid fa-box-open absolute -right-4 -bottom-4 text-9xl text-green-900 opacity-20 transform -rotate-12";
+
+                    actions.innerHTML += `
+                        <button onclick="Game.resolveEvent('FIND_TAKE')" class="w-full bg-green-700 text-black font-bold p-3 hover:bg-green-600">
+                            AGARRAR
+                        </button>`;
+                    actions.innerHTML += `
+                        <button onclick="Game.resolveEvent('IGNORE', ${pendingDestination})" class="w-full bg-gray-800 text-gray-400 p-2 mt-2 hover:bg-gray-700">
+                            IGNORAR
+                        </button>`;
+                }
+                else if (type === 'RAID_MAX') {
+                    title.innerText = "¡MEGA REDADA!";
+                    content.innerText = "La policía tiene evidencia irrefutable. Tienes que huir de la ciudad perdiendo la mitad de tu dinero y todo tu stock. ¡El dinero limpio está a salvo!";
+                    icon.className = "fa-solid fa-handcuffs absolute -right-4 -bottom-4 text-9xl text-red-900 opacity-20 transform -rotate-12";
+
+                    actions.innerHTML += `
+                        <button onclick="Game.resolveEvent('POLICE_SURRENDER_MAX')" class="w-full bg-red-600 text-black font-bold p-3 hover:bg-red-500">
+                            ACEPTAR PERDIDAS
+                        </button>`;
+
+                }
+                else {
+                    this.finishTravel(pendingDestination);
+                    modal.classList.add('hidden');
+                    return;
+                }
+
+                this.pendingDest = pendingDestination;
+            },
+
+            resolveEvent(action, param, param2) {
+                const modal = document.getElementById('event-modal');
+                modal.classList.add('hidden');
+
+                let msg = '';
+                let type = 'info';
+
+                if (action === 'IGNORE') {
+                    this.finishTravel(param);
+                    return;
+                }
+
+                switch (action) {
+                    case 'POLICE_BRIBE':
+                        if (Math.random() * 100 < param2) {
+                            this.state.money -= param;
+                            this.state.heat = Math.max(0, this.state.heat - 20);
+                            this.gainXP('negotiation', 15);
+                            msg = "Soborno pagado. ¡Negociación exitosa!";
+                            type = 'success';
+                        } else {
+                            this.state.money = Math.floor(this.state.money * 0.8);
+                            this.state.heat = Math.min(100, this.state.heat + 20);
+                            msg = `¡Fallo de soborno! El policía te robó y te dejó ir. Perdiste 20% de dinero (${this.formatCurrency(param)}) y Heat +20.`;
+                            type = 'error';
+                        }
+                        break;
+                    case 'POLICE_RUN':
+                        if (Math.random() > 0.4) {
+                            msg = "¡Escapaste! (-10 Vida)";
+                            this.state.health = Math.max(1, this.state.health - 10);
+                            this.state.heat += 15;
+                        } else {
+                            const dmg = Math.floor(Math.random() * 40) + 20;
+                            this.state.health = Math.max(0, this.state.health - this.mitigateDamage(dmg));
+                            msg = `¡Te dispararon! -${dmg} Vida.`;
+                            type = 'error';
+                            this.state.heat += 25;
+                        }
+                        break;
+                    case 'POLICE_SURRENDER':
+                        PRODUCTS.forEach(p => this.state.inventory[p.id] = 0);
+                        this.state.heat = 0;
+                        this.state.money = Math.floor(this.state.money * 0.8);
+                        msg = "Te quitaron todo el stock. Dinero Sucio -20%.";
+                        type = 'error';
+                        break;
+                    case 'POLICE_SURRENDER_MAX':
+                        PRODUCTS.forEach(p => this.state.inventory[p.id] = 0);
+                        this.state.heat = 0;
+                        this.state.money = Math.floor(this.state.money * 0.5); // Pierde la mitad del dinero sucio
+                        msg = "Lograste huir, pero perdiste todo tu stock y 50% de dinero sucio.";
+                        type = 'error';
+                        break;
+                    case 'GANG_FIGHT':
+                        if (Math.random() * 100 < param) {
+                            // Win - Gain Strength XP
+                            this.gainXP('strength', 10);
+
+                            const loot = Math.floor(Math.random() * 800) + 200;
+                            this.state.money += loot;
+                            this.state.heat += 10;
+                            msg = `¡GANASTE! Robaste ${this.formatCurrency(loot)}.`;
+                            type = 'success';
+                        } else {
+                            const dmg = Math.floor(Math.random() * 50) + 40;
+                            this.state.health = Math.max(0, this.state.health - this.mitigateDamage(dmg));
+                            msg = `¡Perdiste! -${dmg} Vida.`;
+                            type = 'error';
+                        }
+                        break;
+                    case 'GANG_PAY':
+                        this.state.money -= param;
+                        msg = "Pagaste la protección.";
+                        type = 'warning';
+                        break;
+                    case 'FIND_TAKE':
+                        const randomProd = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)].id;
+                        this.state.inventory[randomProd] += 2;
+                        this.gainXP('skill', 5);
+                        msg = "Mercancía gratis. (Skill XP)";
+                        type = 'success';
+                        break;
+                }
+
+                if (this.state.health <= 0) {
+                    setTimeout(() => this.triggerGameOver("Muerto en la calle."), 500);
+                } else {
+                    this.showToast(msg, type);
+                    if (this.pendingDest !== undefined) this.finishTravel(this.pendingDest);
+                    this.renderUI();
+                }
+            },
+
+            mitigateDamage(dmg) {
+                if (this.hasUpgrade('vest')) return Math.floor(dmg * 0.5);
+                return dmg;
+            },
+
+            // --- UTILS ---
+
+            getInventoryCount() {
+                return Object.values(this.state.inventory).reduce((a, b) => a + b, 0);
+            },
+
+            hasUpgrade(id) {
+                return this.state.upgrades.includes(id);
+            },
+
+            isControlled(locationIndex) {
+                return this.state.controlledZones.includes(locationIndex);
+            },
+
+            triggerGameOver(reason) {
+                document.getElementById('gameover-reason').innerText = reason;
+                document.getElementById('gameover-modal').classList.remove('hidden');
+            },
+
+            showMessageModal(title, content) {
+                document.getElementById('msg-modal-title').innerText = title;
+                document.getElementById('msg-modal-content').innerText = content;
+                document.getElementById('message-modal').classList.remove('hidden');
+            },
+
+            closeMessageModal() {
+                document.getElementById('message-modal').classList.add('hidden');
+            },
+
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                let colors = type === 'error' ? 'bg-red-900 border-red-500 text-white' :
+                    type === 'success' ? 'bg-green-900 border-green-500 text-white' :
+                        type === 'warning' ? 'bg-yellow-900 border-yellow-500 text-white' :
+                            type === 'clean' ? 'bg-cyan-900 border-cyan-500 text-white' :
+                                'bg-gray-800 border-blue-500 text-white';
+
+                toast.className = `p-3 rounded shadow-lg border-l-4 text-xs font-bold font-mono animate-bounce mb-2 ${colors}`;
+                toast.innerHTML = message;
+
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 3500);
+            },
+
+            blinkTab(tabName) {
+                // Placeholder for visual cues
+            },
+
+            // --- RENDERERS ---
+
+            renderUI() {
+                document.getElementById('ui-money').innerText = this.state.money.toLocaleString();
+                document.getElementById('ui-clean-money').innerText = this.state.cleanMoney.toLocaleString();
+                document.getElementById('ui-day').innerText = Math.floor(this.state.day);
+
+                document.getElementById('ui-health').innerText = `${this.state.health}%`;
+                document.getElementById('bar-health').style.width = `${Math.max(0, this.state.health)}%`;
+
+                const currentStock = this.getInventoryCount();
+                document.getElementById('ui-storage').innerText = `${currentStock}/${this.state.maxStorage}`;
+                document.getElementById('bar-storage').style.width = `${(currentStock / this.state.maxStorage) * 100}%`;
+
+                document.getElementById('ui-heat').innerText = `${this.state.heat}%`;
+                document.getElementById('bar-heat').style.width = `${this.state.heat}%`;
+
+                document.getElementById('ui-influence').innerText = `${this.state.influence}`;
+                document.getElementById('bar-influence').style.width = `${(this.state.influence / MAX_INFLUENCE) * 100}%`;
+
+                const loc = LOCATIONS[this.state.locationIndex];
+                document.getElementById('ui-location').innerText = loc.name;
+                document.getElementById('ui-loc-desc').innerText = loc.desc;
+
+                const iconContainer = document.getElementById('weapon-icon');
+                if (this.hasUpgrade('glock')) iconContainer.innerHTML = '<i class="fa-solid fa-gun text-yellow-500"></i>';
+                else if (this.hasUpgrade('knife')) iconContainer.innerHTML = '<i class="fa-solid fa-knife text-gray-400"></i>';
+                else iconContainer.innerHTML = '<i class="fa-solid fa-fist-raised text-gray-700"></i>';
+
+                this.checkWinCondition();
+            },
+
+            setView(viewName) {
+                const container = document.getElementById('main-view');
+                container.innerHTML = '';
+                container.classList.remove('fade-in');
+                void container.offsetWidth;
+                container.classList.add('fade-in');
+
+                if (viewName === 'market') this.renderMarket();
+                else if (viewName === 'travel') this.renderTravel();
+                else if (viewName === 'empire') this.renderEmpire();
+                else if (viewName === 'status') this.renderStatus();
+            },
+
+            renderMarket() {
+                const container = document.getElementById('main-view');
+                let html = `<div class="p-2 bg-gray-900 border-b border-green-700 mb-4">
+                                <h3 class="text-xs text-yellow-400 font-bold uppercase">Objetivo: ${this.formatCurrency(WIN_GOAL)} Limpios</h3>
+                                <div class="w-full bg-gray-700 h-2 rounded-full mt-1 overflow-hidden">
+                                    <div class="bg-green-500 h-full transition-all duration-500" style="width: ${Math.min(100, (this.state.cleanMoney / WIN_GOAL) * 100)}%;"></div>
+                                </div>
+                                <div class="text-[10px] text-gray-500 mt-1">Dinero Sucio puede ser incautado.</div>
+                            </div>
+                            <div class="grid gap-2">`;
+
+                PRODUCTS.filter(p => p.marketSale).forEach(p => {
+                    const price = this.state.prices[p.id];
+                    const owned = this.state.inventory[p.id];
+                    const canBuy = this.state.money >= price && this.getInventoryCount() < this.state.maxStorage;
+
+                    html += `
+                    <div class="bg-black bg-opacity-80 p-3 border-l-4 ${owned > 0 ? 'border-green-500' : 'border-gray-800'} shadow flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 text-center"><i class="fa-solid ${p.icon} ${p.color} text-xl"></i></div>
+                            <div>
+                                <div class="font-bold text-gray-200 text-sm tracking-wider uppercase">${p.name}</div>
+                                <div class="text-[10px] text-gray-500">EN BOLSA: <span class="text-white">${owned}</span></div>
+                                <div class="text-[10px] text-yellow-500">${p.type === 'ingredient' ? 'INGREDIENTE' : (p.type === 'weapon' ? 'ARMAMENTO' : 'DROGA')}</div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-1">
+                            <div class="text-green-400 font-mono font-bold">${this.formatCurrency(price)}</div>
+                            <div class="flex gap-1">
+                                <button onclick="Game.sell('${p.id}')" class="px-3 py-1 bg-red-900 text-red-100 text-[10px] font-bold uppercase hover:bg-red-700 disabled:opacity-30" ${owned <= 0 ? 'disabled' : ''}>Vender</button>
+                                <button onclick="Game.buy('${p.id}')" class="px-3 py-1 bg-green-900 text-green-100 text-[10px] font-bold uppercase hover:bg-green-700 disabled:opacity-30" ${!canBuy ? 'disabled' : ''}>Comprar</button>
+                                <button onclick="Game.sellAll('${p.id}')" class="px-2 py-1 bg-red-700 text-red-100 text-[10px] font-bold uppercase hover:bg-red-500 disabled:opacity-30" ${owned <= 0 ? 'disabled' : ''}>Todo</button> <!-- NEW SELL ALL BUTTON -->
+                            </div>
+                        </div>
+                    </div>`;
+                });
+
+                // Productos manufacturados (solo vendibles)
+                PRODUCTS.filter(p => !p.marketSale && p.type !== 'ingredient').forEach(p => {
+                    const price = this.state.prices[p.id];
+                    const owned = this.state.inventory[p.id];
+
+                    html += `
+                    <div class="bg-black bg-opacity-80 p-3 border-l-4 ${owned > 0 ? 'border-pink-500' : 'border-gray-800'} shadow flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 text-center"><i class="fa-solid ${p.icon} ${p.color} text-xl"></i></div>
+                            <div>
+                                <div class="font-bold text-gray-200 text-sm tracking-wider uppercase">${p.name} (PRODUCIDO)</div>
+                                <div class="text-[10px] text-gray-500">EN BOLSA: <span class="text-white">${owned}</span></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-1">
+                            <div class="text-green-400 font-mono font-bold">${this.formatCurrency(price)}</div>
+                            <div class="flex gap-1">
+                                <button onclick="Game.sell('${p.id}')" class="px-3 py-1 bg-red-900 text-red-100 text-[10px] font-bold uppercase hover:bg-red-700 disabled:opacity-30" ${owned <= 0 ? 'disabled' : ''}>Vender</button>
+                                <button onclick="Game.sellAll('${p.id}')" class="px-2 py-1 bg-red-700 text-red-100 text-[10px] font-bold uppercase hover:bg-red-500 disabled:opacity-30" ${owned <= 0 ? 'disabled' : ''}>Todo</button> <!-- NEW SELL ALL BUTTON -->
+                                <button class="px-3 py-1 bg-gray-600 text-gray-400 text-[10px] font-bold uppercase disabled" disabled>NO SE COMPRA</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+
+
+                container.innerHTML = html + '</div>';
+            },
+
+            renderTravel() {
+                const container = document.getElementById('main-view');
+                const travelCost = this.getTravelCost();
+
+                let html = `<div class="text-center text-xs text-gray-400 mb-2">COSTO DE VIAJE ACTUAL: <span class="text-white font-bold">${this.formatCurrency(travelCost)}</span></div>
+                            <div class="p-3 bg-red-900 bg-opacity-20 border border-red-800 mb-4">
+                                <h3 class="text-red-500 font-bold text-sm uppercase mb-1">MAPA Y DOMINIO</h3>
+                                <div class="text-xs text-gray-400 font-mono">Controla zonas invirtiendo en **Jefe > Operaciones** y viaja sin temor a combates forzados.</div>
+                            </div>
+                            <div class="grid gap-3">`;
+
+                LOCATIONS.forEach((loc, index) => {
+                    if (index === this.state.locationIndex) return;
+                    const canAfford = this.state.money >= travelCost;
+                    const isControlled = this.isControlled(index);
+                    const controlIcon = isControlled ? '<i class="fa-solid fa-crown text-green-500"></i>' : '<i class="fa-solid fa-crosshairs text-red-500"></i>';
+
+                    html += `
+                    <button onclick="Game.travel(${index})" class="text-left w-full bg-gray-900 p-4 border border-gray-700 hover:border-blue-500 hover:bg-gray-800 transition-all group relative overflow-hidden ${!canAfford ? 'opacity-50' : ''}">
+                        <div class="absolute right-0 top-0 p-2 text-gray-800 text-4xl group-hover:text-blue-900 transition-colors">${controlIcon}</div>
+                        <h3 class="font-bold text-blue-400 relative z-10">${loc.name}</h3>
+                        <p class="text-xs text-gray-500 mt-1 relative z-10 w-3/4">${loc.desc}</p>
+                        <div class="mt-2 flex gap-3 text-[10px] relative z-10 font-mono">
+                             <span class="${loc.riskMod > 1.2 ? 'text-red-500' : 'text-green-500'}">PELIGRO: ${(loc.riskMod * 100).toFixed(0)}%</span>
+                             <span class="${isControlled ? 'text-green-500' : 'text-red-500'}">${isControlled ? `INGRESOS: ${this.formatCurrency(loc.controlIncome)}` : `RIVAL: No Controlada`}</span>
+                        </div>
+                    </button>`;
+                });
+                container.innerHTML = html + '</div>';
+            },
+
+            renderEmpire() {
+                const container = document.getElementById('main-view');
+                let html = '';
+
+                // ----------------------------------------------------
+                // STAFF MANAGEMENT SECTION (Mules & Sicarios)
+                // ----------------------------------------------------
+                if (this.hasUpgrade('laboratory')) {
+                    // Mulas
+                    const muleCost = 500 + (this.state.mules * 100);
+                    const canHireMule = this.state.money >= muleCost;
+
+                    // Sicarios
+                    const sicarioCost = 1000 + (this.state.sicarios * 250);
+                    const canHireSicario = this.state.money >= sicarioCost;
+
+                    html += `
+                    <div class="bg-gray-900 p-4 border border-blue-600 mb-4">
+                        <h3 class="font-bold text-blue-400 text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-people-line"></i> PERSONAL OPERATIVO</h3>
+                        
+                        <div class="grid grid-cols-2 gap-3 text-sm font-mono mb-4">
+                            <div class="bg-black p-2 border-l-2 border-yellow-500">Costo Diario Total: <span class="text-red-400 font-bold">${this.formatCurrency(this.getSalaryCost())}</span></div>
+                             <div class="bg-black p-2 border-l-2 border-pink-500">Poder de Defensa (Sicarios): <span class="text-white font-bold">${this.state.sicarios * SICARIO_ATTACK}</span></div>
+                        </div>
+
+                        <!-- MULA SECTION -->
+                        <div class="p-3 bg-gray-800 rounded mb-2">
+                             <h4 class="text-sm font-bold text-green-400">Mulas (${this.state.mules})</h4>
+                             <p class="text-[10px] text-gray-400">Ingreso: ${this.formatCurrency(MULA_INCOME)}/u. Salario: ${this.formatCurrency(MULA_SALARY)}/u.</p>
+                             <div class="mt-2 flex gap-2">
+                                <button onclick="Game.hireMule()" class="w-full py-2 text-xs font-bold uppercase ${canHireMule ? 'bg-blue-700 text-black hover:bg-blue-600' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}" ${!canHireMule ? 'disabled' : ''}>
+                                    Contratar Mula (${this.formatCurrency(muleCost)})
+                                </button>
+                                <button onclick="Game.fireMule()" class="py-2 px-3 text-xs font-bold uppercase bg-red-900 text-red-300 hover:bg-red-700 disabled:opacity-30" ${this.state.mules <= 0 ? 'disabled' : ''}>
+                                    <i class="fa-solid fa-user-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- SICARIO SECTION -->
+                        <div class="p-3 bg-gray-800 rounded">
+                             <h4 class="text-sm font-bold text-red-400">Sicarios (${this.state.sicarios})</h4>
+                             <p class="text-[10px] text-gray-400">Poder de Defensa: +8/u. Salario: ${this.formatCurrency(SICARIO_SALARY)}/u. Vitales para la **Defensa Territorial**.</p>
+                             <div class="mt-2 flex gap-2">
+                                <button onclick="Game.hireSicario()" class="w-full py-2 text-xs font-bold uppercase ${canHireSicario ? 'bg-orange-700 text-black hover:bg-orange-600' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}" ${!canHireSicario ? 'disabled' : ''}>
+                                    Reclutar Sicario (${this.formatCurrency(sicarioCost)})
+                                </button>
+                                <button onclick="Game.fireSicario()" class="py-2 px-3 text-xs font-bold uppercase bg-red-900 text-red-300 hover:bg-red-700 disabled:opacity-30" ${this.state.sicarios <= 0 ? 'disabled' : ''}>
+                                    <i class="fa-solid fa-user-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+
+                    // ----------------------------------------------------
+                    // PRODUCTION SECTION
+                    // ----------------------------------------------------
+                    const skillBoost = 1 + this.state.attributes.skill.boost;
+                    const boostText = this.hasUpgrade('refinery') ? `2 * ${skillBoost.toFixed(2)}` : `1 * ${skillBoost.toFixed(2)}`;
+
+                    html += `
+                    <div class="bg-gray-900 p-4 border border-purple-600 mb-4">
+                        <h3 class="font-bold text-purple-400 text-lg mb-2 flex items-center gap-2"><i class="fa-solid fa-industry"></i> LABORATORIO Clandestino</h3>
+                        <div class="text-xs text-gray-400 mb-3">Transforma ingredientes en producto final. Ganancia: ${boostText} unidades. Costo: 0.25 Días, Heat -5.</div>
+                        
+                        <div class="grid gap-2">
+                            ${PRODUCTS.filter(p => p.ingredient).map(p => {
+                        const ingredient = PRODUCTS.find(i => i.id === p.ingredient);
+                        const ownedIng = this.state.inventory[ingredient.id];
+                        const canProduce = ownedIng > 0;
+                        return `
+                                    <div class="bg-black p-3 flex justify-between items-center border-l-2 border-purple-500">
+                                        <div class="text-sm">
+                                            Producir ${p.name}
+                                            <div class="text-[10px] text-gray-500">Ingredientes (${ingredient.name}): <span class="text-white font-bold">${ownedIng}</span></div>
+                                        </div>
+                                        <button onclick="Game.produce('${p.id}')" class="py-1 px-3 text-[10px] font-bold uppercase bg-purple-700 text-black hover:bg-purple-600 disabled:opacity-30" ${!canProduce ? 'disabled' : ''}>
+                                            PRODUCIR
+                                        </button>
+                                    </div>
+                                `;
+                    }).join('')}
+                        </div>
+                    </div>`;
+                }
+
+                // ----------------------------------------------------
+                // UPGRADES SECTION
+                // ----------------------------------------------------
+                html += '<div class="grid gap-3 mb-10">';
+                UPGRADES.forEach((u, idx) => {
+                    const isConsumable = u.type === 'consumable';
+
+                    if (u.id === 'knife' || (isConsumable && this.state.upgrades.includes(u.id))) return;
+
+                    const canBuy = this.state.money >= u.cost && !u.purchased;
+
+                    let displayCost = u.cost.toLocaleString();
+
+                    if (isConsumable) {
+                        displayCost = this.state.prices[u.id] || u.cost;
+
+                        html += `
+                            <div class="bg-gray-900 p-3 border border-pink-500 relative">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-bold text-pink-500 text-sm uppercase">${u.name}</h3>
+                                    <span class="text-xs font-mono text-white">${this.formatCurrency(displayCost)}</span>
+                                </div>
+                                <p class="text-[10px] text-gray-400 my-2">${u.desc}</p>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-[10px] text-yellow-300">STOCK: ${this.state.medkits}/5</span>
+                                    <button onclick="Game.buy('${u.id}')" class="py-1 px-3 text-[10px] font-bold uppercase bg-pink-700 text-black hover:bg-pink-600 ${this.state.money < displayCost || this.state.medkits >= 5 ? 'opacity-50 cursor-not-allowed' : ''}" ${this.state.money < displayCost || this.state.medkits >= 5 ? 'disabled' : ''}>
+                                        Comprar Kit
+                                    </button>
+                                </div>
+                            </div>`;
+                        return;
+                    }
+
+                    // Render permanent upgrades
+                    html += `
+                    <div class="bg-gray-900 p-3 border ${u.purchased ? 'border-yellow-600' : 'border-gray-800'} relative">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold text-yellow-500 text-sm uppercase">${u.name}</h3>
+                            ${u.purchased ? '<i class="fa-solid fa-check text-green-500"></i>' : `<span class="text-xs font-mono text-white">${this.formatCurrency(u.cost)}</span>`}
+                        </div>
+                        <p class="text-[10px] text-gray-400 my-2">${u.desc}</p>
+                        ${!u.purchased ?
+                            `<button onclick="Game.buyUpgrade(${idx})" class="w-full py-1 text-[10px] font-bold uppercase ${canBuy ? 'bg-yellow-700 text-black hover:bg-yellow-600' : 'bg-gray-800 text-gray-600 cursor-not-allowed'}" ${canBuy ? '' : 'disabled'}>Comprar</button>`
+                            : '<div class="text-[10px] text-center bg-yellow-900 text-yellow-200">EQUIPADO</div>'}
+                    </div>`;
+                });
+                container.innerHTML = html + '</div>';
+
+                this.state.prices['medkit'] = UPGRADES.find(u => u.id === 'medkit').cost;
+            },
+
+            renderStatus() {
+                const container = document.getElementById('main-view');
+
+                // Tabs
+                const currentTab = container.dataset.statusTab || 'attributes'; // Default to attributes
+
+                const renderTabButton = (id, icon, text) => `
+                    <button 
+                        onclick="Game.renderStatusTab('${id}')" 
+                        class="flex-1 py-2 text-xs font-bold uppercase border-b-2 transition-colors 
+                        ${currentTab === id ? 'border-purple-500 text-purple-400' : 'border-gray-700 text-gray-500 hover:text-white'}"
+                    >
+                        <i class="fa-solid ${icon} mr-1"></i> ${text}
+                    </button>
+                `;
+
+                let html = `
+                    <div class="bg-black p-1 mb-4 flex justify-between sticky top-0 z-40">
+                        ${renderTabButton('attributes', 'fa-user-secret', 'Atributos')}
+                        ${renderTabButton('operations', 'fa-tools', 'Operaciones')}
+                        ${renderTabButton('achievements', 'fa-trophy', 'Logros')} 
+                        ${renderTabButton('rules', 'fa-info-circle', 'Reglas')} 
+                    </div>
+                `;
+
+                // --- Content based on selected tab ---
+                html += '<div id="status-content" class="flex flex-col gap-4 text-center">';
+
+                if (currentTab === 'attributes') {
+                    // Contenido de Atributos
+                    const attr = this.state.attributes;
+                    const doctorCost = 200 + Math.floor(this.state.day * 2);
+                    const influenceCost = 25;
+                    const canCorrupt = this.state.influence >= influenceCost;
+
+                    const launderFee = 0.15;
+                    const baseSuccess = 60;
+                    const negotiationBonus = attr.negotiation.successRate * 100;
+                    const finalSuccess = Math.min(95, baseSuccess + negotiationBonus);
+
+                    let launderSection = '';
+                    if (this.hasUpgrade('facade')) {
+                        const maxLaunderAmount = this.state.money;
+                        const amountToLaunder = Math.floor(maxLaunderAmount * 0.25);
+
+                        launderSection = `
+                            <div class="bg-cyan-900 bg-opacity-20 border border-cyan-800 p-4">
+                                <h3 class="text-cyan-400 font-bold text-sm mb-2"><i class="fa-solid fa-money-bill-transfer"></i> LAVADO DE DINERO</h3>
+                                <p class="text-[10px] text-gray-400 mb-3">Dinero Sucio: ${this.formatCurrency(this.state.money)}</p>
+                                <p class="text-[10px] text-gray-400">Tasa de Éxito: ${finalSuccess.toFixed(0)}% (Negociación)</p>
+                                <p class="text-[10px] text-gray-400 mb-4">Tarifa de Lavado: ${(launderFee * 100).toFixed(0)}% | Costo de Tiempo: +1 Día</p>
+                                
+                                <button onclick="Game.launderMoney(${amountToLaunder})" class="w-full bg-cyan-700 text-black py-2 text-xs font-bold uppercase hover:bg-cyan-600 ${this.state.money < 1000 ? 'opacity-50 cursor-not-allowed' : ''}" ${this.state.money < 1000 ? 'disabled' : ''}>
+                                    BLANQUEAR ${this.formatCurrency(amountToLaunder)} (Aprox.)
+                                </button>
+                            </div>
+                        `;
+                    }
+
+                    html += `
+                        <div class="bg-gray-900 border border-purple-800 p-4">
+                            <h3 class="text-purple-500 font-bold text-sm mb-2"><i class="fa-solid fa-chart-bar"></i> ESTADÍSTICAS DEL PATRÓN</h3>
+                            ${Object.keys(attr).map(key => `
+                                <div class="mb-3 text-left">
+                                    <div class="flex justify-between text-xs font-bold text-gray-300 uppercase">
+                                        <span>${key.toUpperCase()}: LVL ${attr[key].level}</span>
+                                        <span class="text-purple-400">${attr[key].xp}/${attr[key].needed} XP</span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 h-1 rounded-full overflow-hidden">
+                                        <div class="xp-bar h-full transition-all duration-300" style="width: ${(attr[key].xp / attr[key].needed) * 100}%;"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        ${launderSection}
+
+                        <div class="bg-pink-900 bg-opacity-20 border border-pink-800 p-4">
+                            <h3 class="text-pink-500 font-bold text-sm mb-2"><i class="fa-solid fa-syringe"></i> CURACIÓN</h3>
+                            <p class="text-[10px] text-gray-400 mb-3">Recupérate después de un enfrentamiento.</p>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="Game.useMedkit()" class="bg-pink-700 text-black py-2 text-xs font-bold uppercase hover:bg-pink-600 disabled:opacity-30" ${this.state.medkits === 0 || this.state.health === 100 ? 'disabled' : ''}>
+                                    Usar Kit (${this.state.medkits})
+                                </button>
+                                <button onclick="Game.visitDoctor()" class="bg-pink-900 border border-pink-500 text-white py-2 text-xs font-bold uppercase hover:bg-pink-700 disabled:opacity-30" ${this.state.money < doctorCost || this.state.health === 100 ? 'disabled' : ''}>
+                                    Médico Clandestino (${this.formatCurrency(doctorCost)})
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-cyan-900 bg-opacity-20 border border-cyan-800 p-4">
+                            <h3 class="text-cyan-500 font-bold text-sm mb-2"><i class="fa-solid fa-handshake"></i> CORRUPCIÓN</h3>
+                            <p class="text-[10px] text-gray-400 mb-4">Influencia Actual: <span class="text-white font-bold">${this.state.influence} / ${MAX_INFLUENCE}</span></p>
+                            <button onclick="Game.corruptOfficial()" class="w-full bg-cyan-700 text-black py-2 text-xs font-bold uppercase hover:bg-cyan-600 ${!canCorrupt ? 'opacity-50 cursor-not-allowed' : ''}" ${!canCorrupt ? 'disabled' : ''}>
+                                Sobornar Alto Oficial (Costo: 25 Influencia, Heat -30)
+                            </button>
+                        </div>
+                    `;
+                } else if (currentTab === 'operations') {
+                    // Contenido de Operaciones (Ahora incluye Adquisición Territorial)
+                    let debtSection = '';
+                    if (this.state.debt > 0) {
+                        const canPay = this.state.money >= this.state.debt;
+                        debtSection = `
+                            <div class="bg-red-900 bg-opacity-20 border border-red-800 p-4">
+                                <h3 class="text-red-500 font-bold text-sm mb-2"><i class="fa-solid fa-hand-holding-dollar"></i> DEUDA CON EL PADRINO</h3>
+                                <div class="text-white font-mono mb-3 text-lg">TOTAL: ${this.formatCurrency(this.state.debt)}</div>
+                                <button onclick="Game.payDebt()" class="w-full bg-red-600 text-black py-2 text-xs font-bold uppercase hover:bg-red-500 ${!canPay ? 'opacity-50 cursor-not-allowed' : ''}" ${!canPay ? 'disabled' : ''}>
+                                    PAGAR DEUDA (Liquidación Total)
+                                </button>
+                            </div>
+                        `;
+                    }
+
+                    let salaryWarning = '';
+                    if (this.state.mules > 0 || this.state.sicarios > 0) {
+                        salaryWarning = `<div class="text-red-400 text-xs mt-2">Costo Salarial por Viaje: ${this.formatCurrency(this.getSalaryCost())}</div>`;
+                    }
+
+                    let controlIncome = 0;
+                    this.state.controlledZones.forEach(idx => controlIncome += LOCATIONS[idx].controlIncome);
+
+                    // NEW TERRITORY ACQUISITION SECTION
+                    let acquisitionHtml = LOCATIONS.map((loc, index) => {
+                        if (this.isControlled(index)) return '';
+
+                        const moneyCost = Math.floor(BASE_PROTECTION_COST * loc.priceMod * 1.5);
+                        const influenceCost = 30 + (loc.localPower / 2);
+                        const canAcquire = this.state.money >= moneyCost && this.state.influence >= influenceCost;
+                        const negotiationBonus = this.state.attributes.negotiation.successRate * 100;
+                        const successRate = Math.min(95, 50 + negotiationBonus);
+
+
+                        return `
+                            <div class="bg-black p-3 flex justify-between items-center border-l-2 border-yellow-500">
+                                <div class="text-sm text-left">
+                                    <h4 class="font-bold text-white">${loc.name}</h4>
+                                    <p class="text-[10px] text-gray-400">Costo: ${this.formatCurrency(moneyCost)} y ${influenceCost.toFixed(0)} Influencia.</p>
+                                    <p class="text-[10px] text-gray-400">Éxito Base (Negociación): ${successRate.toFixed(0)}%</p>
+                                </div>
+                                <button onclick="Game.acquireProtection(${index})" class="py-1 px-3 text-[10px] font-bold uppercase bg-yellow-700 text-black hover:bg-yellow-600 disabled:opacity-30" ${!canAcquire ? 'disabled' : ''}>
+                                    INVERTIR
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+
+                    html += `
+                        <div class="bg-gray-900 border border-yellow-600 p-4">
+                            <h3 class="text-yellow-500 font-bold text-sm mb-2"><i class="fa-solid fa-map-marked-alt"></i> ADQUISICIÓN TERRITORIAL</h3>
+                            <p class="text-xs text-gray-400 mb-3">Asegura zonas invirtiendo en corrupción. Necesitas el Abogado para generar Influencia.</p>
+                            <div class="grid gap-2">
+                                ${acquisitionHtml}
+                                ${this.state.controlledZones.length === LOCATIONS.length ? '<div class="text-green-500 font-bold">¡HAS DOMINADO TODA LA CIUDAD!</div>' : ''}
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-900 border border-gray-800 p-6">
+                            <h2 class="text-xl text-white font-bold tracking-widest">RESUMEN FINANCIERO</h2>
+                            <div class="text-xs text-gray-500 font-mono mt-2">DINERO SUCIO: ${this.formatCurrency(this.state.money)}</div>
+                            <div class="text-xs clean-money font-mono">DINERO LIMPIO: ${this.formatCurrency(this.state.cleanMoney)}</div>
+                            ${salaryWarning}
+                            <p class="text-[10px] text-gray-400 mt-4">Ingreso Pasivo por Dominio: <span class="text-yellow-400 font-bold">${this.formatCurrency(controlIncome)}</span></p>
+                        </div>
+                        
+                        ${debtSection}
+                        
+                        <div class="bg-green-900 bg-opacity-10 border border-green-800 p-4">
+                            <h3 class="text-green-500 font-bold text-sm mb-2"><i class="fa-solid fa-money-bill-wave"></i> TRABAJOS SUCIOS</h3>
+                            <p class="text-[10px] text-gray-400 mb-4">Si estás sin blanca, asalta a unos turistas.</p>
+                            <button onclick="Game.doPettyCrime()" class="w-full bg-green-900 border border-green-500 text-white py-2 text-xs font-bold uppercase hover:bg-green-700">
+                                Asaltar Turistas (Ganar Dinero, Subir Heat)
+                            </button>
+                        </div>
+
+                        <div class="bg-gray-800 border border-gray-700 p-4">
+                            <h3 class="text-red-500 font-bold text-sm mb-2"><i class="fa-solid fa-user-shield"></i> GESTIÓN DE RIESGO</h3>
+                            <button onclick="Game.resolveEvent('POLICE_BRIBE', 500, 50)" class="w-full bg-red-900 border border-red-500 text-white py-2 text-xs font-bold uppercase hover:bg-red-700">
+                                Sobornar Comisario (${this.formatCurrency(500)})
+                            </button>
+                        </div>
+                    `;
+                } else if (currentTab === 'achievements') {
+                    // Contenido de Logros
+                    let achievementsHtml = '';
+                    ACHIEVEMENTS.forEach(achievementDef => {
+                        const currentState = this.state.achievements.find(a => a.id === achievementDef.id);
+                        const isAchieved = currentState ? currentState.achieved : false;
+
+                        achievementsHtml += `
+                            <div class="bg-gray-900 p-3 border-l-4 ${isAchieved ? 'border-green-400 achieved' : 'border-gray-700'} flex items-center justify-between">
+                                <div class="text-left">
+                                    <h4 class="font-bold ${isAchieved ? 'text-white' : 'text-gray-400'} text-sm">${achievementDef.name}</h4>
+                                    <p class="text-[10px] ${isAchieved ? 'text-gray-200' : 'text-gray-500'}">${achievementDef.desc}</p>
+                                </div>
+                                <i class="fa-solid fa-trophy text-2xl ${isAchieved ? 'text-yellow-400' : 'text-gray-700'}"></i>
+                            </div>
+                        `;
+                    });
+
+                    html += `<div class="p-2 text-left">${achievementsHtml}</div>`;
+                } else if (currentTab === 'rules') {
+                    // Contenido de Reglas (Tutorial permanente)
+                    html += `
+                        <div class="bg-gray-900 p-4 border border-green-600 text-left space-y-4">
+                            <h3 class="font-bold text-green-400 text-lg mb-2"><i class="fa-solid fa-book"></i> REGLAS DEL JUEGO (v6.0 - Corrupción Territorial)</h3>
+                            
+                            <h4 class="font-bold text-yellow-400">OBJETIVO PRINCIPAL</h4>
+                            <p class="text-sm">Acumular <strong>${this.formatCurrency(WIN_GOAL)}</strong> de <span class="clean-money">DINERO LIMPIO</span> (L:).</p>
+
+                            <h4 class="font-bold text-yellow-400">ESTADÍSTICAS VITALES</h4>
+                            <ul class="text-xs list-disc list-inside space-y-1 text-gray-300">
+                                <li><span class="text-yellow-400 font-bold">$ (Sucio)</span>: Dinero que ganas al vender. Puede ser incautado.</li>
+                                <li><span class="clean-money font-bold">L: (Limpio)</span>: Dinero blanqueado, seguro y cuenta para la victoria.</li>
+                                <li><span class="danger-text font-bold">HEAT</span>: Riesgo policial. Causa eventos hostiles al viajar. Bájalo con Sobornos o <span class="influence-text">INFLUENCIA</span>.</li>
+                                <li><span class="health-text font-bold">VIDA</span>: Se pierde al pelear o huir. Si llega a 0, Game Over.</li>
+                                <li><span class="influence-text font-bold">INFLUENCIA</span>: Recurso para corrupción de alto nivel. Gana 5/viaje con el Abogado Saul.</li>
+                            </ul>
+
+                            <h4 class="font-bold text-yellow-400">ECONOMÍA AVANZADA</h4>
+                            <ul class="text-xs list-disc list-inside space-y-1 text-gray-300">
+                                <li><strong>PRODUCCIÓN:</strong> Compra Ingredientes (Pasta Base, Químicos) en el Mercado y usa el **Laboratorio Clandestino** (Black Market) para fabricar productos de alto valor.</li>
+                                <li><strong>LAVADO:</strong> Necesitas la **Fachada de Negocio**. Blanquea dinero sucio por una tarifa (15%) y reduce el riesgo de incautación. El éxito depende de tu atributo de **NEGOCIACIÓN**.</li>
+                            </ul>
+
+                            <h4 class="font-bold text-yellow-400">CORRUPCIÓN TERRITORIAL (NUEVO)</h4>
+                            <ul class="text-xs list-disc list-inside space-y-1 text-gray-300">
+                                <li><strong>ADQUISICIÓN:</strong> Invierte **Dinero e Influencia** en **Jefe > Operaciones**. El éxito depende de tu **NEGOCIACIÓN**.</li>
+                                <li><strong>SICARIOS:</strong> Su función principal es la **Defensa Pasiva** de tus zonas controladas. ¡Necesitas hombres para mantener lo que es tuyo!</li>
+                                <li><strong>DOMINIO:</strong> Controlar una zona te da <span class="text-yellow-400">INGRESOS PASIVOS</span>.</li>
+                            </ul>
+                        </div>
+                     `;
+                }
+
+
+                container.innerHTML = html + '</div>';
+            },
+
+            renderStatusTab(tabName) {
+                document.getElementById('main-view').dataset.statusTab = tabName;
+                this.renderStatus();
+            }
+        };
+
+        window.onload = () => Game.init();
+    </script>
+</body>
+
+</html>

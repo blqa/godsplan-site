@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mundo Pulpi 🐙</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap');
+
+        :root {
+            --bg-color: #FDF6F0;
+            --primary: #FF9AA2;
+            /* Pink */
+            --secondary: #B5EAD7;
+            /* Mint */
+            --accent: #C7CEEA;
+            /* Lavender */
+            --text: #6B5B95;
+            /* Purple */
+            --ui-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: 'Quicksand', sans-serif;
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- UI LAYOUT --- */
+        #game-container {
+            width: 100%;
+            max-width: 500px;
+            height: 100%;
+            position: relative;
+            background: #fff5f5;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .stat-bubble {
+            background: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+            color: #d67d55;
+            border: 2px solid #FFDAC1;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .stat-bubble:active {
+            transform: scale(0.95);
+        }
+
+        /* MAIN AREA (ROOM) */
+        #room {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.5s;
+            overflow: hidden;
+        }
+
+        #room.dark {
+            filter: brightness(0.6);
+        }
+
+        /* DECORATIONS LAYER */
+        #decor-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .room-decor {
+            position: absolute;
+            transition: all 0.3s;
+        }
+
+        /* PULPI CHARACTER */
+        #pulpi-wrapper {
+            width: 220px;
+            height: 220px;
+            position: relative;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.1s;
+        }
+
+        #pulpi-wrapper:active {
+            transform: scale(0.95);
+        }
+
+        .bounce {
+            animation: bounce 2.5s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* METERS */
+        .meters {
+            position: absolute;
+            top: 70px;
+            left: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 5;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 10px;
+            border-radius: 15px;
+            backdrop-filter: blur(2px);
+        }
+
+        .meter-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meter-icon {
+            font-size: 1.2rem;
+            width: 25px;
+            text-align: center;
+        }
+
+        .meter-wrapper {
+            width: 100px;
+            height: 12px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(0, 0, 0, 0.05);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .meter-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s;
+        }
+
+        /* BOTTOM MENU */
+        .menu-bar {
+            background: var(--ui-bg);
+            padding: 15px 10px;
+            border-radius: 25px 25px 0 0;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.05);
+            z-index: 20;
+        }
+
+        .menu-btn {
+            background: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 4px 0 #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* MODALS */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #FDF6F0;
+            z-index: 50;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .overlay.open {
+            display: flex;
+        }
+
+        .overlay-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .shop-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px 5px;
+            border: none;
+            background: white;
+            border-radius: 10px;
+            font-family: 'Fredoka One', cursive;
+            color: var(--text);
+            cursor: pointer;
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            opacity: 1;
+        }
+
+        .close-btn {
+            background: #FF9AA2;
+            border: none;
+            color: white;
+            border-radius: 15px;
+            padding: 5px 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            overflow-y: auto;
+            padding-bottom: 80px;
+        }
+
+        .item-card {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 160px;
+        }
+
+        .item-preview {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .item-preview svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .buy-btn {
+            background: var(--secondary);
+            border: none;
+            color: var(--text);
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* --- GAME SELECTION --- */
+        .game-menu-btn {
+            background: white;
+            border: 2px solid var(--secondary);
+            color: var(--text);
+            padding: 20px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            box-shadow: 0 4px 0 #d0efe6;
+            transition: transform 0.1s;
+        }
+
+        .game-menu-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* --- MEMORY GAME STYLES --- */
+        #memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .memory-card {
+            aspect-ratio: 1;
+            background-color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .memory-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .memory-front,
+        .memory-back {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            border-radius: 10px;
+        }
+
+        .memory-front {
+            background-color: #fff;
+            transform: rotateY(180deg);
+            border: 2px solid var(--primary);
+        }
+
+        .memory-back {
+            background-color: var(--accent);
+            background-image: repeating-linear-gradient(45deg, transparent 0, transparent 5px, rgba(255, 255, 255, 0.3) 5px, rgba(255, 255, 255, 0.3) 10px);
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        /* CANVAS GAMES */
+        #game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 60;
+            display: none;
+            background: linear-gradient(to bottom, #FF9AA2, #C7CEEA);
+        }
+
+        #game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            display: none;
+            z-index: 65;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .game-score {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.5rem;
+            color: white;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .exit-game-btn {
+            background: white;
+            border: 2px solid var(--text);
+            color: var(--text);
+            font-family: 'Fredoka One';
+            padding: 5px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 70;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 300px;
+        }
+
+        /* FLOATING TEXT */
+        .action-msg {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Fredoka One';
+            font-size: 1.5rem;
+            color: var(--text);
+            pointer-events: none;
+            animation: floatUp 1s forwards;
+            text-shadow: 0 2px 0 white;
+            z-index: 30;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -180%) scale(1.2);
+            }
+        }
+
+        /* POOP */
+        .poop {
+            position: absolute;
+            font-size: 2.5rem;
+            cursor: pointer;
+            animation: bounce 1s infinite alternate;
+            z-index: 20;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game-container">
+        <!-- Top Stats -->
+        <div class="top-bar">
+            <h2 style="color:var(--text); font-size:1.5rem">Mundo Pulpi 🐙</h2>
+            <div class="stats-container">
+                <!-- CHEAT TRIGGER: onclick="cheatMoney()" -->
+                <div class="stat-bubble" onclick="cheatMoney()" title="¡Click para trampa!">
+                    <span>🐚</span>
+                    <span id="shells-display">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meters -->
+        <div class="meters">
+            <div class="meter-row" title="Hambre">
+                <span class="meter-icon">🍔</span>
+                <div class="meter-wrapper">
+                    <div id="hunger-bar" class="meter-fill" style="background:#FFDAC1; width:100%"></div>
+                </div>
+            </div>
+            <div class="meter-row" title="Felicidad">
+                <span class="meter-icon">❤️</span>
+                <div class="meter-wrapper">
+                    <div id="happy-bar" class="meter-fill" style="background:#FF9AA2; width:100%"></div>
+                </div>
+            </div>
+            <div class="meter-row" title="Energía">
+                <span class="meter-icon">⚡</span>
+                <div class="meter-wrapper">
+                    <div id="energy-bar" class="meter-fill" style="background:#B5EAD7; width:100%"></div>
+                </div>
+            </div>
+            <div class="meter-row" title="Higiene">
+                <span class="meter-icon">🧼</span>
+                <div class="meter-wrapper">
+                    <div id="clean-bar" class="meter-fill" style="background:#C7CEEA; width:100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Room -->
+        <div id="room">
+            <!-- Decoration Layer -->
+            <div id="decor-layer"></div>
+
+            <!-- Poo container -->
+            <div id="poo-container"></div>
+
+            <div id="pulpi-wrapper">
+                <!-- SVG Pulpi Character -->
+                <svg viewBox="0 0 200 200" width="100%" height="100%">
+                    <!-- Shadow -->
+                    <ellipse cx="100" cy="180" rx="60" ry="10" fill="rgba(0,0,0,0.15)" />
+
+                    <!-- Tentacles Group -->
+                    <g id="tentacles-group">
+                        <path
+                            d="M50 140 Q40 170 20 160 M75 140 Q70 175 55 165 M100 140 Q100 180 100 160 M125 140 Q130 175 145 165 M150 140 Q160 170 180 160"
+                            fill="none" stroke="#E2F0CB" stroke-width="25" stroke-linecap="round"
+                            class="tentacle-base" />
+                        <!-- Outline -->
+                        <path
+                            d="M50 140 Q40 170 20 160 M75 140 Q70 175 55 165 M100 140 Q100 180 100 160 M125 140 Q130 175 145 165 M150 140 Q160 170 180 160"
+                            fill="none" stroke="#6B5B95" stroke-width="3" stroke-linecap="round" />
+                    </g>
+
+                    <!-- Body Base -->
+                    <path id="body-path" d="M50 140 Q20 140 20 110 Q20 40 100 40 Q180 40 180 110 Q180 140 150 140"
+                        fill="#E2F0CB" stroke="#6B5B95" stroke-width="3" stroke-linecap="round" />
+
+                    <!-- Faces -->
+                    <g id="face-normal">
+                        <circle cx="70" cy="100" r="8" fill="#4a4a4a" />
+                        <circle cx="130" cy="100" r="8" fill="#4a4a4a" />
+                        <circle cx="60" cy="115" r="6" fill="#FF9AA2" opacity="0.6" />
+                        <circle cx="140" cy="115" r="6" fill="#FF9AA2" opacity="0.6" />
+                        <path d="M90 110 Q100 120 110 110" fill="none" stroke="#4a4a4a" stroke-width="3"
+                            stroke-linecap="round" />
+                    </g>
+
+                    <g id="face-sleep" style="display:none">
+                        <path d="M60 105 Q70 110 80 105" fill="none" stroke="#6B5B95" stroke-width="3" />
+                        <path d="M120 105 Q130 110 140 105" fill="none" stroke="#6B5B95" stroke-width="3" />
+                        <circle cx="110" cy="120" r="4" fill="#B5EAD7" opacity="0.8">
+                            <animate attributeName="r" values="4;8;4" dur="2s" repeatCount="indefinite" />
+                        </circle>
+                    </g>
+
+                    <g id="face-sad" style="display:none">
+                        <circle cx="70" cy="105" r="6" fill="#4a4a4a" />
+                        <circle cx="130" cy="105" r="6" fill="#4a4a4a" />
+                        <path d="M90 125 Q100 115 110 125" fill="none" stroke="#4a4a4a" stroke-width="3"
+                            stroke-linecap="round" />
+                    </g>
+
+                    <!-- Accessories Container -->
+                    <g id="accessory-layer"></g>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Menus -->
+        <div class="menu-bar">
+            <button class="menu-btn" onclick="openFood()">🍓</button>
+            <button class="menu-btn" onclick="cleanPulpi()">🧼</button>
+            <button class="menu-btn" onclick="openGameMenu()">🎮</button>
+            <button class="menu-btn" onclick="toggleSleep()">💤</button>
+            <button class="menu-btn" onclick="openShop('clothes')">🛍️</button>
+        </div>
+    </div>
+
+    <!-- Food Menu -->
+    <div id="food-modal" class="overlay">
+        <div class="overlay-header">
+            <h3>Alimentar</h3>
+            <button class="close-btn" onclick="closeOverlays()">Listo</button>
+        </div>
+        <div class="grid" id="food-grid"></div>
+    </div>
+
+    <!-- Shop Menu -->
+    <div id="shop-modal" class="overlay">
+        <div class="overlay-header">
+            <h3>Tienda</h3>
+            <button class="close-btn" onclick="closeOverlays()">Listo</button>
+        </div>
+        <div class="shop-tabs">
+            <button class="tab-btn active" onclick="switchShopTab('clothes')" id="tab-clothes">Ropa</button>
+            <button class="tab-btn" onclick="switchShopTab('decor')" id="tab-decor">Muebles</button>
+            <button class="tab-btn" onclick="switchShopTab('walls')" id="tab-walls">Fondos</button>
+        </div>
+        <div class="grid" id="shop-grid"></div>
+    </div>
+
+    <!-- Game Selection Menu -->
+    <div id="game-menu-modal" class="overlay">
+        <div class="overlay-header">
+            <h3>Juegos</h3>
+            <button class="close-btn" onclick="closeOverlays()">×</button>
+        </div>
+        <div style="padding: 20px;">
+            <button class="game-menu-btn" onclick="startRainGame()">
+                <span>🌧️</span> Lluvia de Amor
+            </button>
+            <button class="game-menu-btn" onclick="startMemoryGame()">
+                <span>🧩</span> Memoria
+            </button>
+        </div>
+    </div>
+
+    <!-- Memory Game Overlay -->
+    <div id="memory-game-modal" class="overlay" style="background:#E0BBE4">
+        <div class="overlay-header">
+            <h3>Memoria</h3>
+            <button class="close-btn" onclick="closeOverlays()">Salir</button>
+        </div>
+        <div style="text-align:center; color:#fff;">Puntos: <span id="mem-score">0</span></div>
+        <div id="memory-grid"></div>
+    </div>
+
+    <!-- Arcade Canvas (Rain Game) -->
+    <canvas id="game-canvas"></canvas>
+    <div id="game-ui">
+        <div class="game-score">Score: <span id="score-val">0</span></div>
+        <button class="exit-game-btn" onclick="closeMinigame()">Salir</button>
+    </div>
+
+    <!-- Game Over -->
+    <div id="game-over">
+        <h2>¡Juego Terminado!</h2>
+        <p>Ganaste <span id="final-score">0</span> 🐚</p>
+        <button class="buy-btn" style="font-size:1.2rem; padding:10px 20px;" onclick="closeMinigame()">Volver</button>
+    </div>
+
+    <script>
+        // --- GAME STATE ---
+        const state = {
+            hunger: 70,
+            happiness: 70,
+            energy: 70,
+            hygiene: 90,
+            shells: 150,
+            isSleeping: false,
+            inventory: [],
+            currentOutfit: null,
+            activeDecorations: [],
+            activeWallpaper: 'dots' // Default ID
+        };
+
+        // --- ASSETS ---
+        const foods = [
+            { id: 'apple', icon: '🍎', cost: 5, fill: 15, name: "Manzana" },
+            { id: 'cookie', icon: '🍪', cost: 10, fill: 10, name: "Galleta" },
+            { id: 'sushi', icon: '🍣', cost: 25, fill: 35, name: "Sushi" },
+            { id: 'burger', icon: '🍔', cost: 30, fill: 45, name: "Hamburguesa" },
+            { id: 'cake', icon: '🍰', cost: 40, fill: 50, name: "Pastel" }
+        ];
+
+        // Clothes now use SVG strings directly in icon
+        const clothes = [
+            { id: 'bow', icon: '<svg viewBox="0 0 50 50"><path d="M10 20 L25 30 L40 20 L25 10 Z" fill="#FF69B4" stroke="none"/><circle cx="25" cy="20" r="5" fill="#fff"/></svg>', cost: 80, name: "Lazo", svg: '<path d="M80 50 L100 60 L120 50 L100 40 Z" fill="#FF69B4" /><circle cx="100" cy="50" r="5" fill="#fff"/>' },
+            { id: 'crown', icon: '<svg viewBox="0 0 50 50"><path d="M10 20 L15 40 L35 40 L40 20 L30 30 L25 15 L20 30 Z" fill="#FFD700" stroke="#E6AC00" stroke-width="2"/></svg>', cost: 300, name: "Reina", svg: '<path d="M70 50 L80 80 L120 80 L130 50 L115 65 L100 40 L85 65 Z" fill="#FFD700" stroke="#E6AC00" stroke-width="2"/>' },
+            { id: 'hat', icon: '<svg viewBox="0 0 50 50"><rect x="10" y="20" width="30" height="20" fill="#4a4a4a"/><rect x="5" y="40" width="40" height="5" fill="#4a4a4a"/></svg>', cost: 150, name: "Sombrero", svg: '<rect x="70" y="45" width="60" height="40" fill="#4a4a4a"/><rect x="60" y="80" width="80" height="10" fill="#4a4a4a"/>' },
+            { id: 'glasses', icon: '<svg viewBox="0 0 50 50"><g stroke="#333" stroke-width="2" fill="none"><circle cx="15" cy="25" r="8"/><circle cx="35" cy="25" r="8"/><line x1="23" y1="25" x2="27" y2="25"/></g></svg>', cost: 120, name: "Lentes", svg: '<g stroke="#333" stroke-width="3" fill="none"><circle cx="70" cy="100" r="14"/><circle cx="130" cy="100" r="14"/><line x1="84" y1="100" x2="116" y2="100"/></g>' },
+            { id: 'mustache', icon: '<svg viewBox="0 0 50 50"><path d="M10 25 Q25 15 40 25 Q35 35 25 28 Q15 35 10 25" fill="#5D4037"/></svg>', cost: 200, name: "Bigote", svg: '<path d="M70 120 Q100 100 130 120 Q120 140 100 125 Q80 140 70 120" fill="#5D4037"/>' },
+            { id: 'cap', icon: '<svg viewBox="0 0 50 50"><path d="M10 25 Q25 10 40 25 L45 25 L40 25 L10 25 Z" fill="#FF6B6B" stroke="#D32F2F"/><rect x="35" y="23" width="10" height="2" fill="#FF6B6B" /></svg>', cost: 180, name: "Gorra", svg: '<path d="M60 60 Q100 30 140 60 L140 60 L60 60 Z" fill="#FF6B6B" stroke="#D32F2F" stroke-width="2"/><rect x="130" y="55" width="30" height="5" fill="#FF6B6B" />' }
+        ];
+
+        // Decorations now use SVG strings directly in icon
+        const decorations = [
+            { id: 'plant', icon: '<svg viewBox="0 0 50 60"><path d="M15 40 L35 40 L32 55 L18 55 Z" fill="#8D6E63"/><path d="M25 40 Q15 10 5 25 M25 40 Q35 10 45 25 M25 40 Q25 5 25 20" stroke="#66BB6A" stroke-width="4" fill="none"/></svg>', cost: 200, name: "Planta", css: "bottom: 10%; left: 5%; width: 80px; height: 100px;", svg: '<svg viewBox="0 0 100 120" width="100%" height="100%"><path d="M30 80 L70 80 L65 110 L35 110 Z" fill="#8D6E63"/><path d="M50 80 Q30 20 10 50 M50 80 Q70 20 90 50 M50 80 Q50 10 50 40" stroke="#66BB6A" stroke-width="8" fill="none"/></svg>' },
+            { id: 'lamp', icon: '<svg viewBox="0 0 50 60"><rect x="23" y="20" width="4" height="35" fill="#555"/><path d="M15 20 L35 20 L30 5 L20 5 Z" fill="#FFECB3"/><ellipse cx="25" cy="55" rx="10" ry="3" fill="#555"/></svg>', cost: 250, name: "Lámpara", css: "top: 10%; right: 5%; width: 60px; height: 150px;", svg: '<svg viewBox="0 0 60 150" width="100%" height="100%"><rect x="28" y="40" width="4" height="110" fill="#555"/><path d="M10 40 L50 40 L40 10 L20 10 Z" fill="#FFECB3" opacity="0.9"/><ellipse cx="30" cy="145" rx="20" ry="5" fill="#555"/></svg>' },
+            { id: 'rug', icon: '<svg viewBox="0 0 50 30"><ellipse cx="25" cy="15" rx="20" ry="10" fill="#FFCCBC" stroke="#FFAB91" stroke-width="2"/></svg>', cost: 150, name: "Alfombra", css: "bottom: 5%; left: 50%; transform: translateX(-50%); width: 200px; height: 60px; z-index:0;", svg: '<svg viewBox="0 0 200 60" width="100%" height="100%"><ellipse cx="100" cy="30" rx="90" ry="25" fill="#FFCCBC" stroke="#FFAB91" stroke-width="2" stroke-dasharray="5,5"/></svg>' },
+            { id: 'picture', icon: '<svg viewBox="0 0 50 50"><rect x="10" y="10" width="30" height="30" fill="#fff" stroke="#8D6E63" stroke-width="2"/><circle cx="25" cy="20" r="5" fill="#FFD54F"/></svg>', cost: 100, name: "Cuadro", css: "top: 15%; left: 10%; width: 60px; height: 60px;", svg: '<svg viewBox="0 0 60 60" width="100%" height="100%"><rect x="0" y="0" width="60" height="60" fill="#fff" stroke="#8D6E63" stroke-width="4"/><circle cx="30" cy="25" r="8" fill="#FFD54F"/><path d="M5 55 L20 35 L35 50 L45 40 L55 55 Z" fill="#81C784"/></svg>' },
+            { id: 'window', icon: '<svg viewBox="0 0 50 50"><rect x="10" y="10" width="30" height="30" fill="#B3E5FC" stroke="#8D6E63" stroke-width="2"/><line x1="25" y1="10" x2="25" y2="40" stroke="#8D6E63"/><line x1="10" y1="25" x2="40" y2="25" stroke="#8D6E63"/></svg>', cost: 350, name: "Ventana", css: "top: 20%; right: 40%; width: 80px; height: 80px; z-index:0;", svg: '<svg viewBox="0 0 80 80" width="100%" height="100%"><rect x="0" y="0" width="80" height="80" fill="#B3E5FC" stroke="#8D6E63" stroke-width="4"/><line x1="40" y1="0" x2="40" y2="80" stroke="#8D6E63" stroke-width="4"/><line x1="0" y1="40" x2="80" y2="40" stroke="#8D6E63" stroke-width="4"/><circle cx="60" cy="20" r="8" fill="#FFF9C4"/></svg>' }
+        ];
+
+        const wallpapers = [
+            { id: 'dots', name: 'Lunares', icon: '⚪', cost: 0, css: 'radial-gradient(#FF9AA2 2px, transparent 2px)', size: '20px 20px', color: '#fff5f5' },
+            { id: 'stripes', name: 'Rayas', icon: '➖', cost: 100, css: 'repeating-linear-gradient(45deg, #FDF6F0, #FDF6F0 10px, #E2F0CB 10px, #E2F0CB 20px)', size: '100% 100%', color: '#fff' },
+            { id: 'clouds', name: 'Nubes', icon: '☁️', cost: 200, css: 'radial-gradient(circle, #E1F5FE 20%, transparent 20%), radial-gradient(circle, #E1F5FE 20%, transparent 20%)', size: '50px 50px', color: '#B3E5FC' },
+            { id: 'hearts', name: 'Amor', icon: '💖', cost: 250, css: 'radial-gradient(circle, #F8BBD0 10%, transparent 10%)', size: '30px 30px', color: '#FFEBEE' }
+        ];
+
+        let currentShopTab = 'clothes';
+
+        // --- DOM ELEMENTS ---
+        const els = {
+            hunger: document.getElementById('hunger-bar'),
+            happy: document.getElementById('happy-bar'),
+            energy: document.getElementById('energy-bar'),
+            clean: document.getElementById('clean-bar'),
+            shells: document.getElementById('shells-display'),
+            pulpi: document.getElementById('pulpi-wrapper'),
+            room: document.getElementById('room'),
+            accessoryLayer: document.getElementById('accessory-layer'),
+            tentacles: document.querySelector('.tentacle-base'),
+            body: document.getElementById('body-path'),
+            pooContainer: document.getElementById('poo-container'),
+            decorLayer: document.getElementById('decor-layer')
+        };
+
+        function init() {
+            updateUI();
+            setInterval(gameTick, 2000);
+            els.pulpi.addEventListener('click', petPulpi);
+            loadState();
+            updateFace();
+            renderDecorations();
+            renderWallpaper();
+        }
+
+        function gameTick() {
+            if (!state.isSleeping) {
+                state.hunger = Math.max(0, state.hunger - 0.8);
+                state.happiness = Math.max(0, state.happiness - 0.5);
+                state.energy = Math.max(0, state.energy - 0.3);
+                state.hygiene = Math.max(0, state.hygiene - 0.4);
+            } else {
+                state.energy = Math.min(100, state.energy + 1.5);
+                state.hunger = Math.max(0, state.hunger - 0.1);
+            }
+
+            if (state.hunger < 50 && Math.random() < 0.05 && state.hygiene > 0) {
+                spawnPoo();
+                state.hygiene -= 10;
+            }
+
+            updateFace();
+            updateUI();
+            saveState();
+        }
+
+        function updateUI() {
+            els.hunger.style.width = state.hunger + '%';
+            els.happy.style.width = state.happiness + '%';
+            els.energy.style.width = state.energy + '%';
+            els.clean.style.width = state.hygiene + '%';
+            els.shells.textContent = Math.floor(state.shells);
+
+            updateBarColor(els.hunger, state.hunger);
+            updateBarColor(els.happy, state.happiness);
+        }
+
+        function updateBarColor(bar, val) {
+            if (val < 30) bar.style.background = '#FF6B6B';
+            else if (bar.id === 'hunger-bar') bar.style.background = '#FFDAC1';
+            else if (bar.id === 'happy-bar') bar.style.background = '#FF9AA2';
+        }
+
+        function updateFace() {
+            const normal = document.getElementById('face-normal');
+            const sleep = document.getElementById('face-sleep');
+            const sad = document.getElementById('face-sad');
+
+            normal.style.display = 'none';
+            sleep.style.display = 'none';
+            sad.style.display = 'none';
+
+            if (state.isSleeping) {
+                sleep.style.display = 'block';
+                els.body.setAttribute('fill', '#C7CEEA');
+                els.tentacles.setAttribute('stroke', '#C7CEEA');
+                els.pulpi.classList.remove('bounce');
+            } else if (state.happiness < 40 || state.hunger < 20) {
+                sad.style.display = 'block';
+                els.body.setAttribute('fill', '#9FA8DA');
+                els.tentacles.setAttribute('stroke', '#9FA8DA');
+                els.pulpi.classList.remove('bounce');
+            } else {
+                normal.style.display = 'block';
+                els.body.setAttribute('fill', '#E2F0CB');
+                els.tentacles.setAttribute('stroke', '#E2F0CB');
+                els.pulpi.classList.add('bounce');
+            }
+        }
+
+        function petPulpi() {
+            if (state.isSleeping) return;
+            state.happiness = Math.min(100, state.happiness + 5);
+            showFloatingText("❤️", els.pulpi);
+            updateUI();
+        }
+
+        function showFloatingText(text, target) {
+            const msg = document.createElement('div');
+            msg.className = 'action-msg';
+            msg.textContent = text;
+            const rect = target.getBoundingClientRect();
+            msg.style.top = (rect.top + rect.height / 2) + 'px';
+            msg.style.left = (rect.left + rect.width / 2) + 'px';
+            document.body.appendChild(msg);
+            setTimeout(() => msg.remove(), 1000);
+        }
+
+        function cheatMoney() {
+            state.shells += 500;
+            updateUI();
+            showFloatingText("+500 🤫", els.shells);
+        }
+
+        function toggleSleep() {
+            state.isSleeping = !state.isSleeping;
+            if (state.isSleeping) {
+                els.room.classList.add('dark');
+                showFloatingText("Zzz...", els.pulpi);
+            } else {
+                els.room.classList.remove('dark');
+                showFloatingText("¡Buenos días!", els.pulpi);
+            }
+            updateFace();
+        }
+
+        function spawnPoo() {
+            const poo = document.createElement('div');
+            poo.className = 'poop';
+            poo.textContent = '💩';
+            poo.style.left = (10 + Math.random() * 80) + '%';
+            poo.style.bottom = (5 + Math.random() * 15) + '%';
+            poo.onclick = (e) => {
+                e.stopPropagation();
+                poo.remove();
+                state.hygiene = Math.min(100, state.hygiene + 15);
+                state.shells += 5;
+                showFloatingText("+5 🐚", els.pulpi);
+                updateUI();
+            };
+            els.pooContainer.appendChild(poo);
+        }
+
+        function cleanPulpi() {
+            if (state.isSleeping) return;
+            if (els.pooContainer.children.length === 0) {
+                showFloatingText("¡Ya está limpio!", els.pulpi);
+                return;
+            }
+            state.hygiene = 100;
+            els.pooContainer.innerHTML = '';
+            showFloatingText("¡Limpito! ✨", els.pulpi);
+            updateUI();
+        }
+
+        // --- MENUS & SHOP ---
+        function closeOverlays() {
+            document.querySelectorAll('.overlay').forEach(el => el.classList.remove('open'));
+            closeMinigame();
+        }
+
+        function openFood() {
+            closeOverlays();
+            const grid = document.getElementById('food-grid');
+            grid.innerHTML = '';
+            foods.forEach(food => {
+                const item = document.createElement('div');
+                item.className = 'item-card';
+                item.innerHTML = `
+                <div style="font-size:2.5rem">${food.icon}</div>
+                <div>${food.name}</div>
+                <div style="color:#aaa; font-size:0.9rem">${food.cost} 🐚</div>
+                <button class="buy-btn" onclick="buyFood('${food.id}')">Comer</button>
+            `;
+                grid.appendChild(item);
+            });
+            document.getElementById('food-modal').classList.add('open');
+        }
+
+        function buyFood(id) {
+            const food = foods.find(f => f.id === id);
+            if (state.shells >= food.cost) {
+                state.shells -= food.cost;
+                state.hunger = Math.min(100, state.hunger + food.fill);
+                showFloatingText(`Ñam! +${food.fill}`, els.pulpi);
+                updateUI();
+                closeOverlays();
+            } else {
+                alert("No tienes suficientes conchas :(");
+            }
+        }
+
+        function openShop(tab) {
+            closeOverlays();
+            currentShopTab = tab;
+            renderShop();
+            document.getElementById('shop-modal').classList.add('open');
+        }
+
+        function switchShopTab(tab) {
+            currentShopTab = tab;
+            document.getElementById('tab-clothes').classList.toggle('active', tab === 'clothes');
+            document.getElementById('tab-decor').classList.toggle('active', tab === 'decor');
+            document.getElementById('tab-walls').classList.toggle('active', tab === 'walls');
+            renderShop();
+        }
+
+        function renderShop() {
+            const grid = document.getElementById('shop-grid');
+            grid.innerHTML = '';
+
+            let items = [];
+            if (currentShopTab === 'clothes') items = clothes;
+            else if (currentShopTab === 'decor') items = decorations;
+            else if (currentShopTab === 'walls') items = wallpapers;
+
+            items.forEach(item => {
+                const owned = state.inventory.includes(item.id) || item.cost === 0;
+                let isEquipped = false;
+
+                if (currentShopTab === 'clothes') isEquipped = state.currentOutfit === item.id;
+                else if (currentShopTab === 'decor') isEquipped = state.activeDecorations.includes(item.id);
+                else if (currentShopTab === 'walls') isEquipped = state.activeWallpaper === item.id;
+
+                const btnText = isEquipped ? (currentShopTab === 'decor' ? "Quitar" : "Puesto") : (owned ? "Usar" : "Comprar");
+                const btnStyle = isEquipped ? "background:#eee; color:#888" : "";
+
+                // Force robust check: if it has SVG tag, use it, else wrap text
+                const displayIcon = (item.icon.includes('<svg'))
+                    ? item.icon
+                    : `<div style="font-size:2.5rem">${item.icon}</div>`;
+
+                const div = document.createElement('div');
+                div.className = 'item-card';
+                div.innerHTML = `
+                <div class="item-preview">${displayIcon}</div>
+                <div>${item.name}</div>
+                <div style="color:#aaa; font-size:0.9rem">${owned ? 'Tuyo' : item.cost + ' 🐚'}</div>
+                <button class="buy-btn" style="${btnStyle}" onclick="handleShopItem('${item.id}', '${currentShopTab}')">${btnText}</button>
+            `;
+                grid.appendChild(div);
+            });
+        }
+
+        function handleShopItem(id, type) {
+            let list;
+            if (type === 'clothes') list = clothes;
+            else if (type === 'decor') list = decorations;
+            else list = wallpapers;
+
+            const item = list.find(i => i.id === id);
+
+            // Buying logic
+            if (!state.inventory.includes(id) && item.cost > 0) {
+                if (state.shells >= item.cost) {
+                    state.shells -= item.cost;
+                    state.inventory.push(id);
+                    updateUI();
+                } else {
+                    alert("Te faltan conchas 🐚");
+                    return;
+                }
+            }
+
+            // Equipping logic
+            if (type === 'clothes') {
+                state.currentOutfit = id;
+                els.accessoryLayer.innerHTML = item.svg;
+            } else if (type === 'decor') {
+                if (state.activeDecorations.includes(id)) {
+                    state.activeDecorations = state.activeDecorations.filter(d => d !== id);
+                } else {
+                    state.activeDecorations.push(id);
+                }
+                renderDecorations();
+            } else if (type === 'walls') {
+                state.activeWallpaper = id;
+                renderWallpaper();
+            }
+            renderShop();
+        }
+
+        function renderDecorations() {
+            els.decorLayer.innerHTML = '';
+            state.activeDecorations.forEach(id => {
+                const decor = decorations.find(d => d.id === id);
+                if (decor) {
+                    const el = document.createElement('div');
+                    el.className = 'room-decor';
+                    el.innerHTML = decor.svg;
+                    el.style.cssText = decor.css;
+                    els.decorLayer.appendChild(el);
+                }
+            });
+        }
+
+        function renderWallpaper() {
+            const wall = wallpapers.find(w => w.id === state.activeWallpaper) || wallpapers[0];
+            els.room.style.backgroundImage = wall.css;
+            els.room.style.backgroundSize = wall.size;
+            els.room.style.backgroundColor = wall.color;
+        }
+
+        // --- GAMES (Rain & Memory) ---
+        function openGameMenu() {
+            closeOverlays();
+            document.getElementById('game-menu-modal').classList.add('open');
+        }
+
+        // Rain Game
+        let gameLoopId, gameScore, gameItems, playerX;
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function startRainGame() {
+            closeOverlays();
+            canvas.style.display = 'block';
+            document.getElementById('game-ui').style.display = 'flex';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            gameScore = 0;
+            gameItems = [];
+            playerX = canvas.width / 2;
+            document.getElementById('score-val').textContent = gameScore;
+            canvas.addEventListener('mousemove', movePlayer);
+            canvas.addEventListener('touchmove', movePlayerTouch);
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        function movePlayer(e) { playerX = e.clientX; }
+        function movePlayerTouch(e) { e.preventDefault(); playerX = e.touches[0].clientX; }
+
+        function drawPulpiAvatar(x, y) {
+            ctx.fillStyle = '#E2F0CB';
+            ctx.beginPath();
+            ctx.arc(x, y, 35, Math.PI, 0);
+            ctx.lineTo(x + 35, y + 10);
+            ctx.quadraticCurveTo(x, y + 20, x - 35, y + 10);
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#6B5B95';
+            ctx.stroke();
+
+            ctx.fillStyle = '#4a4a4a';
+            ctx.beginPath(); ctx.arc(x - 12, y - 5, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x + 12, y - 5, 4, 0, Math.PI * 2); ctx.fill();
+
+            ctx.strokeStyle = '#E2F0CB';
+            ctx.lineWidth = 10;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(x - 20, y + 10); ctx.lineTo(x - 25, y + 30);
+            ctx.moveTo(x, y + 15); ctx.lineTo(x, y + 35);
+            ctx.moveTo(x + 20, y + 10); ctx.lineTo(x + 25, y + 30);
+            ctx.stroke();
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPulpiAvatar(playerX, canvas.height - 80);
+
+            if (Math.random() < 0.04) {
+                gameItems.push({
+                    x: Math.random() * (canvas.width - 40) + 20,
+                    y: -30,
+                    type: Math.random() > 0.3 ? 'heart' : 'bomb',
+                    speed: 4 + Math.random() * 3
+                });
+            }
+
+            for (let i = 0; i < gameItems.length; i++) {
+                let item = gameItems[i];
+                item.y += item.speed;
+
+                ctx.font = "35px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(item.type === 'heart' ? '❤️' : '👾', item.x, item.y);
+
+                const dist = Math.hypot(item.x - playerX, item.y - (canvas.height - 80));
+                if (dist < 50) {
+                    if (item.type === 'heart') {
+                        gameScore++;
+                        document.getElementById('score-val').textContent = gameScore;
+                    } else {
+                        endMinigame(gameScore);
+                        return;
+                    }
+                    gameItems.splice(i, 1);
+                    i--;
+                }
+                if (item.y > canvas.height) {
+                    gameItems.splice(i, 1);
+                    i--;
+                }
+            }
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        // Memory Game
+        let memCards = [], flippedCards = [], memScore = 0, lockBoard = false;
+
+        function startMemoryGame() {
+            closeOverlays();
+            document.getElementById('memory-game-modal').classList.add('open');
+            memScore = 0;
+            document.getElementById('mem-score').textContent = memScore;
+            initMemoryBoard();
+        }
+
+        function initMemoryBoard() {
+            const grid = document.getElementById('memory-grid');
+            grid.innerHTML = '';
+            const icons = ['🐙', '🌸', '🐚', '⭐', '🍪', '🎀', '🎈', '💖'];
+            const deck = [...icons, ...icons].sort(() => 0.5 - Math.random());
+
+            deck.forEach(icon => {
+                const card = document.createElement('div');
+                card.classList.add('memory-card');
+                card.dataset.icon = icon;
+                card.innerHTML = `<div class="memory-front">${icon}</div><div class="memory-back">?</div>`;
+                card.addEventListener('click', flipCard);
+                grid.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard) return;
+            if (this === flippedCards[0]) return;
+            this.classList.add('flipped');
+            flippedCards.push(this);
+            if (flippedCards.length === 2) checkForMatch();
+        }
+
+        function checkForMatch() {
+            let isMatch = flippedCards[0].dataset.icon === flippedCards[1].dataset.icon;
+            isMatch ? disableCards() : unflipCards();
+        }
+
+        function disableCards() {
+            flippedCards[0].removeEventListener('click', flipCard);
+            flippedCards[1].removeEventListener('click', flipCard);
+            flippedCards = [];
+            memScore += 10;
+            document.getElementById('mem-score').textContent = memScore;
+            if (document.querySelectorAll('.memory-card.flipped').length === 16) {
+                setTimeout(() => {
+                    alert(`¡Ganaste! +${memScore} monedas`);
+                    state.shells += memScore;
+                    state.happiness = Math.min(100, state.happiness + 20);
+                    updateUI();
+                    closeOverlays();
+                }, 500);
+            }
+        }
+
+        function unflipCards() {
+            lockBoard = true;
+            setTimeout(() => {
+                flippedCards[0].classList.remove('flipped');
+                flippedCards[1].classList.remove('flipped');
+                flippedCards = [];
+                lockBoard = false;
+            }, 1000);
+        }
+
+        function endMinigame(score) {
+            cancelAnimationFrame(gameLoopId);
+            document.getElementById('game-over').style.display = 'block';
+            document.getElementById('final-score').textContent = score;
+            state.shells += score;
+            state.happiness = Math.min(100, state.happiness + 20);
+            updateUI();
+        }
+
+        function closeMinigame() {
+            cancelAnimationFrame(gameLoopId);
+            canvas.style.display = 'none';
+            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('game-over').style.display = 'none';
+            document.getElementById('memory-game-modal').classList.remove('open');
+        }
+
+        // --- SAVE ---
+        function saveState() {
+            localStorage.setItem('pulpiDataV3', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('pulpiDataV3');
+            if (saved) {
+                Object.assign(state, JSON.parse(saved));
+                if (state.currentOutfit) {
+                    const acc = clothes.find(a => a.id === state.currentOutfit);
+                    if (acc) els.accessoryLayer.innerHTML = acc.svg;
+                }
+                renderDecorations();
+                renderWallpaper();
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

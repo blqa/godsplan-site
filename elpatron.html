@@ -1,0 +1,3369 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EL PATRON: LEGADO v30.0</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Jura:wght@400;600;700&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --gold: #c5a059;
+            --dark-bg: #050505;
+            --panel-bg: #0e0e0e;
+            --border: #333;
+            --alert: #ff3333;
+            --success: #1a4d1a;
+            --text-main: #ccc;
+            --font-display: 'Cinzel', serif;
+            --font-ui: 'Jura', sans-serif;
+            --font-data: 'Share Tech Mono', monospace;
+            --rank-color: #cd7f32;
+            /* Bronze default for Pistolero */
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            outline: none;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--dark-bg);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            height: 100vh;
+            overflow: hidden;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.96), rgba(0, 0, 0, 0.96)), url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+        }
+
+        #interface {
+            display: grid;
+            grid-template-columns: 280px 1fr 340px;
+            grid-template-rows: 70px 1fr 40px;
+            height: 100vh;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            background: #050505;
+            border-bottom: 1px solid var(--gold);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 25px;
+            z-index: 10;
+        }
+
+        .brand {
+            font-family: var(--font-display);
+            color: var(--gold);
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            /* Added for Rank Badge */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* NEW: Rank Badge Styling */
+        .rank-badge {
+            font-size: 0.7rem;
+            color: var(--rank-color);
+            border: 1px solid var(--rank-color);
+            padding: 2px 5px;
+            border-radius: 4px;
+            margin-top: 2px;
+            width: fit-content;
+            text-transform: uppercase;
+        }
+
+        .hud-stats {
+            display: flex;
+            gap: 20px;
+            font-family: var(--font-data);
+            align-items: center;
+        }
+
+        .res-dirty {
+            color: #ccc;
+            font-size: 1.1rem;
+        }
+
+        .res-clean {
+            color: #8fbc8f;
+            font-size: 1.1rem;
+        }
+
+        /* NEW: Respect Stat Styling */
+        .res-respect {
+            color: var(--gold);
+            font-size: 0.9rem;
+            border-right: 1px solid #333;
+            padding-right: 15px;
+        }
+
+        .weather-display {
+            font-size: 0.8rem;
+            color: #888;
+            margin-right: 15px;
+        }
+
+        .heat-container {
+            width: 150px;
+            text-align: right;
+            position: relative;
+        }
+
+        .heat-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: #222;
+            margin-top: 3px;
+            border: 1px solid #500;
+        }
+
+        .heat-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--alert);
+            transition: width 0.5s;
+            box-shadow: 0 0 10px var(--alert);
+        }
+
+        .pause-btn {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 5px 15px;
+            font-family: var(--font-ui);
+            cursor: pointer;
+            margin-right: 20px;
+        }
+
+        nav {
+            background: #0a0a0a;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            color: #666;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: 0.3s;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .nav-item.active {
+            color: var(--gold);
+            border-left: 3px solid var(--gold);
+            background: linear-gradient(90deg, rgba(197, 160, 89, 0.1), transparent);
+        }
+
+        main {
+            position: relative;
+            padding: 30px;
+            overflow-y: auto;
+            background: radial-gradient(circle at 50% 50%, #111 0%, #000 100%);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            color: #fff;
+            border-bottom: 1px solid var(--gold);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            /* Added for space when rank required */
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .op-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            padding: 20px;
+            position: relative;
+            transition: border-color 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .op-card:hover {
+            border-color: #555;
+        }
+
+        .op-card h3 {
+            margin: 0 0 10px 0;
+            font-weight: 400;
+            color: var(--gold);
+            font-size: 1rem;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .progress-line {
+            width: 100%;
+            height: 4px;
+            background: #222;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .progress-active {
+            height: 100%;
+            background: var(--gold);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+            padding: 8px 12px;
+            font-family: var(--font-ui);
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            width: 100%;
+            transition: 0.2s;
+            margin-top: 5px;
+        }
+
+        .action-btn:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .btn-green {
+            border-color: #1a4d1a;
+            color: #8fbc8f;
+        }
+
+        .btn-green:hover {
+            background: rgba(26, 77, 26, 0.2);
+        }
+
+        .btn-red {
+            border-color: #500;
+            color: #f55;
+        }
+
+        .btn-blue {
+            border-color: #0088ff;
+            color: #0088ff;
+        }
+
+        .btn-purple {
+            border-color: #9900ff;
+            color: #cc66ff;
+        }
+
+        .btn-locked {
+            opacity: 0.5;
+            border-style: dashed;
+            cursor: pointer;
+        }
+
+        /* TOGGLE SWITCH */
+        .toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: #888;
+            cursor: pointer;
+        }
+
+        .toggle-input {
+            accent-color: var(--gold);
+            width: 16px;
+            height: 16px;
+        }
+
+        .auto-panel {
+            border: 1px dashed var(--gold);
+            padding: 15px;
+            margin-bottom: 20px;
+            background: rgba(197, 160, 89, 0.05);
+        }
+
+        .auto-locked .locked-overlay {
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        #war-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            border: 1px solid var(--border);
+            background: #000;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        #war-canvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            display: block;
+        }
+
+        .map-overlay {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border: 1px solid #333;
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+
+        /* NEW: Rival Power Styling */
+        .rival-power-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border: 1px solid var(--alert);
+            font-size: 0.8rem;
+            width: 180px;
+            text-align: right;
+            pointer-events: none;
+        }
+
+        .rival-bar-bg {
+            width: 100%;
+            height: 5px;
+            background: #222;
+        }
+
+        .rival-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--alert);
+        }
+
+        .notification-area {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 300px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .notif {
+            background: rgba(0, 0, 0, 0.9);
+            border-left: 4px solid var(--gold);
+            color: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            animation: slideIn 0.5s;
+            pointer-events: all;
+        }
+
+        .notif.bad {
+            border-left-color: var(--alert);
+        }
+
+        .notif.event {
+            border-left-color: #0088ff;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        #pause-modal,
+        #event-modal,
+        #guide-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            backdrop-filter: blur(5px);
+        }
+
+        #guide-modal .modal-content {
+            max-width: 800px;
+            max-height: 80vh;
+            text-align: left;
+            overflow-y: auto;
+            border: 3px solid var(--gold);
+        }
+
+        .modal-content {
+            background: #111;
+            border: 2px solid var(--gold);
+            padding: 30px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(197, 160, 89, 0.2);
+        }
+
+        .modal-title {
+            font-family: var(--font-display);
+            color: var(--gold);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .guide-section h2 {
+            font-family: var(--font-display);
+            color: #fff;
+            border-bottom: 1px dashed var(--gold);
+            margin-top: 30px;
+        }
+
+        .guide-section p {
+            color: #aaa;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .guide-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .guide-section li {
+            margin-bottom: 5px;
+            color: #ccc;
+            font-family: var(--font-data);
+        }
+
+        .guide-section strong {
+            color: var(--gold);
+        }
+
+
+        aside {
+            background: #080808;
+            border-left: 1px solid var(--border);
+            padding: 20px;
+            font-family: var(--font-data);
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .data-header {
+            color: #fff;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            color: #777;
+        }
+
+        .data-row span:last-child {
+            color: var(--gold);
+        }
+
+        footer {
+            grid-column: 1 / -1;
+            background: #050505;
+            border-top: 1px solid #222;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            font-family: var(--font-data);
+            font-size: 0.75rem;
+            color: #444;
+        }
+
+        .footer-btn {
+            background: transparent;
+            border: 1px solid #444;
+            color: #666;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+
+        .footer-btn:hover {
+            color: var(--gold);
+            border-color: var(--gold);
+        }
+
+        .ticker {
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fade 0.3s ease-out;
+        }
+
+        @keyframes fade {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+        }
+
+        th {
+            text-align: left;
+            color: #666;
+            padding: 5px;
+            border-bottom: 1px solid #333;
+        }
+
+        td {
+            padding: 8px 5px;
+            border-bottom: 1px solid #222;
+            color: #999;
+        }
+
+        /* MOBILE OPTIMIZATION */
+        @media (max-width: 768px) {
+            #interface {
+                grid-template-columns: 1fr;
+                /* Single column */
+                grid-template-rows: 70px auto auto auto 40px;
+                /* Header, Nav, Main, Aside, Footer */
+                overflow-y: auto;
+                /* Allow scrolling the whole app */
+            }
+
+            header {
+                padding: 0 10px;
+            }
+
+            .brand {
+                font-size: 1.2rem;
+            }
+
+            .hud-stats {
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .res-respect,
+            .weather-display {
+                display: none;
+                /* Hide non-critical stats */
+            }
+
+            .heat-container {
+                width: 80px;
+            }
+
+            .pause-btn {
+                margin-right: 5px;
+                padding: 3px 8px;
+            }
+
+            nav {
+                grid-row: 2;
+                /* Nav moves to row 2 */
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                padding: 10px 0;
+                /* Make navigation items horizontal and scrollable */
+                display: flex;
+                flex-direction: row;
+                overflow-x: scroll;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .nav-item {
+                padding: 8px 12px;
+                font-size: 0.75rem;
+                flex-shrink: 0;
+                /* Prevent shrinking */
+                border-left: none;
+                border-bottom: 3px solid transparent;
+            }
+
+            .nav-item.active {
+                border-left: none;
+                border-bottom: 3px solid var(--gold);
+                background: none;
+            }
+
+            main {
+                grid-row: 3;
+                /* Main moves to row 3 */
+                padding: 15px;
+            }
+
+            aside {
+                grid-row: 4;
+                /* Aside moves to row 4 */
+                border-left: none;
+                border-top: 1px solid var(--border);
+                padding: 15px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+
+            .data-block {
+                padding: 10px;
+                border: 1px solid #222;
+            }
+
+            .data-header {
+                border-bottom: 1px solid #444;
+                padding-bottom: 3px;
+            }
+
+            .grid-cards {
+                grid-template-columns: 1fr;
+                /* Single column for content cards */
+            }
+
+            footer {
+                grid-row: 5;
+                /* Footer moves to row 5 */
+                font-size: 0.65rem;
+                padding: 0 10px;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            footer>* {
+                margin: 0;
+            }
+
+            footer span {
+                display: none;
+                /* Hide version text on tiny screens */
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="notification-area" id="notif-area"></div>
+
+    <div id="pause-modal">
+        <div class="modal-content">
+            <h1 style="font-family: var(--font-display); color: var(--gold); font-size: 3rem;">PAUSA</h1>
+            <button class="action-btn" style="width:auto; font-size:1.2rem; padding:15px 30px;"
+                onclick="Core.togglePause()">REANUDAR OPERACIONES</button>
+            <p style="color:#666; margin-top:20px;">Progreso Guardado</p>
+        </div>
+    </div>
+
+    <div id="event-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="ev-title">ALERTA</div>
+            <div class="modal-desc" id="ev-desc" style="margin-bottom: 30px; color:#ccc;">...</div>
+            <div class="modal-actions" id="ev-actions" style="display: flex; gap: 10px; justify-content: center;"></div>
+        </div>
+    </div>
+
+    <div id="guide-modal">
+        <div class="modal-content">
+            <div class="modal-title" style="font-size: 2rem; margin-bottom: 0;">GUÍA OPERACIONAL V30.0</div>
+            <div style="font-size: 0.8rem; color: #888; margin-bottom: 20px;">Manual de El Patrón: LEGADO FINAL</div>
+            <div id="guide-content" class="guide-section">
+                <!-- Content generated by JS -->
+            </div>
+            <button class="action-btn"
+                onclick="document.getElementById('guide-modal').style.display='none'">CERRAR</button>
+        </div>
+    </div>
+
+    <div id="interface">
+        <header>
+            <div class="brand">
+                EL PADRINO
+                <span class="rank-badge" id="ui-rank-badge">PISTOLERO</span> <!-- NEW: Rank Badge -->
+            </div>
+
+            <button class="pause-btn" onclick="Core.togglePause()">⏸</button>
+
+            <div class="hud-stats">
+                <div class="res-respect">NET WORTH: $<span id="ui-respect">0</span></div> <!-- NEW: Respect Stat -->
+                <span class="weather-display" id="weather-display">☀️ DESPEJADO</span>
+                <div class="res-dirty">SUCIO: $<span id="ui-dirty">0</span></div>
+                <div class="res-clean">LIMPIO: $<span id="ui-clean">0</span> <span
+                        style="color:#666; font-size:0.8rem;">(+$<span id="ui-passive">0</span>/s)</span></div>
+                <div class="heat-container">
+                    <div class="heat-label">NIVEL DE BÚSQUEDA</div>
+                    <div class="heat-bar-bg">
+                        <div class="heat-bar-fill" id="ui-heat"></div>
+                    </div>
+                    <button class="action-btn btn-red"
+                        style="position:absolute; top:15px; right:0; width:auto; padding:2px 5px; font-size:0.6rem; display:none;"
+                        id="btn-panic" onclick="Core.Heat.emergencyEscape()">ESCAPE ($50k)</button>
+                </div>
+            </div>
+        </header>
+
+        <nav>
+            <div class="nav-item active" onclick="UI.nav('ops')">🏭 PRODUCCIÓN</div>
+            <div class="nav-item" onclick="UI.nav('war')">🗺️ WAR ROOM</div>
+            <div class="nav-item" onclick="UI.nav('logistics')">🚚 LOGÍSTICA</div>
+            <div class="nav-item" onclick="UI.nav('shadow')">🏛️ GABINETE SOMBRA</div>
+            <div class="nav-item" onclick="UI.nav('assets')">🚗 ACTIVOS</div>
+            <div class="nav-item" onclick="UI.nav('hr')">👥 PERSONAL</div>
+            <div class="nav-item" onclick="UI.nav('finance')">💰 FINANZAS</div>
+            <div class="nav-item" onclick="UI.nav('lifestyle')">💎 ESTILO DE VIDA</div>
+            <div class="nav-item" onclick="UI.nav('contacts')">🤝 DIPLOMACIA</div>
+            <div class="nav-item" onclick="UI.nav('rnd')">🧪 I + D</div>
+            <div class="nav-item" onclick="UI.nav('achievements')">🏆 LOGROS</div>
+            <div class="nav-item" onclick="UI.nav('ending')" style="color:var(--gold);">🏁 RETIRO</div>
+        </nav>
+
+        <main>
+            <section id="view-ops" class="fade-in">
+                <div class="section-title">COMPLEJO INDUSTRIAL & PRECURSORES</div>
+                <div class="op-card" style="margin-bottom: 20px;">
+                    <h3>IMPORTACIÓN DE QUÍMICOS</h3>
+                    <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">Stock: <span id="val-chems"
+                            style="color:#fff">0</span> Litros. (Requiere Limpio)</p>
+                    <div style="display:flex; gap:10px;">
+                        <button class="action-btn btn-green" style="width:auto;" onclick="Core.Ops.buyChems(100)">100L
+                            (-$3k)</button>
+                        <button class="action-btn btn-green" style="width:auto;" onclick="Core.Ops.buyChems(1000)">1K L
+                            (-$28k)</button>
+                        <button class="action-btn btn-green" style="width:auto;" onclick="Core.Ops.buyChems(10000)">10K
+                            L (-$250k)</button>
+                        <label class="checkbox-wrapper" style="margin-left:auto;">
+                            <input type="checkbox" id="auto-chem-toggle" onchange="Core.Ops.toggleAutoChem()">
+                            AUTO-IMPORT
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid-cards" id="ops-grid">
+                </div>
+            </section>
+
+            <section id="view-shadow" class="hidden fade-in">
+                <div class="section-title">GABINETE DE LA SOMBRA (PODER ESTATAL)</div>
+                <p style="color:#888; font-size:0.9rem; margin-bottom:20px;">Controla el estado para operar con
+                    impunidad. Requiere fondos masivos.</p>
+
+                <div class="grid-cards" id="shadow-grid">
+                    <!-- Contenido llenado por JS: Core.Shadow.render() -->
+                </div>
+            </section>
+
+            <section id="view-war" class="hidden fade-in">
+                <div class="section-title">GEOPOLÍTICA Y DEFENSA</div>
+
+                <!-- NEW: Rival Power Display -->
+                <div class="rival-power-container">
+                    <div style="color:var(--alert); font-weight:bold;">PODER RIVAL</div>
+                    <div style="color:#fff; margin-bottom:5px;" id="ui-rival-power-text">0</div>
+                    <div class="rival-bar-bg">
+                        <div class="rival-bar-fill" id="ui-rival-power-bar"></div>
+                    </div>
+                </div>
+
+                <div class="op-card" style="margin-bottom:15px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                        <div>
+                            <h3>EJÉRCITO</h3>
+                            <p style="font-size:0.8rem; color:#888;">Costo Recluta: $<span id="recruit-cost">1000</span>
+                            </p>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="color:#aaa; font-family:var(--font-data); margin-bottom:5px;">LIBRES: <span
+                                    id="val-army" style="color:var(--gold); font-size:1.2rem;">0</span> | ÉLITE: <span
+                                    id="val-elite" style="color:#0088ff">0</span></div>
+                            <div style="display:flex; gap:5px;">
+                                <button class="action-btn btn-green" style="width:auto;"
+                                    onclick="Core.War.recruit(1)">+1</button>
+                                <button class="action-btn btn-green" style="width:auto;"
+                                    onclick="Core.War.recruit(10)">+10</button>
+                                <button class="action-btn btn-blue" style="width:auto;"
+                                    onclick="Core.War.recruitElite()">ÉLITE (+$25k)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Deploy Heavy Weapons (MLRS / T-90) -->
+                <div class="op-card" style="margin-bottom:10px; border-color: #9900ff;">
+                    <h3>ARMAS PESADAS (REQ. PACTO KREMLIN)</h3>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <button class="action-btn btn-purple" id="btn-deploy-tanks"
+                            onclick="Core.War.deployMilitary(6)">
+                            T-90 (0) - Desplegar
+                        </button>
+                        <button class="action-btn btn-purple" id="btn-deploy-mlrs" onclick="Core.War.deployMilitary(7)">
+                            MLRS (0) - Desplegar
+                        </button>
+                    </div>
+                    <div style="font-size:0.7rem; color:#888; margin-top:5px;">Usa T-90 para defender, MLRS para ataques
+                        a distancia.</div>
+                </div>
+
+                <div class="op-card" id="troop-controls"
+                    style="display:none; margin-bottom:10px; border-color:var(--gold);">
+                    <h3 id="tc-title">GESTIONAR TERRITORIO</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>DEFENSORES: <span id="tc-count" style="color:#fff;">0</span></span>
+                        <div>
+                            <button class="action-btn" style="width:auto;"
+                                onclick="Core.War.modifyTroops(1)">+1</button>
+                            <button class="action-btn" style="width:auto;"
+                                onclick="Core.War.modifyTroops(-1)">-1</button>
+                        </div>
+                    </div>
+                    <button class="action-btn btn-red" id="btn-attack" style="margin-top:10px; display:none;"
+                        onclick="Core.War.launchAttack()">INICIAR INVASIÓN</button>
+                </div>
+
+                <div id="war-container">
+                    <canvas id="war-canvas"></canvas>
+                    <div class="map-overlay">
+                        <div style="color:var(--gold)">PLAZAS: <span id="count-territory">0</span></div>
+                        <div style="color:var(--success); margin-top:5px;">BONUS ACTIVOS:</div>
+                        <div id="active-bonuses" style="font-size:0.7rem; color:#aaa;">Ninguno</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-logistics" class="hidden fade-in">
+                <div class="section-title">MERCADO & ENVÍOS</div>
+                <div class="grid-cards">
+                    <div class="op-card">
+                        <h3>PRECIOS DE MERCADO</h3>
+                        <div id="market-ticker"></div>
+                    </div>
+
+                    <div class="op-card">
+                        <h3>CONFIGURAR ENVÍO MANUAL</h3>
+                        <select id="sel-prod" onchange="Core.Logistics.calc()"
+                            style="width:100%; background:#000; color:#fff; border:1px solid #333; padding:5px; margin-bottom:5px;"></select>
+                        <select id="sel-veh" onchange="Core.Logistics.calc()"
+                            style="width:100%; background:#000; color:#fff; border:1px solid #333; padding:5px; margin-bottom:5px;"></select>
+
+                        <label style="font-size:0.7rem; color:#888;">DISTANCIA:</label>
+                        <select id="sel-dist"
+                            style="width:100%; background:#000; color:#fff; border:1px solid #333; padding:5px; margin-bottom:5px;">
+                            <option value="1">Corta (Rápido, -Valor)</option>
+                            <option value="2">Media (Normal)</option>
+                            <option value="3">Larga (Lento, +Valor, +Riesgo)</option>
+                            <!-- NEW INTERNATIONAL ROUTES -->
+                            <option value="4" id="opt-intl-us" disabled>🇺🇸 Continental (LOBBY WASHINGTON Req.)
+                            </option>
+                            <option value="5" id="opt-intl-eu" disabled>🇪🇺 Europa (ACUERDO UE Req. / Rango Padrino)
+                            </option>
+                            <option value="6" id="opt-intl-asia" disabled>🇨🇳 Asia (RUTA ASIÁTICA Req.)</option>
+                            <!-- END NEW -->
+                        </select>
+
+                        <input type="range" id="rng-load" style="width:100%; height:5px; accent-color: var(--gold);"
+                            value="0">
+                        <div style="text-align:right; font-size:0.8rem; margin-bottom:10px;">CANTIDAD: <span
+                                id="lbl-load">0</span></div>
+                        <button class="action-btn" onclick="Core.Logistics.dispatch()">ENVIAR CARGA</button>
+                    </div>
+
+                    <div class="op-card auto-panel hidden" id="auto-logistics-panel">
+                        <h3 style="color:var(--gold);">⚡ LOGÍSTICA AUTOMÁTICA</h3>
+                        <p style="font-size:0.7rem; margin-bottom:15px;">El Jefe de Tráfico gestionará la flota
+                            disponible.</p>
+
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="auto-smart-toggle" onchange="Core.Logistics.updateAutoUI()">
+                            MODO INTELIGENTE (Envía todo lo más valioso)
+                        </label>
+
+                        <div id="auto-inputs" class="locked-overlay">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:5px;">
+                                <select id="auto-prod"
+                                    style="background:#000; color:#fff; border:1px solid #444;"></select>
+                                <select id="auto-dist" style="background:#000; color:#fff; border:1px solid #444;">
+                                    <option value="1">Corta</option>
+                                    <option value="2">Media</option>
+                                    <option value="3">Larga</option>
+                                </select>
+                            </div>
+                            <select id="auto-veh"
+                                style="width:100%; background:#000; color:#fff; border:1px solid #444; margin-bottom:10px;">
+                            </select>
+                        </div>
+
+                        <label style="font-size:0.7rem; color:#888;">CARGA MÍNIMA:</label>
+                        <input type="number" id="auto-min-load" value="100"
+                            style="width:100%; background:#000; border:1px solid #444; color:#fff; margin-bottom:15px;">
+
+                        <button class="action-btn" id="btn-auto-toggle" onclick="Core.Logistics.toggleAuto()">ACTIVAR
+                            AUTOMATIZACIÓN</button>
+                        <div id="auto-status" style="font-size:0.7rem; margin-top:5px; color:#666;">Estado: Inactivo
+                        </div>
+                    </div>
+                </div>
+                <div class="section-title" style="margin-top:20px;">TRÁFICO ACTIVO</div>
+                <table id="log-table">
+                    <thead>
+                        <tr>
+                            <th>UNIDAD</th>
+                            <th>CARGA</th>
+                            <th>VALOR</th>
+                            <th>ESTADO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-body"></tbody>
+                </table>
+            </section>
+
+            <section id="view-assets" class="hidden fade-in">
+                <div class="section-title">CONCESIONARIO</div>
+                <div id="assets-grid" class="grid-cards"></div>
+                <div class="section-title" style="margin-top:30px;">MI FLOTA (ESTADO)</div>
+                <div class="op-card hidden" id="auto-repair-panel"
+                    style="border-color:var(--success); margin-bottom:10px;">
+                    <h3 style="color:var(--success);">🔧 TALLER PRIVADO ACTIVO</h3>
+                    <p style="font-size:0.8rem;">El Mecánico está reparando vehículos dañados automáticamente.</p>
+                </div>
+                <div id="fleet-list" class="grid-cards"></div>
+            </section>
+
+            <section id="view-hr" class="hidden fade-in">
+                <div class="section-title">RECURSOS HUMANOS</div>
+                <div class="op-card" style="margin-bottom:20px;">
+                    <h3>CONTRATAR ESPECIALISTA</h3>
+                    <p style="font-size:0.8rem; color:#666;">Asigna tenientes para obtener bonus pasivos. Costo: $5,000
+                        Limpio.</p>
+                    <button class="action-btn btn-green" onclick="Core.HR.hire()">BUSCAR CANDIDATO</button>
+                </div>
+                <div id="lieutenants-list" class="grid-cards"></div>
+            </section>
+
+            <section id="view-finance" class="hidden fade-in">
+                <div class="section-title">FINANZAS & LAVADO</div>
+
+                <!-- NEW: WALL STREET PANEL -->
+                <div class="op-card" style="margin-bottom:20px; border-color: #0088ff;">
+                    <h3 style="color:#0088ff;">WALL STREET (INVERSIONES LIMPIAS)</h3>
+                    <p style="font-size:0.8rem; color:#888;">Invierte dinero Limpio para manipular el mercado y obtener
+                        beneficios.</p>
+                    <div id="stock-market-grid"
+                        style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-top:10px;">
+                        <!-- Rendered by JS: Core.Finance.renderStocks() -->
+                    </div>
+                </div>
+                <!-- END NEW -->
+
+                <div class="grid-cards">
+                    <div class="op-card">
+                        <h3>CUENTA OFFSHORE</h3>
+                        <p style="font-size:0.8rem; color:#666;">Dinero a salvo de redadas. (Interés 0.5%)</p>
+                        <div style="font-size:1.2rem; color:var(--success); margin-bottom:10px;">SALDO: $<span
+                                id="val-offshore">0</span></div>
+                        <input type="number" id="inp-offshore" placeholder="Monto Limpio..."
+                            style="width:100%; background:#000; border:1px solid #333; color:#fff; padding:5px;">
+                        <div style="display:flex; gap:5px; margin-top:5px;">
+                            <button class="action-btn" onclick="Core.Finance.deposit()">DEPOSITAR</button>
+                            <button class="action-btn" onclick="Core.Finance.withdraw()">RETIRAR</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-title" style="margin-top:20px;">MÉTODOS DE LAVADO</div>
+                <div class="grid-cards" id="laundering-grid"></div>
+            </section>
+
+            <section id="view-contacts" class="hidden fade-in">
+                <div class="section-title">DIPLOMACIA & MERCADO NEGRO</div>
+                <div class="grid-cards">
+                    <div class="op-card">
+                        <h3>TRÁFICANTE DE ARMAS</h3>
+                        <p style="font-size:0.8rem; color:#888;">Compra armamento pesado (+10 Fuerza)</p>
+                        <button class="action-btn" onclick="Core.Contacts.buyWeapons()">COMPRAR LOTE [-$5k
+                            LIMPIO]</button>
+                    </div>
+                    <div class="op-card">
+                        <h3>POLÍTICO CORRUPTO</h3>
+                        <p style="font-size:0.8rem; color:#888;">Reduce el límite máximo de Heat en 20%.</p>
+                        <button class="action-btn" onclick="Core.Contacts.bribePolitician()">FINANCIAR CAMPAÑA [-$50k
+                            SUCIO]</button>
+                    </div>
+                    <div class="op-card">
+                        <h3>ADUANERO CORRUPTO</h3>
+                        <p style="font-size:0.8rem; color:#888;">Ignora el 15% de las revisiones en ruta.</p>
+                        <button class="action-btn btn-green" onclick="Core.Contacts.hireCustoms()">SOBORNAR [-$10k
+                            LIMPIO]</button>
+                        <span class="status" id="st-customs">INACTIVO</span>
+                    </div>
+                    <div class="op-card">
+                        <h3>LÍDER SINDICAL</h3>
+                        <p style="font-size:0.8rem; color:#888;">Acelera producción en todos los laboratorios (+10%).
+                        </p>
+                        <button class="action-btn btn-green" onclick="Core.Contacts.hireUnion()">CONTRATAR [-$20k
+                            SUCIO]</button>
+                        <span class="status" id="st-union">INACTIVO</span>
+                    </div>
+                    <div class="op-card">
+                        <h3>NARCO-ABOGADO</h3>
+                        <p style="font-size:0.8rem; color:#888;">Seguro contra redadas (Solo pierdes 50%).</p>
+                        <button class="action-btn btn-green" onclick="Core.Contacts.hireLawyer()">RETENER [-$50k
+                            LIMPIO]</button>
+                        <span class="status" id="st-lawyer">INACTIVO</span>
+                    </div>
+                    <div class="op-card">
+                        <h3>HACKER "THE GHOST"</h3>
+                        <p style="font-size:0.8rem; color:#888;">Borra registros digitales (-50 Heat).</p>
+                        <button class="action-btn btn-purple" onclick="Core.Contacts.hireHacker()">CONTRATAR [-$10k
+                            LIMPIO]</button>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:20px;">RELACIONES OFICIALES</div>
+                <div class="grid-cards">
+                    <div class="op-card">
+                        <h3>JEFE DE POLICÍA</h3>
+                        <button class="action-btn" onclick="Core.Contacts.bribePolice()">SOBORNO MENSUAL [-$2k
+                            LIMPIO]</button>
+                        <span class="status" id="st-police">INACTIVO</span>
+                    </div>
+                    <div class="op-card">
+                        <h3>CÁRTEL RIVAL</h3>
+                        <button class="action-btn" onclick="Core.Contacts.payTruce()">PAGAR TREGUA [-$15k
+                            SUCIO]</button>
+                        <span class="status" id="st-rival">EN GUERRA</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-lifestyle" class="hidden fade-in">
+                <div class="section-title">LUJOS & INVERSIONES</div>
+                <div class="op-card">
+                    <h3>THE GOLDEN CAGE CASINO</h3>
+                    <p style="font-size:0.8rem; color:#888;">Genera $1,000/s. Habilita apuestas de alto riesgo.</p>
+                    <div id="casino-panel">
+                        <button class="action-btn btn-locked" onclick="Core.Lifestyle.buyProperty('casino')">ADQUIRIR
+                            EDIFICIO [$750k LIMPIO]</button>
+                    </div>
+                </div>
+                <div class="section-title" style="margin-top:20px;">PROPIEDADES COMERCIALES</div>
+                <div class="grid-cards">
+                    <div class="op-card">
+                        <h3>LOCAL COMERCIAL</h3>
+                        <p style="font-size:0.8rem;">Ingreso: +$100/tick</p>
+                        <button class="action-btn btn-green" onclick="Core.Lifestyle.buyProperty('local')">COMPRAR [$25k
+                            LIMPIO]</button>
+                        <div style="margin-top:5px; color:var(--gold);">PROPIEDAD: <span id="cnt-local">0</span></div>
+                    </div>
+                    <div class="op-card">
+                        <h3>HOTEL BOUTIQUE</h3>
+                        <p style="font-size:0.8rem;">Ingreso: +$500/tick</p>
+                        <button class="action-btn btn-green" onclick="Core.Lifestyle.buyProperty('hotel')">COMPRAR
+                            [$150k LIMPIO]</button>
+                        <div style="margin-top:5px; color:var(--gold);">PROPIEDAD: <span id="cnt-hotel">0</span></div>
+                    </div>
+                    <div class="op-card">
+                        <h3>COMPLEJO DE OFICINAS</h3>
+                        <p style="font-size:0.8rem;">Ingreso: +$2,000/tick</p>
+                        <button class="action-btn btn-green" onclick="Core.Lifestyle.buyProperty('office')">COMPRAR
+                            [$500k LIMPIO]</button>
+                        <div style="margin-top:5px; color:var(--gold);">PROPIEDAD: <span id="cnt-office">0</span></div>
+                    </div>
+                    <div class="op-card">
+                        <h3>ISLA PRIVADA</h3>
+                        <p style="font-size:0.8rem;">+1000 Respeto. El lujo final.</p>
+                        <button class="action-btn btn-purple" onclick="Core.Lifestyle.buyProperty('island')">COMPRAR
+                            [$5M LIMPIO]</button>
+                        <div style="margin-top:5px; color:var(--gold);">PROPIEDAD: <span id="cnt-island">0</span></div>
+                    </div>
+                </div>
+                <div class="section-title" style="margin-top:20px;">ARTÍCULOS DE PODER</div>
+                <div class="grid-cards">
+                    <div class="op-card">
+                        <h3>AK-47 DE ORO</h3>
+                        <p style="font-size:0.8rem;">+0.1 Poder de Ejército. (Acumulable)</p>
+                        <button class="action-btn btn-purple" onclick="Core.Lifestyle.buyLuxury('ak47')">COMPRAR [$15k
+                            LIMPIO]</button>
+                        <div style="margin-top:5px; color:#888;">Stock: <span id="cnt-ak47">0</span></div>
+                    </div>
+                    <div class="op-card">
+                        <h3>TIGRE DE BENGALA</h3>
+                        <p style="font-size:0.8rem;">-5% Riesgo de Lavado. (Acumulable)</p>
+                        <button class="action-btn btn-purple" onclick="Core.Lifestyle.buyLuxury('tiger')">COMPRAR [$50k
+                            LIMPIO]</button>
+                        <div style="margin-top:5px; color:#888;">Stock: <span id="cnt-tiger">0</span></div>
+                    </div>
+                    <div class="op-card">
+                        <h3>LAMBORGHINI SVJ</h3>
+                        <p style="font-size:0.8rem;">+5% Velocidad Logística. (Acumulable)</p>
+                        <button class="action-btn btn-purple" onclick="Core.Lifestyle.buyLuxury('lambo')">COMPRAR [$100k
+                            LIMPIO]</button>
+                        <div style="margin-top:5px; color:#888;">Stock: <span id="cnt-lambo">0</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-rnd" class="fade-in">
+                <div class="section-title">I + D</div>
+                <div id="tech-tree" class="grid-cards"></div>
+            </section>
+
+            <section id="view-achievements" class="hidden fade-in">
+                <div class="section-title">LOGROS</div>
+                <div id="achievements-list" class="grid-cards"></div>
+            </section>
+
+            <section id="view-ending" class="hidden fade-in">
+                <div class="section-title">PLAN DE RETIRO</div>
+                <div class="op-card" style="text-align:center; padding:40px;">
+                    <h3 style="font-size:2rem; color:var(--gold);">EL REY DE REYES</h3>
+                    <p style="color:#ccc; margin-bottom:30px;">"Llega un momento en que el oro pesa más que la sangre.
+                        ¿Estás listo para desaparecer?"</p>
+
+                    <div style="display:flex; justify-content:space-around; margin-bottom:30px;">
+                        <div>
+                            <div>CUENTA OFFSHORE</div>
+                            <div id="end-money" style="font-size:1.5rem;">$0 / $1 BILLÓN</div>
+                        </div>
+                        <div>
+                            <div>TERRITORIOS</div>
+                            <div id="end-land" style="font-size:1.5rem;">0 / 10</div>
+                        </div>
+                        <div>
+                            <div>TECNOLOGÍA</div>
+                            <div id="end-tech" style="font-size:1.5rem;">0 / 7</div>
+                        </div>
+                    </div>
+
+                    <button class="action-btn btn-green" id="btn-win" style="font-size:1.5rem; padding:20px;"
+                        onclick="Core.winGame()" disabled>EJECUTAR PLAN DE ESCAPE</button>
+                </div>
+            </section>
+
+        </main>
+
+        <aside>
+            <div class="data-block">
+                <div class="data-header">BODEGA</div>
+                <div class="data-row"><span>Mota</span> <span id="inv-weed">0</span></div>
+                <div class="data-row"><span>Cristal</span> <span id="inv-meth">0</span></div>
+                <div class="data-row"><span>Coca</span> <span id="inv-coke">0</span></div>
+                <div class="data-row"><span>Heroína</span> <span id="inv-heroin">0</span></div>
+                <div class="data-row"><span>Fenta</span> <span id="inv-fenta">0</span></div>
+                <div class="data-row"><span>Químicos</span> <span id="inv-chems">0</span></div>
+            </div>
+            <div class="data-block">
+                <div class="data-header">LOGÍSTICA</div>
+                <div class="data-row"><span>Disp.</span> <span id="inv-fleet-avail">0</span> / <span
+                        id="inv-fleet">0</span></div>
+                <div class="data-row"><span>Cap.</span> <span id="inv-cap">0</span></div>
+            </div>
+            <div class="data-block">
+                <div class="data-header">FUERZA</div>
+                <div class="data-row"><span>Sicarios</span> <span id="inv-army">0</span></div>
+                <div class="data-row"><span>Élite</span> <span id="inv-elite">0</span></div>
+                <div class="data-row"><span>Tenientes</span> <span id="inv-lt">0</span></div>
+            </div>
+        </aside>
+
+        <footer>
+            <div>
+                <!-- NEW GUIDE BUTTON -->
+                <button class="footer-btn" onclick="Core.Guide.open()">[!] GUÍA</button>
+                <button onclick="Core.hardReset()"
+                    style="background:var(--alert); border:none; color:#fff; cursor:pointer; padding:5px 10px; font-size:0.7rem; margin-right:10px;">WIPE</button>
+                <button
+                    onclick="State.money.dirty+=1000000; State.money.clean+=1000000; State.inv.chems+=5000; UI.updateAll(); UI.notify('DEV MODE: Recursos Añadidos');"
+                    style="background:none; border:1px dashed #444; color:#666; cursor:pointer; font-size:0.7rem;">[DEV]</button>
+            </div>
+            <span style="color:#444; margin-left:auto;">SISTEMA: <span style="color:var(--gold);">PATRÓN-OS v30.0
+                    (LEGADO FINAL)</span></span>
+        </footer>
+    </div>
+
+    <script>
+        const WIN_TARGET = 1000000000; // 1 BILLION DOLLARS
+
+        const Config = {
+            // NEW: Respect Ranks
+            respectRanks: [
+                { id: 0, name: 'Pistolero', req: 0, color: '#cd7f32' },
+                { id: 1, name: 'Jefe de Plaza', req: 10000000, color: '#c0c0c0' }, // 10M
+                { id: 2, name: 'Capo', req: 50000000, color: '#ffd700' }, // 50M
+                { id: 3, name: 'Padrino', req: 500000000, color: '#e5e4e2' }, // 500M
+                { id: 4, name: 'Rey de Reyes', req: 2000000000, color: '#ff3333' } // 2 BILLION (2000M)
+            ],
+            products: {
+                weed: { id: 'weed', name: 'Marihuana', basePrice: 500, time: 20, unlock: 0, chems: 0 },
+                meth: { id: 'meth', name: 'Cristal', basePrice: 1200, time: 35, unlock: 10000, chems: 1 },
+                coke: { id: 'coke', name: 'Cocaína', basePrice: 2500, time: 50, unlock: 3000, chems: 2 },
+                heroin: { id: 'heroin', name: 'Heroína', basePrice: 5000, time: 65, unlock: 50000, chems: 3 },
+                fenta: { id: 'fenta', name: 'Fentanilo', basePrice: 8000, time: 80, unlock: 10000, chems: 5 },
+                mobile: { id: 'mobile', name: 'Lab Móvil', basePrice: 2500, time: 60, unlock: 50000, chems: 2 }
+            },
+            vehicles: [
+                { id: 0, name: 'Mula', cap: 5, speed: 1, price: 0 },
+                { id: 1, name: 'Moto', cap: 15, speed: 2, price: 1500 },
+                { id: 2, name: 'Tsuru', cap: 50, speed: 3, price: 5000 },
+                { id: 3, name: 'Pickup', cap: 200, speed: 4, price: 25000 },
+                { id: 4, name: 'Avioneta', cap: 600, speed: 8, price: 100000 },
+                { id: 5, name: 'Semi-Sumergible', cap: 1500, speed: 5, price: 500000 },
+                // NUEVOS ACTIVOS BÉLICOS (ID 6 y 7)
+                { id: 6, name: 'Tanque T-90', cap: 0, speed: 0, price: 1000000, power: 300, isMilitary: true },
+                { id: 7, name: 'MLRS', cap: 0, speed: 0, price: 5000000, power: 500, isMilitary: true }
+            ],
+            // NEW: Stock Configuration
+            stocks: [
+                { id: 'chem', name: 'Químicos Globales', symbol: 'CHM', basePrice: 100, desc: 'Reduce Costo Químicos' },
+                { id: 'tran', name: 'Transporte Rápido', symbol: 'TRP', basePrice: 250, desc: 'Aumenta Vel. Logística' },
+                { id: 'safe', name: 'Seguridad Privada', symbol: 'SEC', basePrice: 500, desc: 'Reduce Riesgo Heat' }
+            ],
+            laundering: [
+                { id: 'street', name: 'Pitufeo', rate: 0.60, limit: 1000, unlock: 0, desc: 'Fee 40%.' },
+                { id: 'store', name: 'Tienda', rate: 0.70, limit: 5000, unlock: 5000, desc: 'Fee 30%.' },
+                { id: 'crypto', name: 'Crypto', rate: 0.80, limit: 20000, unlock: 25000, desc: 'Fee 20%.' },
+                { id: 'realestate', name: 'Inmobiliaria', rate: 0.90, limit: 100000, unlock: 100000, desc: 'Fee 10%.' },
+                { id: 'bank', name: 'Banco Internacional', rate: 0.95, limit: 1000000, unlock: 500000, desc: 'Fee 5%.' }
+            ],
+            investments: [
+                { id: 'local', name: 'Local Comercial', cost: 25000, income: 100 },
+                { id: 'hotel', name: 'Hotel Boutique', cost: 150000, income: 500 },
+                { id: 'office', name: 'Complejo Oficinas', cost: 500000, income: 2000 },
+                { id: 'casino', name: 'Casino', cost: 750000, income: 1000 },
+                { id: 'island', name: 'Isla Privada', cost: 5000000, income: 5000 }
+            ],
+            luxuries: [
+                { id: 'ak47', name: 'AK-47 Oro', cost: 15000, desc: '+0.1 Fuerza Sicarios' },
+                { id: 'tiger', name: 'Tigre Bengala', cost: 50000, desc: '-5% Riesgo Lavado' },
+                { id: 'lambo', name: 'Lamborghini SVJ', cost: 100000, desc: '+5% Vel. Logística' }
+            ],
+            // NEW SHADOW CONFIG (Includes new rank requirements)
+            shadow: [
+                // TIERS 1 (Req Rank 0-1)
+                { id: 'media', name: 'Control de Medios', cost: 5000000, desc: 'Reduce Heat pasivamente cada segundo. (-0.5/s)', type: 'clean', reqRank: 0 },
+                { id: 'fiscal', name: 'Fiscal General', cost: 10000000, desc: 'Aumenta el límite de Heat al 200% antes de redada.', type: 'clean', reqRank: 1 },
+                { id: 'transport', name: 'Red Estatal', cost: 20000000, desc: 'Aumenta la velocidad de logística en un 50% permanentemente.', type: 'clean', reqRank: 1 },
+                // GEOPOLÍTICA (Req Rank 2-3)
+                { id: 'kremlin_pact', name: 'PACTO KREMLIN (Guerra)', cost: 250000000, desc: 'Desbloquea Artillería Pesada T-90 y MLRS. +50% Poder Ataque.', type: 'clean', reqRank: 2 },
+                { id: 'lobby_us', name: 'LOBBY WASHINGTON', cost: 400000000, desc: 'Inmunidad Continental (75% menos riesgo en Ruta Continental).', type: 'clean', reqRank: 3 },
+                { id: 'acuerdo_eu', name: 'ACUERDO UE', cost: 600000000, desc: 'Abre Mercado Europeo. Fentanilo 3x valor base.', type: 'clean', reqRank: 3 },
+                { id: 'ruta_asia', name: 'RUTA ASIÁTICA', cost: 800000000, desc: 'Abre Mercado Asiático. Heroína 3x valor base.', type: 'clean', reqRank: 4 },
+                // CONTROL FINAL (Req Rank 4)
+                { id: 'supreme_court', name: 'CONTROL JUDICIAL', cost: 150000000, desc: 'Garantiza inmunidad total contra redadas de inventario.', type: 'clean', reqRank: 4 },
+                { id: 'presidencia', name: 'LA PRESIDENCIA', cost: 500000000, desc: 'Genera $10,000 Limpios por segundo.', type: 'clean', reqRank: 4 }
+            ],
+            techs: [
+                { id: 'eff_1', name: 'Destilación Vacío', cost: 5000, desc: '-20% Tiempo Prod.', bought: false },
+                { id: 'sec_1', name: 'Celulares Encriptados', cost: 8000, desc: '-10% Ganancia de Heat', bought: false },
+                { id: 'hydro_1', name: 'Hidroponía Avanzada', cost: 15000, desc: '+50% Vel. Prod. Mota', bought: false },
+                { id: 'ghost_log', name: 'Logística Fantasma', cost: 30000, desc: '-20% Riesgo en Rutas', bought: false },
+                { id: 'subs_1', name: 'Ingeniería Naval', cost: 100000, desc: 'Desbloquea Submarinos', bought: false },
+                { id: 'blue_meth', name: 'Fórmula Azul', cost: 50000, desc: '+30% Precio Cristal', bought: false },
+                { id: 'asia_net', name: 'Red Asiática', cost: 75000, desc: '+50% Vel. Prod. Heroína', bought: false }
+            ],
+            achievements: [
+                { id: 'first_k', name: 'Primer Kilo', desc: 'Gana $1,000 sucios', req: { type: 'money', val: 1000 }, earned: false },
+                { id: 'boss', name: 'Jefe de Plaza', desc: 'Controla 3 territorios', req: { type: 'territory', val: 3 }, earned: false },
+                { id: 'kingpin', name: 'Capo de Capos', desc: 'Acumula $1M sucios', req: { type: 'money', val: 1000000 }, earned: false },
+                { id: 'fleet_master', name: 'Flotilla', desc: 'Ten 10 vehículos', req: { type: 'fleet', val: 10 }, earned: false },
+                { id: 'army_100', name: 'Ejército Privado', desc: 'Ten 100 sicarios', req: { type: 'army', val: 100 }, earned: false },
+                { id: 'elite_squad', name: 'Escuadrón de la Muerte', desc: 'Ten 10 Fuerzas Especiales', req: { type: 'elite', val: 10 }, earned: false },
+                { id: 'high_roller', name: 'Lavado Masivo', desc: 'Lava $1M Limpio', req: { type: 'clean', val: 1000000 }, earned: false },
+                { id: 'map_control', name: 'El Padrino', desc: 'Controla todos los territorios', req: { type: 'territory', val: 10 }, earned: false },
+                { id: 'meth_king', name: 'Heisenberg', desc: 'Ten 100kg de Cristal', req: { type: 'stock', prod: 'meth', val: 100 }, earned: false },
+                { id: 'heroin_lord', name: 'Golden Triangle', desc: 'Ten 100kg de Heroína', req: { type: 'stock', prod: 'heroin', val: 100 }, earned: false },
+                { id: 'sub_captain', name: 'Capitán Nemo', desc: 'Usa un Submarino', req: { type: 'tech', id: 'subs_1' }, earned: false },
+
+                // --- 15 LOGROS ADICIONALES (v30.0) ---
+                { id: 'clean_10m', name: 'Mano Limpia', desc: 'Acumula $10M Limpio', req: { type: 'clean', val: 10000000 }, earned: false },
+                { id: 'office_5', name: 'Magnate Inmobiliario', desc: 'Posee 5 Complejos de Oficinas', req: { type: 'property_count', id: 'office', val: 5 }, earned: false },
+                { id: 'island_2', name: 'Archipiélago Privado', desc: 'Posee 2 Islas Privadas', req: { type: 'property_count', id: 'island', val: 2 }, earned: false },
+                { id: 'lambo_5', name: 'Velocidad Máxima', desc: 'Posee 5 Lamborghinis SVJ', req: { type: 'luxury_count', id: 'lambo', val: 5 }, earned: false },
+                { id: 'ak47_10', name: 'Armero Mayor', desc: 'Posee 10 AK-47 de Oro', req: { type: 'luxury_count', id: 'ak47', val: 10 }, earned: false },
+                { id: 'tiger_3', name: 'Zoólogo Peligroso', desc: 'Posee 3 Tigres de Bengala', req: { type: 'luxury_count', id: 'tiger', val: 3 }, earned: false },
+                { id: 'chems_50k', name: 'El Alquimista', desc: 'Ten 50,000 Litros de Químicos en stock', req: { type: 'stock', prod: 'chems', val: 50000 }, earned: false },
+                { id: 'tank_5', name: 'Jefe de Blindados', desc: 'Compra 5 Tanques T-90', req: { type: 'military_count', id: 6, val: 5 }, earned: false },
+                { id: 'mlrs_3', name: 'Artillería Pesada', desc: 'Compra 3 MLRS', req: { type: 'military_count', id: 7, val: 3 }, earned: false },
+                { id: 'shadow_5', name: 'Cúpula de Poder', desc: 'Compra 5 mejoras en el Gabinete Sombra', req: { type: 'shadow_count', val: 5 }, earned: false },
+                { id: 'kingmaker', name: 'El Hacedor de Presidentes', desc: 'Compra LA PRESIDENCIA en el Gabinete', req: { type: 'shadow_status', id: 'presidencia' }, earned: false },
+                { id: 'army_500', name: 'General de Guerra', desc: 'Ten 500 unidades de tropa (Sicarios + Élite)', req: { type: 'army_total', val: 500 }, earned: false },
+                { id: 'padrino_rank', name: 'El Padrino', desc: 'Alcanza el rango de Padrino (Rank 3)', req: { type: 'rank_level', val: 3 }, earned: false },
+                { id: 'high_roller_2', name: 'Casino Magnate', desc: 'Posee el Casino y el Hotel Boutique', req: { type: 'property_combo', ids: ['casino', 'hotel'], val: 1 }, earned: false },
+                { id: 'fleet_30', name: 'Flota Inmensa', desc: 'Ten 30 vehículos de logística (no militares)', req: { type: 'fleet', val: 30 }, earned: false }
+            ],
+            territories: [
+                { id: 0, name: 'Sinaloa (Base)', x: 120, y: 150, owner: 'player', power: 50, bonus: 'Inicio', troops: 0 },
+                { id: 1, name: 'Tijuana (Frontera)', x: 20, y: 30, owner: 'enemy', power: 100, bonus: '+20% Precio Venta', troops: 10 },
+                { id: 2, name: 'Juárez (Bodega)', x: 180, y: 40, owner: 'enemy', power: 150, bonus: '+500 Capacidad', troops: 15 },
+                { id: 3, name: 'Guadalajara (Lab)', x: 160, y: 250, owner: 'enemy', power: 200, bonus: 'Químicos Gratis', troops: 20 },
+                { id: 4, name: 'Nuevo Laredo', x: 300, y: 90, owner: 'enemy', power: 300, bonus: '+15% Vel. Flota', troops: 25 },
+                { id: 5, name: 'Monterrey', x: 290, y: 120, owner: 'enemy', power: 250, bonus: '+10% Lavado', troops: 30 },
+                { id: 6, name: 'CDMX', x: 220, y: 280, owner: 'enemy', power: 400, bonus: '-10% Heat Gen', troops: 50 },
+                { id: 7, name: 'Veracruz', x: 280, y: 290, owner: 'enemy', power: 200, bonus: '+20% Vel. Barcos', troops: 20 },
+                { id: 8, name: 'Cancún', x: 440, y: 240, owner: 'enemy', power: 300, bonus: '+15% Precio Venta', troops: 30 },
+                { id: 9, name: 'Mérida', x: 400, y: 230, owner: 'enemy', power: 150, bonus: 'Defensa +10%', troops: 15 }
+            ],
+            weather: ['☀️ DESPEJADO', '🌧️ LLUVIA', '⛈️ TORMENTA', '🌫️ NIEBLA'],
+            events: [
+                {
+                    id: 1, title: "RETÉN MILITAR", desc: "El ejército detuvo un envío. ¿Qué haces?",
+                    opts: [
+                        { text: "Pagar Soborno (-$5k Sucio)", cost: { dirty: 5000 }, effect: () => UI.notify("Te dejaron pasar.") },
+                        { text: "Forzar Paso (+20 Heat)", cost: {}, effect: () => { Core.Heat.add(20); UI.notify("Escapaste, pero te buscan."); } }
+                    ]
+                },
+                {
+                    id: 2, title: "OPORTUNIDAD", desc: "Un proveedor remata químicos.",
+                    opts: [
+                        { text: "Comprar 500L (-$10k Limpio)", cost: { clean: 10000 }, effect: () => { State.inv.chems += 500; UI.notify("Stock lleno."); } },
+                        { text: "Ignorar", cost: {}, effect: () => { } }
+                    ]
+                }
+            ]
+        };
+
+        const State = {
+            money: { dirty: 1500, clean: 500, offshore: 0 },
+            inv: { weed: 0, meth: 0, coke: 0, heroin: 0, fenta: 0, chems: 0 },
+            ops: { weed: 1, meth: 0, coke: 0, heroin: 0, fenta: 0, mobile: false },
+            // New: Toggles for ops
+            opsStatus: { weed: true, meth: true, coke: true, heroin: true, fenta: true, mobile: true },
+            autoChem: false,
+            labs: { weed: 1, meth: 0, coke: 0, heroin: 0, fenta: 0 },
+            army: 0,
+            elite: 0,
+            // NEW: T-90/MLRS available count (ID 6 and 7)
+            military: { 6: 0, 7: 0 },
+            armyPower: 1,
+            // NEW: Rival Power tracking
+            rivalPower: 100, // Starts at 100
+
+            // NEW: Respect & Rank
+            respect: 0,
+            rank: 0,
+
+            heat: 0,
+            heatCap: 100,
+            market: { weed: 1.0, meth: 1.0, coke: 1.0, heroin: 1.0, fenta: 1.0 },
+            // NEW: Stock State
+            stocks: {
+                chem: { owned: 0, price: 100 },
+                tran: { owned: 0, price: 250 },
+                safe: { owned: 0, price: 500 }
+            },
+            fleet: [0],
+            fleetHealth: [100],
+            routes: [],
+            lieutenants: [],
+            territories: JSON.parse(JSON.stringify(Config.territories)),
+            contacts: { police: false, rival: false, informant: false, customs: false, union: false, lawyer: false },
+            launderingLevels: ['street'],
+            bonuses: { price: 1, speed: 1, cap: 0, chems: false },
+            achievements: Config.achievements.map(a => ({ id: a.id, earned: false })),
+            weatherCurrent: 0,
+            automation: { active: false, smart: false, prod: 'weed', veh: 1, dist: 1, min: 10 },
+            ticks: 0,
+            frozen: false,
+            paused: false,
+            luxuries: { ak47: 0, tiger: 0, lambo: 0 }, // Count
+            investments: { local: 0, hotel: 0, office: 0, casino: 0, island: 0 },
+            // FIX: Initialize all shadow properties
+            shadow: { media: false, fiscal: false, transport: false, kremlin_pact: false, lobby_us: false, acuerdo_eu: false, ruta_asia: false, supreme_court: false, presidencia: false },
+            techs: [] // AGREGADO: Para guardar el estado de I+D
+        };
+
+        // UI OBJECT IS MOVED UP HERE TO PREVENT ReferenceError
+        const UI = {
+            nav(id) {
+                document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+                const target = document.getElementById('view-' + id);
+                target.classList.remove('hidden');
+
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                event.currentTarget.classList.add('active');
+
+                if (id === 'war') Core.War.resize();
+            },
+            updateAll() {
+                if (document.getElementById('ui-dirty')) document.getElementById('ui-dirty').innerText = Math.floor(State.money.dirty).toLocaleString();
+                if (document.getElementById('ui-clean')) document.getElementById('ui-clean').innerText = Math.floor(State.money.clean).toLocaleString();
+
+                // NEW: Respect UI update
+                if (document.getElementById('ui-respect')) document.getElementById('ui-respect').innerText = State.respect.toLocaleString();
+                const rankData = Config.respectRanks[State.rank];
+                if (document.getElementById('ui-rank-badge')) {
+                    const badge = document.getElementById('ui-rank-badge');
+                    badge.innerText = rankData.name;
+                    badge.style.color = rankData.color;
+                    badge.style.borderColor = rankData.color;
+                }
+
+                if (document.getElementById('val-chems')) document.getElementById('val-chems').innerText = State.inv.chems;
+                if (document.getElementById('inv-chems')) document.getElementById('inv-chems').innerText = State.inv.chems + ' L';
+                if (document.getElementById('inv-weed')) document.getElementById('inv-weed').innerText = State.inv.weed + ' kg';
+                if (document.getElementById('inv-coke')) document.getElementById('inv-coke').innerText = State.inv.coke + ' kg';
+                if (document.getElementById('inv-fenta')) document.getElementById('inv-fenta').innerText = State.inv.fenta + ' kg';
+                if (document.getElementById('inv-meth')) document.getElementById('inv-meth').innerText = State.inv.meth + ' kg';
+                if (document.getElementById('inv-heroin')) document.getElementById('inv-heroin').innerText = State.inv.heroin + ' kg';
+
+                const totalFleet = State.fleet.length;
+                const activeFleet = State.routes.length;
+                if (document.getElementById('inv-fleet')) document.getElementById('inv-fleet').innerText = totalFleet;
+                if (document.getElementById('inv-fleet-avail')) document.getElementById('inv-fleet-avail').innerText = (totalFleet - activeFleet);
+
+                let armyTotal = State.army + State.elite;
+                State.territories.forEach(t => { if (t.owner === 'player') armyTotal += (t.troops || 0) });
+
+                if (document.getElementById('inv-army')) document.getElementById('inv-army').innerText = armyTotal;
+                if (document.getElementById('val-army')) document.getElementById('val-army').innerText = State.army;
+                if (document.getElementById('val-elite')) document.getElementById('val-elite').innerText = State.elite;
+                if (document.getElementById('inv-elite')) document.getElementById('inv-elite').innerText = State.elite;
+                if (document.getElementById('inv-lt')) document.getElementById('inv-lt').innerText = State.lieutenants.length;
+
+                if (document.getElementById('val-offshore')) document.getElementById('val-offshore').innerText = Math.floor(State.money.offshore).toLocaleString();
+                let lands = State.territories.filter(t => t.owner === 'player').length;
+                if (document.getElementById('count-territory')) document.getElementById('count-territory').innerText = lands;
+                if (document.getElementById('end-money')) document.getElementById('end-money').innerText = `$${Math.floor(State.money.offshore / 1000000).toFixed(1)}M / $1 BILLÓN`;
+                if (document.getElementById('end-land')) document.getElementById('end-land').innerText = `${lands} / ${Config.territories.length}`;
+
+                let totalTech = State.techs.filter(t => t.bought).length; // LEYENDO DESDE STATE.TECHS
+                if (document.getElementById('end-tech')) document.getElementById('end-tech').innerText = `${totalTech} / ${Config.techs.length}`;
+
+                if (State.money.offshore >= 100000000 && lands >= Config.territories.length && totalTech >= Config.techs.length) {
+                    document.getElementById('btn-win').disabled = false;
+                }
+
+                // NEW: Update Rival Power Display
+                Core.War.renderRivalPower();
+
+                // NEW: Update Deploy Buttons
+                if (document.getElementById('btn-deploy-tanks')) document.getElementById('btn-deploy-tanks').innerText = `T-90 (${State.military[6]}) - Desplegar`;
+                if (document.getElementById('btn-deploy-mlrs')) document.getElementById('btn-deploy-mlrs').innerText = `MLRS (${State.military[7]}) - Desplegar`;
+
+
+                Core.Heat.render();
+
+                if (!document.getElementById('view-logistics').classList.contains('hidden')) Core.Logistics.calc();
+            },
+            updateRecruitCost() {
+                let armyTotal = State.army + State.elite;
+                State.territories.forEach(t => { if (t.owner === 'player') armyTotal += (t.troops || 0) });
+                let nextCost = 1000 + (armyTotal * 50);
+                if (document.getElementById('recruit-cost')) document.getElementById('recruit-cost').innerText = nextCost.toLocaleString();
+            },
+            renderAchievements() {
+                const div = document.getElementById('achievements-list');
+                div.innerHTML = '';
+                Config.achievements.forEach(a => {
+                    div.innerHTML += `
+                    <div class="op-card" style="border-color:${a.earned ? 'var(--gold)' : '#333'}">
+                        <h3>${a.name}</h3>
+                        <p style="font-size:0.7rem; color:#888;">${a.desc}</p>
+                        <span class="status" style="color:${a.earned ? '#0f0' : '#666'}">${a.earned ? 'DESBLOQUEADO' : 'PENDIENTE'}</span>
+                    </div>`;
+                });
+            },
+            notify(msg, type = 'good') {
+                const div = document.createElement('div');
+                div.className = `notif ${type}`;
+                div.innerText = msg;
+                document.getElementById('notif-area').prepend(div);
+                setTimeout(() => div.remove(), 3000);
+            },
+            modal(t, m, acts) {
+                document.getElementById('ev-title').innerText = t; document.getElementById('ev-desc').innerText = m;
+                const a = document.getElementById('ev-actions'); a.innerHTML = '';
+                acts.forEach(x => {
+                    const b = document.createElement('button'); b.className = 'action-btn ' + (x.style || ''); b.innerText = x.text;
+                    b.onclick = () => { x.cb(); document.getElementById('event-modal').style.display = 'none'; }; a.appendChild(b);
+                });
+                document.getElementById('event-modal').style.display = 'flex';
+            }
+        };
+
+
+        const Core = {
+            // Helper function to find config items (FIXED)
+            findConfig(arrayName, id) {
+                const arr = Config[arrayName];
+                if (!arr || !Array.isArray(arr)) {
+                    // This is expected if arrayName is 'products' since it's an object,
+                    // but we ensure it works for arrays (like 'vehicles')
+                    return null;
+                }
+
+                // Use strict comparison for strings, weak for numeric IDs (like vehicles)
+                return arr.find(x => x.id == id);
+            },
+
+            init() {
+                this.loadGame();
+                this.Ops.render();
+                this.Logistics.updateUI();
+                this.RnD.render();
+                this.War.initCanvas();
+                this.Assets.renderStore();
+                this.Finance.renderLaundering();
+                this.Finance.renderStocks(); // NEW: Render Stocks on Init
+                this.Lifestyle.render();
+                this.Guide.renderContent(); // NEW: Render Guide Content
+                UI.renderAchievements();
+                UI.updateRecruitCost();
+                this.Contacts.updateUI();
+                this.Shadow.render(); // Render the full shadow grid
+                this.Respect.calc(); // Initial Respect Calculation
+
+                setInterval(() => {
+                    if (State.paused) return;
+                    Core.Market.fluctuate();
+                    Core.Heat.tick();
+                    this.War.enemyTurn(); // Reworked enemy turn
+                    this.Achievements.check();
+                    this.Events.check();
+                    this.World.tick();
+                    this.HR.tick();
+                    this.Respect.calc();
+                    this.saveGame();
+                    // NEW: Rival Power grows slowly
+                    Core.War.growRivalPower();
+                }, 3000);
+
+                setInterval(() => {
+                    if (State.paused) return;
+                    State.ticks++;
+                    this.Ops.tick();
+                    this.Logistics.tick();
+                    this.Logistics.autoRun();
+                    this.Assets.autoRepair();
+                    this.Finance.passiveIncome(); // Passive income moved to Finance (slow tick)
+                    this.Shadow.tick();
+                    UI.updateAll();
+                }, 100);
+            },
+
+            togglePause() {
+                State.paused = !State.paused;
+                document.getElementById('pause-modal').style.display = State.paused ? 'flex' : 'none';
+            },
+
+            saveGame() {
+                localStorage.setItem('patronSave_v17', JSON.stringify(State));
+            },
+
+            loadGame() {
+                const saved = localStorage.getItem('patronSave_v17');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    Object.assign(State, data);
+                    // Ensure new state properties are initialized if loading an old save
+                    Object.keys(Config.shadow).forEach(id => {
+                        if (State.shadow[id] === undefined) {
+                            State.shadow[id] = false;
+                        }
+                    });
+
+                    if (!State.stocks || !State.stocks.chem) {
+                        State.stocks = {
+                            chem: { owned: 0, price: 100 },
+                            tran: { owned: 0, price: 250 },
+                            safe: { owned: 0, price: 500 }
+                        };
+                    }
+
+                    if (!State.military || State.military[6] === undefined) {
+                        State.military = { 6: 0, 7: 0 };
+                    }
+                    if (State.rivalPower === undefined) State.rivalPower = 100;
+
+                    // FIX: Ensure techs are loaded or initialized if old save doesn't have them
+                    if (!State.techs || State.techs.length === 0) {
+                        State.techs = JSON.parse(JSON.stringify(Config.techs));
+                    }
+
+
+                } else {
+                    // Cargar al iniciar si no hay guardado
+                    State.techs = JSON.parse(JSON.stringify(Config.techs));
+                }
+            },
+
+            hardReset() {
+                if (confirm("¿BORRAR TODO Y REINICIAR?")) {
+                    localStorage.removeItem('patronSave_v17');
+                    State.money.dirty = 0;
+                    State.money.clean = 0;
+                    State.money.offshore = 0;
+                    State.territories.forEach(t => { if (t.id === 0) t.owner = 'enemy'; }); // Quitar la base
+                    location.reload();
+                }
+            },
+
+            winGame() {
+                const lands = State.territories.filter(t => t.owner === 'player').length;
+                const tech = State.techs.filter(t => t.bought).length; // LEYENDO DESDE STATE.TECHS
+
+                if (State.money.offshore >= WIN_TARGET && lands === Config.territories.length && tech === Config.techs.length) {
+                    // This uses a non-blocking UI alert style
+                    UI.modal("¡VICTORIA!", "¡FELICIDADES, JEFE! Has escapado con $1B, controlado toda la región y destruido a tus rivales. Eres una leyenda.", [{ text: "REINICIAR JUEGO", cb: () => location.reload() }]);
+                } else {
+                    UI.notify("Aún no has cumplido todas las condiciones para el retiro.", "bad");
+                }
+            },
+
+            // --- GUIDE ---
+            Guide: {
+                open() {
+                    document.getElementById('guide-modal').style.display = 'flex';
+                },
+                renderContent() {
+                    const contentDiv = document.getElementById('guide-content');
+                    contentDiv.innerHTML = `
+                    <div class="guide-section">
+                        <h2>Capítulo 1: La Misión y el Legado</h2>
+                        <p>El objetivo final del juego es retirarse como <strong>EL REY DE REYES</strong>. Para esto, debes completar tres condiciones en la sección RETIRO:</p>
+                        <ul>
+                            <li><strong>Dominación Global:</strong> Controlar todos los 10 territorios del mapa.</li>
+                            <li><strong>Riqueza Offshore:</strong> Acumular $1,000,000,000 ($1B) en tu cuenta OFFSHORE.</li>
+                            <li><strong>Tecnología Máxima:</strong> Investigar todas las tecnologías en I + D.</li>
+                        </div>
+
+                        <div class="guide-section">
+                            <h2>Capítulo 2: Finanzas & Respeto</h2>
+                            <p>El dinero se divide en <strong>SUCIO</strong> (ingreso de rutas, usado para producción/tropas) y <strong>LIMPIO</strong> (lavado, usado para inversiones/sobornos). El <strong>Respeto</strong> es tu patrimonio total, el cual define tu rango y desbloquea el Gabinete Sombra.</p>
+                            
+                            <h3>Métricas Clave:</h3>
+                            <ul>
+                                <li><strong>Respeto:</strong> Patrimonio Total. Necesitas 2B para ser Rey de Reyes.</li>
+                                <li><strong>Heat (Búsqueda):</strong> Aumenta con envíos grandes y al atacar. Si llega al límite, activa una redada y pierdes inventario.</li>
+                                <li><strong>Lavado:</strong> Convierte Sucio en Limpio con una tarifa. Los métodos de lavado tienen un límite y el Heat aumenta el riesgo.</li>
+                            </ul>
+
+                            <h3>Wall Street:</h3>
+                            <p>Usa dinero Limpio para comprar acciones (CHM, TRP, SEC). Estas acciones ofrecen beneficios pasivos inmediatos, como reducir el costo de químicos (CHM) o disminuir el riesgo de Heat (SEC).</p>
+                        </div>
+
+                        <div class="guide-section">
+                            <h2>Capítulo 3: Producción & Logística</h2>
+                            <p>La <strong>PRODUCCIÓN</strong> requiere laboratorios y, en la mayoría de los casos, <strong>Químicos Limpios</strong>. Puedes automatizar la compra de químicos.</p>
+                            
+                            <h3>Logística y Rutas:</h3>
+                            <p>Debes comprar vehículos (Activos) y asignarlos a rutas. La **Distancia** afecta la velocidad y el precio.</p>
+                            <ul>
+                                <li><strong>Corta (x0.8 Valor):</strong> Rápido, bajo valor.</li>
+                                <li><strong>Larga (x1.5 Valor):</strong> Lento, alto riesgo y valor.</li>
+                                <li><strong>Internacionales:</strong> Rutas USA/Europa/Asia que ofrecen precios hasta <strong>x6</strong>, pero requieren desbloqueos caros en el Gabinete Sombra y el rango Padrino.</li>
+                                <li><strong>Logística Automática:</strong> Desbloqueada por el teniente Logístico.</li>
+                            </ul>
+                        </div>
+
+                        <div class="guide-section">
+                            <h2>Capítulo 4: Guerra Total</h2>
+                            <p>El **WAR ROOM** es donde conquistas territorios. Cada territorio te da un <strong>Bonus Pasivo</strong> crucial (Ej. químicos gratis, más capacidad).</p>
+                            
+                            <h3>Combate:</h3>
+                            <ul>
+                                <li><strong>Poder de Ataque:</strong> Sicarios, Élite, y bonus de armas (AK-47 de Oro).</li>
+                                <li><strong>Poder de Defensa:</strong> Tropas que dejas en el territorio.</li>
+                                <li><strong>Poder RIVAL:</strong> El cártel enemigo tiene un poder que crece pasivamente, iniciando contraataques si tu poder es bajo o tu Heat es alto.</li>
+                                <li><strong>Armas Pesadas:</strong> Los tanques T-90 aumentan la defensa local al ser desplegados. Los MLRS aumentan drásticamente tu poder de ataque, pero se consumen tras el uso.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="guide-section">
+                            <h2>Capítulo 5: El Gabinete Sombra</h2>
+                            <p>Este panel permite comprar influencias políticas con Dinero Limpio, dándote ventajas de metajuego y geopolítica.</p>
+                            <ul>
+                                <li><strong>Requisito:</strong> Muchas opciones están bloqueadas por tu <strong>Rango de Respeto</strong>.</li>
+                                <li><strong>Ejemplo:</strong> El <strong>PACTO KREMLIN</strong> (Rango Capo) es necesario para comprar Armas Pesadas T-90 y MLRS. El <strong>LOBBY WASHINGTON</strong> (Rango Padrino) reduce el riesgo en rutas continentales.</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+            },
+
+            // --- WORLD EVENTS ---
+            World: {
+                tick() {
+                    if (Math.random() < 0.1) {
+                        State.weatherCurrent = Math.floor(Math.random() * Config.weather.length);
+                        document.getElementById('weather-display').innerText = Config.weather[State.weatherCurrent];
+                    }
+                }
+            },
+
+            Events: {
+                check() {
+                    if (Math.random() < 0.005) {
+                        const ev = Config.events[Math.floor(Math.random() * Config.events.length)];
+                        this.trigger(ev);
+                    }
+                },
+                trigger(ev) {
+                    document.getElementById('ev-title').innerText = ev.title;
+                    document.getElementById('ev-desc').innerText = ev.desc;
+                    const acts = document.getElementById('ev-actions');
+                    acts.innerHTML = '';
+                    ev.opts.forEach(o => {
+                        const btn = document.createElement('button');
+                        btn.className = 'action-btn';
+                        btn.innerText = o.text;
+                        btn.onclick = () => {
+                            if (o.cost.dirty && State.money.dirty < o.cost.dirty) return UI.notify("No hay fondos sucios.");
+                            if (o.cost.clean && State.money.clean < o.cost.clean) return UI.notify("No hay fondos limpios.");
+
+                            if (o.cost.dirty) State.money.dirty -= o.cost.dirty;
+                            if (o.cost.clean) State.money.clean -= o.cost.clean;
+
+                            o.effect();
+                            document.getElementById('event-modal').style.display = 'none';
+                            UI.updateAll();
+                        };
+                        acts.appendChild(btn);
+                    });
+                    document.getElementById('event-modal').style.display = 'flex';
+                }
+            },
+
+            // --- SHADOW GOV ---
+            Shadow: {
+                render() {
+                    const grid = document.getElementById('shadow-grid');
+                    grid.innerHTML = '';
+
+                    const shadowConfig = Array.isArray(Config.shadow) ? Config.shadow : [];
+
+                    shadowConfig.forEach(item => {
+                        const bought = State.shadow[item.id];
+                        const costText = `$${item.cost.toLocaleString()} ${item.type.toUpperCase()}`;
+
+                        // NEW LOGIC: Check Rank Requirement
+                        const reqRank = item.reqRank || 0;
+                        const isLockedByRank = State.rank < reqRank;
+                        const buttonText = bought ? 'ADQUIRIDO' : (isLockedByRank ? `REQ. RANK ${Config.respectRanks[reqRank].name.toUpperCase()}` : `COMPRAR [${costText}]`);
+
+                        grid.innerHTML += `
+                            <div class="op-card" style="opacity:${bought || isLockedByRank ? 0.5 : 1}; border-color:${bought ? 'var(--success)' : 'var(--border)'}">
+                                <h3>${item.name}</h3>
+                                <p style="font-size:0.8rem; color:#aaa;">${item.desc}</p>
+                                ${isLockedByRank ? `<p style="font-size:0.7rem; color:var(--alert);">RANGO ${Config.respectRanks[reqRank].name.toUpperCase()} REQUERIDO</p>` : ''}
+                                <button class="action-btn btn-purple" id="btn-shadow-${item.id}" onclick="Core.Shadow.buy('${item.id}')" ${bought || isLockedByRank ? 'disabled' : ''}>
+                                    ${buttonText}
+                                </button>
+                            </div>
+                        `;
+                    });
+                },
+                buy(id) {
+                    const item = Core.findConfig('shadow', id);
+                    const cost = item.cost;
+                    const currency = item.type;
+                    const reqRank = item.reqRank || 0;
+
+                    if (State.rank < reqRank) return UI.notify(`Rango ${Config.respectRanks[reqRank].name.toUpperCase()} requerido.`, "bad");
+
+                    if (State.money[currency] >= cost) {
+                        State.money[currency] -= cost;
+                        State.shadow[id] = true;
+
+                        // Apply immediate effects
+                        if (id === 'fiscal') State.heatCap = 200;
+                        if (id === 'transport') State.bonuses.speed += 0.5;
+
+                        // NEW: Update logistics UI on international unlocks
+                        if (['lobby_us', 'acuerdo_eu', 'ruta_asia'].includes(id)) Core.Logistics.updateUI();
+
+                        Core.Shadow.render();
+                        UI.updateAll();
+                        UI.notify(`ADQUIRIDO: ${item.name}`, 'good');
+                    } else UI.notify(`Falta dinero ${currency}`, "bad");
+                },
+                tick() {
+                    if (State.shadow.media) State.heat = Math.max(0, State.heat - 0.5);
+
+                    if (State.shadow.presidencia) {
+                        State.money.clean += 10000;
+                    }
+
+                    if (State.autoChem && State.ticks % 10 === 0) {
+                        if (State.money.clean >= 3000 && State.inv.chems < 1000) {
+                            Core.Ops.buyChems(100);
+                        }
+                    }
+                }
+            },
+
+            // NEW: RESPECT SYSTEM
+            Respect: {
+                calc() {
+                    // Formula: Offshore + (Dirty * 0.1) + Property Value + Territory Value
+                    let val = State.money.offshore + (State.money.dirty * 0.1);
+
+                    // Add Investment Value
+                    Config.investments.forEach(i => {
+                        val += (State.investments[i.id] || 0) * i.cost;
+                    });
+
+                    // Add Territory Value (5M per owned territory)
+                    State.territories.forEach(t => {
+                        if (t.owner === 'player') val += 5000000;
+                    });
+
+                    // Add Stock Value
+                    Object.keys(State.stocks).forEach(k => {
+                        val += (State.stocks[k].owned * State.stocks[k].price);
+                    });
+
+                    State.respect = Math.floor(val);
+
+                    // Determine Rank
+                    let oldRank = State.rank;
+                    let newRank = 0;
+                    Config.respectRanks.forEach(r => {
+                        if (State.respect >= r.req) newRank = r.id;
+                    });
+                    State.rank = newRank;
+
+                    if (State.rank > oldRank) UI.notify(`¡ASCENSO! AHORA ERES ${Config.respectRanks[State.rank].name.toUpperCase()}`, "event");
+
+                    Core.Shadow.render(); // Re-render Shadow grid to update locks
+                }
+            },
+
+            // --- LIFESTYLE ---
+            Lifestyle: {
+                render() {
+                    if (State.investments.casino > 0) {
+                        document.getElementById('casino-panel').innerHTML = `
+                            <div class="casino-table">
+                                <h4>MESA DE BLACKJACK</h4>
+                                <input type="number" id="bet-amount" placeholder="Apuesta limpia..." style="width:100%; background:#111; border:1px solid #555; color:#fff; padding:5px;">
+                                <div style="display:flex; gap:5px; margin-top:10px;">
+                                    <button class="action-btn btn-red" style="width:50%;" onclick="Core.Lifestyle.gamble('red')">ROJO (x2)</button>
+                                    <button class="action-btn" style="width:50%;" onclick="Core.Lifestyle.gamble('black')">NEGRO (x2)</button>
+                                </div>
+                            </div>`;
+                    }
+                    document.getElementById('cnt-local').innerText = State.investments.local;
+                    document.getElementById('cnt-hotel').innerText = State.investments.hotel;
+                    document.getElementById('cnt-office').innerText = State.investments.office;
+                    document.getElementById('cnt-island').innerText = State.investments.island || 0;
+
+                    document.getElementById('cnt-ak47').innerText = State.luxuries.ak47;
+                    document.getElementById('cnt-tiger').innerText = State.luxuries.tiger;
+                    document.getElementById('cnt-lambo').innerText = State.luxuries.lambo;
+                },
+                buyProperty(type) {
+                    const prop = Config.investments.find(i => i.id === type);
+                    if (State.money.clean >= prop.cost) {
+                        State.money.clean -= prop.cost;
+                        State.investments[type]++;
+                        this.render();
+                        UI.updateAll();
+                        UI.notify(prop.name + " comprado.");
+                    } else UI.notify("Falta dinero limpio", "bad");
+                },
+                buyLuxury(id) {
+                    const item = Config.luxuries.find(i => i.id === id);
+                    if (State.money.clean >= item.cost) {
+                        State.money.clean -= item.cost;
+                        State.luxuries[id]++;
+
+                        if (id === 'ak47') State.armyPower += 0.1;
+                        if (id === 'lambo') State.bonuses.speed += 0.05;
+
+                        this.render();
+                        UI.updateAll();
+                        UI.notify(item.name + " adquirido.");
+                    } else UI.notify("Falta dinero limpio", "bad");
+                },
+                passiveIncome() {
+                    // This function is only a placeholder; actual property/offshore income is handled in Core.Finance.passiveIncome
+                },
+                gamble(color) {
+                    const bet = parseInt(document.getElementById('bet-amount').value);
+                    if (!bet || bet <= 0 || bet > State.money.clean) return UI.notify("Apuesta inválida", "bad");
+
+                    State.money.clean -= bet;
+                    if (Math.random() < 0.4) {
+                        State.money.clean += (bet * 2);
+                        UI.notify(`¡GANASTE $${bet * 2}!`, "good");
+                    } else {
+                        UI.notify("Perdiste.", "bad");
+                    }
+                    UI.updateAll();
+                }
+            },
+
+            // --- OPS ---
+            Ops: {
+                progress: { weed: 0, meth: 0, coke: 0, heroin: 0, fenta: 0, mobile: 0 },
+
+                render() {
+                    const grid = document.getElementById('ops-grid');
+                    grid.innerHTML = '';
+                    const keys = ['weed', 'meth', 'coke', 'heroin', 'fenta'];
+
+                    keys.forEach(k => {
+
+                        let prod = Config.products[k];
+                        let unlocked = State.ops[k] > 0;
+
+                        grid.innerHTML += `
+                        <div class="op-card" id="card-${k}" style="opacity:${unlocked ? 1 : 0.6}">
+                            <h3>${prod.name.toUpperCase()}</h3>
+                            <div class="status-row">
+                                <span id="lvl-${k}">${unlocked ? 'NIVEL ' + State.ops[k] : 'BLOQUEADO'}</span>
+                                <span id="cnt-${k}" style="color:var(--gold);">${unlocked ? 'Labs: ' + State.labs[k] : ''}</span>
+                            </div>
+                            <div class="progress-line"><div class="progress-active" id="prog-${k}"></div></div>
+                            
+                            <div style="display:flex; gap:5px; margin-top:10px;">
+                                <button class="action-btn ${unlocked ? '' : 'btn-locked'}" id="btn-${k}" onclick="${unlocked ? `Core.Ops.upgrade('${k}')` : `Core.Ops.unlock('${k}')`}">
+                                    ${unlocked ? 'MEJORAR' : `DESBLOQUEAR $${prod.unlock}`}
+                                </button>
+                                ${unlocked ? `<button class="action-btn btn-green" onclick="Core.Ops.buyLab('${k}')">COMPRAR LOCAL (x1)</button>` : ''}
+                            </div>
+                             ${unlocked ? `
+                             <label class="toggle-wrapper" style="margin-top:5px;">
+                                <input type="checkbox" class="toggle-input" ${State.opsStatus[k] ? 'checked' : ''} onchange="Core.Ops.toggle('${k}')"> ACTIVO
+                             </label>` : ''}
+                        </div>`;
+                    });
+
+                    // Render Mobile Lab separately
+                    grid.innerHTML += `
+                    <div class="op-card" id="card-mobile" style="opacity:${State.ops.mobile ? 1 : 0.5}; border-color: #555;">
+                        <h3>LABORATORIO MÓVIL</h3>
+                        <p style="font-size:0.8rem; color:#888;">Producción lenta pero inmune a redadas (Cocaína).</p>
+                        <span class="status" id="st-mobile">${State.ops.mobile ? 'OPERANDO' : 'BLOQUEADO'}</span>
+                        <button class="action-btn btn-locked" id="btn-mobile" onclick="Core.Ops.unlockMobile()" ${State.ops.mobile ? 'disabled' : ''}>${State.ops.mobile ? 'ADQUIRIDO' : 'COMPRAR UNIDAD [-$50k LIMPIO]'}</button>
+                    </div>`;
+
+                    keys.forEach(k => { if (State.ops[k] > 0) this.updateButtons(k); });
+                },
+
+                toggle(k) {
+                    State.opsStatus[k] = !State.opsStatus[k];
+                },
+                toggleAutoChem() {
+                    State.autoChem = !State.autoChem;
+                },
+
+                tick() {
+                    const keys = ['weed', 'meth', 'coke', 'heroin', 'fenta'];
+
+                    keys.forEach(k => {
+                        if (State.ops[k] > 0 && State.opsStatus[k]) {
+                            let lvl = State.ops[k];
+                            let count = State.labs[k] || 1;
+
+                            let chemCost = Config.products[k].chems;
+                            let needsChems = chemCost > 0 && !State.bonuses.chems;
+
+                            let baseSpeed = 0.5 + (lvl * 0.1);
+
+                            // LEYENDO DESDE STATE.TECHS
+                            if (State.techs.find(t => t.id === 'eff_1')?.bought) baseSpeed *= 1.2;
+                            if (k === 'weed' && State.techs.find(t => t.id === 'hydro_1')?.bought) baseSpeed *= 1.5;
+                            if (k === 'heroin' && State.techs.find(t => t.id === 'asia_net')?.bought) baseSpeed *= 1.5;
+                            // FIN LEYENDO DESDE STATE.TECHS
+
+                            if (State.contacts.union) baseSpeed *= 1.1;
+                            const chemist = State.lieutenants.find(l => l.role === 'Químico' && l.active);
+                            if (chemist) baseSpeed *= 1.3;
+                            if (k === 'weed' && State.weatherCurrent === 2) baseSpeed *= 0.5;
+
+                            let totalSpeed = baseSpeed * count;
+
+                            // STRICT CHECK: Don't progress if blocked by lack of chems
+                            if (needsChems && State.inv.chems < chemCost) {
+                                // No chems
+                            } else {
+                                this.progress[k] += totalSpeed;
+                            }
+
+                            const bar = document.getElementById(`prog-${k}`);
+                            if (bar) bar.style.width = Math.min(100, this.progress[k]) + '%';
+
+                            while (this.progress[k] >= 100) {
+                                if (needsChems) {
+                                    let cost = Config.products[k].chems;
+                                    if (chemist) cost = Math.ceil(cost / 2);
+
+                                    if (State.inv.chems >= cost) {
+                                        State.inv.chems -= cost;
+                                        State.inv[k]++;
+                                        this.progress[k] -= 100;
+                                    } else {
+                                        this.progress[k] = 99; // Hold
+                                        break;
+                                    }
+                                } else {
+                                    State.inv[k]++;
+                                    this.progress[k] -= 100;
+                                }
+                            }
+                        }
+                    });
+
+                    if (State.ops.mobile && State.opsStatus.mobile) {
+                        let mSpeed = 0.3;
+                        this.progress.mobile += mSpeed;
+                        const bar = document.getElementById(`prog-mobile`);
+                        if (bar) bar.style.width = Math.min(100, this.progress.mobile) + '%';
+
+                        if (this.progress.mobile >= 100) {
+                            if (State.inv.chems >= 2) {
+                                State.inv.chems -= 2;
+                                State.inv.coke++;
+                                this.progress.mobile = 0;
+                            }
+                        }
+                    }
+                },
+                buyChems(amount) {
+                    let cost = amount * 30; // base rate, 100L = 3000
+                    if (amount === 1000) cost = 28000;
+                    if (amount === 10000) cost = 250000;
+
+                    // NEW: Chem Stock Bonus (CHM)
+                    if (State.stocks.chem.owned > 0) {
+                        cost *= Math.max(0.7, 1 - (State.stocks.chem.owned * 0.0005)); // Max 30% reduction cap, 0.05% per stock
+                    }
+
+                    if (State.money.clean >= cost) {
+                        State.money.clean -= cost;
+                        State.inv.chems += amount;
+                        UI.updateAll();
+                    } else UI.notify("Falta dinero limpio", "bad");
+                },
+                upgrade(k) {
+                    let multiplier = (k == 'weed' || k == 'meth') ? 1 : (k == 'coke' || k == 'heroin' ? 3 : 5);
+                    let cost = Math.floor(State.ops[k] * 1500 * multiplier);
+
+                    if (State.money.dirty >= cost) {
+                        State.money.dirty -= cost;
+                        State.ops[k]++;
+                        this.updateButtons(k);
+                        UI.updateAll();
+                    } else UI.notify("Falta dinero sucio", "bad");
+                },
+                buyLab(k) {
+                    let count = State.labs[k];
+                    let base = Config.products[k].unlock > 0 ? Config.products[k].unlock : 2000;
+                    let cost = Math.floor(base * Math.pow(1.8, count));
+
+                    if (State.money.dirty >= cost) {
+                        State.money.dirty -= cost;
+                        State.labs[k]++;
+                        this.render();
+                        UI.updateAll();
+                    } else UI.notify(`Falta $${cost.toLocaleString()} sucio`, "bad");
+                },
+                unlock(k) {
+                    let cost = Config.products[k].unlock;
+                    if (State.money.dirty >= cost) {
+                        State.money.dirty -= cost;
+                        State.ops[k] = 1;
+                        State.labs[k] = 1;
+                        this.render();
+                        UI.updateAll();
+                    } else UI.notify(`Falta $${cost} sucio`, "bad");
+                },
+                unlockMobile() {
+                    if (State.money.clean >= 50000) {
+                        State.money.clean -= 50000;
+                        State.ops.mobile = true;
+                        this.render();
+                        UI.updateAll();
+                    } else UI.notify("Falta dinero limpio", "bad");
+                },
+                updateButtons(k) {
+                    let multiplier = (k == 'weed' || k == 'meth') ? 1 : (k == 'coke' || k == 'heroin' ? 3 : 5);
+                    let nextCost = Math.floor(State.ops[k] * 1500 * multiplier);
+                    let btn = document.getElementById(`btn-${k}`);
+                    if (btn) {
+                        btn.innerText = `MEJORAR [-$${nextCost.toLocaleString()} SUCIO]`;
+                        document.getElementById(`lvl-${k}`).innerText = "NIVEL " + State.ops[k];
+                    }
+                }
+            },
+
+            // --- WAR ---
+            War: {
+                canvas: null, ctx: null,
+                selectedNode: null, // Mantenemos la selección aquí
+
+                initCanvas() {
+                    this.canvas = document.getElementById('war-canvas');
+                    this.ctx = this.canvas.getContext('2d');
+                    this.resize();
+                    window.addEventListener('resize', () => this.resize());
+                    this.canvas.addEventListener('mousedown', (e) => this.click(e));
+                    this.draw();
+                },
+                resize() {
+                    const container = document.getElementById('war-container');
+                    this.canvas.width = container.clientWidth;
+                    this.canvas.height = container.clientHeight;
+                },
+                recruit(amount) {
+                    let armyTotal = State.army + State.elite;
+                    State.territories.forEach(t => { if (t.owner === 'player') armyTotal += (t.troops || 0) });
+
+                    let totalCost = 0;
+                    for (let i = 0; i < amount; i++) {
+                        totalCost += 1000 + ((armyTotal + i) * 50);
+                    }
+
+                    if (State.money.dirty >= totalCost) {
+                        State.money.dirty -= totalCost;
+                        State.army += amount;
+                        UI.updateAll();
+                        UI.updateRecruitCost();
+                        UI.notify(`Reclutados ${amount} sicarios.`);
+                    } else UI.notify(`Faltan fondos. Costo: $${totalCost.toLocaleString()}`, "bad");
+                },
+                recruitElite() {
+                    if (State.money.clean >= 25000) {
+                        State.money.clean -= 25000;
+                        State.elite++;
+                        State.armyPower += 0.1;
+                        UI.updateAll();
+                        UI.notify("Fuerzas Especiales contratadas.");
+                    } else UI.notify("Falta dinero limpio", "bad");
+                },
+                // NEW: Deploy Military (T-90 or MLRS)
+                deployMilitary(id) {
+                    // FIX DE ESTA FUNCIÓN: Ahora usamos this.selectedNode
+                    if (!this.selectedNode || this.selectedNode.owner !== 'player') {
+                        return UI.notify("¡ALERTA! Selecciona uno de tus territorios para desplegar.", "bad");
+                    }
+
+                    const selected = this.selectedNode;
+
+                    if (State.military[id] > 0) {
+                        State.military[id]--;
+                        selected.troops += Core.findConfig('vehicles', id).power; // Deploy power is added to defense
+                        UI.notify(`${Core.findConfig('vehicles', id).name} desplegado en ${selected.name}.`);
+                        this.showControls(selected);
+                        UI.updateAll();
+                    } else {
+                        UI.notify(`No hay ${Core.findConfig('vehicles', id).name} disponibles.`, "bad");
+                    }
+                },
+                draw() {
+                    const ctx = this.ctx;
+                    if (!ctx) return;
+                    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                    const scaleX = this.canvas.width / 500;
+                    const scaleY = this.canvas.height / 400;
+
+                    State.territories.forEach(t1 => {
+                        State.territories.forEach(t2 => {
+                            if (Math.hypot(t1.x - t2.x, t1.y - t2.y) < 200) {
+                                ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
+                                ctx.beginPath();
+                                ctx.moveTo(t1.x * scaleX, t1.y * scaleY);
+                                ctx.lineTo(t2.x * scaleX, t2.y * scaleY);
+                                ctx.stroke();
+                            }
+                        });
+                    });
+
+                    State.territories.forEach(t => {
+                        const isSel = this.selectedNode === t;
+                        ctx.fillStyle = t.owner === 'player' ? '#c5a059' : '#ff3333';
+                        if (isSel) { ctx.shadowBlur = 20; ctx.shadowColor = '#fff'; }
+                        else { ctx.shadowBlur = 10; ctx.shadowColor = ctx.fillStyle; }
+
+                        const dx = t.x * scaleX;
+                        const dy = t.y * scaleY;
+
+                        ctx.beginPath(); ctx.arc(dx, dy, 12, 0, Math.PI * 2); ctx.fill();
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = '#fff'; ctx.font = '10px monospace';
+                        ctx.fillText(t.name, dx + 18, dy + 4);
+                        // NEW: Show defense calculation
+                        const defense = t.troops + (t.owner === 'enemy' ? t.power : 0);
+                        ctx.fillStyle = '#888';
+                        ctx.fillText(`DEF: ${defense}`, dx + 18, dy + 14);
+                    });
+                    requestAnimationFrame(() => this.draw());
+                },
+                click(e) {
+                    const rect = this.canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const scaleX = this.canvas.width / 500;
+                    const scaleY = this.canvas.height / 400;
+
+                    let newSelection = null; // Usamos una variable temporal
+
+                    document.getElementById('troop-controls').style.display = 'none';
+                    this.selectedNode = null; // Reiniciamos la selección *después* de que se haga clic
+
+                    State.territories.forEach(t => {
+                        const dx = t.x * scaleX;
+                        const dy = t.y * scaleY;
+                        if (Math.hypot(dx - x, dy - y) < 15) {
+                            newSelection = t; // Si encontramos un nodo, lo seleccionamos
+                        }
+                    });
+
+                    // Asignamos la nueva selección y mostramos los controles
+                    if (newSelection) {
+                        this.selectedNode = newSelection;
+                        this.showControls(newSelection);
+                    }
+                },
+                showControls(t) {
+                    const panel = document.getElementById('troop-controls');
+                    const title = document.getElementById('tc-title');
+                    const count = document.getElementById('tc-count');
+                    const btnAtk = document.getElementById('btn-attack');
+
+                    panel.style.display = 'block';
+                    title.innerText = t.name.toUpperCase();
+                    count.innerText = t.troops || 0;
+
+                    if (t.owner === 'player') {
+                        btnAtk.style.display = 'none';
+                        // Add buttons for retrieving deployed military units
+                    } else {
+                        btnAtk.style.display = 'block';
+                    }
+                },
+                modifyTroops(amount) {
+                    if (!this.selectedNode || this.selectedNode.owner !== 'player') return;
+
+                    if (amount > 0) {
+                        if (State.army > 0) {
+                            State.army--;
+                            this.selectedNode.troops = (this.selectedNode.troops || 0) + 1;
+                        }
+                    } else {
+                        if (this.selectedNode.troops > 0) {
+                            this.selectedNode.troops--;
+                            State.army++;
+                        }
+                    }
+                    this.showControls(this.selectedNode);
+                    UI.updateAll();
+                },
+                launchAttack() {
+                    const t = this.selectedNode;
+                    if (!t || t.owner === 'player') return;
+
+                    if (State.army < 5) return UI.notify("Necesitas mín. 5 sicarios libres.", "bad");
+
+                    const mlrsBonus = State.military[7] * 50; // MLRS gives 50 attack bonus each
+                    State.military[7] = 0; // MLRS is consumed in the attack
+
+                    const myPower = (State.army * State.armyPower) + (State.elite * 2) + mlrsBonus + (Math.random() * 20);
+                    const enemyPower = t.power + (t.troops || 0);
+
+                    const lost = Math.floor(Math.random() * 4);
+                    State.army = Math.max(0, State.army - lost);
+                    Core.Heat.add(20);
+
+                    if (myPower > enemyPower) {
+                        t.owner = 'player';
+                        t.troops = Math.floor(State.army / 2);
+                        State.army -= t.troops;
+                        UI.notify(`¡${t.name} CONQUISTADA!`);
+                        this.calcBonuses();
+                    } else {
+                        UI.notify("Ataque fallido. Nos rechazaron.", "bad");
+                        State.lieutenants.forEach(l => l.loyalty = Math.max(0, l.loyalty - 10));
+                    }
+                    this.showControls(t);
+                    UI.updateAll();
+                },
+                growRivalPower() {
+                    // Rival power grows based on player's total asset value compared to its current power
+                    const playerNetWorth = State.respect;
+                    const growthRate = (playerNetWorth / 500000000) * 50; // Scaled growth, faster when player is huge
+
+                    State.rivalPower = Math.min(2000, State.rivalPower + growthRate); // Cap at 2000
+                },
+                renderRivalPower() {
+                    const maxPower = 2000;
+                    const currentPower = Math.floor(State.rivalPower);
+                    const percent = Math.min(100, (currentPower / maxPower) * 100);
+
+                    document.getElementById('ui-rival-power-text').innerText = `Poder: ${currentPower}`;
+                    document.getElementById('ui-rival-power-bar').style.width = percent + '%';
+                },
+                enemyTurn() {
+                    if (State.contacts.informant) return;
+
+                    // Attack frequency scales with Rival Power vs Player Power
+                    const playerCombatPower = (State.army * State.armyPower) + (State.elite * 2) + (State.military[6] * Core.findConfig('vehicles', 6).power);
+                    const attackChanceBase = 0.05;
+                    let attackChance = attackChanceBase * (State.rivalPower / playerCombatPower); // Increases if rival is stronger
+
+                    if (State.heat > 50) attackChance *= 2; // High heat attracts more attention
+
+                    if (Math.random() < attackChance) {
+                        const myLands = State.territories.filter(t => t.owner === 'player' && t.id !== 0);
+                        if (myLands.length > 0) {
+                            const target = myLands[Math.floor(Math.random() * myLands.length)];
+
+                            const atkPower = State.rivalPower * (0.1 + Math.random() * 0.15); // Rival attacks with 10-25% of their total power
+
+                            // Defense is local troops + local deployed T-90s
+                            const defPower = (target.troops || 0) * State.armyPower * 1.5;
+
+                            if (atkPower > defPower) {
+                                // Successful Reconquest
+                                target.owner = 'enemy';
+                                target.troops = 10;
+                                UI.notify(`¡ALERTA! Los Zetas tomaron ${target.name} con ${Math.floor(atkPower)} de fuerza.`, "bad");
+                                this.calcBonuses();
+                            } else {
+                                // Successful Defense, but troops are damaged (or killed)
+                                const troopLoss = Math.floor(atkPower / 50);
+                                target.troops = Math.max(0, (target.troops || 0) - troopLoss);
+                                UI.notify(`Defendimos ${target.name}, pero perdimos ${troopLoss} defensores.`, "good");
+                            }
+                        }
+                    }
+                },
+                calcBonuses() {
+                    State.bonuses = { price: 1, speed: 1, cap: 0, chems: false };
+                    let txt = [];
+                    State.territories.forEach(t => {
+                        if (t.owner === 'player') {
+                            if (t.bonus.includes('Precio')) State.bonuses.price += 0.2;
+                            if (t.bonus.includes('Capacidad')) State.bonuses.cap += 500;
+                            if (t.bonus.includes('Químicos')) State.bonuses.chems = true;
+                            if (t.bonus.includes('Vel')) State.bonuses.speed += 0.15;
+                            txt.push(t.bonus);
+                        }
+                    });
+                    document.getElementById('active-bonuses').innerText = txt.join(', ') || "Ninguno";
+                }
+            },
+
+            // --- LOGISTICS ---
+            Logistics: {
+                updateUI() {
+                    const selP = document.getElementById('sel-prod');
+                    const selV = document.getElementById('sel-veh');
+                    const autoP = document.getElementById('auto-prod');
+                    const autoV = document.getElementById('auto-veh');
+                    const prevV = selV.value;
+
+                    selP.innerHTML = ''; selV.innerHTML = ''; autoP.innerHTML = ''; autoV.innerHTML = '';
+
+                    for (let k in Config.products) {
+                        let opt = new Option(Config.products[k].name, k);
+                        selP.add(opt);
+                        autoP.add(opt.cloneNode(true));
+                    }
+
+                    const fleetCounts = {};
+                    State.fleet.forEach(id => fleetCounts[id] = (fleetCounts[id] || 0) + 1);
+                    State.routes.forEach(r => { if (fleetCounts[r.vehId]) fleetCounts[r.vehId]--; });
+
+                    for (let id in fleetCounts) {
+                        // Only show non-military units in logistics dropdown
+                        const v = Core.findConfig('vehicles', id);
+                        if (!v.isMilitary && fleetCounts[id] > 0) {
+                            selV.add(new Option(`${v.name} (${fleetCounts[id]} disp.) [Cap: ${v.cap}kg]`, id));
+                        }
+                        autoV.add(new Option(Core.findConfig('vehicles', id).name, id));
+                    }
+
+                    if (prevV && [...selV.options].some(o => o.value == prevV)) selV.value = prevV;
+                    document.getElementById('rng-load').oninput = (e) => document.getElementById('lbl-load').innerText = e.target.value;
+
+                    const logisticsBoss = State.lieutenants.find(l => l.role === 'Logístico' && l.active);
+                    if (logisticsBoss) document.getElementById('auto-logistics-panel').classList.remove('hidden');
+                    else document.getElementById('auto-logistics-panel').classList.add('hidden');
+
+                    // NEW: International Route Unlock Logic
+                    // 1. Lobby US (Rank 3 Req)
+                    document.getElementById('opt-intl-us').disabled = !State.shadow.lobby_us;
+                    // 2. EU (Rank 3 Req + Acuerdo EU)
+                    document.getElementById('opt-intl-eu').disabled = !(State.shadow.acuerdo_eu && State.rank >= 3);
+                    // 3. Asia (Rank 4 Req + Ruta Asia)
+                    document.getElementById('opt-intl-asia').disabled = !(State.shadow.ruta_asia && State.rank >= 4);
+
+                    this.calc();
+                },
+                updateAutoUI() {
+                    const isSmart = document.getElementById('auto-smart-toggle').checked;
+                    const inputs = document.getElementById('auto-inputs');
+                    State.automation.smart = isSmart;
+                    if (isSmart) {
+                        inputs.classList.add('hidden');
+                    } else {
+                        inputs.classList.remove('hidden');
+                    }
+                },
+                calc() {
+                    const selP = document.getElementById('sel-prod');
+                    const selV = document.getElementById('sel-veh');
+                    if (!selP.value || !selV.value) { document.getElementById('lbl-load').innerText = "0"; return; }
+
+                    const p = selP.value;
+                    const vId = parseInt(selV.value);
+                    const v = Core.findConfig('vehicles', vId);
+                    const max = Math.min(v.cap + State.bonuses.cap, State.inv[p]);
+                    const rng = document.getElementById('rng-load');
+                    rng.max = max;
+                    if (parseInt(rng.value) > max) rng.value = max;
+                    document.getElementById('lbl-load').innerText = rng.value;
+                },
+                dispatch() {
+                    const amount = parseInt(document.getElementById('rng-load').value);
+                    const vId = parseInt(document.getElementById('sel-veh').value);
+                    const dist = parseInt(document.getElementById('sel-dist').value);
+
+                    if (amount <= 0 || isNaN(vId)) return;
+                    this.executeDispatch(vId, document.getElementById('sel-prod').value, amount, dist);
+                },
+                executeDispatch(vId, pKey, amount, dist) {
+                    // Find first available vehicle index of this type
+                    let fleetIdx = -1;
+                    let busyIndices = State.routes.map(r => r.fleetIdx);
+
+                    // Priority search for healthy vehicles
+                    for (let i = 0; i < State.fleet.length; i++) {
+                        const vCheck = Core.findConfig('vehicles', State.fleet[i]);
+                        // Ensure it's not military (ID 6, 7) and available/healthy
+                        if (!vCheck.isMilitary && State.fleet[i] == vId && !busyIndices.includes(i) && State.fleetHealth[i] >= 20) {
+                            fleetIdx = i;
+                            break;
+                        }
+                    }
+
+                    if (fleetIdx === -1) { this.updateUI(); return false; }
+
+                    if (State.inv[pKey] < amount) return false;
+
+                    const v = Core.findConfig('vehicles', vId);
+                    State.inv[pKey] -= amount;
+
+                    // NEW: International Route Modifiers
+                    let distMult = 1.0;
+                    let speedMult = 1.0;
+                    let routeRisk = 0; // Base heat/risk modifier
+
+                    switch (dist) {
+                        case 1: // Corta
+                            distMult = 0.8; speedMult = 2.0; routeRisk = 5; break;
+                        case 2: // Media
+                            distMult = 1.0; speedMult = 1.0; routeRisk = 10; break;
+                        case 3: // Larga (Frontera)
+                            distMult = 1.5; speedMult = 0.5; routeRisk = 20; break;
+                        case 4: // NEW: USA (Continental)
+                            distMult = 2.5; speedMult = 0.8; routeRisk = 30; break;
+                        case 5: // NEW: Europa
+                            distMult = 4.0; speedMult = 0.4; routeRisk = 50; break;
+                        case 6: // NEW: Asia
+                            distMult = 6.0; speedMult = 0.2; routeRisk = 70; break;
+                    }
+
+                    // FIX: Use direct object access for Config.products as it is an object, not an array.
+                    let price = Math.floor(Config.products[pKey].basePrice * State.market[pKey] * State.bonuses.price * distMult);
+
+                    // Apply international product bonuses
+                    if (dist === 5 && pKey === 'fenta') price *= 3; // EU Fenta bonus (Acuerdo UE)
+                    if (dist === 6 && pKey === 'heroin') price *= 3; // Asia Heroin bonus (Ruta Asia)
+
+                    // LEYENDO DESDE STATE.TECHS
+                    if (State.techs.find(t => t.id === 'blue_meth')?.bought && pKey === 'meth') price = Math.floor(price * 1.3);
+
+                    if (amount > 100) State.market[pKey] *= 0.9;
+
+                    let routeSpeed = v.speed * State.bonuses.speed * speedMult;
+                    if (State.weatherCurrent === 1 || State.weatherCurrent === 2) routeSpeed *= 0.7;
+                    if (State.luxuries.lambo > 0) routeSpeed *= (1 + State.luxuries.lambo * 0.05);
+
+                    // NEW: Speed Stock Bonus (TRP)
+                    if (State.stocks.tran.owned > 0) routeSpeed *= (1 + State.stocks.tran.owned * 0.01);
+                    // State Transport Bonus
+                    if (State.shadow.transport) routeSpeed *= 1.5;
+
+                    let heatGen = routeRisk;
+                    // LEYENDO DESDE STATE.TECHS
+                    if (State.techs.find(t => t.id === 'sec_1')?.bought) heatGen *= 0.9;
+                    if (State.techs.find(t => t.id === 'ghost_log')?.bought) heatGen *= 0.8;
+                    // FIN LEYENDO DESDE STATE.TECHS
+
+                    if (State.contacts.customs) heatGen *= 0.85;
+
+                    // NEW: International Heat Reduction (Lobby US)
+                    if (dist === 4 && State.shadow.lobby_us) heatGen *= 0.25;
+                    // NEW: Security Stock Bonus (SEC)
+                    if (State.stocks.safe.owned > 0) heatGen *= Math.max(0.7, 1 - (State.stocks.safe.owned * 0.005));
+
+                    State.routes.push({
+                        id: Math.floor(Math.random() * 9000) + 1000,
+                        vehId: vId,
+                        veh: v.name,
+                        desc: `${amount}kg ${pKey}`,
+                        val: amount * price,
+                        progress: 0,
+                        speed: routeSpeed,
+                        fleetIdx: fleetIdx
+                    });
+
+                    Core.Heat.add(heatGen);
+                    this.updateUI(); this.renderLog();
+                    return true;
+                },
+                toggleAuto() {
+                    State.automation.active = !State.automation.active;
+                    const btn = document.getElementById('btn-auto-toggle');
+                    const pnl = document.getElementById('auto-logistics-panel');
+                    const inputs = document.getElementById('auto-inputs');
+
+                    if (State.automation.active) {
+                        btn.innerText = "DESACTIVAR";
+                        pnl.classList.add('auto-active');
+                        inputs.classList.add('auto-locked');
+
+                        State.automation.prod = document.getElementById('auto-prod').value;
+                        State.automation.dist = parseInt(document.getElementById('auto-dist').value);
+                        State.automation.veh = parseInt(document.getElementById('auto-veh').value);
+                        State.automation.min = parseInt(document.getElementById('auto-min-load').value) || 1;
+                        State.automation.smart = document.getElementById('auto-smart-toggle').checked;
+
+                        document.getElementById('auto-status').innerText = State.automation.smart ? "Estado: SMART DISPATCH" : "Estado: BUSCANDO ENVÍOS...";
+                        document.getElementById('auto-status').style.color = "var(--success)";
+
+                        UI.notify("Jefe de Tráfico: AUTOMATIZACIÓN INICIADA");
+                    } else {
+                        btn.innerText = "ACTIVAR AUTOMATIZACIÓN";
+                        pnl.classList.remove('auto-active');
+                        inputs.classList.remove('auto-locked');
+                        document.getElementById('auto-status').innerText = "Estado: Inactivo";
+                        document.getElementById('auto-status').style.color = "#666";
+                    }
+                },
+                autoRun() {
+                    if (!State.automation.active) return;
+                    if (State.heat > 25 && Math.random() < 0.1) return; // Heat block
+
+                    // Add delay counter to slow down auto dispatch
+                    if (State.ticks % 10 !== 0) return; // Every 1 second check
+
+                    // Get all AVAILABLE vehicles (non-military and not currently on a route)
+                    let availableFleet = State.fleet.map((id, i) => ({
+                        id: id,
+                        idx: i,
+                        cap: Core.findConfig('vehicles', id).cap,
+                        isMilitary: Core.findConfig('vehicles', id).isMilitary
+                    }))
+                        .filter(v => !v.isMilitary && !State.routes.some(r => r.fleetIdx === v.idx))
+                        .filter(v => State.fleetHealth[v.idx] >= 20); // Only healthy fleet
+
+                    if (availableFleet.length === 0) return; // Nothing to do
+
+                    // 1. SMART DISPATCH (Prioritize best product and fill fleet)
+                    if (State.automation.smart) {
+                        const priority = ['fenta', 'heroin', 'coke', 'meth', 'weed'];
+
+                        // Sort fleet by capacity desc
+                        availableFleet.sort((a, b) => b.cap - a.cap);
+
+                        for (let pKey of priority) {
+                            if (State.inv[pKey] < State.automation.min) continue;
+
+                            for (let i = 0; i < availableFleet.length; i++) {
+                                const v = availableFleet[i];
+
+                                // Calculate max cargo for this vehicle
+                                let maxCargo = v.cap + State.bonuses.cap;
+                                let amount = Math.min(maxCargo, State.inv[pKey]);
+
+                                if (amount >= State.automation.min) {
+                                    // Dispatch the route, consuming one available vehicle
+                                    if (this.executeDispatch(v.id, pKey, amount, 3)) { // Default long dist (3) for smart dispatch
+                                        // Remove vehicle from consideration for this tick
+                                        availableFleet.splice(i, 1);
+                                        i--; // Adjust index after removal
+
+                                        // Update inventory for next product check
+                                        if (State.inv[pKey] < State.automation.min) break;
+                                    }
+                                }
+                            }
+                        }
+                        return;
+                    }
+
+                    // 2. CLASSIC LOGIC (Uses manual product/vehicle selection)
+                    const vId = State.automation.veh;
+                    const pKey = State.automation.prod;
+                    const dist = State.automation.dist;
+                    const min = State.automation.min;
+
+                    if (State.inv[pKey] < min) return;
+
+                    // Filter available fleet for the specific vehicle type selected in automation
+                    let selectedFleet = availableFleet.filter(v => v.id == vId);
+
+                    for (let v of selectedFleet) {
+                        const cap = v.cap + State.bonuses.cap;
+                        const amount = Math.min(cap, State.inv[pKey]);
+
+                        if (amount >= min) {
+                            if (this.executeDispatch(vId, pKey, amount, dist)) {
+                                // Continue to the next vehicle of the same type if possible
+                                if (State.inv[pKey] < min) break;
+                            }
+                        }
+                    }
+                },
+                tick() {
+                    let finished = false;
+                    // Use a standard for loop iterating backwards to safely remove elements
+                    for (let i = State.routes.length - 1; i >= 0; i--) {
+                        const r = State.routes[i];
+                        r.progress += r.speed * 0.2;
+                        if (r.progress >= 100) {
+                            State.money.dirty += r.val;
+                            if (State.fleetHealth[r.fleetIdx] > 0) State.fleetHealth[r.fleetIdx] -= 10;
+
+                            State.routes.splice(i, 1);
+                            finished = true;
+                            // UI.notify(`Envío completado: +$${Math.floor(r.val)}`); // Reduced spam
+                        }
+                    }
+
+                    if (finished) this.updateUI();
+                    this.renderLog();
+                },
+                renderLog() {
+                    const tbody = document.getElementById('log-body');
+                    let html = '';
+                    // MODIFICADO: Muestra TODAS las rutas activas (sin límite de 5)
+                    State.routes.forEach(r => {
+                        html += `<tr><td>${r.veh}</td><td>${r.desc}</td><td>$${Math.floor(r.val).toLocaleString()}</td><td>${Math.floor(r.progress)}%</td></tr>`;
+                    });
+                    tbody.innerHTML = html;
+                }
+            },
+
+            // --- ASSETS & FINANCE ---
+            Assets: {
+                renderStore() {
+                    const grid = document.getElementById('assets-grid');
+                    grid.innerHTML = '';
+                    const hasKremlinPact = State.shadow.kremlin_pact;
+
+                    Config.vehicles.forEach(v => {
+                        if (v.id === 0) return;
+                        // LEYENDO DESDE STATE.TECHS
+                        if (v.id === 5 && !State.techs.find(t => t.id === 'subs_1')?.bought) return;
+                        // FIN LEYENDO DESDE STATE.TECHS
+                        // Show military units only if Kremlin Pact is active
+                        if (v.id >= 6 && !hasKremlinPact) return;
+
+                        let description = v.cap > 0 ? `Cap: ${v.cap}kg | Vel: ${v.speed}` : `Poder: ${v.power}`;
+                        let buyText = 'COMPRAR';
+
+                        grid.innerHTML += `
+                        <div class="op-card">
+                            <h3>${v.name}</h3>
+                            <span class="status">${description} | $${v.price.toLocaleString()}</span>
+                            <button class="action-btn" onclick="Core.Assets.buy(${v.id})">${buyText}</button>
+                        </div>`;
+                    });
+                    this.renderFleet();
+                },
+                buy(id) {
+                    const v = Core.findConfig('vehicles', id);
+                    if (State.money.dirty >= v.price) {
+                        State.money.dirty -= v.price;
+
+                        // NEW: Military units go to the military pool, not the fleet
+                        if (v.isMilitary) {
+                            State.military[id]++;
+                            UI.notify(`${v.name} añadido a la reserva militar.`, "good");
+                        } else {
+                            State.fleet.push(id);
+                            State.fleetHealth.push(100);
+                            UI.notify(`${v.name} comprado y añadido a la flota.`, "good");
+                        }
+
+                        this.renderFleet();
+                        Core.Logistics.updateUI();
+                        UI.updateAll();
+                    } else UI.notify("No alcanza el dinero sucio", "bad");
+                },
+                renderFleet() {
+                    const list = document.getElementById('fleet-list');
+                    list.innerHTML = '';
+                    State.fleet.forEach((id, idx) => {
+                        const v = Core.findConfig('vehicles', id);
+                        const hp = State.fleetHealth[idx];
+                        let color = hp > 50 ? '#0f0' : (hp > 20 ? '#fc0' : '#f00');
+
+                        let btn = hp < 100 ? `<button class="action-btn" style="width:auto; padding:2px 5px;" onclick="Core.Assets.repair(${idx})">REPARAR ($500)</button>` : '';
+
+                        list.innerHTML += `
+                        <div class="op-card" style="padding:10px; margin-bottom:5px; display:flex; justify-content:space-between;">
+                            <span>${v.name}</span>
+                            <span style="color:${color}">HP: ${hp}%</span>
+                            ${btn}
+                        </div>`;
+                    });
+                },
+                repair(idx) {
+                    if (State.money.clean >= 500) {
+                        State.money.clean -= 500;
+                        State.fleetHealth[idx] = 100;
+                        this.renderFleet();
+                        UI.updateAll();
+                    } else UI.notify("Falta dinero limpio", "bad");
+                },
+                autoRepair() {
+                    const mechanic = State.lieutenants.find(l => l.role === 'Mecánico' && l.active);
+                    if (mechanic) {
+                        document.getElementById('auto-repair-panel').classList.remove('hidden');
+                        State.fleetHealth.forEach((hp, idx) => {
+                            if (hp < 80 && State.money.clean >= 500) {
+                                State.money.clean -= 500;
+                                State.fleetHealth[idx] = 100;
+                            }
+                        });
+                    } else {
+                        document.getElementById('auto-repair-panel').classList.add('hidden');
+                    }
+                }
+            },
+            Finance: {
+                renderStocks() {
+                    const d = document.getElementById('stock-market-grid'); d.innerHTML = '';
+                    Config.stocks.forEach(s => {
+                        const st = State.stocks[s.id];
+                        // Green/Red color for price
+                        const priceColor = st.price > s.basePrice ? '#0f0' : (st.price < s.basePrice ? '#f00' : '#fff');
+
+                        d.innerHTML += `
+                        <div style="background:#000; padding:10px; border:1px solid #333; border-radius:5px;">
+                            <div style="color:${priceColor}; font-weight:bold;">${s.symbol} $${Math.floor(st.price)}</div>
+                            <div style="font-size:0.7rem; color:#888;">Owned: ${st.owned} | ${s.desc}</div>
+                            
+                            <!-- NEW: BULK INPUT -->
+                            <input type="number" id="stock-amount-${s.id}" value="10" min="1" max="1000" style="width:100%; background:#111; border:1px solid #555; color:#fff; padding:3px; margin-top:5px;" placeholder="Cantidad (10)">
+                            
+                            <div style="display:flex; gap:5px; margin-top:5px;">
+                                <button class="action-btn btn-green" style="width:50%;" 
+                                    onclick="Core.Finance.tradeStock('${s.id}', true, document.getElementById('stock-amount-${s.id}').value)">COMPRAR</button>
+                                <button class="action-btn btn-red" style="width:50%;" 
+                                    onclick="Core.Finance.tradeStock('${s.id}', false, document.getElementById('stock-amount-${s.id}').value)">VENDER</button>
+                            </div>
+                        </div>`;
+                    });
+                },
+                tradeStock(id, buy, inputAmount) {
+                    const stock = State.stocks[id];
+                    const amount = parseInt(inputAmount) || 1;
+                    if (amount <= 0) return UI.notify("Cantidad inválida.", "bad");
+
+                    const cost = stock.price * amount;
+
+                    if (buy) {
+                        if (State.money.clean >= cost) {
+                            State.money.clean -= cost;
+                            stock.owned += amount;
+                            UI.notify(`Compraste ${amount} acciones de ${stock.id.toUpperCase()}.`, "good");
+                        } else UI.notify(`Falta Dinero Limpio ($${(cost - State.money.clean).toLocaleString()})`, "bad");
+                    } else {
+                        if (stock.owned >= amount) {
+                            State.money.clean += cost;
+                            stock.owned -= amount;
+                            UI.notify(`Vendiste ${amount} acciones de ${stock.id.toUpperCase()}.`, "good");
+                        } else UI.notify(`Solo tienes ${stock.owned} acciones.`, "bad");
+
+                        // Ensure that stock price is updated after selling
+                        Core.Finance.renderStocks();
+                    }
+
+                    Core.Respect.calc(); // Stock changes net worth
+                },
+                renderLaundering() {
+                    const div = document.getElementById('laundering-grid');
+                    div.innerHTML = '';
+                    Config.laundering.forEach(method => {
+                        const unlocked = State.launderingLevels.includes(method.id);
+                        let rate = method.rate;
+                        if (Core.findConfig('shadow', 'bank_control') && State.shadow.bank_control) rate = 0.95; // Bank Control effect
+
+                        const html = `
+                        <div class="op-card" style="opacity: ${unlocked ? 1 : 0.5}">
+                            <h3>${method.name}</h3>
+                            <p style="font-size:0.7rem; color:#888;">Tasa: ${(rate * 100).toFixed(0)}% (Límite: $${method.limit.toLocaleString()})</p>
+                            ${unlocked
+                                ? `<div style="display:flex; gap:5px;">
+                                     <input type="number" id="launder-${method.id}" placeholder="$" style="width:60%; background:#000; border:1px solid #333; color:#fff; padding:2px;">
+                                     <button class="action-btn" onclick="Core.Finance.launder('${method.id}')">OK</button>
+                                   </div>`
+                                : `<button class="action-btn btn-locked" onclick="Core.Finance.unlock('${method.id}')">DESBLOQUEAR $${method.unlock.toLocaleString()} SUCIO</button>`
+                            }
+                        </div>`;
+                        div.innerHTML += html;
+                    });
+                },
+                unlock(id) {
+                    const method = Core.findConfig('laundering', id);
+                    if (State.money.dirty >= method.unlock) {
+                        State.money.dirty -= method.unlock;
+                        State.launderingLevels.push(id);
+                        this.renderLaundering();
+                        UI.updateAll();
+                    } else UI.notify("Falta dinero sucio", "bad");
+                },
+                launder(id) {
+                    const method = Core.findConfig('laundering', id);
+                    const inp = document.getElementById('launder-' + id);
+                    const val = parseInt(inp.value);
+
+                    let rate = method.rate;
+                    if (Core.findConfig('shadow', 'bank_control') && State.shadow.bank_control) rate = 0.95; // Bank Control effect
+
+                    if (val > 0 && val <= State.money.dirty && val <= method.limit) {
+                        // Risk check
+                        if (val > method.limit * 0.5) Core.Heat.add(5);
+
+                        let fee = 1 - rate;
+                        if (State.heat > 50) fee *= 2; // Heat Penalty
+                        if (State.luxuries.tiger > 0) fee = Math.max(0, fee - (State.luxuries.tiger * 0.05)); // Tiger effect
+
+                        State.money.dirty -= val;
+                        State.money.clean += Math.floor(val * (1 - fee));
+                        inp.value = "";
+                        UI.updateAll();
+                    } else if (val > method.limit) {
+                        UI.notify("Monto excede el límite.", "bad");
+                    }
+                },
+                passiveIncome() {
+                    // This runs on the fast tick (100ms)
+
+                    // Property Income (only collect once per slow tick)
+                    if (State.ticks % 30 === 0) {
+                        let income = 0;
+                        Config.investments.forEach(i => {
+                            income += (State.investments[i.id] * i.income);
+                        });
+                        State.money.clean += income;
+                        document.getElementById('ui-passive').innerText = income;
+                    }
+
+                    // Offshore interest (only apply once per slow tick)
+                    if (State.ticks % 30 === 0 && State.money.offshore > 0) {
+                        let interest = Math.floor(State.money.offshore * 0.005);
+                        let risk = 0.01;
+
+                        // Check if offshore funds freeze based on current heat
+                        if (State.heat > 75 && Math.random() < risk) {
+                            let loss = Math.floor(State.money.offshore * 0.2); // 20% loss on freeze
+                            State.money.offshore -= loss;
+                            UI.notify("¡ALERTA! Fondos Offshore congelados (20% perdido).", "bad");
+                        } else {
+                            State.money.offshore += interest;
+                        }
+                    }
+                },
+                deposit() {
+                    const val = parseInt(document.getElementById('inp-offshore').value);
+                    if (val > 0 && State.money.clean >= val) {
+                        State.money.clean -= val;
+                        State.money.offshore += val;
+                        UI.updateAll();
+                        document.getElementById('inp-offshore').value = '';
+                    }
+                },
+                withdraw() {
+                    const val = parseInt(document.getElementById('inp-offshore').value);
+                    if (val > 0 && State.money.offshore >= val) {
+                        State.money.offshore -= val;
+                        State.money.clean += val;
+                        UI.updateAll();
+                        document.getElementById('inp-offshore').value = '';
+                    }
+                }
+            },
+
+            // --- HR ---
+            HR: {
+                getHiredRoles() {
+                    // ADDED: Filters out corrupted objects missing the 'role' property.
+                    return State.lieutenants.filter(l => l && l.role).map(l => l.role);
+                },
+                hire() {
+                    if (State.money.clean >= 5000) {
+                        const roles = ['Logístico', 'Químico', 'Contador', 'Mecánico'];
+                        const hiredRoles = Core.HR.getHiredRoles(); // MODIFICADO: Usa la nueva función de seguridad
+
+                        const available = roles.filter(r => !hiredRoles.includes(r));
+
+                        if (available.length === 0) {
+                            UI.notify("Ya tienes todos los especialistas contratados.", "bad");
+                            return;
+                        }
+
+                        State.money.clean -= 5000;
+                        const role = available[Math.floor(Math.random() * available.length)];
+                        State.lieutenants.push({ role: role, active: false, loyalty: 100, cooldown: 0 });
+                        Core.HR.render();
+                        UI.updateAll();
+                        UI.notify(`¡${role} Contratado!`, "good");
+                    } else UI.notify("Falta dinero limpio", "bad");
+                },
+                toggle(idx) {
+                    if (State.lieutenants[idx]) { // Safety check
+                        State.lieutenants[idx].active = !State.lieutenants[idx].active;
+                        Core.HR.render();
+                        Core.Logistics.updateUI();
+                    }
+                },
+                payBonus(idx) {
+                    if (State.lieutenants[idx]) { // Safety check
+                        if (State.money.dirty >= 1000) {
+                            State.money.dirty -= 1000;
+                            State.lieutenants[idx].loyalty = 100;
+                            Core.HR.render();
+                            UI.updateAll();
+                        }
+                    }
+                },
+                tick() {
+                    if (State.ticks % 600 === 0) { // Approx 1 min
+                        State.lieutenants.forEach(l => {
+                            if (!l || !l.role) return; // Skip corrupted entries
+                            l.loyalty -= 5;
+                            if (l.loyalty < 20 && Math.random() < 0.01) { // Betrayal risk
+                                UI.notify(`TRAICIÓN: ${l.role} robó un vehículo.`, "bad");
+                                if (State.fleet.length > 0) {
+                                    State.fleet.pop();
+                                    State.fleetHealth.pop();
+                                }
+                                l.loyalty = 50; // Reset slightly
+                            }
+                        });
+                        Core.HR.render();
+                    }
+                },
+                render() {
+                    const div = document.getElementById('lieutenants-list');
+                    div.innerHTML = '';
+                    // MODIFICADO: Solo itera sobre tenientes válidos para evitar errores de UI.
+                    State.lieutenants.filter(l => l && l.role).forEach((l, i) => {
+                        const color = l.active ? 'var(--success)' : '#666';
+                        div.innerHTML += `
+                        <div class="op-card">
+                            <h3>${l.role}</h3>
+                            <span class="status" style="color:${color}">${l.active ? 'ASIGNADO' : 'DISPONIBLE'}</span>
+                            <div style="font-size:0.8rem; margin-bottom:5px;">Lealtad: ${l.loyalty}%</div>
+                            <button class="action-btn" onclick="Core.HR.toggle(${i})">${l.active ? 'DESASIGNAR' : 'ASIGNAR'}</button>
+                            <button class="action-btn btn-green" onclick="Core.HR.payBonus(${i})">BONO ($1k)</button>
+                        </div>`;
+                    });
+                }
+            },
+
+            // --- EXTRAS ---
+            Heat: {
+                add(amount) {
+                    // LEYENDO DESDE STATE.TECHS
+                    if (State.techs.find(t => t.id === 'sec_1')?.bought) amount *= 0.9;
+                    // FIN LEYENDO DESDE STATE.TECHS
+                    if (State.contacts.police) amount *= 0.5;
+                    if (State.luxuries.tiger > 0) amount *= 0.95;
+                    if (State.heatCap === 200) amount *= 0.5; // Fiscal bonus
+
+                    State.heat = Math.min(State.heatCap, State.heat + amount);
+                    Core.Heat.render();
+
+                    // Heat Consequences
+                    if (State.heat > 25 && Math.random() < 0.001) {
+                        State.automation.active = false;
+                        UI.notify("Automatización detenida por inspecciones.", "bad");
+                        Core.Logistics.toggleAuto();
+                    }
+                    if (State.heat > 50 && Math.random() < 0.001) {
+                        // Target attack
+                        if (State.fleetHealth.length > 0) {
+                            State.fleetHealth[0] = 0;
+                            UI.notify("Ataque policial: Vehículo dañado.", "bad");
+                        }
+                    }
+
+                    // NEW: High Heat triggers rival attacks
+                    if (State.heat > 75) Core.War.enemyTurn();
+
+                    if (State.heat >= State.heatCap) Core.Heat.raid();
+                },
+                emergencyEscape() {
+                    if (State.money.clean >= 50000) {
+                        State.money.clean -= 50000;
+                        State.heat = 0;
+                        State.frozen = true;
+                        UI.notify("PLAN DE ESCAPE ACTIVADO. OPERACIONES CONGELADAS.", "event");
+                        setTimeout(() => {
+                            State.frozen = false;
+                            UI.notify("Sistemas en línea.", "good");
+                        }, 60000);
+                        UI.updateAll();
+                    } else UI.notify("Falta dinero limpio ($50k)", "bad");
+                },
+                tick() {
+                    if (State.heat > 0) State.heat -= 0.2;
+                    Core.Heat.render();
+                },
+                render() {
+                    const heatCap = State.shadow.fiscal ? 200 : 100;
+                    document.getElementById('ui-heat').style.width = (State.heat / heatCap * 100) + '%';
+                    const panic = document.getElementById('btn-panic');
+                    if (State.heat > 80) panic.style.display = 'block';
+                    else panic.style.display = 'none';
+                },
+                raid() {
+                    // NEW: Security Stock Bonus (SEC)
+                    let lossMultiplier = 1.0;
+                    if (State.stocks.safe.owned > 0) lossMultiplier *= Math.max(0.7, 1 - (State.stocks.safe.owned * 0.005));
+
+                    // NEW: Supreme Court check
+                    if (State.shadow.supreme_court) {
+                        UI.notify("¡REDADA! Control Judicial activado. Inventario a salvo.", "good");
+                    } else if (State.contacts.lawyer) {
+                        UI.notify("¡REDADA! Abogado salvó 50% del inventario.", "bad");
+                        State.inv.weed = Math.floor(State.inv.weed * 0.5 * lossMultiplier);
+                        State.inv.coke = Math.floor(State.inv.coke * 0.5 * lossMultiplier);
+                    } else if (!State.ops.mobile) {
+                        UI.notify("¡REDADA DE LA DEA! Inventario perdido.", "bad");
+                        State.inv.weed = Math.floor(State.inv.weed / 2 * lossMultiplier);
+                        State.inv.coke = Math.floor(State.inv.coke / 2 * lossMultiplier);
+                    } else {
+                        UI.notify("Redada evadida por Lab Móvil.");
+                    }
+                    State.heat = 0;
+                }
+            },
+            Market: {
+                fluctuate() {
+                    ['weed', 'meth', 'coke', 'heroin', 'fenta'].forEach(k => {
+                        State.market[k] = Math.max(0.5, Math.min(2.0, State.market[k] + (Math.random() * 0.2 - 0.1)));
+                    });
+
+                    // NEW: Stock Fluctuation
+                    Object.keys(State.stocks).forEach(k => {
+                        let price = State.stocks[k].price * (0.95 + Math.random() * 0.1);
+                        State.stocks[k].price = Math.max(10, price); // Pricefloor
+                    });
+                    Core.Finance.renderStocks();
+
+                    this.render();
+                },
+                render() {
+                    let html = '';
+                    for (let k in State.market) {
+                        const val = State.market[k];
+                        const price = Math.floor(Config.products[k].basePrice * val);
+                        const color = val >= 1.05 ? '#0f0' : (val < 0.95 ? '#f00' : '#666');
+                        html += `<div class="ticker">${Config.products[k].name}: <span style="color:${color}">$${price.toLocaleString()}</span></div>`;
+                    }
+                    document.getElementById('market-ticker').innerHTML = html;
+                }
+            },
+            RnD: {
+                render() {
+                    const div = document.getElementById('tech-tree');
+                    div.innerHTML = '';
+                    // LEYENDO DESDE STATE.TECHS
+                    State.techs.forEach(t => {
+                        div.innerHTML += `
+                        <div class="op-card" style="margin-bottom:10px;">
+                            <div class="research-info"><b>${t.name}</b><br>${t.desc}</div>
+                            ${t.bought ? '<span style="color:#0f0">COMPRADO</span>' : `<button class="action-btn" onclick="Core.RnD.buy('${t.id}')">$${t.cost.toLocaleString()} LIMPIO</button>`}
+                        </div>`;
+                    });
+                    // FIN LEYENDO DESDE STATE.TECHS
+                },
+                buy(id) {
+                    const t = State.techs.find(x => x.id === id); // MODIFICADO: Busca en State.techs
+                    if (t && !t.bought && State.money.clean >= t.cost) {
+                        State.money.clean -= t.cost;
+                        t.bought = true;
+                        if (id === 'subs_1') Core.Assets.renderStore();
+                        this.render();
+                        UI.updateAll();
+                    } else UI.notify("Falta dinero limpio", "bad");
+                }
+            },
+            Contacts: {
+                buyWeapons() {
+                    if (State.money.clean >= 5000) {
+                        State.money.clean -= 5000;
+                        State.armyPower += 0.5;
+                        UI.notify("Armas compradas. Fuerza +0.5");
+                        UI.updateAll();
+                    } else UI.notify("Falta dinero limpio", "bad");
+                },
+                bribePolitician() {
+                    if (State.money.dirty >= 50000) {
+                        State.money.dirty -= 50000;
+                        State.heat = Math.max(0, State.heat - 30);
+                        UI.notify("Político sobornado. Heat reducido.");
+                        UI.updateAll();
+                    } else UI.notify("Falta dinero sucio", "bad");
+                },
+                prCampaign() {
+                    if (State.money.clean >= 10000) {
+                        State.money.clean -= 10000;
+                        State.heat = Math.max(0, State.heat - 10);
+                        UI.notify("Campaña de prensa exitosa.");
+                        UI.updateAll();
+                    }
+                },
+                bribePolice() {
+                    if (!State.contacts.police && State.money.clean >= 2000) {
+                        State.money.clean -= 2000;
+                        State.contacts.police = true;
+                        document.getElementById('st-police').innerText = "ACTIVO";
+                        document.getElementById('st-police').style.color = "#0f0";
+                        UI.updateAll();
+                    } else UI.notify("Falta dinero limpio", "bad");
+                },
+                payTruce() {
+                    if (State.money.dirty >= 15000) {
+                        State.money.dirty -= 15000;
+                        State.contacts.rival = true;
+                        document.getElementById('st-rival').innerText = "TREGUA";
+                        document.getElementById('st-rival').style.color = "#0f0";
+                        UI.updateAll();
+                        setTimeout(() => {
+                            State.contacts.rival = false;
+                            document.getElementById('st-rival').innerText = "EN GUERRA";
+                            document.getElementById('st-rival').style.color = "#666";
+                        }, 60000);
+                    } else UI.notify("Falta dinero sucio", "bad");
+                },
+                hireHacker() {
+                    if (State.money.clean >= 10000) {
+                        State.money.clean -= 10000;
+                        State.heat = Math.max(0, State.heat - 50);
+                        UI.notify("Hacker: Registros borrados.");
+                        UI.updateAll();
+                    }
+                },
+                hireInformant() {
+                    if (State.money.clean >= 5000) {
+                        State.money.clean -= 5000;
+                        State.contacts.informant = true;
+                        UI.notify("Informante activo por 1 min.");
+                        UI.updateAll();
+                        setTimeout(() => { State.contacts.informant = false; }, 60000);
+                    }
+                },
+                hireCustoms() {
+                    if (State.money.clean >= 10000) {
+                        State.money.clean -= 10000;
+                        State.contacts.customs = true;
+                        document.getElementById('st-customs').innerText = "ACTIVO";
+                        UI.updateAll();
+                    }
+                },
+                hireUnion() {
+                    if (State.money.dirty >= 20000) {
+                        State.money.dirty -= 20000;
+                        State.contacts.union = true;
+                        document.getElementById('st-union').innerText = "ACTIVO";
+                        UI.updateAll();
+                    }
+                },
+                hireLawyer() {
+                    if (State.money.clean >= 50000) {
+                        State.money.clean -= 50000;
+                        State.contacts.lawyer = true;
+                        document.getElementById('st-lawyer').innerText = "ACTIVO";
+                        UI.updateAll();
+                    }
+                },
+                updateUI() {
+                    if (State.contacts.police) {
+                        document.getElementById('st-police').innerText = "ACTIVO";
+                        document.getElementById('st-police').style.color = "#0f0";
+                    }
+                    if (State.contacts.customs) {
+                        document.getElementById('st-customs').innerText = "ACTIVO";
+                        document.getElementById('st-customs').style.color = "#0f0";
+                    }
+                    if (State.contacts.union) {
+                        document.getElementById('st-union').innerText = "ACTIVO";
+                        document.getElementById('st-union').style.color = "#0f0";
+                    }
+                    if (State.contacts.lawyer) {
+                        document.getElementById('st-lawyer').innerText = "ACTIVO";
+                        document.getElementById('st-lawyer').style.color = "#0f0";
+                    }
+                }
+            },
+            Achievements: {
+                check() {
+                    let shadowCount = 0;
+                    Object.keys(State.shadow).forEach(k => {
+                        if (State.shadow[k]) shadowCount++;
+                    });
+
+                    let totalArmy = State.army + State.elite;
+
+                    Config.achievements.forEach(a => {
+                        if (!a.earned) {
+                            let earned = false;
+
+                            // 1. Simple comparisons (Money, Territory, Fleet, Army, Elite)
+                            if (a.req.type == 'money' && State.money.dirty >= a.req.val) earned = true;
+                            if (a.req.type == 'territory' && State.territories.filter(t => t.owner == 'player').length >= a.req.val) earned = true;
+                            if (a.req.type == 'fleet' && State.fleet.length >= a.req.val) earned = true;
+                            if (a.req.type == 'army' && State.army >= a.req.val) earned = true;
+                            if (a.req.type == 'elite' && State.elite >= a.req.val) earned = true;
+                            if (a.req.type == 'clean' && State.money.clean >= a.req.val) earned = true;
+
+                            // 2. Stock/Inventory check
+                            if (a.req.type == 'stock') {
+                                if (State.inv[a.req.prod] >= a.req.val) earned = true;
+                            }
+
+                            // 3. Tech check
+                            // LEYENDO DESDE STATE.TECHS
+                            if (a.req.type == 'tech' && State.techs.find(t => t.id === a.req.id)?.bought) earned = true;
+                            // FIN LEYENDO DESDE STATE.TECHS
+
+                            // 4. Property Count Check (office_5, island_2)
+                            if (a.req.type == 'property_count') {
+                                if (State.investments[a.req.id] >= a.req.val) earned = true;
+                            }
+
+                            // 5. Luxury Count Check (lambo_5, ak47_10, tiger_3)
+                            if (a.req.type == 'luxury_count') {
+                                if (State.luxuries[a.req.id] >= a.req.val) earned = true;
+                            }
+
+                            // 6. Military Asset Count Check (tank_5, mlrs_3)
+                            if (a.req.type == 'military_count') {
+                                if (State.military[a.req.id] >= a.req.val) earned = true;
+                            }
+
+                            // 7. Shadow Count Check (shadow_5)
+                            if (a.req.type == 'shadow_count') {
+                                if (shadowCount >= a.req.val) earned = true;
+                            }
+
+                            // 8. Shadow Status Check (kingmaker)
+                            if (a.req.type == 'shadow_status') {
+                                if (State.shadow[a.req.id] === true) earned = true;
+                            }
+
+                            // 9. Total Army Check (army_500)
+                            if (a.req.type == 'army_total') {
+                                if (totalArmy >= a.req.val) earned = true;
+                            }
+
+                            // 10. Rank Level Check (padrino_rank)
+                            if (a.req.type == 'rank_level') {
+                                if (State.rank >= a.req.val) earned = true;
+                            }
+
+                            // 11. Property Combo Check (high_roller_2)
+                            if (a.req.type == 'property_combo') {
+                                // Check if the required property exists and the count is met (val: 1 is usually enough for existence)
+                                const allOwned = a.req.ids.every(id => State.investments[id] >= (a.req.val || 1));
+                                if (allOwned) earned = true;
+                            }
+
+                            if (earned) this.unlock(a);
+                        }
+                    });
+                },
+                unlock(a) {
+                    a.earned = true;
+                    UI.renderAchievements();
+                    UI.notify(`LOGRO DESBLOQUEADO: ${a.name}`);
+                }
+            }
+        };
+
+        window.onload = () => Core.init();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus HTML5: La Potencia Nativa</title>
+    <meta name="description" content="Una demostración extrema de las capacidades nativas de HTML5, CSS3 y JS Vanilla.">
+
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --primary: #00f2ff;
+            --secondary: #bd00ff;
+            --bg-color: #050510;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --font-main: system-ui, -apple-system, sans-serif;
+            --card-radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) var(--bg-color);
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* --- CANVAS BACKGROUND --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        /* --- LAYOUT --- */
+        header {
+            text-align: center;
+            padding: 3rem 1rem;
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        /* --- CARDS (Glassmorphism) --- */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--card-radius);
+            padding: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.15);
+            border-color: var(--primary);
+        }
+
+        .card h2 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+            font-size: 1.4rem;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- NATIVE CONTROLS STYLING --- */
+        input,
+        select,
+        textarea,
+        button {
+            font-family: inherit;
+            margin-top: 5px;
+        }
+
+        button {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: filter 0.2s;
+        }
+
+        button:hover {
+            filter: brightness(1.2);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--primary);
+        }
+
+        input[type="text"],
+        input[type="date"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            color: white;
+        }
+
+        /* --- SPECIFIC DEMOS --- */
+
+        /* Details/Summary Animation */
+        details {
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        summary {
+            padding: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            list-style: none;
+            /* Hide default triangle */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        summary::after {
+            content: '+';
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        details[open] summary::after {
+            transform: rotate(45deg);
+        }
+
+        details p {
+            padding: 12px;
+            border-top: 1px solid var(--glass-border);
+            color: #ccc;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        /* Drag & Drop Zone */
+        #drop-zone {
+            border: 2px dashed var(--glass-border);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        #drop-zone.drag-over {
+            border-color: var(--primary);
+            background: rgba(0, 242, 255, 0.1);
+        }
+
+        .drag-item {
+            background: var(--secondary);
+            padding: 10px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: grab;
+            display: inline-block;
+        }
+
+        /* Dialog/Modal */
+        dialog {
+            background: #1a1a2e;
+            color: white;
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
+            margin: auto;
+            max-width: 500px;
+        }
+
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Meters & Progress */
+        meter,
+        progress {
+            width: 100%;
+            height: 20px;
+            margin-bottom: 10px;
+        }
+
+        /* Animations */
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+            }
+
+            to {
+                text-shadow: 0 0 20px rgba(189, 0, 255, 0.8), 0 0 40px rgba(0, 242, 255, 0.3);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Editable Content */
+        .editable {
+            border: 1px dashed #555;
+            padding: 10px;
+            min-height: 50px;
+            border-radius: 6px;
+        }
+
+        .editable:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .color-preview {
+            width: 100%;
+            height: 50px;
+            border-radius: 8px;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Native Canvas for Background Effects -->
+    <canvas id="bg-canvas"></canvas>
+
+    <header>
+        <h1>Nexus HTML5</h1>
+        <p>Dashboard de Funcionalidades Nativas</p>
+    </header>
+
+    <main class="container">
+
+        <!-- 1. INPUTS AVANZADOS -->
+        <section class="card">
+            <h2>
+                <span>🎛️ Control Total</span>
+                <span class="tag">&lt;Input&gt;</span>
+            </h2>
+            <p style="margin-bottom: 15px; color: #ccc;">Manipula variables CSS en tiempo real sin JS complejo.</p>
+
+            <label for="color-picker">Color Primario (Neon)</label>
+            <input type="color" id="color-picker" value="#00f2ff" style="width: 100%; height: 40px; cursor: pointer;">
+
+            <label for="blur-range" style="display:block; margin-top:15px">Intensidad Blur</label>
+            <input type="range" id="blur-range" min="0" max="20" value="12">
+
+            <div class="color-preview" id="dynamic-box" style="background-color: var(--primary);">
+                Elemento Reactivo
+            </div>
+
+            <div style="margin-top: 15px;">
+                <label>Input con Datalist (Autocompletado nativo)</label>
+                <input list="techs" placeholder="Escribe 'HTML' o 'CSS'...">
+                <datalist id="techs">
+                    <option value="HTML5">
+                    <option value="CSS3">
+                    <option value="JavaScript">
+                    <option value="WebAssembly">
+                    <option value="WebGL">
+                </datalist>
+            </div>
+        </section>
+
+        <!-- 2. NATIVE DRAG & DROP -->
+        <section class="card">
+            <h2>
+                <span>✋ Drag & Drop API</span>
+                <span class="tag">API</span>
+            </h2>
+            <p style="margin-bottom:10px;">Arrastra los elementos al cubo.</p>
+
+            <div style="margin-bottom: 15px;">
+                <div class="drag-item" draggable="true" id="item1">📦 Archivo A</div>
+                <div class="drag-item" draggable="true" id="item2">📦 Archivo B</div>
+                <div class="drag-item" draggable="true" id="item3">📦 Archivo C</div>
+            </div>
+
+            <div id="drop-zone">
+                Arrastra aquí
+            </div>
+            <p id="drop-status" style="margin-top:5px; font-size:0.8rem; color: #888;">Esperando...</p>
+        </section>
+
+        <!-- 3. DIALOG & INTERACTIVITY -->
+        <section class="card">
+            <h2>
+                <span>💬 Diálogos Nativos</span>
+                <span class="tag">&lt;Dialog&gt;</span>
+            </h2>
+            <p>Modales reales controlados por el navegador, sin librerías.</p>
+            <br>
+            <button onclick="document.getElementById('native-modal').showModal()">Abrir Modal</button>
+            <button onclick="document.getElementById('native-modal').show()">Abrir No-Modal</button>
+
+            <!-- Native Dialog Element -->
+            <dialog id="native-modal">
+                <h3 style="color: var(--primary);">¡Hola desde el Core!</h3>
+                <p>Este es un elemento <code>&lt;dialog&gt;</code> nativo. Maneja el foco, el overlay y el cierre con
+                    'Esc' automáticamente.</p>
+                <form method="dialog" style="margin-top: 20px; text-align: right;">
+                    <button>Cerrar</button>
+                </form>
+            </dialog>
+
+            <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 20px 0;">
+
+            <h3>Acordeón Nativo</h3>
+            <details>
+                <summary>Información Secreta 1</summary>
+                <p>El elemento <code>&lt;details&gt;</code> crea acordeones sin necesidad de JavaScript.</p>
+            </details>
+            <details>
+                <summary>Información Secreta 2</summary>
+                <p>Puedes anidarlos y estilizarlos como quieras.</p>
+            </details>
+        </section>
+
+        <!-- 4. MEDIA & VISUALIZATION -->
+        <section class="card">
+            <h2>
+                <span>📊 Visualización</span>
+                <span class="tag">&lt;Meter&gt;</span>
+            </h2>
+
+            <label>Nivel de Sistema (Meter):</label>
+            <meter id="system-meter" min="0" max="100" low="30" high="70" optimum="80" value="85"></meter>
+
+            <label>Descarga (Progress):</label>
+            <progress id="download-progress" max="100" value="45"></progress>
+
+            <div style="margin-top: 20px;">
+                <h3>SVG Inline Animado</h3>
+                <svg width="100%" height="60" viewBox="0 0 300 60">
+                    <rect x="10" y="10" width="40" height="40" fill="var(--primary)">
+                        <animate attributeName="x" from="10" to="250" dur="2s" repeatCount="indefinite"
+                            calcMode="spline" keySplines="0.4 0 0.2 1" values="10; 250; 10" />
+                        <animate attributeName="rx" values="0;20;0" dur="2s" repeatCount="indefinite" />
+                    </rect>
+                </svg>
+            </div>
+        </section>
+
+        <!-- 5. EDITABLE CONTENT & STORAGE -->
+        <section class="card">
+            <h2>
+                <span>📝 Edición & Storage</span>
+                <span class="tag">Attr</span>
+            </h2>
+            <p>Haz clic abajo y edita el texto. Se guardará en LocalStorage automáticamente.</p>
+            <div class="editable" id="smart-editor" contenteditable="true">
+                ¡Edítame! Soy un div con `contenteditable`. Borra esto y escribe algo...
+            </div>
+            <p id="save-status"
+                style="font-size: 0.8rem; color: var(--primary); margin-top: 5px; opacity: 0; transition: opacity 0.5s;">
+                Guardado...</p>
+        </section>
+
+        <!-- 6. WEB SPEECH API -->
+        <section class="card">
+            <h2>
+                <span>🗣️ Texto a Voz</span>
+                <span class="tag">Speech API</span>
+            </h2>
+            <textarea id="tts-input" rows="3"
+                placeholder="Escribe algo aquí para que el navegador lo lea..."></textarea>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button onclick="speakText()">🔊 Leer</button>
+                <button onclick="stopSpeak()" style="background: #ff4444;">⏹️ Parar</button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer style="text-align: center; padding: 40px; color: #666; font-size: 0.9rem;">
+        <p>Renderizado usando <mark
+                style="background: var(--primary); color: black; border-radius: 4px; padding: 0 4px;">HTML5</mark> puro.
+        </p>
+        <p>Sin Frameworks. Sin Dependencias.</p>
+    </footer>
+
+    <script>
+        /* * JAVASCRIPT NATIVO (VANILLA JS)
+         * Potenciando las funcionalidades HTML
+         */
+
+        // --- 1. DYNAMIC BACKGROUND (CANVAS API) ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2;
+                this.color = Math.random() > 0.5 ? '#00f2ff' : '#bd00ff';
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 100; i++) particles.push(new Particle());
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Conectar partículas
+            particles.forEach((p, index) => {
+                p.update();
+                p.draw();
+                for (let j = index + 1; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 100) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(100, 100, 255, ${1 - dist / 100})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // --- 2. CONTROL PANEL LOGIC (CSS VARS) ---
+        const colorPicker = document.getElementById('color-picker');
+        const blurRange = document.getElementById('blur-range');
+        const root = document.documentElement;
+
+        colorPicker.addEventListener('input', (e) => {
+            root.style.setProperty('--primary', e.target.value);
+            // Actualizar color de bordes y sombras dinámicamente
+            document.getElementById('dynamic-box').textContent = e.target.value;
+        });
+
+        blurRange.addEventListener('input', (e) => {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.style.backdropFilter = `blur(${e.target.value}px)`;
+                card.style.webkitBackdropFilter = `blur(${e.target.value}px)`;
+            });
+        });
+
+        // --- 3. DRAG & DROP API ---
+        const dropZone = document.getElementById('drop-zone');
+        const dropStatus = document.getElementById('drop-status');
+
+        // Eventos para la zona de destino
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault(); // Necesario para permitir soltar
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+
+            const id = e.dataTransfer.getData('text/plain');
+            // Si arrastramos elementos del DOM
+            if (id) {
+                const draggableElement = document.getElementById(id);
+                if (draggableElement) {
+                    dropZone.appendChild(draggableElement);
+                    dropStatus.textContent = "¡Elemento recibido!";
+                    dropStatus.style.color = "var(--primary)";
+                }
+            } else if (e.dataTransfer.files.length > 0) {
+                // Si arrastramos archivos reales desde el escritorio
+                dropStatus.textContent = `Archivo recibido: ${e.dataTransfer.files[0].name}`;
+                dropStatus.style.color = "var(--secondary)";
+            }
+        });
+
+        // Configuración de elementos arrastrables
+        document.querySelectorAll('.drag-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.id);
+                e.target.style.opacity = '0.5';
+            });
+            item.addEventListener('dragend', (e) => {
+                e.target.style.opacity = '1';
+            });
+        });
+
+        // --- 4. SPEECH SYNTHESIS API ---
+        function speakText() {
+            const text = document.getElementById('tts-input').value;
+            if (!text) return alert("Escribe algo primero.");
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'es-ES'; // Español
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function stopSpeak() {
+            window.speechSynthesis.cancel();
+        }
+
+        // --- 5. LOCAL STORAGE & CONTENTEDITABLE ---
+        const editor = document.getElementById('smart-editor');
+        const saveStatus = document.getElementById('save-status');
+
+        // Cargar dato guardado
+        if (localStorage.getItem('nexus_content')) {
+            editor.innerText = localStorage.getItem('nexus_content');
+        }
+
+        editor.addEventListener('input', () => {
+            localStorage.setItem('nexus_content', editor.innerText);
+            saveStatus.style.opacity = '1';
+            setTimeout(() => {
+                saveStatus.style.opacity = '0';
+            }, 1000);
+        });
+
+        // --- 6. SIMULATED LIVE DATA (Meters) ---
+        setInterval(() => {
+            const meter = document.getElementById('system-meter');
+            const progress = document.getElementById('download-progress');
+
+            // Variar valores aleatoriamente
+            meter.value = Math.max(10, Math.min(100, meter.value + (Math.random() - 0.5) * 20));
+
+            if (progress.value < 100) {
+                progress.value += 0.5;
+            } else {
+                progress.value = 0;
+            }
+        }, 500);
+
+    </script>
+</body>
+
+</html>

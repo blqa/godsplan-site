@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planificación Urbana: El Alcalde (Cities: HTML)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+
+        :root {
+            --color-primary: #3498db;
+            /* Azul Ciudad */
+            --color-success: #2ecc71;
+            --color-danger: #e74c3c;
+            --color-warning: #f1c40f;
+            --color-dark: #2c3e50;
+            --font-mono: 'Roboto Mono', monospace;
+        }
+
+        body {
+            font-family: var(--font-mono);
+            background: var(--color-dark);
+            color: white;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Panel de Control / Lateral --- */
+        #control-panel {
+            width: 300px;
+            background: #34495e;
+            padding: 15px;
+            overflow-y: auto;
+            border-right: 5px solid var(--color-primary);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin: 0 0 10px 0;
+            color: var(--color-warning);
+            text-align: center;
+        }
+
+        /* --- Panel de Estadísticas --- */
+        .stats-group {
+            background: var(--color-dark);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .stat-value {
+            font-weight: 700;
+        }
+
+        /* Medidor de progreso (Felicidad) */
+        .progress-bar-container {
+            height: 15px;
+            background: #5a6a79;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .happiness {
+            background: var(--color-success);
+        }
+
+        .danger {
+            background: var(--color-danger);
+        }
+
+        /* --- Panel de Construcción --- */
+        #building-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .build-btn {
+            background: var(--color-dark);
+            color: white;
+            border: 2px solid var(--color-primary);
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.1s;
+        }
+
+        .build-btn:hover {
+            background: var(--color-primary);
+        }
+
+        .build-btn.selected {
+            background: var(--color-success);
+            border-color: var(--color-success);
+        }
+
+        .cost {
+            font-size: 0.75rem;
+            color: #bdc3c7;
+        }
+
+        /* --- Consola de Notificaciones --- */
+        #log-console {
+            background: #1e272e;
+            padding: 10px;
+            border-radius: 5px;
+            height: 150px;
+            overflow-y: scroll;
+            font-size: 0.8rem;
+            flex-grow: 1;
+        }
+
+        .log-entry {
+            margin-bottom: 3px;
+            padding-left: 5px;
+            border-left: 2px solid transparent;
+        }
+
+        .log-money {
+            border-left-color: var(--color-success);
+        }
+
+        .log-warn {
+            border-left-color: var(--color-warning);
+            color: var(--color-warning);
+        }
+
+        .log-error {
+            border-left-color: var(--color-danger);
+            color: var(--color-danger);
+        }
+
+        /* --- Vista de la Ciudad / Canvas --- */
+        #city-view {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #34495e;
+            /* Color de fondo para que no se vea el negro del canvas */
+        }
+
+        canvas {
+            border: 10px solid var(--color-dark);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            background-color: #6d9f78;
+            /* Color de fondo: Hierba/terreno */
+        }
+
+        .game-over-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(100, 0, 0, 0.95);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .game-over-overlay.show {
+            display: flex;
+        }
+
+        .restart-btn {
+            padding: 15px 30px;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            background: var(--color-danger);
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Panel de Control -->
+    <div id="control-panel">
+        <h1>PLANIFICACIÓN URBANA</h1>
+
+        <!-- Estadísticas de la Ciudad -->
+        <div class="stats-group">
+            <div class="stat-line"><span>📅 DÍA:</span> <span class="stat-value" id="day-counter">1</span></div>
+            <div class="stat-line"><span>⏱ TIEMPO:</span> <span class="stat-value" id="time-display">DÍA</span></div>
+        </div>
+
+        <div class="stats-group">
+            <div class="stat-line"><span>💰 DINERO:</span> <span class="stat-value" id="stat-money"
+                    style="color:var(--color-success)">$1000</span></div>
+            <div class="stat-line"><span>👥 POBLACIÓN:</span> <span class="stat-value" id="stat-population">100</span>
+            </div>
+            <div class="stat-line"><span>😊 FELICIDAD:</span> <span class="stat-value" id="stat-happiness">100%</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar happiness" id="bar-happiness" style="width: 100%;"></div>
+            </div>
+        </div>
+
+        <div class="stats-group">
+            <div class="stat-line"><span>⚡ PODER (Prod/Cons):</span> <span class="stat-value" id="stat-power">0 /
+                    0</span></div>
+            <div class="stat-line"><span>🍎 COMIDA (Prod/Cons):</span> <span class="stat-value" id="stat-food">0 /
+                    0</span></div>
+        </div>
+
+        <!-- Selector de Edificios -->
+        <div class="stats-group">
+            <h3 style="margin: 0 0 10px 0; color: var(--color-primary);">CONSTRUIR</h3>
+            <div id="building-selector">
+                <!-- Botones se generan con JS -->
+            </div>
+        </div>
+
+        <!-- Consola de Log -->
+        <div id="log-console">
+            <!-- Logs se insertan aquí -->
+            <div class="log-entry log-warn">>> Sistema Iniciado. Bienvenido, Alcalde.</div>
+        </div>
+        <button class="restart-btn" onclick="resetGame()" style="background: #e67e22; margin-top: 10px;">REINICIAR
+            SIMULACIÓN</button>
+    </div>
+
+    <!-- Vista de la Ciudad -->
+    <div id="city-view">
+        <canvas id="city-canvas" width="600" height="600"></canvas>
+    </div>
+
+    <!-- Game Over -->
+    <div class="game-over-overlay" id="game-over">
+        <h2 style="color: var(--color-danger); margin-bottom: 10px;">¡GAME OVER!</h2>
+        <p id="game-over-reason" style="font-size: 1.5rem; margin-bottom: 30px;">La ciudad te ha olvidado.</p>
+        <button class="restart-btn" onclick="resetGame()">VOLVER A EMPEZAR</button>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN DE LA SIMULACIÓN ---
+        const GRID_SIZE = 15;
+        const CELL_SIZE = 40; // 600 / 15
+        const TICK_RATE = 500; // 0.5 segundos por tick
+        const DAY_LENGTH = 120; // 60 segundos (120 ticks)
+
+        const canvas = document.getElementById('city-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- DEFINICIÓN DE CONSTANTES JS para colores ---
+        const DANGER_COLOR = '#e74c3c';
+        const SUCCESS_COLOR = '#2ecc71';
+        const WARNING_COLOR = '#f1c40f';
+        const FONT_FAMILY = 'Roboto Mono';
+        // --- FIN CONSTANTES ---
+
+
+        // --- ESTADO INICIAL DEL JUEGO ---
+        let gameState = {
+            money: 1000,
+            population: 20, // REDUCIDO para balancear el inicio (antes 50)
+            happiness: 100,
+            powerProd: 0, powerCons: 0,
+            foodProd: 0, foodCons: 0,
+            day: 1,
+            time: 0, // Tick counter
+            isDay: true,
+            grid: Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null)),
+            selectedBuilding: null,
+            interval: null,
+        };
+
+        // Cargar estado guardado si existe
+        if (localStorage.getItem('citySimState')) {
+            try {
+                const savedState = JSON.parse(localStorage.getItem('citySimState'));
+                if (Array.isArray(savedState.grid) && savedState.grid.length === GRID_SIZE) {
+                    gameState = { ...gameState, ...savedState };
+                    gameState.grid = savedState.grid.map(row => row.map(cell => cell));
+                    log('>> Partida guardada cargada.', 'warn');
+                }
+            } catch (e) {
+                console.error("Error al cargar estado:", e);
+                log('>> Error al cargar partida guardada. Se inicia una nueva.', 'error');
+            }
+        }
+
+        // --- DEFINICIÓN DE EDIFICIOS ---
+        const BUILDINGS = {
+            HOUSE: {
+                name: 'Casa (Residencia)', icon: '🏠', cost: 100, size: 1,
+                effect: { pop: 10, consPower: 2, consFood: 2 },
+                desc: 'Aumenta la población y consume recursos.',
+                color: '#f5b041'
+            },
+            FARM: {
+                name: 'Granja (Comida)', icon: '🍎', cost: 250, size: 1,
+                effect: { prodFood: 20, consPower: 5 },
+                desc: 'Produce comida para la ciudad.',
+                color: '#52be80'
+            },
+            POWER_PLANT: {
+                name: 'Planta de Poder', icon: '⚡', cost: 400, size: 2,
+                effect: { prodPower: 50, consMoney: 5 },
+                desc: 'Produce energía. Alto costo de mantenimiento.',
+                color: '#f4d03f'
+            },
+            SCHOOL: { // Nuevo Servicio 1
+                name: 'Escuela (Educación)', icon: '🏫', cost: 500, size: 2,
+                effect: { happiness: 10, consPower: 10, consMoney: 10 },
+                desc: 'Mejora la educación y la felicidad.',
+                color: '#76a8d8'
+            },
+            HOSPITAL: { // Nuevo Servicio 2
+                name: 'Hospital (Salud)', icon: '🏥', cost: 800, size: 2,
+                effect: { happiness: 15, consPower: 15, consMoney: 20 },
+                desc: 'Aumenta la salud y la felicidad ciudadana.',
+                color: '#ec7063'
+            },
+            POLICE: { // Nuevo Servicio 3
+                name: 'Comisaría (Seguridad)', icon: '🚓', cost: 600, size: 1,
+                effect: { happiness: 5, consPower: 5, consMoney: 15 },
+                desc: 'Aumenta la seguridad y previene el desorden.',
+                color: '#34495e'
+            }
+        };
+
+        // --- FUNCIONES DE DIBUJO ---
+
+        function drawBuilding(x, y, building) {
+            const cellX = x * CELL_SIZE;
+            const cellY = y * CELL_SIZE;
+            const size = building.size * CELL_SIZE;
+
+            ctx.fillStyle = building.color;
+            ctx.fillRect(cellX + 2, cellY + 4, size - 4, size - 8); // Sombra
+            ctx.fillStyle = lightenColor(building.color, 15);
+            ctx.fillRect(cellX + 4, cellY + 6, size - 8, size - 12); // Cuerpo
+            ctx.fillStyle = building.color;
+            ctx.fillRect(cellX + 4, cellY + 6, size - 8, size - 12); // Techo
+
+            ctx.fillStyle = '#1e272e';
+            ctx.font = `12px ${FONT_FAMILY}`;
+
+            switch (building.name) {
+                case 'Casa (Residencia)':
+                    ctx.fillStyle = gameState.isDay ? '#a0d1ff' : '#6495ed';
+                    ctx.fillRect(cellX + 8, cellY + 12, 10, 10);
+                    ctx.fillRect(cellX + 22, cellY + 12, 10, 10);
+                    ctx.fillRect(cellX + 8, cellY + 26, 10, 10);
+                    ctx.fillRect(cellX + 22, cellY + 26, 10, 10);
+                    break;
+                case 'Granja (Comida)':
+                    ctx.fillStyle = '#8395a7'; ctx.fillRect(cellX + 8, cellY + 10, 24, 24);
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.beginPath(); ctx.moveTo(cellX + 4, cellY + 10); ctx.lineTo(cellX + 36, cellY + 10); ctx.lineTo(cellX + 36, cellY + 4); ctx.lineTo(cellX + 4, cellY + 4); ctx.closePath(); ctx.fill();
+                    break;
+                case 'Planta de Poder':
+                    ctx.fillStyle = '#7f8c8d'; ctx.fillRect(cellX + 15, cellY + 8, 10, 18);
+                    if (gameState.isDay) { ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; ctx.beginPath(); ctx.arc(cellX + 20, cellY + 8, 5, 0, Math.PI * 2); ctx.fill(); }
+                    break;
+                case 'Escuela (Educación)':
+                    ctx.fillStyle = '#f1c40f'; ctx.fillRect(cellX + 4, cellY + 20, 32, 5);
+                    ctx.fillStyle = '#3498db'; ctx.fillText('E', cellX + 17, cellY + 35);
+                    break;
+                case 'Hospital (Salud)':
+                    ctx.fillStyle = 'white'; ctx.fillRect(cellX + 15, cellY + 10, 10, 20); ctx.fillRect(cellX + 10, cellY + 15, 20, 10);
+                    break;
+                case 'Comisaría (Seguridad)':
+                    ctx.fillStyle = '#bdc3c7'; ctx.fillRect(cellX + 4, cellY + 15, 32, 10);
+                    ctx.fillStyle = 'black'; ctx.fillText('P', cellX + 17, cellY + 22);
+                    break;
+            }
+
+            ctx.fillStyle = '#1e272e';
+            ctx.font = '16px serif';
+            ctx.fillText(building.icon, cellX + 12, cellY + 28);
+        }
+
+        function lightenColor(hex, lum) {
+            hex = hex.replace(/[^0-9a-f]/gi, '');
+            lum = lum || 0;
+            var rgb = "#", c, i;
+            for (i = 0; i < 3; i++) {
+                c = parseInt(hex.substr(i * 2, 2), 16);
+                c = Math.round(Math.min(255, Math.max(0, c + lum)));
+                rgb += ("00" + c.toString(16)).substr(c.toString(16).length);
+            }
+            return rgb;
+        }
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#6d9f78';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    const cellX = i * CELL_SIZE;
+                    const cellY = j * CELL_SIZE;
+                    ctx.strokeStyle = '#4b6584';
+                    ctx.lineWidth = 0.5;
+                    ctx.strokeRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
+                    const building = gameState.grid[i][j];
+                    if (building) drawBuilding(i, j, building);
+                }
+            }
+
+            if (gameState.selectedBuilding) {
+                const button = document.querySelector(`.build-btn.selected`);
+                const size = BUILDINGS[gameState.selectedBuilding].size;
+                const icon = BUILDINGS[gameState.selectedBuilding].icon;
+
+                canvas.onmousemove = (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    const gridX = Math.floor(mouseX / CELL_SIZE);
+                    const gridY = Math.floor(mouseY / CELL_SIZE);
+
+                    if (gridX >= 0 && gridX < GRID_SIZE && gridY >= 0 && gridY < GRID_SIZE) {
+                        drawGrid();
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                        ctx.fillRect(gridX * CELL_SIZE, gridY * CELL_SIZE, size * CELL_SIZE, size * CELL_SIZE);
+                        ctx.fillStyle = 'white'; ctx.font = '24px serif';
+                        ctx.fillText(icon, gridX * CELL_SIZE + 8, gridY * CELL_SIZE + 30);
+                    }
+                };
+            } else {
+                canvas.onmousemove = null;
+            }
+        }
+
+        // --- LÓGICA DE SIMULACIÓN ---
+
+        function updateStats() {
+            let pProd = 0, pCons = 0, fProd = 0, fCons = 0;
+            let totalPop = 0;
+            let moneyCons = 0;
+            let happinessScore = 0;
+            let buildingCount = { HOUSE: 0, FARM: 0, POWER_PLANT: 0, SCHOOL: 0, HOSPITAL: 0, POLICE: 0 };
+
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    const cell = gameState.grid[i][j];
+                    if (cell) {
+                        const effect = cell.effect;
+                        buildingCount[cell.id]++;
+                        pProd += effect.prodPower || 0;
+                        fProd += effect.prodFood || 0;
+                        moneyCons += effect.consMoney || 0;
+                        pCons += effect.consPower || 0;
+                        fCons += effect.consFood || 0;
+                        totalPop += effect.pop || 0;
+                        happinessScore += effect.happiness || 0;
+                    }
+                }
+            }
+
+            pCons += totalPop * 0.5;
+            fCons += totalPop * 1;
+            moneyCons += totalPop * 0.1;
+            const moneyProd = totalPop * 1.5;
+
+            gameState.powerProd = pProd;
+            gameState.foodProd = fProd;
+            gameState.powerCons = pCons;
+            gameState.foodCons = fCons;
+            gameState.population = totalPop;
+            gameState.money += (moneyProd - moneyCons);
+
+            // --- CÁLCULO DE FELICIDAD (BALANCEADO) ---
+            let baseHappiness = 100;
+
+            // A. Falla de Recursos Críticos (Siempre importa)
+            if (pProd < pCons) baseHappiness -= 20;
+            if (fProd < fCons) baseHappiness -= 30;
+            if (gameState.money < 0) baseHappiness -= 5;
+
+            // B. Servicios (SOLO SI LA POBLACIÓN ES GRANDE - BALANCE)
+            // Escuela: solo si pop > 50
+            if (buildingCount.SCHOOL === 0 && gameState.population > 50) baseHappiness -= 15;
+            // Policía: solo si pop > 100
+            if (buildingCount.POLICE === 0 && gameState.population > 100) baseHappiness -= 10;
+            // Hospital: solo si pop > 150
+            if (buildingCount.HOSPITAL === 0 && gameState.population > 150) baseHappiness -= 20;
+
+            baseHappiness += Math.floor(happinessScore / 5);
+
+            // Gracia del Día 1
+            if (gameState.day === 1 && gameState.time < 30) {
+                // Primeros segundos del juego, la felicidad no baja de 80 para dar tiempo
+                baseHappiness = Math.max(80, baseHappiness);
+            }
+
+            gameState.happiness = Math.max(0, Math.min(100, baseHappiness));
+
+            // --- IMPACTO EN LA POBLACIÓN (MÁS LENTO) ---
+            // Solo muere gente si la felicidad es baja Y pasa cada X ticks
+            if (gameState.happiness < 50 && gameState.time % 20 === 0) {
+                gameState.population = Math.max(0, gameState.population - 1); // Se va 1 persona cada ~10s
+                log(`Ciudadano infeliz abandonó la ciudad.`, 'error');
+            } else if (gameState.happiness > 80 && pProd >= pCons && fProd >= fCons) {
+                gameState.population += Math.floor(Math.random() * 2);
+            }
+
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('stat-money').textContent = `$${Math.floor(gameState.money)}`;
+            document.getElementById('stat-power').textContent = `${Math.floor(gameState.powerProd)} / ${Math.floor(gameState.powerCons)}`;
+            document.getElementById('stat-food').textContent = `${Math.floor(gameState.foodProd)} / ${Math.floor(gameState.foodCons)}`;
+            document.getElementById('stat-population').textContent = Math.floor(gameState.population);
+            document.getElementById('day-counter').textContent = gameState.day;
+
+            document.getElementById('stat-power').style.color = gameState.powerProd < gameState.powerCons ? DANGER_COLOR : SUCCESS_COLOR;
+            document.getElementById('stat-food').style.color = gameState.foodProd < gameState.foodCons ? DANGER_COLOR : SUCCESS_COLOR;
+            document.getElementById('stat-money').style.color = gameState.money < 0 ? DANGER_COLOR : SUCCESS_COLOR;
+
+            document.getElementById('stat-happiness').textContent = `${gameState.happiness}%`;
+            const bar = document.getElementById('bar-happiness');
+            bar.style.width = `${gameState.happiness}%`;
+            if (gameState.happiness < 30) bar.className = 'progress-bar danger';
+            else if (gameState.happiness < 60) bar.className = 'progress-bar warning'; // Assuming warning class exists in CSS or defaults to something visible
+            else bar.className = 'progress-bar happiness';
+
+            document.getElementById('time-display').textContent = gameState.isDay ? 'DÍA' : 'NOCHE';
+        }
+
+        function gameLoop() {
+            gameState.time++;
+            if (gameState.time >= DAY_LENGTH) {
+                gameState.time = 0;
+                gameState.day++;
+            }
+            gameState.isDay = gameState.time < (DAY_LENGTH / 2);
+
+            updateStats();
+            drawGrid();
+            saveGame();
+
+            if (gameState.money < -500 || gameState.population <= 0) {
+                gameOver(gameState.population <= 0 ? "La ciudad se ha vaciado por infelicidad." : "La ciudad ha quebrado (deuda > $500).");
+            }
+        }
+
+        // --- CONSTRUCCIÓN E INTERACCIÓN ---
+
+        function initializeBuildingSelector() {
+            const container = document.getElementById('building-selector');
+            for (const id in BUILDINGS) {
+                const building = BUILDINGS[id];
+                const btn = document.createElement('button');
+                btn.className = 'build-btn';
+                btn.id = `btn-${id}`;
+                btn.innerHTML = `<strong>${building.icon} ${building.name}</strong><br><span class="cost">Costo: $${building.cost}</span>`;
+                btn.onclick = () => selectBuilding(id);
+                container.appendChild(btn);
+            }
+        }
+
+        function selectBuilding(id) {
+            if (gameState.selectedBuilding === id) {
+                gameState.selectedBuilding = null;
+                document.getElementById(`btn-${id}`).classList.remove('selected');
+                canvas.style.cursor = 'default';
+            } else {
+                if (gameState.selectedBuilding) document.getElementById(`btn-${gameState.selectedBuilding}`).classList.remove('selected');
+                gameState.selectedBuilding = id;
+                document.getElementById(`btn-${id}`).classList.add('selected');
+                canvas.style.cursor = 'crosshair';
+            }
+            drawGrid();
+        }
+
+        canvas.onclick = (e) => {
+            if (!gameState.selectedBuilding) return;
+            const rect = canvas.getBoundingClientRect();
+            const gridX = Math.floor((e.clientX - rect.left) / CELL_SIZE);
+            const gridY = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+            const buildingID = gameState.selectedBuilding;
+            const buildingData = BUILDINGS[buildingID];
+            const size = buildingData.size;
+
+            if (gridX + size > GRID_SIZE || gridY + size > GRID_SIZE) { log('>> Fuera de límites.', 'error'); return; }
+
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    if (gameState.grid[gridX + i][gridY + j]) { log('>> Espacio ocupado.', 'error'); return; }
+                }
+            }
+
+            if (gameState.money < buildingData.cost) { log(`>> Faltan fondos ($${buildingData.cost}).`, 'error'); return; }
+
+            gameState.money -= buildingData.cost;
+            log(`>> Construido ${buildingData.name}.`, 'money');
+
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    gameState.grid[gridX + i][gridY + j] = (i === 0 && j === 0) ? { ...buildingData, id: buildingID } : null;
+                }
+            }
+            selectBuilding(buildingID);
+            updateStats();
+            drawGrid();
+        };
+
+        function log(message, type = 'log') {
+            const consoleDiv = document.getElementById('log-console');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const time = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+            entry.textContent = `[${time}] ${message}`;
+            if (consoleDiv.children.length > 20) consoleDiv.removeChild(consoleDiv.firstChild);
+            consoleDiv.appendChild(entry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function saveGame() { localStorage.setItem('citySimState', JSON.stringify(gameState)); }
+
+        function gameOver(reason) {
+            clearInterval(gameState.interval);
+            document.getElementById('game-over-reason').textContent = reason;
+            document.getElementById('game-over').classList.add('show');
+            localStorage.removeItem('citySimState'); // Clear save on death
+        }
+
+        function resetGame() {
+            localStorage.removeItem('citySimState');
+            location.reload();
+        }
+
+        function init() {
+            canvas.width = GRID_SIZE * CELL_SIZE;
+            canvas.height = GRID_SIZE * CELL_SIZE;
+            initializeBuildingSelector();
+            updateStats();
+            drawGrid();
+            gameState.interval = setInterval(gameLoop, TICK_RATE);
+            log('>> Simulación iniciada. ¡A construir!', 'money');
+        }
+
+        window.onload = init;
+
+    </script>
+</body>
+
+</html>

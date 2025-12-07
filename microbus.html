@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Microbús Simulator MX 2024</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #87CEEB;
+            /* Cielo */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #game-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* UI Overlay */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Minimap */
+        #minimap-canvas {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 4px solid #fff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #dashboard {
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+            padding: 15px;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff00;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #ddd;
+        }
+
+        #messages-area {
+            position: absolute;
+            top: 20%;
+            width: 100%;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .bubble {
+            display: inline-block;
+            background: white;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 10px;
+            border: 2px solid #000;
+            z-index: 20;
+        }
+
+        .bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            margin-left: -10px;
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: black transparent;
+            display: block;
+            width: 0;
+        }
+
+        /* Controls */
+        #controls {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            pointer-events: auto;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        #btn-horn {
+            background: rgba(255, 255, 0, 0.3);
+            border-color: #ff0;
+            width: 60px;
+            height: 60px;
+            font-size: 18px;
+            margin-bottom: 10px;
+            align-self: flex-start;
+            pointer-events: auto;
+        }
+
+        .btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            touch-action: manipulation;
+            transition: transform 0.1s, background 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .btn-gas {
+            background: rgba(0, 255, 0, 0.3);
+            border-color: #0f0;
+        }
+
+        .btn-brake {
+            background: rgba(255, 0, 0, 0.3);
+            border-color: #f00;
+        }
+
+        #stereo {
+            position: absolute;
+            top: 60px;
+            right: 15px;
+            background: #222;
+            padding: 5px 10px;
+            border: 2px solid #555;
+            border-radius: 5px;
+            color: #0ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .stereo-bars {
+            display: flex;
+            gap: 2px;
+            height: 10px;
+            align-items: flex-end;
+            margin-top: 5px;
+        }
+
+        .bar {
+            width: 3px;
+            background: #0f0;
+            animation: bounce 0.5s infinite;
+        }
+
+        .bar:nth-child(2) {
+            animation-delay: 0.1s;
+            background: #ff0;
+        }
+
+        .bar:nth-child(3) {
+            animation-delay: 0.2s;
+            background: #f00;
+        }
+
+        .bar:nth-child(4) {
+            animation-delay: 0.05s;
+            background: #0ff;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                height: 2px;
+            }
+
+            50% {
+                height: 100%;
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translate(1px, 1px) rotate(0deg);
+            }
+
+            10% {
+                transform: translate(-1px, -2px) rotate(-1deg);
+            }
+
+            20% {
+                transform: translate(-3px, 0px) rotate(1deg);
+            }
+
+            30% {
+                transform: translate(3px, 2px) rotate(0deg);
+            }
+
+            40% {
+                transform: translate(1px, -1px) rotate(1deg);
+            }
+
+            50% {
+                transform: translate(-1px, 2px) rotate(-1deg);
+            }
+
+            60% {
+                transform: translate(-3px, 1px) rotate(0deg);
+            }
+
+            70% {
+                transform: translate(3px, 1px) rotate(-1deg);
+            }
+
+            80% {
+                transform: translate(-1px, -1px) rotate(1deg);
+            }
+
+            90% {
+                transform: translate(1px, 2px) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(1px, -2px) rotate(-1deg);
+            }
+        }
+
+        .shake-effect {
+            animation: shake 0.5s;
+        }
+
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 100;
+        }
+
+        h1 {
+            color: #00ff00;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #00ff00;
+            font-style: italic;
+            text-align: center;
+        }
+
+        .mex-flag {
+            width: 100px;
+            height: 10px;
+            background: linear-gradient(to right, #006847 33%, #ffffff 33%, #ffffff 66%, #ce1126 66%);
+            margin-bottom: 20px;
+        }
+
+        .start-btn {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            background: #ce1126;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 0 #8a0b19;
+            transition: transform 0.1s;
+        }
+
+        .start-btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        .controls-hint {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #aaa;
+            text-align: center;
+        }
+    </style>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Tone.js for simple audio effects (horn) -->
+    <script src="https://unpkg.com/tone@14.7.58/build/Tone.js"></script>
+</head>
+
+<body>
+
+    <div id="game-container"></div>
+    <canvas id="minimap-canvas" width="150" height="150"></canvas>
+
+    <div id="ui-layer">
+        <div id="dashboard">
+            <div class="stat-box">
+                <div class="stat-label">Ganancias</div>
+                <div class="stat-value">$<span id="score">0.00</span></div>
+            </div>
+
+            <div id="stereo">
+                SONIDO: CUMBIONES
+                <div class="stereo-bars">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+
+            <div class="stat-box">
+                <div class="stat-label">Pasajeros</div>
+                <div class="stat-value"><span id="passengers">0</span>/20</div>
+            </div>
+        </div>
+
+        <div id="messages-area">
+            <!-- Messages appear here -->
+        </div>
+
+        <div id="controls">
+            <div class="control-group">
+                <div class="btn" id="btn-left">← (A)</div>
+                <div class="btn" id="btn-right">→ (D)</div>
+            </div>
+            <div class="control-group" style="flex-direction: column; align-items: center;">
+                <div class="btn" id="btn-horn">Claxon (H)</div>
+            </div>
+            <div class="control-group">
+                <div class="btn btn-brake" id="btn-brake">Freno (S)</div>
+                <div class="btn btn-gas" id="btn-gas">Acelerar (W)</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="start-screen">
+        <h1>Microbús Simulator MX</h1>
+        <div class="mex-flag"></div>
+        <p>Ruta: Indios Verdes - La Joya (¡Sigue el minimapa!)</p>
+        <button class="start-btn" onclick="startGame()">¡VÁMONOS!</button>
+        <div class="controls-hint">
+            PC: Flechas / WASD para mover. H para Claxon.<br>
+            Móvil: Botones en pantalla<br>
+            <span style="color: yellow;">¡Cuidado con los topes, los baches y el tráfico!</span>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Constants ---
+        const MAX_PASSENGERS = 20;
+        const SEGMENT_LENGTH = 100;
+        const ROAD_WIDTH = 20;
+
+        // --- Route Definition (Simple X, Z waypoints) ---
+        // 'turn' is purely descriptive now, actual turning is manual.
+        const routePoints = [
+            { x: 0, z: 100, prompt: "Sigue recto" },
+            { x: 0, z: 500, prompt: "¡CURVA CERRADA! Gira a la DERECHA" },
+            { x: 500, z: 500, prompt: "Continúa derecho" },
+            { x: 500, z: 1200, prompt: "Gira a la IZQUIERDA en el OXXO" },
+            { x: -200, z: 1200, prompt: "Ruta final... aguanta" },
+            { x: -200, z: 2000, prompt: "¡HAS LLEGADO A LA JOYA!" }
+        ];
+        let currentRouteIndex = 0;
+        let routeTolerance = 20; // How close the bus must be to a route point
+
+        // --- Game State ---
+        let gameActive = false;
+        let score = 0;
+        let passengerCount = 0;
+        let speed = 0;
+        const maxSpeed = 0.8;
+        const acceleration = 0.01;
+        const friction = 0.98;
+        const turnSpeed = 0.015; // Adjusted for better turning control
+
+        // Inputs
+        const keys = { w: false, a: false, s: false, d: false, h: false }; // Added 'h' for horn
+
+        // Three.js variables
+        let scene, camera, renderer;
+        let bus, wheels = [];
+        let roadSegments = [];
+        let trafficVehicles = [];
+
+        // Audio
+        let hornSynth;
+
+        // Init function called by button
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            // Init Tone.js (must be done after user interaction)
+            Tone.start();
+            hornSynth = new Tone.MembraneSynth({
+                pitchDecay: 0.008,
+                octaves: 2,
+                envelope: {
+                    attack: 0.005,
+                    decay: 0.15,
+                    sustain: 0.01,
+                    release: 0.1
+                }
+            }).toDestination();
+
+            init3D();
+            gameActive = true;
+            showMessage("¡Súbale, súbale! ¡Lugares!", 3000);
+            animate();
+        }
+
+        function init3D() {
+            // Setup Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.Fog(0x87CEEB, 20, 150);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 8, -15);
+            camera.lookAt(0, 0, 10);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.getElementById('game-container').appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(50, 100, 50);
+            dirLight.castShadow = true;
+            dirLight.shadow.camera.left = -100;
+            dirLight.shadow.camera.right = 100;
+            dirLight.shadow.camera.top = 100;
+            dirLight.shadow.camera.bottom = -100;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            scene.add(dirLight);
+
+            // Create Bus (The "Micro")
+            createBus();
+
+            // Initial Road Generation
+            for (let i = 0; i < 8; i++) {
+                createRoadSegment(i * SEGMENT_LENGTH);
+            }
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize, false);
+            setupInputs();
+        }
+
+        // --- Scenery Helpers ---
+
+        // Función para crear un puesto de tacos mejorado
+        function createTacoStand(x, z, side) {
+            const standGroup = new THREE.Group();
+            // Counter (Silver/Grey - más grande)
+            const counter = new THREE.Mesh(
+                new THREE.BoxGeometry(3, 1.5, 2),
+                new THREE.MeshStandardMaterial({ color: 0xcccccc })
+            );
+            counter.position.set(x, 0.75, z);
+            standGroup.add(counter);
+
+            // Roof/Awning (Red or Yellow - más grande)
+            const awning = new THREE.Mesh(
+                new THREE.BoxGeometry(4, 0.1, 3),
+                new THREE.MeshStandardMaterial({ color: Math.random() > 0.5 ? 0xcc0000 : 0xFFD700 })
+            );
+            awning.position.set(x, 1.55, z);
+            standGroup.add(awning);
+
+            // Prop: Grill/Comal (Simula el fuego/calor)
+            const grill = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.4, 0.4, 0.3, 8),
+                new THREE.MeshStandardMaterial({ color: 0xFF8C00 }) // Naranja brillante
+            );
+            grill.position.set(x + (side * 0.8), 1.6, z);
+            standGroup.add(grill);
+
+            standGroup.name = "Puesto de Tacos";
+            return standGroup;
+        }
+
+        // Función para crear un OXXO reconocible
+        function createOXXO(x, z, side) {
+            const oxxoGroup = new THREE.Group();
+
+            // Main Red/White Building (simplified)
+            const bodyGeo = new THREE.BoxGeometry(10, 8, 10);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x8a0b19 }); // Rojo Oscuro OXXO
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.set(x, 4, z);
+            body.receiveShadow = true;
+            body.castShadow = true;
+
+            // White roof strip (simulating the roof edge)
+            const roofStrip = new THREE.Mesh(new THREE.BoxGeometry(10.2, 0.5, 10.2), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+            roofStrip.position.set(x, 8.25, z);
+
+            // Green Logo Stripe (simulating the classic logo)
+            const logoStripe = new THREE.Mesh(new THREE.BoxGeometry(9, 1.5, 0.1), new THREE.MeshBasicMaterial({ color: 0x006847 })); // Verde OXXO
+            logoStripe.position.set(x, 6, z + 5.05);
+
+            oxxoGroup.add(body, roofStrip, logoStripe);
+            oxxoGroup.name = "OXXO";
+            return oxxoGroup;
+        }
+
+        function createBus() {
+            bus = new THREE.Group();
+            // Lower Body (Green)
+            const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.2, 8.1), new THREE.MeshStandardMaterial({ color: 0x1a7f46 }));
+            lowerBody.position.y = 1;
+            lowerBody.castShadow = true;
+            bus.add(lowerBody);
+
+            // Upper Body (White)
+            const upperBody = new THREE.Mesh(new THREE.BoxGeometry(3.5, 1.3, 7.8), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+            upperBody.position.y = 2.25;
+            upperBody.castShadow = true;
+            bus.add(upperBody);
+
+            // Windows (Black strips)
+            const windows = new THREE.Mesh(new THREE.BoxGeometry(3.55, 0.8, 7.9), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+            windows.position.y = 2.3;
+            bus.add(windows);
+
+            // Stripe (Red/Orange detail typical of some routes)
+            const stripe = new THREE.Mesh(new THREE.BoxGeometry(3.65, 0.1, 8.1), new THREE.MeshStandardMaterial({ color: 0xFF4500 }));
+            stripe.position.y = 1.6;
+            bus.add(stripe);
+
+            // Bumper
+            const bumper = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.5, 0.5), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+            bumper.position.set(0, 0.5, 4.2);
+            bus.add(bumper);
+
+            // Wheels
+            const wheelGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.5, 16);
+            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+            wheelGeo.rotateZ(Math.PI / 2);
+
+            const positions = [
+                { x: -1.8, z: 2.5 }, { x: 1.8, z: 2.5 },
+                { x: -1.8, z: -2.5 }, { x: 1.8, z: -2.5 }
+            ];
+
+            positions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+                wheel.position.set(pos.x, 0.8, pos.z);
+                wheel.castShadow = true;
+                bus.add(wheel);
+                wheels.push(wheel);
+            });
+
+            scene.add(bus);
+        }
+
+        // --- Traffic Logic ---
+        function createTrafficVehicle(x, z) {
+            const car = new THREE.Mesh(
+                new THREE.BoxGeometry(1.5, 1, 3),
+                new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, metalness: 0.8 })
+            );
+            // Spawn in the opposite lane (left side in MX driving style is usually the other direction)
+            car.position.set(x, 0.5, z);
+            car.userData = {
+                speed: 0.2 + Math.random() * 0.4,
+                type: 'traffic',
+                rotation: Math.PI // Always facing the opposite direction
+            };
+            car.rotation.y = Math.PI;
+            scene.add(car);
+            trafficVehicles.push(car);
+        }
+
+        function updateTraffic() {
+            const busZ = bus.position.z;
+
+            // Move traffic
+            for (let i = trafficVehicles.length - 1; i >= 0; i--) {
+                const car = trafficVehicles[i];
+                car.position.z -= car.userData.speed; // Move opposite to the player
+
+                // Remove traffic that is far behind the player
+                if (car.position.z < busZ - SEGMENT_LENGTH) {
+                    scene.remove(car);
+                    trafficVehicles.splice(i, 1);
+                }
+            }
+        }
+
+        // --- Road & Scenery Generation ---
+
+        function createRoadSegment(zOffset) {
+            const segmentGroup = new THREE.Group();
+
+            // Asphalt
+            const roadGeo = new THREE.PlaneGeometry(ROAD_WIDTH, SEGMENT_LENGTH);
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x444444 });
+            const road = new THREE.Mesh(roadGeo, roadMat);
+            road.rotation.x = -Math.PI / 2;
+            road.position.z = zOffset + SEGMENT_LENGTH / 2;
+            road.receiveShadow = true;
+            segmentGroup.add(road);
+
+            // Lines (Center line)
+            const lineGeo = new THREE.PlaneGeometry(0.5, SEGMENT_LENGTH);
+            const lineMat = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
+            const line = new THREE.Mesh(lineGeo, lineMat);
+            line.rotation.x = -Math.PI / 2;
+            line.position.z = zOffset + SEGMENT_LENGTH / 2;
+            line.position.y = 0.05;
+            segmentGroup.add(line);
+
+            // Sidewalks
+            const sidewalkGeo = new THREE.BoxGeometry(4, 0.5, SEGMENT_LENGTH);
+            const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x888888 });
+
+            const leftWalk = new THREE.Mesh(sidewalkGeo, sidewalkMat);
+            leftWalk.position.set(-(ROAD_WIDTH / 2 + 2), 0, zOffset + SEGMENT_LENGTH / 2);
+            segmentGroup.add(leftWalk);
+
+            const rightWalk = new THREE.Mesh(sidewalkGeo, sidewalkMat);
+            rightWalk.position.set((ROAD_WIDTH / 2 + 2), 0, zOffset + SEGMENT_LENGTH / 2);
+            segmentGroup.add(rightWalk);
+
+            // Buildings and Props (Procedural Generation)
+            const propsCount = Math.floor(2 + Math.random() * 4);
+            const colors = [0xFF69B4, 0xFFA500, 0x00BFFF, 0xFFD700, 0xFF4500];
+
+            for (let i = 0; i < propsCount; i++) {
+                const side = Math.random() > 0.5 ? 1 : -1;
+                const propZ = zOffset + (i * SEGMENT_LENGTH / propsCount) + Math.random() * 10;
+
+                if (Math.random() < 0.2 && side > 0) { // OXXO on the right side
+                    const oxxo = createOXXO(side * (ROAD_WIDTH / 2 + 7), propZ, side);
+                    segmentGroup.add(oxxo);
+                } else if (Math.random() < 0.4) { // Taco Stand
+                    const stand = createTacoStand(side * (ROAD_WIDTH / 2 + 3.5), propZ, side);
+                    segmentGroup.add(stand);
+                } else { // Standard Building
+                    const height = 5 + Math.random() * 15;
+                    const building = new THREE.Mesh(
+                        new THREE.BoxGeometry(8, height, 15),
+                        new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random() * colors.length)] })
+                    );
+                    building.position.set(side * (ROAD_WIDTH / 2 + 8), height / 2, propZ);
+                    segmentGroup.add(building);
+                }
+            }
+
+            // Hazards and Stops (in the road area)
+
+            // BACHE (Pothole)
+            if (Math.random() > 0.4) {
+                const bacheGeo = new THREE.CylinderGeometry(1, 1, 0.1, 8);
+                bacheGeo.rotateX(Math.PI / 2);
+                const bacheMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+                const bache = new THREE.Mesh(bacheGeo, bacheMat);
+                const bacheZ = zOffset + 5 + Math.random() * 90;
+                const bacheX = (Math.random() - 0.5) * ROAD_WIDTH * 0.5;
+
+                bache.position.set(bacheX, 0.0, bacheZ);
+                bache.userData = { type: 'bache' };
+                segmentGroup.add(bache);
+            }
+
+            // TOPE (Speed Bump)
+            if (Math.random() > 0.6) {
+                const topeGeo = new THREE.CylinderGeometry(0.5, 0.5, ROAD_WIDTH, 16);
+                topeGeo.rotateZ(Math.PI / 2);
+                const topeMat = new THREE.MeshStandardMaterial({ color: 0xFFFF00 });
+                const tope = new THREE.Mesh(topeGeo, topeMat);
+                const topeZ = zOffset + 20 + Math.random() * 60;
+                tope.position.set(0, 0, topeZ);
+                tope.userData = { type: 'tope' };
+                segmentGroup.add(tope);
+            }
+
+            // Bus Stop 
+            if (Math.random() > 0.7) {
+                const stopZone = new THREE.Mesh(
+                    new THREE.PlaneGeometry(ROAD_WIDTH / 2, 10),
+                    new THREE.MeshBasicMaterial({ color: 0x0000ff, opacity: 0.3, transparent: true })
+                );
+                stopZone.rotation.x = -Math.PI / 2;
+                stopZone.position.set(ROAD_WIDTH / 4, 0.1, zOffset + 80);
+                stopZone.userData = { type: 'stop' };
+                segmentGroup.add(stopZone);
+
+                // Pole & Sign
+                const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 6), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+                pole.position.set(ROAD_WIDTH / 2 + 1, 3, zOffset + 80);
+                segmentGroup.add(pole);
+
+                const sign = new THREE.Mesh(new THREE.BoxGeometry(2, 1.5, 0.1), new THREE.MeshBasicMaterial({ color: 0x006847 }));
+                sign.position.set(ROAD_WIDTH / 2 + 1, 5.5, zOffset + 80);
+                segmentGroup.add(sign);
+            }
+
+            // Traffic Spawner
+            if (Math.random() > 0.5) {
+                createTrafficVehicle(-(ROAD_WIDTH / 4), zOffset + SEGMENT_LENGTH / 2 + (Math.random() * 20 - 10));
+            }
+
+
+            scene.add(segmentGroup);
+            roadSegments.push({ mesh: segmentGroup, zStart: zOffset });
+
+            // Clean up old segments
+            if (roadSegments.length > 10) {
+                const old = roadSegments.shift();
+                scene.remove(old.mesh);
+                // Dispose (simplified for this demo)
+            }
+        }
+
+        function setupInputs() {
+            // Keyboard
+            document.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+                if (keys.hasOwnProperty(key)) keys[key] = true;
+                if (e.key === 'ArrowUp') keys.w = true;
+                if (e.key === 'ArrowDown') keys.s = true;
+                if (e.key === 'ArrowLeft') keys.a = true;
+                if (e.key === 'ArrowRight') keys.d = true;
+                if (key === 'h') playHorn();
+            });
+            document.addEventListener('keyup', (e) => {
+                const key = e.key.toLowerCase();
+                if (keys.hasOwnProperty(key)) keys[key] = false;
+                if (e.key === 'ArrowUp') keys.w = false;
+                if (e.key === 'ArrowDown') keys.s = false;
+                if (e.key === 'ArrowLeft') keys.a = false;
+                if (e.key === 'ArrowRight') keys.d = false;
+            });
+
+            // Touch UI
+            const bindTouch = (id, key, action) => {
+                const el = document.getElementById(id);
+                const startEvent = (e) => { e.preventDefault(); if (action) action(); keys[key] = true; };
+                const endEvent = (e) => { e.preventDefault(); keys[key] = false; };
+
+                el.addEventListener('touchstart', startEvent);
+                el.addEventListener('touchend', endEvent);
+                el.addEventListener('mousedown', startEvent);
+                el.addEventListener('mouseup', endEvent);
+            };
+
+            bindTouch('btn-gas', 'w');
+            bindTouch('btn-brake', 's');
+            bindTouch('btn-left', 'a');
+            bindTouch('btn-right', 'd');
+            bindTouch('btn-horn', 'h', playHorn);
+        }
+
+        // --- Audio/UI Effects ---
+
+        function playHorn() {
+            if (hornSynth) {
+                // Typical microbus/truck horn sound
+                hornSynth.triggerAttackRelease("C3", "8n");
+            }
+        }
+
+        function showMessage(text, duration) {
+            const area = document.getElementById('messages-area');
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.innerText = text;
+            area.appendChild(bubble);
+            setTimeout(() => {
+                bubble.style.opacity = '0';
+                setTimeout(() => bubble.remove(), 500);
+            }, duration);
+        }
+
+        // --- Collision and Gameplay Logic ---
+
+        function checkCollisions() {
+            let onTope = false;
+            let inStop = false;
+            let bacheHit = false;
+
+            const busPos = bus.position;
+
+            // Check against environment
+            roadSegments.forEach(seg => {
+                seg.mesh.children.forEach(child => {
+                    const dz = Math.abs(child.position.z - busPos.z);
+                    const dx = Math.abs(child.position.x - busPos.x);
+
+                    if (child.userData.type === 'tope' && dz < 1.5) onTope = true;
+                    if (child.userData.type === 'bache' && dz < 1 && dx < 1.5) bacheHit = true;
+
+                    // Stop check only on the right side of the road
+                    if (child.userData.type === 'stop' && dz < 5 && busPos.x > 0) inStop = true;
+                });
+            });
+
+            // Check against traffic (simple box collision)
+            trafficVehicles.forEach(car => {
+                const dz = Math.abs(car.position.z - busPos.z);
+                const dx = Math.abs(car.position.x - busPos.x);
+                if (dz < 5 && dx < 3) { // Collision detected
+                    speed *= 0.5; // Massive speed reduction
+                    showMessage("¡ME DISTE UN REYAZO! (Choque)", 2000);
+                    score -= 5; // Penalty
+                    document.body.classList.add('shake-effect');
+                }
+            });
+
+            setTimeout(() => document.body.classList.remove('shake-effect'), 500);
+
+
+            // Handle Hazards
+            if (bacheHit && speed > 0.1) {
+                speed *= 0.85;
+                showMessage("¡Uy, el bache!", 800);
+            }
+
+            if (onTope) {
+                if (speed > 0.2) {
+                    speed *= 0.7;
+                    showMessage("¡Hijo de tu... madre! (Pobre suspensión)", 1000);
+                } else {
+                    bus.position.y = Math.sin(Date.now() * 0.01) * 0.2 + 0.5;
+                }
+            } else {
+                bus.position.y = 0;
+            }
+
+            // Handle Stops (separated logic for realism)
+            if (inStop) {
+                if (speed < 0.05 && speed > -0.05) {
+                    // 1. Drop off passengers (20% chance to drop 1-3)
+                    if (passengerCount > 0 && Math.random() < 0.2) {
+                        const dropped = Math.min(passengerCount, 1 + Math.floor(Math.random() * 3));
+                        passengerCount -= dropped;
+                        const dropPhrases = ["¡Gracias, chófer!", "Aquí me bajo.", "¡Timbre!", "¡Hasta luego!"];
+                        showMessage(dropPhrases[Math.floor(Math.random() * dropPhrases.length)], 1500);
+                    }
+
+                    // 2. Pick up new passengers (95% chance to pick up 1)
+                    if (Math.random() > 0.05 && passengerCount < MAX_PASSENGERS) {
+                        passengerCount++;
+                        const fare = 5 + Math.floor(Math.random() * 5); // 5 to 10 pesos
+                        score += fare;
+
+                        const phrases = ["¡Buenos días!", "¡A la Joya?", "¡Súbale!", "¡Córranle!"];
+                        showMessage(phrases[Math.floor(Math.random() * phrases.length)], 1000);
+                    }
+                } else {
+                    showMessage("¡Parada! (Frena)", 100);
+                }
+            }
+
+            // Update UI after checks
+            document.getElementById('passengers').innerText = passengerCount;
+            document.getElementById('score').innerText = score.toFixed(2);
+        }
+
+        function checkRoute() {
+            if (currentRouteIndex >= routePoints.length) return;
+
+            const target = routePoints[currentRouteIndex];
+            const dx = target.x - bus.position.x;
+            const dz = target.z - bus.position.z;
+            const distance = Math.sqrt(dx * dx + dz * dz);
+
+            const dashboard = document.getElementById('dashboard');
+
+            if (distance < routeTolerance) {
+                showMessage(`¡OBJETIVO ALCANZADO! Próximo: ${routePoints[currentRouteIndex + 1] ? routePoints[currentRouteIndex + 1].prompt : 'Final de Ruta'}`, 3000);
+                currentRouteIndex++;
+                if (currentRouteIndex >= routePoints.length) {
+                    showMessage("¡Ruta Completada! Ganancias Finales: $" + score.toFixed(2), 5000);
+                    gameActive = false;
+                }
+                // Highlight the dashboard to indicate route change
+                dashboard.style.border = '2px solid yellow';
+                setTimeout(() => dashboard.style.border = 'none', 500);
+            }
+        }
+
+
+        function updatePhysics() {
+            // Input
+            if (keys.w) {
+                if (speed < maxSpeed) speed += acceleration;
+            } else if (keys.s) {
+                if (speed > -maxSpeed / 2) speed -= acceleration * 2;
+            } else {
+                speed *= friction;
+            }
+
+            // Turning (Rotation applied regardless of speed, but effect is better with speed)
+            if (keys.a) {
+                bus.rotation.y += turnSpeed;
+            }
+            if (keys.d) {
+                bus.rotation.y -= turnSpeed;
+            }
+
+            // Calculate velocity components based on current rotation (yaw)
+            const angle = bus.rotation.y;
+            const dz = Math.cos(angle) * speed * 2;
+            const dx = Math.sin(angle) * speed * 2;
+
+            // Move Bus
+            bus.position.z += dz;
+            bus.position.x += dx;
+
+            // Clamp road limits (now relative to bus rotation, simplified to always be within a square area for this demo)
+            const maxTravel = routePoints[routePoints.length - 1].z + 100;
+
+            // Camera follow (should be relative to bus position and rotation)
+            const followDistance = -15;
+            const followHeight = 8;
+
+            camera.position.x = bus.position.x - followDistance * Math.sin(angle);
+            camera.position.z = bus.position.z - followDistance * Math.cos(angle);
+            camera.position.y = followHeight;
+
+            const targetZ = bus.position.z + 10 * Math.cos(angle);
+            const targetX = bus.position.x + 10 * Math.sin(angle);
+            camera.lookAt(targetX, 0, targetZ);
+
+
+            // Infinite Road Logic - segments generated ahead of the bus's Z position
+            const lastSegment = roadSegments[roadSegments.length - 1];
+            if (bus.position.z > lastSegment.zStart - (SEGMENT_LENGTH * 3)) {
+                createRoadSegment(lastSegment.zStart + SEGMENT_LENGTH);
+            }
+
+            // Random passenger shouting
+            if (Math.random() > 0.998 && speed > 0.5) {
+                const roadYells = ["¡Bajaaan!", "¡Por la puerta de atrás!", "¡Cámara chófer!", "¿No trae cambio?"];
+                showMessage(roadYells[Math.floor(Math.random() * roadYells.length)], 1500);
+            }
+        }
+
+        // --- Minimap Logic ---
+        function updateMinimap() {
+            const canvas = document.getElementById('minimap-canvas');
+            const ctx = canvas.getContext('2d');
+            const mapSize = 150;
+            const scale = 0.5; // 1 unit in 3D is 0.5 pixel in 2D
+
+            ctx.clearRect(0, 0, mapSize, mapSize);
+
+            // Center of the map is the center of the canvas
+            const mapCenterX = mapSize / 2;
+            const mapCenterY = mapSize / 2;
+
+            // Draw Road Grid (simple representation)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 0, mapSize, mapSize);
+
+            // Draw Route Points (relative to bus position)
+            ctx.fillStyle = 'red';
+            for (let i = currentRouteIndex; i < routePoints.length; i++) {
+                const point = routePoints[i];
+                const relX = (point.x - bus.position.x) * scale;
+                const relY = (point.z - bus.position.z) * scale; // Z axis is Y on the minimap
+
+                // Only draw if within bounds
+                if (Math.abs(relX) < mapCenterX && Math.abs(relY) < mapCenterY) {
+                    ctx.beginPath();
+                    ctx.arc(mapCenterX + relX, mapCenterY - relY, 3, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Highlight next target
+                    if (i === currentRouteIndex) {
+                        ctx.strokeStyle = 'yellow';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Draw Bus (Always in the center of the minimap)
+            ctx.fillStyle = 'green';
+            ctx.beginPath();
+            ctx.arc(mapCenterX, mapCenterY, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw Bus Direction Arrow
+            const arrowLength = 8;
+            const angle = bus.rotation.y;
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(mapCenterX, mapCenterY);
+            ctx.lineTo(
+                mapCenterX + arrowLength * Math.sin(angle),
+                mapCenterY - arrowLength * Math.cos(angle)
+            );
+            ctx.stroke();
+        }
+
+        // --- Main Loop ---
+
+        function animate() {
+            if (!gameActive) return;
+            requestAnimationFrame(animate);
+
+            updatePhysics();
+            checkCollisions();
+            checkRoute();
+            updateTraffic();
+            updateMinimap();
+
+            // Wheel rotation visual
+            wheels.forEach(w => {
+                w.rotation.x += speed;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        window.onload = function () {
+            // The game starts when the user clicks "¡VÁMONOS!"
+        }
+
+    </script>
+</body>
+
+</html>

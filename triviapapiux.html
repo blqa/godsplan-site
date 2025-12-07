@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>papiuxxxxx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Animaciones */
+        @keyframes spin-slow {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes ping-slow {
+
+            75%,
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .5;
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                border-color: rgba(234, 179, 8, 0.5);
+                box-shadow: 0 0 20px rgba(234, 179, 8, 0.2);
+            }
+
+            50% {
+                border-color: rgba(255, 255, 255, 0.8);
+                box-shadow: 0 0 50px rgba(234, 179, 8, 0.6);
+            }
+
+            100% {
+                border-color: rgba(234, 179, 8, 0.5);
+                box-shadow: 0 0 20px rgba(234, 179, 8, 0.2);
+            }
+        }
+
+        .animate-spin-slow {
+            animation: spin-slow 8s linear infinite;
+        }
+
+        .animate-ping-slow {
+            animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        .animate-shimmer {
+            animation: shimmer 4s infinite;
+        }
+
+        .animate-bounce-custom {
+            animation: bounce 1s infinite;
+        }
+
+        /* Utilidades extra */
+        .hidden-option {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="bg-slate-950 text-white font-sans min-h-screen flex flex-col items-center justify-center overflow-x-hidden selection:bg-yellow-500 selection:text-black">
+
+
+    <div id="app" class="w-full max-w-4xl p-4 flex flex-col items-center justify-center relative">
+
+    </div>
+
+    <!-- Notificaciones de Logros (Toast) -->
+    <div id="achievement-toast-container" class="fixed bottom-4 right-4 flex flex-col gap-2 pointer-events-none z-50">
+    </div>
+
+    <script>
+        // --- BASE DE DATOS DE PREGUNTAS ---
+        const questionsData = [
+            // NIVEL 1
+            { id: 1, q: "¿Quién escribió 'La Riqueza de las Naciones'?", options: ["Karl Marx", "Adam Smith", "David Ricardo", "John Locke"], correct: 1, category: "Economía", difficulty: 1, keywords: ["adam smith", "smith"], explanation: "Adam Smith fue un economista y filósofo escocés, considerado el padre de la economía moderna. Su obra de 1776 postula la 'mano invisible' del mercado." },
+            { id: 2, q: "¿Cuál es el libro sagrado del Zoroastrismo?", options: ["El Corán", "La Torá", "El Avesta", "Los Vedas"], correct: 2, category: "Religión", difficulty: 1, keywords: ["avesta", "el avesta"], explanation: "El Avesta es la colección de textos sagrados de la fe zoroástrica, que sigue las enseñanzas del profeta Zaratustra." },
+            { id: 3, q: "¿Quién es la musa de la poesía épica en la mitología griega?", options: ["Clío", "Calíope", "Erato", "Euterpe"], correct: 1, category: "Mitología", difficulty: 1, keywords: ["caliope", "calíope"], explanation: "Calíope (cuyo nombre significa 'la de la bella voz') es la musa de la poesía épica y la elocuencia, generalmente representada con una tablilla y un estilete." },
+            { id: 4, q: "¿Qué guerra es el escenario de la 'Ilíada' de Homero?", options: ["Guerra del Peloponeso", "Guerras Médicas", "Guerra de Troya", "Batalla de las Termópilas"], correct: 2, category: "Literatura", difficulty: 1, keywords: ["troya", "guerra de troya"], explanation: "La Ilíada narra los eventos del último año de la Guerra de Troya, conflicto entre aqueos y troyanos legendariamente causado por el rapto de Helena." },
+
+            // NIVEL 2
+            { id: 6, q: "¿En 'La Divina Comedia', quién guía a Dante a través del Paraíso?", options: ["Virgilio", "Beatriz", "San Bernardo", "Caronte"], correct: 1, category: "Literatura", difficulty: 2, keywords: ["beatriz", "beatrice"], explanation: "Beatriz (Beatrice Portinari) guía a Dante por el Paraíso. Virgilio solo puede guiarlo a través del Infierno y el Purgatorio, pues él no fue bautizado." },
+            { id: 7, q: "¿Qué concilio ecuménico condenó el arrianismo en el año 325?", options: ["Concilio de Trento", "Concilio de Éfeso", "Concilio de Nicea", "Concilio Vaticano I"], correct: 2, category: "Teología", difficulty: 2, keywords: ["nicea", "concilio de nicea"], explanation: "El Primer Concilio de Nicea (325 d.C.) fue convocado por el emperador Constantino I y condenó formalmente la doctrina del Arrianismo, que negaba la plena divinidad de Jesús." },
+            { id: 8, q: "¿Quién fue el maestro de Alejandro Magno?", options: ["Sócrates", "Platón", "Aristóteles", "Diógenes"], correct: 2, category: "Historia", difficulty: 2, keywords: ["aristoteles", "aristóteles"], explanation: "Aristóteles fue el tutor personal de Alejandro Magno desde el 343 a.C. hasta que Alejandro se convirtió en rey de Macedonia." },
+            { id: 9, q: "¿Qué filósofo alemán escribió 'Fenomenología del espíritu'?", options: ["Kant", "Hegel", "Schopenhauer", "Nietzsche"], correct: 1, category: "Filosofía", difficulty: 2, keywords: ["hegel"], explanation: "Georg Wilhelm Friedrich Hegel, uno de los pensadores más importantes del idealismo alemán, publicó esta obra en 1807. Es un complejo recorrido por la conciencia humana." },
+
+            // NIVEL 3
+            { id: 11, q: "¿Qué matemático demostró el Teorema de la Incompletitud?", options: ["Alan Turing", "Kurt Gödel", "David Hilbert", "John von Neumann"], correct: 1, category: "Matemáticas", difficulty: 3, keywords: ["godel", "gödel", "kurt gödel"], explanation: "Kurt Gödel (1931) demostró que en cualquier sistema formal lo suficientemente potente para expresar la aritmética, existirán siempre proposiciones que son verdaderas pero indemostrables dentro del sistema." },
+            { id: 12, q: "¿Cómo se llama la primera novela considerada de la historia (Japón)?", options: ["El libro de la almohada", "Genji Monogatari", "Heike Monogatari", "Kojiki"], correct: 1, category: "Literatura", difficulty: 3, keywords: ["genji", "genji monogatari", "romance de genji"], explanation: "El Genji Monogatari (La Historia de Genji), escrito por Murasaki Shikibu a principios del siglo XI, es a menudo citado como la primera novela psicológica de la historia mundial." },
+            { id: 13, q: "¿Qué batalla marcó el final definitivo de Napoleón?", options: ["Austerlitz", "Leipzig", "Waterloo", "Trafalgar"], correct: 2, category: "Historia", difficulty: 3, keywords: ["waterloo"], explanation: "La Batalla de Waterloo (1815) fue la derrota final de Napoleón Bonaparte, lo que condujo a su exilio permanente." },
+            { id: 15, q: "¿Quién comandaba las fuerzas prusianas en Waterloo?", options: ["Von Moltke", "Gebhard von Blücher", "Federico el Grande", "Bismarck"], correct: 1, category: "Historia", difficulty: 3, keywords: ["blucher", "blücher", "gebhard von blücher"], explanation: "El mariscal de campo Gebhard Leberecht von Blücher, Duque de Wahlstatt, comandó al ejército prusiano, cuya llegada tardía fue clave para la derrota francesa." },
+
+            // NIVEL 4
+            { id: 16, q: "¿Cuál es el postulado principal de la Hipótesis de Riemann?", options: ["Espacio-tiempo", "Números primos", "Dividir por cero", "Entropía"], correct: 1, category: "Matemáticas", difficulty: 4, keywords: ["numeros primos", "números primos", "primos", "distribucion de los numeros primos"], explanation: "La Hipótesis de Riemann es una conjetura sobre la distribución de los ceros de la función zeta de Riemann, y tiene profundas implicaciones sobre la distribución de los números primos." },
+            { id: 17, q: "Según la Biblia, ¿quién fue el padre de Matusalén?", options: ["Noé", "Enoc", "Lamec", "Jared"], correct: 1, category: "Religión", difficulty: 4, keywords: ["enoc", "henoc"], explanation: "Génesis 5:21 indica que Enoc fue padre de Matusalén a la edad de 65 años." },
+            { id: 19, q: "¿En 'Los Hermanos Karamázov', quién dice el poema 'El Gran Inquisidor'?", options: ["Dmitri", "Alioscha", "Iván", "Smerdiakov"], correct: 2, category: "Literatura", difficulty: 4, keywords: ["ivan", "iván"], explanation: "Iván Karamazov, el intelectual de la familia, le relata el poema a su hermano Alioscha. Es un famoso pasaje sobre la libertad, la fe y la moralidad." },
+
+            // NIVEL 5
+            { id: 21, q: "¿Cuál es la última palabra de las tres partes de la Divina Comedia?", options: ["Amor", "Dios", "Estrellas", "Luz"], correct: 2, category: "Literatura", difficulty: 5, keywords: ["estrellas", "stelle"], explanation: "Cada una de las tres cánticas (Infierno, Purgatorio y Paraíso) termina con la palabra italiana 'stelle' (estrellas)." },
+            { id: 22, q: "¿Quién fue el primer Virrey de la Nueva España?", options: ["Hernán Cortés", "Antonio de Mendoza", "Juan de Zumárraga", "Luis de Velasco"], correct: 1, category: "Historia", difficulty: 5, keywords: ["antonio de mendoza", "mendoza"], explanation: "Antonio de Mendoza y Pacheco asumió el cargo en 1535. Hernán Cortés fue el Capitán General, pero no ostentó el título de Virrey." },
+            { id: 23, q: "¿Cuál es el elemento natural más raro en la corteza terrestre?", options: ["Osmio", "Francio", "Astato", "Iridio"], correct: 2, category: "Ciencia", difficulty: 5, keywords: ["astato"], explanation: "El Astato (At) se forma únicamente como producto de la desintegración radiactiva. Se estima que en cualquier momento solo existen unos 25 gramos de Astato en la corteza terrestre." },
+            { id: 24, q: "¿En qué año exacto cayó Constantinopla?", options: ["1453", "1492", "1204", "1571"], correct: 0, category: "Historia", difficulty: 5, keywords: ["1453"], explanation: "Constantinopla cayó en manos del Imperio Otomano el 29 de mayo de 1453, marcando el fin del Imperio Bizantino y la Edad Media." },
+            { id: 25, q: "En la Biblia, ¿cómo se llamaba la esposa de Moisés?", options: ["Séfora", "Miriam", "Rebeca", "Raquel"], correct: 0, category: "Religión", difficulty: 5, keywords: ["sefora", "séfora", "zipora"], explanation: "Éxodo 2:21 menciona a Séfora (Tziporá) como la esposa de Moisés, hija de Jetró." },
+            { id: 26, q: "¿Qué tratado comienza con 'El mundo es mi representación'?", options: ["El mundo como voluntad y representación", "Así habló Zaratustra", "Crítica de la razón pura", "Leviatán"], correct: 0, category: "Filosofía", difficulty: 5, keywords: ["el mundo como voluntad y representacion", "el mundo como voluntad y representación", "mundo como voluntad"], explanation: "Es el comienzo de la principal obra de Arthur Schopenhauer (1818), quien desarrolló una filosofía pesimista basada en el concepto de la Voluntad como fuerza metafísica subyacente." },
+            { id: 27, q: "¿Qué intervalo es conocido como 'Diabolus in musica'?", options: ["Séptima mayor", "Tritono", "Segunda menor", "Octava"], correct: 1, category: "Música", difficulty: 5, keywords: ["tritono", "cuarta aumentada", "quinta disminuida"], explanation: "El tritono (intervalo de tres tonos enteros, como de Fa a Si) fue considerado discordante y perturbador, a menudo asociado con el diablo durante la Edad Media." },
+            { id: 28, q: "¿Cuál es el nombre del primer autómata creado por Leonardo da Vinci?", options: ["El León", "El Caballero", "El Soldado", "El Hombre de Vitruvio"], correct: 1, category: "Arte", difficulty: 5, keywords: ["el caballero", "caballero"], explanation: "Leonardo da Vinci diseñó un autómata con forma de caballero alrededor de 1495, capaz de sentarse, agitar los brazos y mover la mandíbula." },
+
+            // NIVEL 7 (Para Modo Infinito)
+            { id: 30, q: "¿Qué ley de la física prohíbe el movimiento continuo de un motor de segunda especie?", options: ["Primera Ley de Newton", "Ley de Conservación de la Energía", "Segunda Ley de la Termodinámica", "Ley de Boyle"], correct: 2, category: "Física", difficulty: 7, keywords: ["segunda ley de la termodinamica", "entropia"], explanation: "La Segunda Ley de la Termodinámica, que postula que la entropía de un sistema aislado siempre aumenta, prohíbe la creación de una máquina que convierta calor completamente en trabajo (motor de segunda especie)." },
+            { id: 31, q: "¿Qué filósofo introdujo el concepto de 'Élan Vital' (Impulso Vital)?", options: ["Sartre", "Bergson", "Foucault", "Deleuze"], correct: 1, category: "Filosofía", difficulty: 7, keywords: ["bergson", "henri bergson"], explanation: "Henri Bergson, en su obra 'La Evolución Creadora' (1907), propuso el concepto de 'Élan Vital' para describir una fuerza hipotética por la cual la vida se desarrolla y se auto-supera." },
+            { id: 32, q: "¿Cuál es el nombre de la forma poética japonesa de 5, 7, 5, 7, 7 sílabas?", options: ["Haiku", "Tanka", "Renga", "Waka"], correct: 1, category: "Literatura", difficulty: 7, keywords: ["tanka", "waka"], explanation: "El Tanka es una forma más larga que el Haiku, siendo tradicionalmente la base del Waka (poesía japonesa). Tienen una estructura de 5-7-5-7-7 sílabas, totalizando 31 sílabas." },
+            { id: 33, q: "¿Qué documento histórico es conocido como 'la Constitución silenciada' de la República Romana?", options: ["Las Doce Tablas", "La Lex Hortensia", "El Corpus Juris Civilis", "La Ley Agraria de Tiberio Graco"], correct: 0, category: "Historia", difficulty: 7, keywords: ["las doce tablas"], explanation: "Aunque 'Las Doce Tablas' son fundamentales, el término 'Constitución Silenciada' a menudo se refiere a la acumulación de costumbres (mos maiorum) y la autoridad del Senado, más que a un único documento. La respuesta común en este nivel de dificultad es el de las 12 tablas." },
+
+            // NIVEL 9 (Para Modo Infinito)
+            { id: 40, q: "¿Cuál es el valor exacto de la Constante de Apéry, en su notación Zeta de Riemann?", options: ["Zeta(3)", "Gamma(2)", "Pi al cuadrado/6", "Euler-Mascheroni"], correct: 0, category: "Matemáticas", difficulty: 9, keywords: ["zeta 3", "zeta(3)"], explanation: "La Constante de Apéry es el valor de la función zeta de Riemann cuando el argumento es 3, ζ(3). Este es uno de los pocos valores irracionales conocidos para argumentos impares." },
+            { id: 41, q: "¿Qué tratado de 1713 puso fin a la Guerra de Sucesión Española?", options: ["Tratado de Westfalia", "Tratado de Utrecht", "Paz de Augsburgo", "Tratado de París"], correct: 1, category: "Historia", difficulty: 9, keywords: ["utrecht", "tratado de utrecht"], explanation: "El Tratado de Utrecht fue una serie de acuerdos que pusieron fin a la Guerra de Sucesión Española (1701-1714), reorganizando el mapa de poder en Europa y el mundo." },
+            { id: 42, q: "¿Qué nombre recibe el 'Yo' que contempla Kant en su 'Crítica de la Razón Pura'?", options: ["Noúmeno", "Ding an sich", "Yo Trascendental", "Voluntad"], correct: 2, category: "Filosofía", difficulty: 9, keywords: ["yo trascendental", "trascendental"], explanation: "El 'Yo Trascendental' o 'Apercepción Trascendental' es la condición de posibilidad de la experiencia que unifica la conciencia, distinto del yo empírico." },
+
+            // NIVEL 10 (Prácticamente Imposible)
+            { id: 43, q: "¿En qué año y por quién fue descubierto el primer satélite de Saturno (Titán)?", options: ["1655, Christiaan Huygens", "1610, Galileo Galilei", "1789, William Herschel", "1846, Urbain Le Verrier"], correct: 0, category: "Ciencia", difficulty: 10, keywords: ["1655 christiaan huygens", "huygens"], explanation: "Titán, el satélite más grande de Saturno y el segundo más grande del sistema solar, fue descubierto el 25 de marzo de 1655 por el astrónomo neerlandés Christiaan Huygens." },
+            { id: 44, q: "¿Quién fue el último monarca inca que resistió en Vilcabamba antes de ser capturado?", options: ["Pachacútec", "Manco Inca", "Túpac Amaru I", "Atahualpa"], correct: 2, category: "Historia", difficulty: 10, keywords: ["tupac amaru i", "túpac amaru i"], explanation: "Túpac Amaru I fue el último líder del estado neo-inca de Vilcabamba, capturado y ejecutado por los españoles en 1572, marcando el fin de la resistencia incaica." },
+            { id: 45, q: "¿Qué texto antiguo hindú (Veda) contiene principalmente himnos rituales?", options: ["Rigveda", "Yajurveda", "Samaveda", "Atharvaveda"], correct: 1, category: "Religión", difficulty: 10, keywords: ["yajurveda"], explanation: "El Yajurveda es el Veda de las fórmulas de sacrificio. Contiene himnos, oraciones y mantras utilizados por los sacerdotes para realizar los rituales del sacrificio (Yajña)." },
+
+            // NIVEL 11
+            { id: 50, q: "¿Cuál es el nombre del cuarto y último evangelio apócrifo de Nag Hammadi?", options: ["Evangelio de Tomás", "Evangelio de Felipe", "Evangelio de María Magdalena", "Evangelio de la Verdad"], correct: 3, category: "Teología", difficulty: 11, keywords: ["evangelio de la verdad", "veritas"], explanation: "El Evangelio de la Verdad es uno de los 52 textos encontrados en la biblioteca de Nag Hammadi en 1945, perteneciente a la escuela gnóstica." },
+            { id: 51, q: "¿A qué escuela de pensamiento se adhirió Albert Camus en su fase inicial?", options: ["Existencialismo", "Nihilismo", "Absurdismo", "Humanismo"], correct: 2, category: "Filosofía", difficulty: 11, keywords: ["absurdismo"], explanation: "Albert Camus es el principal exponente del Absurdismo, que postula la falta de sentido de la vida ante la indiferencia del universo." },
+            { id: 52, q: "¿Qué compositor romántico escribió la sinfonía 'La fantástica'?", options: ["Beethoven", "Brahms", "Berlioz", "Chopin"], correct: 2, category: "Música", difficulty: 11, keywords: ["berlioz", "hector berlioz"], explanation: "Hector Berlioz compuso la 'Sinfonía fantástica' (Symphonie fantastique) en 1830, una obra programática que narra la historia de un artista obsesionado." },
+
+            // NIVEL 12
+            { id: 53, q: "¿Quién demostró que el conjunto de los números naturales y los enteros tiene la misma cardinalidad?", options: ["Georg Cantor", "Bertrand Russell", "David Hilbert", "Leopold Kronecker"], correct: 0, category: "Matemáticas", difficulty: 12, keywords: ["cantor", "georg cantor"], explanation: "Georg Cantor demostró la equipotencia entre los números naturales (N) y los enteros (Z) y los racionales (Q), mostrando que son contables (Aleph-cero), pero que los reales (R) no lo son." },
+            { id: 54, q: "¿En qué año se firmó el Tratado de Tordesillas?", options: ["1492", "1494", "1500", "1502"], correct: 1, category: "Historia", difficulty: 12, keywords: ["1494"], explanation: "El Tratado de Tordesillas fue firmado el 7 de junio de 1494 entre los Reyes Católicos de Castilla y Aragón y el rey Juan II de Portugal, para repartir las zonas de navegación y conquista del Océano Atlántico y el Nuevo Mundo." },
+            { id: 55, q: "¿Cuál es el principal compuesto químico responsable de la bioluminiscencia en las luciérnagas?", options: ["Clorofila", "Fosfógeno", "Luciferina", "Adenosina"], correct: 2, category: "Ciencia", difficulty: 12, keywords: ["luciferina"], explanation: "La Luciferina es el sustrato químico que, al reaccionar con el oxígeno y la enzima Luciferasa, emite luz. El proceso se llama bioluminiscencia." },
+        ];
+
+        const allAchievementsData = [
+            { id: 'first_blood', title: 'Primeros Pasos', description: 'Responde la primera pregunta correctamente.', isSecret: false },
+            { id: 'streak_3', title: 'En Racha (3)', description: 'Consigue una racha de 3 respuestas correctas.', isSecret: false },
+            { id: 'streak_5', title: 'Imparable (5)', description: 'Consigue una racha de 5 respuestas correctas.', isSecret: false },
+            { id: 'extreme', title: 'Valiente', description: 'Gana una ronda en Modo Extremo.', isSecret: false },
+            { id: 'grand_master', title: 'Maestro Completado', description: 'Completa todas las preguntas del juego base.', isSecret: false },
+            { id: 'secret_infinite', title: '?? ?? ? (El Saber Oculto)', description: 'Responde 5 preguntas en el Modo Infinito.', isSecret: true },
+        ];
+
+        // --- ESTADO DEL JUEGO (GLOBAL STATE) ---
+        const state = {
+            gameState: 'start', // 'start', 'playing', 'end'
+            currentQIndex: 0,
+            score: 0,
+            lives: 3,
+            isAnswered: false,
+            lifelines: { fifty: true, skip: true },
+            hiddenOptions: [],
+            gameQuestions: [],
+            selectedCategory: 'all',
+            isExtremeMode: false,
+            isInfiniteMode: false,
+            isInfiniteModeUnlocked: false,
+            achievements: [],
+            hasWicho: false,
+            streak: 0,
+            feedbackMsg: "",
+            infiniteQuestionsAnswered: 0,
+            isDiscoBallVisible: false,
+            cheatBuffer: "",
+            isAdmin: false,
+            inputValue: ""
+        };
+
+        // --- FUNCIONES DE AYUDA ---
+        const normalizeText = (text) => {
+            return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        };
+
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function loadProgression() {
+            state.achievements = allAchievementsData.filter(a => localStorage.getItem(`ach_${a.id}`) === 'true');
+            state.isInfiniteModeUnlocked = localStorage.getItem('infinite_unlocked') === 'true';
+            state.hasWicho = localStorage.getItem('has_wicho') === 'true';
+            state.infiniteQuestionsAnswered = parseInt(localStorage.getItem('infinite_answered') || 0, 10);
+            checkDiscoBallLogic();
+        }
+
+        function checkDiscoBallLogic() {
+            const allKnownIds = allAchievementsData.map(a => a.id);
+            const allUnlocked = allKnownIds.every(id => state.achievements.some(a => a.id === id));
+            if (allUnlocked) state.isDiscoBallVisible = true;
+        }
+
+        function unlockAchievement(id, title) {
+            if (!state.achievements.some(a => a.id === id)) {
+                state.achievements.push({ id, title });
+                localStorage.setItem(`ach_${id}`, 'true');
+                checkDiscoBallLogic();
+                showToast(title);
+                render(); // Re-renderizar para mostrar actualizaciones en tiempo real
+            }
+        }
+
+        function showToast(title) {
+            const container = document.getElementById('achievement-toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-yellow-800 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-bounce-custom z-50';
+            toast.innerHTML = `<i data-lucide="medal" width="16"></i> ¡Logro: ${title.includes('?') ? 'Secreto Revelado' : title}!`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // --- LÓGICA DEL JUEGO ---
+
+        function handleKeyDown(e) {
+            state.cheatBuffer = (state.cheatBuffer + e.key).slice(-6).toUpperCase();
+            if (state.cheatBuffer === "PAPIUX" && !state.isAdmin) {
+                state.isAdmin = true;
+                alert("👑 PAPIUX MODE ACTIVADO 👑");
+                render();
+            }
+        }
+
+        function startGame(mode) {
+            state.isInfiniteMode = (mode === 'infinite');
+            state.isExtremeMode = (mode === 'extreme');
+
+            let finalQuestions = [];
+
+            if (state.isInfiniteMode) {
+                const infinitePool = questionsData.filter(q => q.difficulty >= 7);
+                finalQuestions = [shuffleArray(infinitePool)[0]];
+            } else {
+                let filtered = questionsData.filter(q => q.difficulty <= 5);
+                if (state.selectedCategory !== 'all') {
+                    filtered = filtered.filter(q => q.category === state.selectedCategory);
+                    if (filtered.length < 5) filtered = questionsData.filter(q => q.difficulty <= 5); // Fallback
+                }
+
+                const levels = [1, 2, 3, 4, 5].map(lvl => shuffleArray(filtered.filter(q => q.difficulty === lvl)));
+                finalQuestions = levels.flat();
+            }
+
+            state.gameQuestions = finalQuestions;
+            state.currentQIndex = 0;
+            state.score = 0;
+            state.lives = 3;
+            state.streak = 0;
+            state.lifelines = { fifty: true, skip: true };
+            state.gameState = 'playing';
+            resetQuestionState();
+            render();
+        }
+
+        function resetQuestionState() {
+            state.isAnswered = false;
+            state.hiddenOptions = [];
+            state.feedbackMsg = "";
+            state.inputValue = "";
+        }
+
+        function nextQuestion() {
+            if (state.isInfiniteMode) {
+                const infinitePool = questionsData.filter(q => q.difficulty >= 7);
+                const newQ = shuffleArray(infinitePool)[0];
+                state.gameQuestions = [newQ];
+                state.currentQIndex = 0;
+            } else if (state.currentQIndex + 1 < state.gameQuestions.length) {
+                state.currentQIndex++;
+            } else {
+                endGame(true);
+                return;
+            }
+            resetQuestionState();
+            render();
+        }
+
+        function endGame(win) {
+            state.gameState = 'end';
+            if (win && !state.isInfiniteMode) {
+                state.isInfiniteModeUnlocked = true;
+                localStorage.setItem('infinite_unlocked', 'true');
+                state.hasWicho = true;
+                localStorage.setItem('has_wicho', 'true');
+                unlockAchievement('grand_master', 'Maestro Completado');
+            }
+            if (!win && state.isInfiniteMode) {
+                state.feedbackMsg = "¡Límite alcanzado! Hemos agotado nuestra base de datos.";
+            }
+            render();
+        }
+
+        function checkAnswer(isCorrect, userAnswerText = "") {
+            if (state.isAnswered) return;
+            state.isAnswered = true;
+
+            const currentQ = state.gameQuestions[state.currentQIndex];
+            const multiplier = state.isExtremeMode ? 2 : 1;
+
+            if (isCorrect) {
+                state.feedbackMsg = "¡Correcto!";
+                state.score += (currentQ.difficulty * 500 * multiplier);
+                state.streak++;
+
+                if (state.isInfiniteMode) {
+                    state.infiniteQuestionsAnswered++;
+                    localStorage.setItem('infinite_answered', state.infiniteQuestionsAnswered.toString());
+                    if (state.infiniteQuestionsAnswered >= 5) unlockAchievement('secret_infinite', 'El Saber Oculto');
+                }
+
+                unlockAchievement('first_blood', 'Primeros Pasos');
+                if (state.streak >= 3) unlockAchievement('streak_3', 'En Racha (3)');
+                if (state.streak >= 5) unlockAchievement('streak_5', 'Imparable (5)');
+                if (state.isExtremeMode && !state.isInfiniteMode) unlockAchievement('extreme', 'Valiente');
+
+                if (!currentQ.explanation || state.isInfiniteMode) {
+                    setTimeout(nextQuestion, 1500);
+                }
+            } else {
+                state.feedbackMsg = `Incorrecto. La respuesta era: ${currentQ.options[currentQ.correct]}`;
+                state.streak = 0;
+
+                if (state.lives > 1 && !state.isInfiniteMode) {
+                    state.lives--;
+                    if (!currentQ.explanation) setTimeout(nextQuestion, 3000);
+                } else {
+                    state.lives = state.lives > 0 ? state.lives - 1 : 0; // Reduce visualmente a 0
+                    if (!currentQ.explanation) setTimeout(() => endGame(false), 3000);
+                }
+            }
+            render();
+        }
+
+        function handleTextSubmit(e) {
+            e.preventDefault();
+            const currentQ = state.gameQuestions[state.currentQIndex];
+            const userText = normalizeText(state.inputValue);
+            const correctText = normalizeText(currentQ.options[currentQ.correct]);
+            const keywords = currentQ.keywords ? currentQ.keywords.map(k => normalizeText(k)) : [];
+
+            const isMatch = userText === correctText || keywords.includes(userText);
+            checkAnswer(isMatch);
+        }
+
+        function use5050() {
+            if (!state.lifelines.fifty && !state.isAdmin) return;
+            const currentQ = state.gameQuestions[state.currentQIndex];
+            const wrongOptions = currentQ.options.map((_, i) => i).filter(i => i !== currentQ.correct);
+            state.hiddenOptions = wrongOptions.sort(() => 0.5 - Math.random()).slice(0, 2);
+            if (!state.isAdmin) state.lifelines.fifty = false;
+            render();
+        }
+
+        function useSkip() {
+            if (state.isAdmin) {
+                checkAnswer(true);
+            } else {
+                if (!state.lifelines.skip && !state.isInfiniteMode) return;
+                if (!state.isInfiniteMode) state.lifelines.skip = false;
+                nextQuestion();
+            }
+        }
+
+        // --- RENDERIZADO (VISTAS) ---
+
+        function renderStart() {
+            return `
+                <div class="bg-slate-800 p-8 rounded-2xl max-w-lg w-full shadow-2xl border border-yellow-700/50 text-center relative overflow-hidden fade-in">
+                    ${state.isDiscoBallVisible ? `<div class="absolute top-[-20px] left-1/2 transform -translate-x-1/2 z-10 animate-spin-slow"><i data-lucide="disc-3" size="48" class="text-blue-400 fill-blue-700"></i></div>` : ''}
+                    ${state.hasWicho ? `<div class="absolute top-4 left-4 z-10 animate-bounce-custom" title="¡Miau!"><span class="absolute top-[-15px] left-[30px] bg-white text-slate-900 px-2 py-0.5 rounded-full text-xs font-bold shadow-md">Miau</span><div class="p-2 bg-yellow-900/50 rounded-full border border-yellow-600/50"><i data-lucide="cat" class="text-yellow-400"></i></div></div>` : ''}
+                    ${state.isAdmin ? `<div class="absolute top-0 right-0 bg-red-500 text-black font-bold text-xs px-2 py-1 rotate-45 translate-x-4 translate-y-2 shadow-lg z-10">PAPIUX MODE</div>` : ''}
+
+                    <div class="mb-6 flex justify-center">
+                        <div class="p-4 rounded-full ${state.isAdmin ? 'bg-red-500 shadow-[0_0_20px_rgba(234,179,8,0.5)]' : 'bg-yellow-600 shadow-xl'}">
+                            <i data-lucide="crown" size="48" class="text-black w-12 h-12"></i>
+                        </div>
+                    </div>
+
+                    <h1 class="text-4xl font-extrabold mb-2 text-yellow-400 tracking-tight">EL GRAN RETO DEL MAESTRO</h1>
+                    <p class="text-gray-400 mb-8 text-lg">Selecciona tu modo de juego y prepárate.</p>
+
+                    <div class="mb-8 space-y-4">
+                        <div class="text-left bg-slate-900/50 p-4 rounded-lg border border-yellow-700/30">
+                            <label class="block text-sm font-bold mb-2 text-yellow-400 uppercase">Tema (Modo Normal):</label>
+                            <select onchange="state.selectedCategory = this.value" class="w-full bg-slate-800 border border-yellow-700/50 rounded p-3 text-white outline-none focus:border-yellow-500">
+                                <option value="all">🎲 Todo Mezclado</option>
+                                <option value="Historia">📜 Historia</option>
+                                <option value="Literatura">📖 Literatura</option>
+                                <option value="Teología">✨ Religión/Teología</option>
+                                <option value="Filosofía">🧠 Filosofía</option>
+                            </select>
+                        </div>
+                        <button onclick="startGame('normal')" class="w-full text-black font-bold py-3 px-8 rounded-xl shadow-lg transform transition hover:scale-[1.02] bg-yellow-500 hover:bg-yellow-400 text-xl">Modo Normal</button>
+                        <button onclick="startGame('extreme')" class="w-full text-white font-bold py-3 px-8 rounded-xl shadow-lg transform transition hover:scale-[1.02] bg-red-700 hover:bg-red-600 text-xl">Modo Extremo (Escribir)</button>
+                        ${state.isInfiniteModeUnlocked ? `<button onclick="startGame('infinite')" class="w-full flex items-center justify-center gap-2 text-black font-bold py-3 px-8 rounded-xl shadow-lg transform transition hover:scale-[1.02] bg-amber-400 hover:bg-amber-300 border-4 border-amber-600 animate-pulse text-xl"><i data-lucide="infinity"></i> MODO INFINITO</button>` : ''}
+                    </div>
+
+                    <div class="mb-8 p-4 bg-slate-900/50 rounded-lg border border-yellow-700/30 text-left">
+                        <div class="flex items-center mb-3 text-yellow-400 gap-2 font-bold text-lg">
+                            <i data-lucide="trophy" size="20"></i> Salón de la Fama
+                        </div>
+                        <div class="grid grid-cols-1 gap-2">
+                            ${allAchievementsData.map(ach => {
+                const unlocked = state.achievements.some(a => a.id === ach.id);
+                return `<div class="flex items-center text-sm"><i data-lucide="medal" class="mr-2 w-4 h-4 ${unlocked ? 'text-yellow-400' : 'text-gray-700'}"></i> <span class="${unlocked ? 'text-white font-medium' : 'text-gray-500 line-through'}">${(ach.isSecret && !unlocked) ? "?? ?? ?" : ach.title}</span></div>`;
+            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderGame() {
+            const currentQ = state.gameQuestions[state.currentQIndex];
+            const progress = ((state.currentQIndex + 1) / state.gameQuestions.length) * 100;
+
+            let inputSection = '';
+            if (state.isExtremeMode || state.isInfiniteMode) {
+                const borderClass = state.isAnswered ? (state.feedbackMsg.includes("Correcto") ? "border-green-500 text-green-400" : "border-red-500 text-red-400") : "border-yellow-700/50 focus:border-yellow-500";
+                inputSection = `
+                    <form onsubmit="handleTextSubmit(event)" class="mb-6">
+                        <div class="relative">
+                            <input type="text" value="${state.inputValue}" oninput="state.inputValue = this.value" ${state.isAnswered ? 'disabled' : ''} placeholder="Escribe tu respuesta..." class="w-full bg-slate-950 border-2 rounded-xl p-4 text-lg outline-none transition-colors ${borderClass}" autofocus>
+                            <button type="submit" ${state.isAnswered || !state.inputValue.trim() ? 'disabled' : ''} class="absolute right-2 top-2 bottom-2 bg-yellow-600 text-black px-4 rounded-lg font-bold disabled:opacity-50">Enviar</button>
+                        </div>
+                    </form>
+                    ${state.isAdmin && !state.isAnswered ? `<button onclick="checkAnswer(true)" class="flex mx-auto items-center gap-2 px-4 py-2 rounded-full font-bold text-xs bg-red-600 text-white animate-pulse mb-4"><i data-lucide="zap" size="12"></i> AUTO WIN</button>` : ''}
+                `;
+            } else {
+                inputSection = `
+                    <div class="grid grid-cols-1 gap-3 mb-6">
+                        ${currentQ.options.map((opt, idx) => {
+                    if (state.hiddenOptions.includes(idx)) return '<div class="invisible"></div>';
+                    let btnClass = "p-4 rounded-xl text-left transition-all border-2 text-lg ";
+                    if (state.isAnswered) {
+                        btnClass += (idx === currentQ.correct) ? "bg-green-900/20 border-green-500 text-green-400" : "bg-slate-800 border-slate-800 text-gray-500 opacity-50";
+                    } else {
+                        btnClass += "bg-slate-800 border-yellow-700/50 hover:border-yellow-500 hover:bg-slate-750 text-slate-200";
+                    }
+                    return `<button onclick="checkAnswer(${idx === currentQ.correct})" ${state.isAnswered ? 'disabled' : ''} class="${btnClass}">${opt}</button>`;
+                }).join('')}
+                    </div>
+                `;
+            }
+
+            const feedback = state.isAnswered ? `<div class="mt-2 p-3 rounded-lg text-center font-bold ${state.feedbackMsg.includes("Correcto") ? "bg-green-900/30 text-green-400" : "bg-red-900/30 text-red-400"}">${state.feedbackMsg}</div>` : '';
+
+            const explanationSection = (state.isAnswered && currentQ.explanation && !state.isInfiniteMode) ? `
+                <div class="mt-6 pt-4 border-t border-yellow-800 fade-in">
+                    <div class="p-4 bg-slate-800 rounded-lg text-left mb-4 border border-yellow-500/50">
+                        <h4 class="font-bold text-yellow-400 mb-2">Explicación:</h4>
+                        <p class="text-sm text-gray-300">${currentQ.explanation}</p>
+                    </div>
+                    <button onclick="${state.lives === 0 ? 'endGame(false)' : 'nextQuestion()'}" class="w-full font-bold py-3 rounded-xl transition ${state.lives === 0 ? 'bg-red-600 hover:bg-red-700' : 'bg-yellow-600 hover:bg-yellow-500 text-black'}">${state.lives === 0 ? 'Terminar Juego' : 'Continuar'}</button>
+                </div>
+            ` : '';
+
+            const lifelinesSection = (!state.isExtremeMode && !state.isInfiniteMode && !state.isAnswered) ? `
+                <div class="flex justify-center gap-4 pt-4 border-t border-yellow-800">
+                    <button onclick="use5050()" ${(!state.lifelines.fifty && !state.isAdmin) ? 'disabled' : ''} class="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm transition-all ${(!state.lifelines.fifty && !state.isAdmin) ? 'opacity-30' : 'bg-slate-800 hover:bg-slate-700 text-yellow-400 border border-yellow-900'}"><i data-lucide="zap" size="14"></i> 50/50</button>
+                    <button onclick="useSkip()" ${(!state.lifelines.skip && !state.isAdmin) ? 'disabled' : ''} class="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm transition-all ${state.isAdmin ? 'bg-red-600 text-white' : (!state.lifelines.skip) ? 'opacity-30' : 'bg-slate-800 hover:bg-slate-700 text-yellow-400 border border-yellow-900'}"><i data-lucide="skip-forward" size="14"></i> ${state.isAdmin ? "AUTO WIN" : "SALTAR"}</button>
+                </div>
+            ` : '';
+
+            return `
+                <div class="w-full max-w-2xl mb-8 flex items-center gap-2 fade-in">
+                    <div class="flex-1 bg-slate-900 p-4 rounded-xl border border-yellow-800 flex justify-between items-center">
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-2"><i data-lucide="star" class="text-yellow-500" size="20"></i> <span class="font-bold text-xl">${state.score}</span></div>
+                            <div class="flex gap-1">${[0, 1, 2].map(i => `<i data-lucide="heart" size="20" class="${i < state.lives ? 'text-red-500 fill-red-500' : 'text-gray-700'}"></i>`).join('')}</div>
+                            ${state.isAdmin ? '<i data-lucide="crown" size="20" class="text-yellow-400 animate-pulse"></i>' : ''}
+                        </div>
+                        <div class="px-3 py-1 rounded text-xs font-bold uppercase ${state.isInfiniteMode ? 'bg-amber-700 text-amber-200' : state.isExtremeMode ? 'bg-red-900 text-red-200' : 'bg-yellow-800 text-yellow-400'}">${state.isInfiniteMode ? 'MODO INFINITO' : state.isExtremeMode ? 'MODO EXTREMO' : `Nivel ${currentQ.difficulty}`}</div>
+                    </div>
+                    <button onclick="state.gameState='start'; render();" class="bg-slate-800 p-4 rounded-xl border border-yellow-700/50 hover:bg-red-900/50 hover:border-red-500 hover:text-red-400 transition-colors"><i data-lucide="log-out" size="24"></i></button>
+                </div>
+
+                <div class="w-full max-w-2xl bg-slate-900 rounded-2xl p-6 md:p-10 shadow-xl border border-yellow-800 relative overflow-hidden fade-in">
+                    ${!state.isInfiniteMode ? `<div class="absolute top-0 left-0 h-1 bg-yellow-500 transition-all duration-500" style="width: ${progress}%"></div>` : ''}
+                    <span class="text-yellow-400 font-bold text-xs tracking-widest uppercase mb-4 block">${currentQ.category}</span>
+                    <h2 class="text-2xl md:text-3xl font-bold mb-8 text-white leading-snug">${currentQ.q}</h2>
+                    
+                    ${inputSection}
+                    ${feedback}
+                    ${explanationSection}
+                    ${lifelinesSection}
+
+                    ${state.isInfiniteMode ? `<div class="flex justify-center pt-4 mt-4 border-t border-yellow-800"><div class="px-4 py-2 rounded-full bg-amber-900/50 text-amber-300 font-bold text-sm flex items-center gap-2"><i data-lucide="infinity" size="16"></i> Respuestas: ${state.infiniteQuestionsAnswered}</div></div>` : ''}
+                </div>
+            `;
+        }
+
+        function renderEnd() {
+            return `
+                <div class="bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-600 p-1.5 rounded-3xl max-w-lg w-full animate-shimmer fade-in">
+                    <div class="bg-slate-900 rounded-3xl p-8 text-center border-4 border-amber-800">
+                        <div class="mx-auto text-yellow-400 mb-6 animate-pulse flex justify-center"><i data-lucide="aperture" width="80" height="80"></i></div>
+                        <h2 class="text-4xl font-extrabold text-yellow-400 mb-2 uppercase tracking-wide">${state.isInfiniteMode && !state.feedbackMsg.includes("agotado") ? "¡MODO INFINITO!" : "¡RETO FINALIZADO!"}</h2>
+                        <p class="text-lg text-amber-200 mb-6 font-medium">${state.feedbackMsg.includes("agotado") ? state.feedbackMsg : "Has demostrado ser un verdadero Maestro."}</p>
+                        <div class="text-7xl font-black text-yellow-300 mb-4 bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-amber-500">${state.score} pts</div>
+                        
+                        ${state.hasWicho ? `<div class="mb-6 relative"><div class="relative bg-yellow-900/50 p-3 mx-auto rounded-xl flex items-center justify-center border border-yellow-600 shadow-inner"><i data-lucide="cat" size="48" class="text-yellow-300 w-12 h-12"></i><span class="ml-4 text-yellow-200 font-bold">WICHO DESBLOQUEADO</span></div></div>` : ''}
+
+                        <button onclick="state.gameState='start'; render();" class="w-full bg-yellow-500 text-black font-bold py-3 rounded-xl hover:bg-yellow-400 transition shadow-yellow-500/50 mt-4">Volver al Salón Principal</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            let content = '';
+            if (state.gameState === 'start') content = renderStart();
+            else if (state.gameState === 'playing') content = renderGame();
+            else if (state.gameState === 'end') content = renderEnd();
+            app.innerHTML = content;
+            lucide.createIcons(); // Reactiva los iconos
+        }
+
+        // --- INICIALIZACIÓN ---
+        window.onload = function () {
+            loadProgression();
+            window.addEventListener('keydown', handleKeyDown);
+            render();
+        };
+
+    </script>
+</body>
+
+</html>

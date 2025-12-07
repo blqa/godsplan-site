@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nivel 5: Singularidad (Custom Shaders)</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            pointer-events: none;
+            text-shadow: 0 0 5px #ff0055;
+            z-index: 10;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 20px;
+            text-transform: uppercase;
+        }
+
+        p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .warning {
+            color: #ff0055;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="ui">
+        <h1>SISTEMA GPGPU</h1>
+        <p>Entidades: <span class="warning">100,000</span></p>
+        <p>Lógica: GPU Vertex Shader (GLSL)</p>
+        <p>CPU Usage: ~1%</p>
+    </div>
+
+    <!-- Importamos Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- 1. LOS SHADERS (El corazón del Nivel 5) ---
+        // Estos son programas en lenguaje C/GLSL que corren directo en la tarjeta gráfica.
+
+        const vertexShader = `
+            uniform float uTime;
+            uniform float uRadius;
+            
+            attribute float aRandom;   // Un número aleatorio único para cada partícula
+            attribute float aSize;     // Tamaño único
+            attribute vec3 aVelocity;  // Velocidad base
+            
+            varying vec3 vColor;       // Enviamos el color al fragment shader
+
+            // Función de ruido (Matemáticas complejas para movimiento orgánico)
+            // Simplex Noise 3D - Standard en gráficos por computadora
+            vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+            vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+            float snoise(vec3 v) {
+                const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+                const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+
+                // First corner
+                vec3 i  = floor(v + dot(v, C.yyy) );
+                vec3 x0 = v - i + dot(i, C.xxx) ;
+
+                // Other corners
+                vec3 g = step(x0.yzx, x0.xyz);
+                vec3 l = 1.0 - g;
+                vec3 i1 = min( g.xyz, l.zxy );
+                vec3 i2 = max( g.xyz, l.zxy );
+
+                vec3 x1 = x0 - i1 + C.xxx;
+                vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y
+                vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y
+
+                // Permutations
+                i = mod289(i); 
+                vec4 p = permute( permute( permute( 
+                        i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+                        + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
+                        + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+
+                float n_ = 0.142857142857; // 1.0/7.0
+                vec3  ns = n_ * D.wyz - D.xzx;
+
+                vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)
+
+                vec4 x_ = floor(j * ns.z);
+                vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)
+
+                vec4 x = x_ *ns.x + ns.yyyy;
+                vec4 y = y_ *ns.x + ns.yyyy;
+                vec4 h = 1.0 - abs(x) - abs(y);
+
+                vec4 b0 = vec4( x.xy, y.xy );
+                vec4 b1 = vec4( x.zw, y.zw );
+
+                vec4 s0 = floor(b0)*2.0 + 1.0;
+                vec4 s1 = floor(b1)*2.0 + 1.0;
+                vec4 sh = -step(h, vec4(0.0));
+
+                vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+                vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+
+                vec3 p0 = vec3(a0.xy,h.x);
+                vec3 p1 = vec3(a0.zw,h.y);
+                vec3 p2 = vec3(a1.xy,h.z);
+                vec3 p3 = vec3(a1.zw,h.w);
+
+                //Normalise gradients
+                vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+                p0 *= norm.x;
+                p1 *= norm.y;
+                p2 *= norm.z;
+                p3 *= norm.w;
+
+                // Mix final noise value
+                vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+                m = m * m;
+                return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), 
+                                            dot(p2,x2), dot(p3,x3) ) );
+            }
+
+            void main() {
+                // AQUÍ OCURRE LA MAGIA DEL MOVIMIENTO
+                // En lugar de mover puntos con JS, calculamos la posición en tiempo real
+                
+                vec3 pos = position;
+                float time = uTime * 0.2; // Velocidad global
+
+                // "Curl Noise" simplificado: movemos la partícula basándonos en ruido tridimensional
+                // Esto crea ese efecto de fluido/humo sin simular física real pesada
+                
+                float noiseVal = snoise(vec3(pos.x * 0.5 + time, pos.y * 0.5 + time, pos.z * 0.5));
+                
+                // Deformamos la posición original formando una espiral galáctica
+                float angle = time * 0.5 + length(pos) * 0.2;
+                float s = sin(angle);
+                float c = cos(angle);
+                
+                // Rotación basada en distancia (vórtice)
+                float x = pos.x * c - pos.z * s;
+                float z = pos.x * s + pos.z * c;
+                pos.x = x;
+                pos.z = z;
+
+                // Añadir turbulencia basada en ruido
+                pos += normalize(pos) * noiseVal * 3.0;
+
+                // Colores basados en la distancia al centro y velocidad
+                float dist = length(pos);
+                vec3 colorCore = vec3(1.0, 0.1, 0.4); // Rojo/Rosa núcleo
+                vec3 colorEdge = vec3(0.1, 0.5, 1.0); // Azul borde
+                
+                vColor = mix(colorCore, colorEdge, dist / uRadius);
+
+                // Tamaño dinámico: más grandes cerca del centro
+                vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+                gl_PointSize = (300.0 / -mvPosition.z) * aSize; // Escalado por perspectiva
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `;
+
+        const fragmentShader = `
+            varying vec3 vColor;
+
+            void main() {
+                // Creamos un círculo suave (partícula) matemáticamente
+                float strength = distance(gl_PointCoord, vec2(0.5));
+                strength = 1.0 - strength;
+                strength = pow(strength, 3.0); // Hacer el brillo exponencial (glow)
+
+                // Si es transparente, descartamos el píxel
+                if (strength < 0.1) discard;
+
+                // Color final: Color base * intensidad del brillo
+                gl_FragColor = vec4(vColor, strength);
+            }
+        `;
+
+        // --- 2. JAVASCRIPT (Solo configuración) ---
+
+        let camera, scene, renderer, material;
+        const parameters = {};
+
+        init();
+        animate();
+
+        function init() {
+            // Setup Básico
+            const container = document.createElement('div');
+            document.body.appendChild(container);
+
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 30, 80);
+
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.01);
+
+            // --- GENERACIÓN DE DATOS MASIVOS ---
+            const particlesCount = 100000; // 100 MIL PARTÍCULAS
+
+            // Arrays tipados para máximo rendimiento
+            const positions = new Float32Array(particlesCount * 3);
+            const randoms = new Float32Array(particlesCount);
+            const sizes = new Float32Array(particlesCount);
+
+            const radius = 40;
+
+            for (let i = 0; i < particlesCount; i++) {
+                const i3 = i * 3;
+
+                // Generamos una nube esférica inicial
+                // Usamos coordenadas esféricas para distribución uniforme
+                const r = radius * Math.cbrt(Math.random()); // Raíz cúbica para evitar aglomeración al centro
+                const theta = Math.random() * 2 * Math.PI;
+                const phi = Math.acos(2 * Math.random() - 1);
+
+                positions[i3] = r * Math.sin(phi) * Math.cos(theta);
+                positions[i3 + 1] = (r * Math.sin(phi) * Math.sin(theta)) * 0.2; // Aplanado (disco)
+                positions[i3 + 2] = r * Math.cos(phi);
+
+                randoms[i] = Math.random();
+                sizes[i] = Math.random();
+            }
+
+            // Geometría Buffer (Directo a GPU)
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1));
+            geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+
+            // --- MATERIAL SHADER (Donde inyectamos nuestro código GLSL) ---
+            material = new THREE.ShaderMaterial({
+                depthWrite: false,
+                blending: THREE.AdditiveBlending, // Mezcla de luz aditiva (se suman los brillos)
+                vertexColors: true,
+                uniforms: {
+                    uTime: { value: 0 },
+                    uRadius: { value: radius }
+                },
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader,
+                transparent: true
+            });
+
+            // Creamos los puntos
+            const points = new THREE.Points(geometry, material);
+            scene.add(points);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true }); // Sin alpha para fondo negro puro
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            // Controles de cámara
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.5;
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- LOOP DE ANIMACIÓN ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = performance.now() * 0.001;
+
+            // LO ÚNICO que hace la CPU es enviar el tiempo actual a la GPU
+            // La GPU hace los 100,000 cálculos matemáticos por frame
+            material.uniforms.uTime.value = time;
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+
+</html>

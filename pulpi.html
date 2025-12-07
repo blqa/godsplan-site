@@ -1,0 +1,4269 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>La Aventura Abisal de Pulpi 7.0 Controles Multiplataforma</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #001e36;
+            font-family: 'Fredoka One', cursive;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        #hud {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            font-size: 24px;
+        }
+
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        #energy-bar-container {
+            width: 150px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            border: 2px solid #fff;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #energy-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #00B0FF, #00E5FF);
+            transform-origin: left;
+            transition: width 0.1s;
+        }
+
+        #boss-bar-container {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 30px;
+            background: #222;
+            border: 3px solid #D50000;
+            border-radius: 15px;
+            display: none;
+            /* Hidden by default */
+        }
+
+        #boss-bar {
+            width: 100%;
+            height: 100%;
+            background: #FF1744;
+            transition: width 0.2s;
+        }
+
+        #boss-label {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+            text-shadow: 1px 1px 0 #000;
+            font-size: 16px;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 10, 30, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: 60px;
+            color: #E040FB;
+            margin: 0;
+            text-shadow: 0 0 20px #E040FB;
+            text-align: center;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        h2 {
+            font-size: 30px;
+            color: #00E5FF;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #00E5FF;
+        }
+
+        #high-score-display {
+            font-size: 20px;
+            color: #FFD700;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px #FFD700;
+        }
+
+        button {
+            background: linear-gradient(45deg, #FF4081, #F50057);
+            border: none;
+            padding: 15px 50px;
+            font-size: 24px;
+            color: white;
+            border-radius: 50px;
+            font-family: 'Fredoka One', cursive;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(245, 0, 87, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+            margin-top: 20px;
+            text-transform: uppercase;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .tutorial {
+            color: #eee;
+            margin-top: 20px;
+            font-size: 16px;
+            max-width: 600px;
+            text-align: center;
+            line-height: 1.5;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        #sfx-toggle {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 1px solid white;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: auto;
+            z-index: 100;
+        }
+
+        #pause-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            /* Movido a la izquierda */
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            z-index: 100;
+            pointer-events: auto;
+            border: 2px solid #fff;
+            transition: all 0.1s;
+        }
+
+        /* New Mobile Controls Style */
+        .mobile-controls-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            /* Area de controles */
+            pointer-events: none;
+        }
+
+        /* Joystick (Left) */
+        #joystick-base {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            /* MOVIDO A LA IZQUIERDA */
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            pointer-events: auto;
+            opacity: 0.8;
+        }
+
+        #joystick-stick {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: #00B0FF;
+            border: 3px solid white;
+            border-radius: 50%;
+            transition: transform 0.05s;
+        }
+
+        /* Dash Button (Right - Purple) */
+        #dash-button {
+            position: absolute;
+            bottom: 100px;
+            /* Posición más alta */
+            right: 40px;
+            width: 90px;
+            height: 90px;
+            padding: 0;
+            background: #E040FB;
+            /* MORADO */
+            color: white;
+            border: 5px solid #fff;
+            box-shadow: 0 0 20px rgba(224, 64, 251, 0.8);
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            transition: background 0.1s;
+            opacity: 0.9;
+        }
+
+        #dash-button:active {
+            background: #AA00FF;
+            transform: scale(0.95);
+        }
+
+        /* Attack Button (Right - Red) */
+        #attack-button {
+            position: absolute;
+            bottom: 30px;
+            /* Posición más baja */
+            right: 140px;
+            width: 90px;
+            height: 90px;
+            padding: 0;
+            background: #F44336;
+            /* ROJO */
+            color: white;
+            border: 5px solid #fff;
+            box-shadow: 0 0 20px rgba(244, 67, 54, 0.8);
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            transition: background 0.1s;
+            opacity: 0.9;
+        }
+
+        #attack-button:active {
+            background: #D50000;
+            transform: scale(0.95);
+        }
+
+        .key {
+            background: #fff;
+            color: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Capa del Juego -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- UI Overlay -->
+    <div id="ui-layer">
+        <div id="hud" class="hidden">
+            <div class="hud-row">
+                <!-- La puntuación y vida ahora ocupan la derecha -->
+                <div style="width: 50px;"></div> <!-- Placeholder para alinear el HUD central en móvil -->
+                <div>
+                    <div>PTS: <span id="score">0</span></div>
+                    <div>VIDA: <span id="health">❤❤❤</span></div>
+                </div>
+            </div>
+            <div class="hud-row">
+                <div style="width: 50px;"></div> <!-- Placeholder para alinear la barra -->
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 16px;">TINTA:</span>
+                    <div id="energy-bar-container">
+                        <div id="energy-bar"></div>
+                    </div>
+                </div>
+                <!-- Muestra el Nivel/Oleada actual -->
+                <div id="level-display" style="font-size: 20px; color: #FFD700;">OLEADA 1</div>
+            </div>
+        </div>
+
+        <div id="boss-bar-container">
+            <div id="boss-label">EL KRAKEN</div>
+            <div id="boss-bar"></div>
+        </div>
+    </div>
+
+    <button id="sfx-toggle">🔊</button>
+    <button id="pause-btn" class="hidden" title="Pausar Juego">⏸</button> <!-- Botón de pausa -->
+
+    <!-- Controles Móviles -->
+    <div class="mobile-controls-container">
+        <!-- BOTONES DE ACCIÓN (DERECHA) -->
+        <button id="dash-button" class="hidden">DASH</button>
+        <button id="attack-button" class="hidden">TINTA</button> <!-- Nuevo botón de ataque -->
+
+        <!-- JOYSTICK (IZQUIERDA) -->
+        <div id="joystick-base" class="hidden">
+            <div id="joystick-stick"></div>
+        </div>
+    </div>
+
+    <!-- Inicio -->
+    <div id="start-screen" class="screen">
+        <h1>PULPI</h1>
+        <h2>ULTIMATE EDITION</h2>
+        <div id="high-score-display">Puntuación Máxima: 0</div>
+        <button id="start-btn">JUGAR</button>
+        <div class="tutorial">
+            <h3>Controles de Movimiento</h3>
+            <p>🌊 <strong>PC:</strong> Teclas <span class="key">W</span>, <span class="key">A</span>, <span
+                    class="key">S</span>, <span class="key">D</span></p>
+            <p>🌊 <strong>Móvil:</strong> Joystick Virtual (Izquierda)</p>
+            <h3>Controles de Ataque y Escape</h3>
+            <p>💨 <strong>Escape DASH (PC):</strong> Tecla <span class="key">E</span></p>
+            <p>💨 <strong>Escape DASH (Móvil):</strong> Botón DASH (Morado)</p>
+            <p>🔴 <strong>Ataque TINTA (PC):</strong> Tecla <span class="key">ESPACIO</span></p>
+            <p>🔴 <strong>Ataque TINTA (Móvil):</strong> Botón TINTA (Rojo)</p>
+            <p>⏸️ <strong>Pausa:</strong> Tecla <span class="key">P</span> o <span class="key">Esc</span></p>
+            <p>🐙 **¡Derrota al Kraken para avanzar de oleada!**</p>
+        </div>
+    </div>
+
+    <!-- Menú de Pausa -->
+    <div id="pause-screen" class="screen hidden">
+        <h1 style="color: #00E5FF; text-shadow: 0 0 20px #00E5FF;">PAUSA</h1>
+        <h2 style="color: white; font-size: 24px; margin-bottom: 40px;">Presiona 'P' o 'Esc' o CONTINUAR.</h2>
+        <button id="resume-btn">CONTINUAR</button>
+    </div>
+
+    <!-- Game Over -->
+    <div id="game-over-screen" class="screen hidden">
+        <h1 style="color: #F44336; text-shadow: 0 0 20px #F44336;">¡FIN DEL JUEGO!</h1>
+        <div id="final-score" style="font-size: 40px; color: white; margin: 20px 0;">Puntuación Final: 0</div>
+        <div id="gameover-high-score" style="font-size: 24px; color: #FFD700; margin-bottom: 20px;">Puntuación Máxima: 0
+        </div>
+        <button id="restart-btn">OTRA VEZ</button>
+    </div>
+
+    <script>
+        /**
+         * SISTEMA DE AUDIO (Sintetizador Web Audio API)
+         * No requiere archivos externos.
+         */
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        let sfxEnabled = true;
+
+        const sfxToggle = document.getElementById('sfx-toggle');
+        sfxToggle.addEventListener('click', () => {
+            sfxEnabled = !sfxEnabled;
+            sfxToggle.innerText = sfxEnabled ? "🔊" : "🔇";
+            // Resume context if suspended (browser policy)
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        });
+
+        const playSound = (type) => {
+            if (!sfxEnabled) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'coin') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            }
+            else if (type === 'dash') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.linearRampToValueAtTime(50, now + 0.2);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            }
+            else if (type === 'attack') { // Nuevo sonido para el ataque de tinta
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.linearRampToValueAtTime(800, now + 0.1);
+                gainNode.gain.setValueAtTime(0.4, now);
+                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            }
+            else if (type === 'hit') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
+                gainNode.gain.setValueAtTime(0.4, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+            else if (type === 'powerup') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.linearRampToValueAtTime(800, now + 0.2);
+                osc.frequency.linearRampToValueAtTime(1200, now + 0.4);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            }
+        };
+
+        /**
+         * MOTOR GRÁFICO Y LÓGICA
+         */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Elements
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const pauseScreen = document.getElementById('pause-screen');
+        const hud = document.getElementById('hud');
+        const scoreEl = document.getElementById('score');
+        const healthEl = document.getElementById('health');
+        const finalScoreEl = document.getElementById('final-score');
+        const gameoverHighScoreEl = document.getElementById('gameover-high-score');
+        const initialHighScoreEl = document.getElementById('high-score-display');
+        const energyBar = document.getElementById('energy-bar');
+        const levelDisplay = document.getElementById('level-display');
+        const bossBarContainer = document.getElementById('boss-bar-container');
+        const bossBar = document.getElementById('boss-bar');
+        const pauseButton = document.getElementById('pause-btn');
+        const dashButton = document.getElementById('dash-button');
+        const attackButton = document.getElementById('attack-button');
+
+        // Joystick Elements
+        const joystickBase = document.getElementById('joystick-base');
+        const joystickStick = document.getElementById('joystick-stick');
+        let joystickCenter = { x: 0, y: 0 };
+        let joystick = { dx: 0, dy: 0, isDragging: false };
+        const joystickRadius = 60; // Half of joystickBase width (120px)
+
+        // New Keyboard Input State
+        let keyboardInput = { w: false, a: false, s: false, d: false };
+
+        function getElementCenter(el) {
+            const rect = el.getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+        }
+
+        function handleJoystickMove(clientX, clientY) {
+            if (joystick.isDragging) {
+                let dx = clientX - joystickCenter.x;
+                let dy = clientY - joystickCenter.y;
+                let distance = Math.hypot(dx, dy);
+
+                if (distance > joystickRadius) {
+                    dx = (dx / distance) * joystickRadius;
+                    dy = (dy / distance) * joystickRadius;
+                    distance = joystickRadius;
+                }
+
+                joystickStick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+
+                joystick.dx = dx / joystickRadius;
+                joystick.dy = dy / joystickRadius;
+
+                // Update Pulpi's angle based on joystick for orientation
+                player.angle = Math.atan2(joystick.dy, joystick.dx) + Math.PI / 2;
+            }
+        }
+
+        function handleJoystickEnd() {
+            joystick.isDragging = false;
+            joystick.dx = 0;
+            joystick.dy = 0;
+            joystickStick.style.transform = 'translate(-50%, -50%)';
+        }
+
+        joystickBase.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            if (e.button !== 0) return;
+            joystickCenter = getElementCenter(joystickBase);
+            joystick.isDragging = true;
+            handleJoystickMove(e.clientX, e.clientY);
+        });
+
+        joystickBase.addEventListener('mousemove', (e) => {
+            e.preventDefault();
+            if (joystick.isDragging) handleJoystickMove(e.clientX, e.clientY);
+        });
+
+        joystickBase.addEventListener('mouseup', handleJoystickEnd);
+        joystickBase.addEventListener('mouseleave', () => { if (joystick.isDragging) handleJoystickEnd(); });
+
+        // Touch handlers
+        joystickBase.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            joystickCenter = getElementCenter(joystickBase);
+            joystick.isDragging = true;
+            handleJoystickMove(touch.clientX, touch.clientY);
+        });
+
+        joystickBase.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            if (joystick.isDragging) handleJoystickMove(touch.clientX, touch.clientY);
+        });
+
+        joystickBase.addEventListener('touchend', handleJoystickEnd);
+
+
+        // Game State Variables
+        let gameState = 'MENU';
+        let frameCount = 0;
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('pulpiHighScore') || 0); // Carga el High Score
+        let difficultyLevel = 1; // Controla la dificultad y el nivel
+        let wave = 1; // Oleada actual
+        let spawnRate = 60;
+        let shake = 0;
+        let animationFrameId; // Para controlar la animación
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            // Recalculate joystick center on resize
+            if (gameState === 'PLAYING') joystickCenter = getElementCenter(joystickBase);
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Control de Dash y Ataque
+        const triggerDash = () => {
+            if (gameState === 'PLAYING' && player) player.dash();
+        };
+        const triggerAttack = () => {
+            if (gameState === 'PLAYING' && player) player.inkAttack();
+        };
+
+        // Bind Dash button
+        dashButton.addEventListener('click', (e) => { e.preventDefault(); triggerDash(); });
+        dashButton.addEventListener('touchstart', (e) => { e.preventDefault(); triggerDash(); });
+
+        // Bind Attack button
+        attackButton.addEventListener('click', (e) => { e.preventDefault(); triggerAttack(); });
+        attackButton.addEventListener('touchstart', (e) => { e.preventDefault(); triggerAttack(); });
+
+        // Keyboard controls (WASD, E, Space for desktop)
+        window.addEventListener('keydown', (e) => {
+            // FIX: Previene que la barra espaciadora active el botón enfocado (JUGAR/OTRA VEZ) en cualquier pantalla que no sea PLAYING.
+            if (e.code === 'Space' && (gameState !== 'PLAYING')) {
+                e.preventDefault();
+            }
+
+            // Pause/Escape should always work regardless of playing state
+            if (e.code === 'KeyP' || e.code === 'Escape') togglePause();
+
+            if (gameState !== 'PLAYING') return;
+
+            // Movement
+            if (e.code === 'KeyW') keyboardInput.w = true;
+            if (e.code === 'KeyA') keyboardInput.a = true;
+            if (e.code === 'KeyS') keyboardInput.s = true;
+            if (e.code === 'KeyD') keyboardInput.d = true;
+
+            // Actions (New Mappings)
+            if (e.code === 'KeyE') triggerDash(); // E for Dash
+            if (e.code === 'Space') triggerAttack(); // Space for Ink Attack
+
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'KeyW') keyboardInput.w = false;
+            if (e.code === 'KeyA') keyboardInput.a = false;
+            if (e.code === 'KeyS') keyboardInput.s = false;
+            if (e.code === 'KeyD') keyboardInput.d = false;
+        });
+
+        document.getElementById('resume-btn').addEventListener('click', togglePause);
+        pauseButton.addEventListener('click', togglePause);
+
+        function togglePause() {
+            if (gameState === 'PLAYING') {
+                gameState = 'PAUSED';
+                cancelAnimationFrame(animationFrameId);
+                pauseScreen.classList.remove('hidden');
+                pauseButton.innerText = '▶'; // Cambia ícono
+            } else if (gameState === 'PAUSED') {
+                gameState = 'PLAYING';
+                pauseScreen.classList.add('hidden');
+                pauseButton.innerText = '⏸'; // Cambia ícono
+                animate(); // Reanuda la animación
+            }
+        }
+
+        class FloatingText {
+            constructor(text, x, y, color, size) {
+                this.text = text;
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.size = size;
+                this.life = 1.0;
+                this.vy = -2;
+            }
+            update() { this.y += this.vy; this.life -= 0.02; }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.font = `${this.size}px 'Fredoka One'`;
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 3;
+                ctx.strokeText(this.text, this.x, this.y);
+                ctx.fillText(this.text, this.x, this.y);
+                ctx.restore();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color, speed, size) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.size = size;
+                this.speedX = (Math.random() - 0.5) * speed;
+                this.speedY = (Math.random() - 0.5) * speed;
+                this.life = 1.0;
+                this.decay = Math.random() * 0.03 + 0.01;
+            }
+            update() { this.x += this.speedX; this.y += this.speedY; this.life -= this.decay; }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class InkProjectile {
+            constructor(x, y, targetX, targetY) {
+                this.x = x;
+                this.y = y;
+                this.radius = 10;
+                this.color = '#333';
+                this.speed = 10;
+                this.markedForDeletion = false;
+
+                // Calculate velocity towards the target
+                const angle = Math.atan2(targetY - y, targetX - x);
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Mark for deletion if out of bounds
+                if (this.x < -100 || this.x > canvas.width + 100 || this.y < -100 || this.y > canvas.height + 100) {
+                    this.markedForDeletion = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = '#000';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class Pulpi {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2;
+                this.radius = 25;
+                this.angle = 0;
+                this.tentacles = [];
+                this.color = '#E040FB';
+                this.health = 3;
+                this.maxEnergy = 100;
+                this.energy = 100;
+                this.dashing = false; // Estado de escape
+                this.dashingTimer = 0;
+                this.invulnerabilityTimer = 0;
+                this.shielded = false;
+                this.magnet = false;
+                this.shieldTimer = 0;
+                this.magnetTimer = 0;
+
+                this.vx = 0;
+                this.vy = 0;
+                this.friction = 0.9;
+
+                for (let i = 0; i < 8; i++) {
+                    this.tentacles.push({ angle: (i / 8) * Math.PI * 2, moveOffset: Math.random() * 10 });
+                }
+            }
+
+            dash() {
+                // DASH DE ESCAPE (Morado)
+                if (this.energy >= 30 && this.dashingTimer === 0) {
+                    this.energy -= 30;
+                    this.dashingTimer = 15; // 15 frames de invulnerabilidad/movimiento rápido
+                    this.dashing = true;
+                    playSound('dash');
+                    shake = 5;
+                    spawnParticles(this.x, this.y, '#E040FB', 10);
+
+                    const dashSpeed = 25;
+
+                    // Si el joystick está activo, usa la dirección del joystick, sino usa la orientación actual.
+                    // Nota: el ángulo ya se establece en update() o en el joystick handler.
+                    const dashAngle = this.angle - Math.PI / 2;
+
+                    this.vx = Math.cos(dashAngle) * dashSpeed;
+                    this.vy = Math.sin(dashAngle) * dashSpeed;
+                }
+            }
+
+            inkAttack() {
+                // ATAQUE DE TINTA (Rojo)
+                if (this.energy >= 20) {
+                    // Buscar el enemigo más cercano
+                    let closestEnemy = null;
+                    let minDist = Infinity;
+
+                    enemies.forEach(e => {
+                        const dist = Math.hypot(this.x - e.x, this.y - e.y);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            closestEnemy = e;
+                        }
+                    });
+
+                    if (closestEnemy) {
+                        this.energy -= 20;
+                        playSound('attack');
+
+                        // Lanzar el proyectil hacia el enemigo más cercano
+                        projectiles.push(new InkProjectile(this.x, this.y, closestEnemy.x, closestEnemy.y));
+                    } else {
+                        // Si no hay enemigos, se puede lanzar al frente para defensa
+                        if (this.energy >= 20) {
+                            this.energy -= 20;
+                            playSound('attack');
+                            const attackAngle = this.angle - Math.PI / 2;
+                            const targetX = this.x + Math.cos(attackAngle) * 500;
+                            const targetY = this.y + Math.sin(attackAngle) * 500;
+                            projectiles.push(new InkProjectile(this.x, this.y, targetX, targetY));
+                        }
+                    }
+                }
+            }
+
+            activateShield() {
+                this.shielded = true;
+                this.shieldTimer = 400;
+                playSound('powerup');
+                floatingTexts.push(new FloatingText("¡ESCUDO!", this.x, this.y - 40, "#00E5FF", 30));
+            }
+
+            activateMagnet() {
+                this.magnet = true;
+                this.magnetTimer = 500;
+                playSound('powerup');
+                floatingTexts.push(new FloatingText("¡IMÁN!", this.x, this.y - 40, "#AA00FF", 30));
+            }
+
+            heal() {
+                if (this.health < 5) {
+                    this.health++;
+                    playSound('powerup');
+                    updateHUD();
+                    floatingTexts.push(new FloatingText("¡VIDA!", this.x, this.y - 40, "#FF4081", 30));
+                }
+            }
+
+            takeDamage() {
+                if (this.invulnerabilityTimer > 0) return; // No toma daño si es invulnerable
+
+                this.health--;
+                this.invulnerabilityTimer = 30; // 0.5 seconds post-hit invulnerability
+                updateHUD();
+                spawnParticles(this.x, this.y, 'red', 20);
+                playSound('hit');
+                shake = 10;
+                floatingTexts.push(new FloatingText("-1 VIDA", this.x, this.y - 50, '#FF1744', 30));
+
+                if (this.health <= 0) endGame();
+            }
+
+            update() {
+                if (this.energy < this.maxEnergy) this.energy += 0.4;
+                energyBar.style.width = `${this.energy}%`;
+
+                // Handle timers
+                if (this.dashingTimer > 0) {
+                    this.dashingTimer--;
+                    this.dashing = true;
+                } else {
+                    this.dashing = false;
+                }
+
+                if (this.invulnerabilityTimer > 0) {
+                    this.invulnerabilityTimer--;
+                }
+
+                if (this.shielded) {
+                    this.shieldTimer--;
+                    if (this.shieldTimer <= 0) this.shielded = false;
+                }
+
+                if (this.magnet) {
+                    this.magnetTimer--;
+                    if (this.magnetTimer <= 0) this.magnet = false;
+                }
+
+                // --- Movement Logic with Joystick / Keyboard ---
+                const moveSpeed = 4.5;
+                let inputDx = 0;
+                let inputDy = 0;
+                let hasKeyboardInput = keyboardInput.w || keyboardInput.a || keyboardInput.s || keyboardInput.d;
+
+                if (this.dashing) {
+                    // Keep moving with Dash velocity (no friction while dashing)
+                    this.x += this.vx;
+                    this.y += this.vy;
+                } else {
+                    // 1. Determine Input Vector
+                    if (hasKeyboardInput) {
+                        // Keyboard Input takes priority
+                        if (keyboardInput.a) inputDx -= 1;
+                        if (keyboardInput.d) inputDx += 1;
+                        if (keyboardInput.w) inputDy -= 1;
+                        if (keyboardInput.s) inputDy += 1;
+                    } else {
+                        // Joystick Input
+                        inputDx = joystick.dx;
+                        inputDy = joystick.dy;
+                    }
+
+                    // 2. Normalize and Set Velocity
+                    if (inputDx !== 0 || inputDy !== 0) {
+                        // Normalize the direction vector (important for WASD diagonal movement)
+                        const magnitude = Math.hypot(inputDx, inputDy);
+                        const normalizedDx = inputDx / magnitude;
+                        const normalizedDy = inputDy / magnitude;
+
+                        this.vx = normalizedDx * moveSpeed;
+                        this.vy = normalizedDy * moveSpeed;
+
+                        // Set angle based on the combined input
+                        this.angle = Math.atan2(normalizedDy, normalizedDx) + Math.PI / 2;
+                    } else {
+                        // Apply friction if no input
+                        this.vx *= this.friction;
+                        this.vy *= this.friction;
+                    }
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                // Boundary checking
+                this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Invulnerability effect: red pulse
+                if (this.invulnerabilityTimer > 0) {
+                    const alpha = Math.abs(Math.sin(frameCount * 0.5)) * 0.5 + 0.5;
+                    ctx.globalAlpha = alpha;
+                    ctx.strokeStyle = `rgba(255, 69, 0, ${alpha})`;
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.shielded) {
+                    const shieldAlpha = Math.abs(Math.sin(frameCount * 0.1)) + 0.5;
+                    ctx.strokeStyle = `rgba(0, 229, 255, ${shieldAlpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.magnet) {
+                    ctx.strokeStyle = `rgba(170, 0, 255, 0.3)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 150, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.rotate(this.angle);
+
+                for (let t of this.tentacles) {
+                    const wave = Math.sin(frameCount * 0.2 + t.moveOffset) * (this.dashing ? 2 : 10);
+                    ctx.beginPath();
+                    const bx = Math.cos(t.angle) * 15;
+                    const by = Math.sin(t.angle) * 15;
+                    const stretch = this.dashing ? 25 : 0;
+                    const tx = Math.cos(t.angle + wave * 0.03) * (50 + stretch);
+                    const ty = Math.sin(t.angle + wave * 0.03) * (50 + stretch) + 10;
+
+                    ctx.moveTo(bx, by);
+                    ctx.quadraticCurveTo(bx * 2, by * 2 + 10 + stretch, tx, ty);
+
+                    ctx.lineWidth = 8;
+                    ctx.strokeStyle = this.color;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, -10, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Face
+                const eyeY = this.dashing ? -8 : -5;
+                const eyeSize = this.dashing ? 5 : 8;
+                // Left Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+                // Right Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor(type, difficultyMult) {
+                this.type = type;
+                // Aumenta la vida del jefe por oleada para hacerlo más difícil
+                this.maxHp = type === 'boss' ? 50 + (wave - 1) * 10 : 1;
+                this.hp = this.maxHp;
+                this.radius = type === 'mine' ? 20 : (type === 'shark' ? 30 : (type === 'boss' ? 80 : 25));
+
+                // Spawn logic
+                if (type === 'boss') {
+                    this.x = canvas.width / 2;
+                    this.y = -150;
+                } else {
+                    const edge = Math.floor(Math.random() * 4);
+                    if (edge === 0) { this.x = Math.random() * canvas.width; this.y = -50; }
+                    else if (edge === 1) { this.x = canvas.width + 50; this.y = Math.random() * canvas.height; }
+                    else if (edge === 2) { this.x = Math.random() * canvas.width; this.y = canvas.height + 50; }
+                    else { this.x = -50; this.y = Math.random() * canvas.height; }
+                }
+
+                const angle = Math.atan2((canvas.height / 2) - this.y, (canvas.width / 2) - this.x);
+                let speedBase = 2;
+                if (type === 'mine') speedBase = 2.5;
+                if (type === 'shark') speedBase = 3.5; // Faster
+                if (type === 'boss') speedBase = 1;
+
+                this.speed = speedBase * (1 + difficultyMult * 0.1);
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+
+                this.markedForDeletion = false;
+                this.pulse = 0;
+                this.damageFlash = 0; // Para el efecto visual del boss al ser golpeado
+            }
+
+            update() {
+                if (this.type === 'boss') {
+                    // Boss logic: slowly descend then hover
+                    if (this.y < 150) this.y += 1;
+                    else {
+                        this.x += Math.sin(frameCount * 0.02) * 2;
+                        // Spawner de minions del boss
+                        if (frameCount % 120 === 0) spawnEnemy('mine');
+                    }
+                } else if (this.type === 'shark') {
+                    // Shark chasing logic
+                    const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                    // Turn slowly
+                    this.vx = this.vx * 0.95 + Math.cos(angle) * this.speed * 0.05;
+                    this.vy = this.vy * 0.95 + Math.sin(angle) * this.speed * 0.05;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    // Rotation for drawing
+                    this.rot = Math.atan2(this.vy, this.vx);
+                } else {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                this.pulse += 0.1;
+
+                // Cleanup bounds (except boss)
+                if (this.type !== 'boss' && (this.x < -200 || this.x > canvas.width + 200 || this.y < -200 || this.y > canvas.height + 200)) {
+                    this.markedForDeletion = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.type === 'mine') {
+                    ctx.fillStyle = '#37474F';
+                    ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#90A4AE';
+                    for (let i = 0; i < 8; i++) {
+                        ctx.rotate(Math.PI / 4);
+                        ctx.beginPath(); ctx.moveTo(10, -5); ctx.lineTo(26, 0); ctx.lineTo(10, 5); ctx.fill();
+                    }
+                    const redVal = Math.sin(this.pulse * 0.5) * 100 + 155;
+                    ctx.fillStyle = `rgb(${redVal}, 0, 0)`;
+                    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'shark') {
+                    ctx.rotate(this.rot);
+                    ctx.fillStyle = '#D32F2F'; // Red shark
+                    ctx.beginPath();
+                    ctx.moveTo(20, 0);
+                    ctx.lineTo(-20, 15);
+                    ctx.lineTo(-15, 0);
+                    ctx.lineTo(-20, -15);
+                    ctx.fill();
+                    // Ojo
+                    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(5, -5, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(5, -5, 2, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'boss') {
+                    const shakeX = Math.random() * (this.damageFlash > 0 ? 5 : 0);
+                    ctx.translate(shakeX, 0);
+
+                    // --- INICIO DIBUJO DEL KRAKEN ---
+                    const color = this.damageFlash > 0 ? '#FFEB3B' : '#4A148C'; // Flash amarillo al golpear
+                    const darkColor = '#2C0A50';
+
+                    // 1. Tentáculos del fondo (más grandes y lentos)
+                    for (let i = 0; i < 6; i++) {
+                        ctx.strokeStyle = darkColor;
+                        ctx.lineWidth = 15;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        const startX = (i - 2.5) * 20;
+                        const startY = 40;
+                        const sway = Math.sin(frameCount * 0.05 + i) * 20;
+                        const swayY = Math.cos(frameCount * 0.03 + i) * 10;
+
+                        ctx.moveTo(startX, startY);
+                        ctx.bezierCurveTo(
+                            startX * 1.5, startY + 50 + swayY,
+                            startX * 2 + sway, startY + 120 + swayY,
+                            startX * 1.5 + sway * 0.5, startY + 180
+                        );
+                        ctx.stroke();
+                    }
+
+                    // 2. Cabeza del Kraken (bulbo)
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(0, -30, 70, Math.PI, 0); // Parte superior
+                    ctx.lineTo(70, 40);
+                    ctx.lineTo(0, 70);
+                    ctx.lineTo(-70, 40);
+                    ctx.fill();
+
+                    // 3. Boca/Mentón (Más oscura)
+                    ctx.fillStyle = darkColor;
+                    ctx.beginPath();
+                    ctx.arc(0, 45, 20, 0, Math.PI);
+                    ctx.fill();
+
+                    // 4. Ojos (Más amenazantes)
+                    const eyePupil = Math.abs(Math.sin(this.pulse * 0.5)) * 5 + 5; // Pupila pulsante
+
+                    // Ojo Izq
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(-30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(-30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    // Ojo Der
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    if (this.damageFlash > 0) this.damageFlash--;
+                    // --- FIN DIBUJO DEL KRAKEN ---
+
+                }
+                else {
+                    // Jelly
+                    const bounce = Math.sin(this.pulse) * 4;
+                    ctx.fillStyle = 'rgba(0, 229, 255, 0.5)';
+                    ctx.strokeStyle = 'rgba(179, 229, 252, 0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, -5 + bounce, 20, Math.PI, 0);
+                    ctx.bezierCurveTo(20, 15 + bounce, -20, 15 + bounce, -20, -5 + bounce);
+                    ctx.fill(); ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(-10, 5 + bounce); ctx.lineTo(-5, 30 + bounce);
+                    ctx.moveTo(10, 5 + bounce); ctx.lineTo(5, 30 + bounce);
+                    ctx.moveTo(0, 5 + bounce); ctx.lineTo(0, 35 + bounce);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            takeDamage() {
+                if (this.invulnerabilityTimer > 0) return; // No toma daño si es invulnerable
+
+                this.health--;
+                this.invulnerabilityTimer = 30; // 0.5 seconds post-hit invulnerability
+                updateHUD();
+                spawnParticles(this.x, this.y, 'red', 20);
+                playSound('hit');
+                shake = 10;
+                floatingTexts.push(new FloatingText("-1 VIDA", this.x, this.y - 50, '#FF1744', 30));
+
+                if (this.health <= 0) endGame();
+            }
+
+            update() {
+                if (this.energy < this.maxEnergy) this.energy += 0.4;
+                energyBar.style.width = `${this.energy}%`;
+
+                // Handle timers
+                if (this.dashingTimer > 0) {
+                    this.dashingTimer--;
+                    this.dashing = true;
+                } else {
+                    this.dashing = false;
+                }
+
+                if (this.invulnerabilityTimer > 0) {
+                    this.invulnerabilityTimer--;
+                }
+
+                if (this.shielded) {
+                    this.shieldTimer--;
+                    if (this.shieldTimer <= 0) this.shielded = false;
+                }
+
+                if (this.magnet) {
+                    this.magnetTimer--;
+                    if (this.magnetTimer <= 0) this.magnet = false;
+                }
+
+                // --- Movement Logic with Joystick / Keyboard ---
+                const moveSpeed = 4.5;
+                let inputDx = 0;
+                let inputDy = 0;
+                let hasKeyboardInput = keyboardInput.w || keyboardInput.a || keyboardInput.s || keyboardInput.d;
+
+                if (this.dashing) {
+                    // Keep moving with Dash velocity (no friction while dashing)
+                    this.x += this.vx;
+                    this.y += this.vy;
+                } else {
+                    // 1. Determine Input Vector
+                    if (hasKeyboardInput) {
+                        // Keyboard Input takes priority
+                        if (keyboardInput.a) inputDx -= 1;
+                        if (keyboardInput.d) inputDx += 1;
+                        if (keyboardInput.w) inputDy -= 1;
+                        if (keyboardInput.s) inputDy += 1;
+                    } else {
+                        // Joystick Input
+                        inputDx = joystick.dx;
+                        inputDy = joystick.dy;
+                    }
+
+                    // 2. Normalize and Set Velocity
+                    if (inputDx !== 0 || inputDy !== 0) {
+                        // Normalize the direction vector (important for WASD diagonal movement)
+                        const magnitude = Math.hypot(inputDx, inputDy);
+                        const normalizedDx = inputDx / magnitude;
+                        const normalizedDy = inputDy / magnitude;
+
+                        this.vx = normalizedDx * moveSpeed;
+                        this.vy = normalizedDy * moveSpeed;
+
+                        // Set angle based on the combined input
+                        this.angle = Math.atan2(normalizedDy, normalizedDx) + Math.PI / 2;
+                    } else {
+                        // Apply friction if no input
+                        this.vx *= this.friction;
+                        this.vy *= this.friction;
+                    }
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                // Boundary checking
+                this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Invulnerability effect: red pulse
+                if (this.invulnerabilityTimer > 0) {
+                    const alpha = Math.abs(Math.sin(frameCount * 0.5)) * 0.5 + 0.5;
+                    ctx.globalAlpha = alpha;
+                    ctx.strokeStyle = `rgba(255, 69, 0, ${alpha})`;
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.shielded) {
+                    const shieldAlpha = Math.abs(Math.sin(frameCount * 0.1)) + 0.5;
+                    ctx.strokeStyle = `rgba(0, 229, 255, ${shieldAlpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.magnet) {
+                    ctx.strokeStyle = `rgba(170, 0, 255, 0.3)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 150, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.rotate(this.angle);
+
+                for (let t of this.tentacles) {
+                    const wave = Math.sin(frameCount * 0.2 + t.moveOffset) * (this.dashing ? 2 : 10);
+                    ctx.beginPath();
+                    const bx = Math.cos(t.angle) * 15;
+                    const by = Math.sin(t.angle) * 15;
+                    const stretch = this.dashing ? 25 : 0;
+                    const tx = Math.cos(t.angle + wave * 0.03) * (50 + stretch);
+                    const ty = Math.sin(t.angle + wave * 0.03) * (50 + stretch) + 10;
+
+                    ctx.moveTo(bx, by);
+                    ctx.quadraticCurveTo(bx * 2, by * 2 + 10 + stretch, tx, ty);
+
+                    ctx.lineWidth = 8;
+                    ctx.strokeStyle = this.color;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, -10, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Face
+                const eyeY = this.dashing ? -8 : -5;
+                const eyeSize = this.dashing ? 5 : 8;
+                // Left Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+                // Right Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor(type, difficultyMult) {
+                this.type = type;
+                // Aumenta la vida del jefe por oleada para hacerlo más difícil
+                this.maxHp = type === 'boss' ? 50 + (wave - 1) * 10 : 1;
+                this.hp = this.maxHp;
+                this.radius = type === 'mine' ? 20 : (type === 'shark' ? 30 : (type === 'boss' ? 80 : 25));
+
+                // Spawn logic
+                if (type === 'boss') {
+                    this.x = canvas.width / 2;
+                    this.y = -150;
+                } else {
+                    const edge = Math.floor(Math.random() * 4);
+                    if (edge === 0) { this.x = Math.random() * canvas.width; this.y = -50; }
+                    else if (edge === 1) { this.x = canvas.width + 50; this.y = Math.random() * canvas.height; }
+                    else if (edge === 2) { this.x = Math.random() * canvas.width; this.y = canvas.height + 50; }
+                    else { this.x = -50; this.y = Math.random() * canvas.height; }
+                }
+
+                const angle = Math.atan2((canvas.height / 2) - this.y, (canvas.width / 2) - this.x);
+                let speedBase = 2;
+                if (type === 'mine') speedBase = 2.5;
+                if (type === 'shark') speedBase = 3.5; // Faster
+                if (type === 'boss') speedBase = 1;
+
+                this.speed = speedBase * (1 + difficultyMult * 0.1);
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+
+                this.markedForDeletion = false;
+                this.pulse = 0;
+                this.damageFlash = 0; // Para el efecto visual del boss al ser golpeado
+            }
+
+            update() {
+                if (this.type === 'boss') {
+                    // Boss logic: slowly descend then hover
+                    if (this.y < 150) this.y += 1;
+                    else {
+                        this.x += Math.sin(frameCount * 0.02) * 2;
+                        // Spawner de minions del boss
+                        if (frameCount % 120 === 0) spawnEnemy('mine');
+                    }
+                } else if (this.type === 'shark') {
+                    // Shark chasing logic
+                    const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                    // Turn slowly
+                    this.vx = this.vx * 0.95 + Math.cos(angle) * this.speed * 0.05;
+                    this.vy = this.vy * 0.95 + Math.sin(angle) * this.speed * 0.05;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    // Rotation for drawing
+                    this.rot = Math.atan2(this.vy, this.vx);
+                } else {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                this.pulse += 0.1;
+
+                // Cleanup bounds (except boss)
+                if (this.type !== 'boss' && (this.x < -200 || this.x > canvas.width + 200 || this.y < -200 || this.y > canvas.height + 200)) {
+                    this.markedForDeletion = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.type === 'mine') {
+                    ctx.fillStyle = '#37474F';
+                    ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#90A4AE';
+                    for (let i = 0; i < 8; i++) {
+                        ctx.rotate(Math.PI / 4);
+                        ctx.beginPath(); ctx.moveTo(10, -5); ctx.lineTo(26, 0); ctx.lineTo(10, 5); ctx.fill();
+                    }
+                    const redVal = Math.sin(this.pulse * 0.5) * 100 + 155;
+                    ctx.fillStyle = `rgb(${redVal}, 0, 0)`;
+                    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'shark') {
+                    ctx.rotate(this.rot);
+                    ctx.fillStyle = '#D32F2F'; // Red shark
+                    ctx.beginPath();
+                    ctx.moveTo(20, 0);
+                    ctx.lineTo(-20, 15);
+                    ctx.lineTo(-15, 0);
+                    ctx.lineTo(-20, -15);
+                    ctx.fill();
+                    // Ojo
+                    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(5, -5, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(5, -5, 2, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'boss') {
+                    const shakeX = Math.random() * (this.damageFlash > 0 ? 5 : 0);
+                    ctx.translate(shakeX, 0);
+
+                    // --- INICIO DIBUJO DEL KRAKEN ---
+                    const color = this.damageFlash > 0 ? '#FFEB3B' : '#4A148C'; // Flash amarillo al golpear
+                    const darkColor = '#2C0A50';
+
+                    // 1. Tentáculos del fondo (más grandes y lentos)
+                    for (let i = 0; i < 6; i++) {
+                        ctx.strokeStyle = darkColor;
+                        ctx.lineWidth = 15;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        const startX = (i - 2.5) * 20;
+                        const startY = 40;
+                        const sway = Math.sin(frameCount * 0.05 + i) * 20;
+                        const swayY = Math.cos(frameCount * 0.03 + i) * 10;
+
+                        ctx.moveTo(startX, startY);
+                        ctx.bezierCurveTo(
+                            startX * 1.5, startY + 50 + swayY,
+                            startX * 2 + sway, startY + 120 + swayY,
+                            startX * 1.5 + sway * 0.5, startY + 180
+                        );
+                        ctx.stroke();
+                    }
+
+                    // 2. Cabeza del Kraken (bulbo)
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(0, -30, 70, Math.PI, 0); // Parte superior
+                    ctx.lineTo(70, 40);
+                    ctx.lineTo(0, 70);
+                    ctx.lineTo(-70, 40);
+                    ctx.fill();
+
+                    // 3. Boca/Mentón (Más oscura)
+                    ctx.fillStyle = darkColor;
+                    ctx.beginPath();
+                    ctx.arc(0, 45, 20, 0, Math.PI);
+                    ctx.fill();
+
+                    // 4. Ojos (Más amenazantes)
+                    const eyePupil = Math.abs(Math.sin(this.pulse * 0.5)) * 5 + 5; // Pupila pulsante
+
+                    // Ojo Izq
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(-30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(-30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    // Ojo Der
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    if (this.damageFlash > 0) this.damageFlash--;
+                    // --- FIN DIBUJO DEL KRAKEN ---
+
+                }
+                else {
+                    // Jelly
+                    const bounce = Math.sin(this.pulse) * 4;
+                    ctx.fillStyle = 'rgba(0, 229, 255, 0.5)';
+                    ctx.strokeStyle = 'rgba(179, 229, 252, 0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, -5 + bounce, 20, Math.PI, 0);
+                    ctx.bezierCurveTo(20, 15 + bounce, -20, 15 + bounce, -20, -5 + bounce);
+                    ctx.fill(); ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(-10, 5 + bounce); ctx.lineTo(-5, 30 + bounce);
+                    ctx.moveTo(10, 5 + bounce); ctx.lineTo(5, 30 + bounce);
+                    ctx.moveTo(0, 5 + bounce); ctx.lineTo(0, 35 + bounce);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            takeDamage() {
+                if (this.invulnerabilityTimer > 0) return; // No toma daño si es invulnerable
+
+                this.health--;
+                this.invulnerabilityTimer = 30; // 0.5 seconds post-hit invulnerability
+                updateHUD();
+                spawnParticles(this.x, this.y, 'red', 20);
+                playSound('hit');
+                shake = 10;
+                floatingTexts.push(new FloatingText("-1 VIDA", this.x, this.y - 50, '#FF1744', 30));
+
+                if (this.health <= 0) endGame();
+            }
+
+            update() {
+                if (this.energy < this.maxEnergy) this.energy += 0.4;
+                energyBar.style.width = `${this.energy}%`;
+
+                // Handle timers
+                if (this.dashingTimer > 0) {
+                    this.dashingTimer--;
+                    this.dashing = true;
+                } else {
+                    this.dashing = false;
+                }
+
+                if (this.invulnerabilityTimer > 0) {
+                    this.invulnerabilityTimer--;
+                }
+
+                if (this.shielded) {
+                    this.shieldTimer--;
+                    if (this.shieldTimer <= 0) this.shielded = false;
+                }
+
+                if (this.magnet) {
+                    this.magnetTimer--;
+                    if (this.magnetTimer <= 0) this.magnet = false;
+                }
+
+                // --- Movement Logic with Joystick / Keyboard ---
+                const moveSpeed = 4.5;
+                let inputDx = 0;
+                let inputDy = 0;
+                let hasKeyboardInput = keyboardInput.w || keyboardInput.a || keyboardInput.s || keyboardInput.d;
+
+                if (this.dashing) {
+                    // Keep moving with Dash velocity (no friction while dashing)
+                    this.x += this.vx;
+                    this.y += this.vy;
+                } else {
+                    // 1. Determine Input Vector
+                    if (hasKeyboardInput) {
+                        // Keyboard Input takes priority
+                        if (keyboardInput.a) inputDx -= 1;
+                        if (keyboardInput.d) inputDx += 1;
+                        if (keyboardInput.w) inputDy -= 1;
+                        if (keyboardInput.s) inputDy += 1;
+                    } else {
+                        // Joystick Input
+                        inputDx = joystick.dx;
+                        inputDy = joystick.dy;
+                    }
+
+                    // 2. Normalize and Set Velocity
+                    if (inputDx !== 0 || inputDy !== 0) {
+                        // Normalize the direction vector (important for WASD diagonal movement)
+                        const magnitude = Math.hypot(inputDx, inputDy);
+                        const normalizedDx = inputDx / magnitude;
+                        const normalizedDy = inputDy / magnitude;
+
+                        this.vx = normalizedDx * moveSpeed;
+                        this.vy = normalizedDy * moveSpeed;
+
+                        // Set angle based on the combined input
+                        this.angle = Math.atan2(normalizedDy, normalizedDx) + Math.PI / 2;
+                    } else {
+                        // Apply friction if no input
+                        this.vx *= this.friction;
+                        this.vy *= this.friction;
+                    }
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                // Boundary checking
+                this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Invulnerability effect: red pulse
+                if (this.invulnerabilityTimer > 0) {
+                    const alpha = Math.abs(Math.sin(frameCount * 0.5)) * 0.5 + 0.5;
+                    ctx.globalAlpha = alpha;
+                    ctx.strokeStyle = `rgba(255, 69, 0, ${alpha})`;
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.shielded) {
+                    const shieldAlpha = Math.abs(Math.sin(frameCount * 0.1)) + 0.5;
+                    ctx.strokeStyle = `rgba(0, 229, 255, ${shieldAlpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.magnet) {
+                    ctx.strokeStyle = `rgba(170, 0, 255, 0.3)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 150, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.rotate(this.angle);
+
+                for (let t of this.tentacles) {
+                    const wave = Math.sin(frameCount * 0.2 + t.moveOffset) * (this.dashing ? 2 : 10);
+                    ctx.beginPath();
+                    const bx = Math.cos(t.angle) * 15;
+                    const by = Math.sin(t.angle) * 15;
+                    const stretch = this.dashing ? 25 : 0;
+                    const tx = Math.cos(t.angle + wave * 0.03) * (50 + stretch);
+                    const ty = Math.sin(t.angle + wave * 0.03) * (50 + stretch) + 10;
+
+                    ctx.moveTo(bx, by);
+                    ctx.quadraticCurveTo(bx * 2, by * 2 + 10 + stretch, tx, ty);
+
+                    ctx.lineWidth = 8;
+                    ctx.strokeStyle = this.color;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, -10, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Face
+                const eyeY = this.dashing ? -8 : -5;
+                const eyeSize = this.dashing ? 5 : 8;
+                // Left Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+                // Right Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor(type, difficultyMult) {
+                this.type = type;
+                // Aumenta la vida del jefe por oleada para hacerlo más difícil
+                this.maxHp = type === 'boss' ? 50 + (wave - 1) * 10 : 1;
+                this.hp = this.maxHp;
+                this.radius = type === 'mine' ? 20 : (type === 'shark' ? 30 : (type === 'boss' ? 80 : 25));
+
+                // Spawn logic
+                if (type === 'boss') {
+                    this.x = canvas.width / 2;
+                    this.y = -150;
+                } else {
+                    const edge = Math.floor(Math.random() * 4);
+                    if (edge === 0) { this.x = Math.random() * canvas.width; this.y = -50; }
+                    else if (edge === 1) { this.x = canvas.width + 50; this.y = Math.random() * canvas.height; }
+                    else if (edge === 2) { this.x = Math.random() * canvas.width; this.y = canvas.height + 50; }
+                    else { this.x = -50; this.y = Math.random() * canvas.height; }
+                }
+
+                const angle = Math.atan2((canvas.height / 2) - this.y, (canvas.width / 2) - this.x);
+                let speedBase = 2;
+                if (type === 'mine') speedBase = 2.5;
+                if (type === 'shark') speedBase = 3.5; // Faster
+                if (type === 'boss') speedBase = 1;
+
+                this.speed = speedBase * (1 + difficultyMult * 0.1);
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+
+                this.markedForDeletion = false;
+                this.pulse = 0;
+                this.damageFlash = 0; // Para el efecto visual del boss al ser golpeado
+            }
+
+            update() {
+                if (this.type === 'boss') {
+                    // Boss logic: slowly descend then hover
+                    if (this.y < 150) this.y += 1;
+                    else {
+                        this.x += Math.sin(frameCount * 0.02) * 2;
+                        // Spawner de minions del boss
+                        if (frameCount % 120 === 0) spawnEnemy('mine');
+                    }
+                } else if (this.type === 'shark') {
+                    // Shark chasing logic
+                    const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                    // Turn slowly
+                    this.vx = this.vx * 0.95 + Math.cos(angle) * this.speed * 0.05;
+                    this.vy = this.vy * 0.95 + Math.sin(angle) * this.speed * 0.05;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    // Rotation for drawing
+                    this.rot = Math.atan2(this.vy, this.vx);
+                } else {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                this.pulse += 0.1;
+
+                // Cleanup bounds (except boss)
+                if (this.type !== 'boss' && (this.x < -200 || this.x > canvas.width + 200 || this.y < -200 || this.y > canvas.height + 200)) {
+                    this.markedForDeletion = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.type === 'mine') {
+                    ctx.fillStyle = '#37474F';
+                    ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#90A4AE';
+                    for (let i = 0; i < 8; i++) {
+                        ctx.rotate(Math.PI / 4);
+                        ctx.beginPath(); ctx.moveTo(10, -5); ctx.lineTo(26, 0); ctx.lineTo(10, 5); ctx.fill();
+                    }
+                    const redVal = Math.sin(this.pulse * 0.5) * 100 + 155;
+                    ctx.fillStyle = `rgb(${redVal}, 0, 0)`;
+                    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'shark') {
+                    ctx.rotate(this.rot);
+                    ctx.fillStyle = '#D32F2F'; // Red shark
+                    ctx.beginPath();
+                    ctx.moveTo(20, 0);
+                    ctx.lineTo(-20, 15);
+                    ctx.lineTo(-15, 0);
+                    ctx.lineTo(-20, -15);
+                    ctx.fill();
+                    // Ojo
+                    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(5, -5, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(5, -5, 2, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'boss') {
+                    const shakeX = Math.random() * (this.damageFlash > 0 ? 5 : 0);
+                    ctx.translate(shakeX, 0);
+
+                    // --- INICIO DIBUJO DEL KRAKEN ---
+                    const color = this.damageFlash > 0 ? '#FFEB3B' : '#4A148C'; // Flash amarillo al golpear
+                    const darkColor = '#2C0A50';
+
+                    // 1. Tentáculos del fondo (más grandes y lentos)
+                    for (let i = 0; i < 6; i++) {
+                        ctx.strokeStyle = darkColor;
+                        ctx.lineWidth = 15;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        const startX = (i - 2.5) * 20;
+                        const startY = 40;
+                        const sway = Math.sin(frameCount * 0.05 + i) * 20;
+                        const swayY = Math.cos(frameCount * 0.03 + i) * 10;
+
+                        ctx.moveTo(startX, startY);
+                        ctx.bezierCurveTo(
+                            startX * 1.5, startY + 50 + swayY,
+                            startX * 2 + sway, startY + 120 + swayY,
+                            startX * 1.5 + sway * 0.5, startY + 180
+                        );
+                        ctx.stroke();
+                    }
+
+                    // 2. Cabeza del Kraken (bulbo)
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(0, -30, 70, Math.PI, 0); // Parte superior
+                    ctx.lineTo(70, 40);
+                    ctx.lineTo(0, 70);
+                    ctx.lineTo(-70, 40);
+                    ctx.fill();
+
+                    // 3. Boca/Mentón (Más oscura)
+                    ctx.fillStyle = darkColor;
+                    ctx.beginPath();
+                    ctx.arc(0, 45, 20, 0, Math.PI);
+                    ctx.fill();
+
+                    // 4. Ojos (Más amenazantes)
+                    const eyePupil = Math.abs(Math.sin(this.pulse * 0.5)) * 5 + 5; // Pupila pulsante
+
+                    // Ojo Izq
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(-30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(-30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    // Ojo Der
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    if (this.damageFlash > 0) this.damageFlash--;
+                    // --- FIN DIBUJO DEL KRAKEN ---
+
+                }
+                else {
+                    // Jelly
+                    const bounce = Math.sin(this.pulse) * 4;
+                    ctx.fillStyle = 'rgba(0, 229, 255, 0.5)';
+                    ctx.strokeStyle = 'rgba(179, 229, 252, 0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, -5 + bounce, 20, Math.PI, 0);
+                    ctx.bezierCurveTo(20, 15 + bounce, -20, 15 + bounce, -20, -5 + bounce);
+                    ctx.fill(); ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(-10, 5 + bounce); ctx.lineTo(-5, 30 + bounce);
+                    ctx.moveTo(10, 5 + bounce); ctx.lineTo(5, 30 + bounce);
+                    ctx.moveTo(0, 5 + bounce); ctx.lineTo(0, 35 + bounce);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            takeDamage() {
+                if (this.invulnerabilityTimer > 0) return; // No toma daño si es invulnerable
+
+                this.health--;
+                this.invulnerabilityTimer = 30; // 0.5 seconds post-hit invulnerability
+                updateHUD();
+                spawnParticles(this.x, this.y, 'red', 20);
+                playSound('hit');
+                shake = 10;
+                floatingTexts.push(new FloatingText("-1 VIDA", this.x, this.y - 50, '#FF1744', 30));
+
+                if (this.health <= 0) endGame();
+            }
+
+            update() {
+                if (this.energy < this.maxEnergy) this.energy += 0.4;
+                energyBar.style.width = `${this.energy}%`;
+
+                // Handle timers
+                if (this.dashingTimer > 0) {
+                    this.dashingTimer--;
+                    this.dashing = true;
+                } else {
+                    this.dashing = false;
+                }
+
+                if (this.invulnerabilityTimer > 0) {
+                    this.invulnerabilityTimer--;
+                }
+
+                if (this.shielded) {
+                    this.shieldTimer--;
+                    if (this.shieldTimer <= 0) this.shielded = false;
+                }
+
+                if (this.magnet) {
+                    this.magnetTimer--;
+                    if (this.magnetTimer <= 0) this.magnet = false;
+                }
+
+                // --- Movement Logic with Joystick / Keyboard ---
+                const moveSpeed = 4.5;
+                let inputDx = 0;
+                let inputDy = 0;
+                let hasKeyboardInput = keyboardInput.w || keyboardInput.a || keyboardInput.s || keyboardInput.d;
+
+                if (this.dashing) {
+                    // Keep moving with Dash velocity (no friction while dashing)
+                    this.x += this.vx;
+                    this.y += this.vy;
+                } else {
+                    // 1. Determine Input Vector
+                    if (hasKeyboardInput) {
+                        // Keyboard Input takes priority
+                        if (keyboardInput.a) inputDx -= 1;
+                        if (keyboardInput.d) inputDx += 1;
+                        if (keyboardInput.w) inputDy -= 1;
+                        if (keyboardInput.s) inputDy += 1;
+                    } else {
+                        // Joystick Input
+                        inputDx = joystick.dx;
+                        inputDy = joystick.dy;
+                    }
+
+                    // 2. Normalize and Set Velocity
+                    if (inputDx !== 0 || inputDy !== 0) {
+                        // Normalize the direction vector (important for WASD diagonal movement)
+                        const magnitude = Math.hypot(inputDx, inputDy);
+                        const normalizedDx = inputDx / magnitude;
+                        const normalizedDy = inputDy / magnitude;
+
+                        this.vx = normalizedDx * moveSpeed;
+                        this.vy = normalizedDy * moveSpeed;
+
+                        // Set angle based on the combined input
+                        this.angle = Math.atan2(normalizedDy, normalizedDx) + Math.PI / 2;
+                    } else {
+                        // Apply friction if no input
+                        this.vx *= this.friction;
+                        this.vy *= this.friction;
+                    }
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                // Boundary checking
+                this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Invulnerability effect: red pulse
+                if (this.invulnerabilityTimer > 0) {
+                    const alpha = Math.abs(Math.sin(frameCount * 0.5)) * 0.5 + 0.5;
+                    ctx.globalAlpha = alpha;
+                    ctx.strokeStyle = `rgba(255, 69, 0, ${alpha})`;
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.shielded) {
+                    const shieldAlpha = Math.abs(Math.sin(frameCount * 0.1)) + 0.5;
+                    ctx.strokeStyle = `rgba(0, 229, 255, ${shieldAlpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.magnet) {
+                    ctx.strokeStyle = `rgba(170, 0, 255, 0.3)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 150, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.rotate(this.angle);
+
+                for (let t of this.tentacles) {
+                    const wave = Math.sin(frameCount * 0.2 + t.moveOffset) * (this.dashing ? 2 : 10);
+                    ctx.beginPath();
+                    const bx = Math.cos(t.angle) * 15;
+                    const by = Math.sin(t.angle) * 15;
+                    const stretch = this.dashing ? 25 : 0;
+                    const tx = Math.cos(t.angle + wave * 0.03) * (50 + stretch);
+                    const ty = Math.sin(t.angle + wave * 0.03) * (50 + stretch) + 10;
+
+                    ctx.moveTo(bx, by);
+                    ctx.quadraticCurveTo(bx * 2, by * 2 + 10 + stretch, tx, ty);
+
+                    ctx.lineWidth = 8;
+                    ctx.strokeStyle = this.color;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, -10, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Face
+                const eyeY = this.dashing ? -8 : -5;
+                const eyeSize = this.dashing ? 5 : 8;
+                // Left Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+                // Right Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor(type, difficultyMult) {
+                this.type = type;
+                // Aumenta la vida del jefe por oleada para hacerlo más difícil
+                this.maxHp = type === 'boss' ? 50 + (wave - 1) * 10 : 1;
+                this.hp = this.maxHp;
+                this.radius = type === 'mine' ? 20 : (type === 'shark' ? 30 : (type === 'boss' ? 80 : 25));
+
+                // Spawn logic
+                if (type === 'boss') {
+                    this.x = canvas.width / 2;
+                    this.y = -150;
+                } else {
+                    const edge = Math.floor(Math.random() * 4);
+                    if (edge === 0) { this.x = Math.random() * canvas.width; this.y = -50; }
+                    else if (edge === 1) { this.x = canvas.width + 50; this.y = Math.random() * canvas.height; }
+                    else if (edge === 2) { this.x = Math.random() * canvas.width; this.y = canvas.height + 50; }
+                    else { this.x = -50; this.y = Math.random() * canvas.height; }
+                }
+
+                const angle = Math.atan2((canvas.height / 2) - this.y, (canvas.width / 2) - this.x);
+                let speedBase = 2;
+                if (type === 'mine') speedBase = 2.5;
+                if (type === 'shark') speedBase = 3.5; // Faster
+                if (type === 'boss') speedBase = 1;
+
+                this.speed = speedBase * (1 + difficultyMult * 0.1);
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+
+                this.markedForDeletion = false;
+                this.pulse = 0;
+                this.damageFlash = 0; // Para el efecto visual del boss al ser golpeado
+            }
+
+            update() {
+                if (this.type === 'boss') {
+                    // Boss logic: slowly descend then hover
+                    if (this.y < 150) this.y += 1;
+                    else {
+                        this.x += Math.sin(frameCount * 0.02) * 2;
+                        // Spawner de minions del boss
+                        if (frameCount % 120 === 0) spawnEnemy('mine');
+                    }
+                } else if (this.type === 'shark') {
+                    // Shark chasing logic
+                    const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                    // Turn slowly
+                    this.vx = this.vx * 0.95 + Math.cos(angle) * this.speed * 0.05;
+                    this.vy = this.vy * 0.95 + Math.sin(angle) * this.speed * 0.05;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    // Rotation for drawing
+                    this.rot = Math.atan2(this.vy, this.vx);
+                } else {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                this.pulse += 0.1;
+
+                // Cleanup bounds (except boss)
+                if (this.type !== 'boss' && (this.x < -200 || this.x > canvas.width + 200 || this.y < -200 || this.y > canvas.height + 200)) {
+                    this.markedForDeletion = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.type === 'mine') {
+                    ctx.fillStyle = '#37474F';
+                    ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#90A4AE';
+                    for (let i = 0; i < 8; i++) {
+                        ctx.rotate(Math.PI / 4);
+                        ctx.beginPath(); ctx.moveTo(10, -5); ctx.lineTo(26, 0); ctx.lineTo(10, 5); ctx.fill();
+                    }
+                    const redVal = Math.sin(this.pulse * 0.5) * 100 + 155;
+                    ctx.fillStyle = `rgb(${redVal}, 0, 0)`;
+                    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'shark') {
+                    ctx.rotate(this.rot);
+                    ctx.fillStyle = '#D32F2F'; // Red shark
+                    ctx.beginPath();
+                    ctx.moveTo(20, 0);
+                    ctx.lineTo(-20, 15);
+                    ctx.lineTo(-15, 0);
+                    ctx.lineTo(-20, -15);
+                    ctx.fill();
+                    // Ojo
+                    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(5, -5, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(5, -5, 2, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'boss') {
+                    const shakeX = Math.random() * (this.damageFlash > 0 ? 5 : 0);
+                    ctx.translate(shakeX, 0);
+
+                    // --- INICIO DIBUJO DEL KRAKEN ---
+                    const color = this.damageFlash > 0 ? '#FFEB3B' : '#4A148C'; // Flash amarillo al golpear
+                    const darkColor = '#2C0A50';
+
+                    // 1. Tentáculos del fondo (más grandes y lentos)
+                    for (let i = 0; i < 6; i++) {
+                        ctx.strokeStyle = darkColor;
+                        ctx.lineWidth = 15;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        const startX = (i - 2.5) * 20;
+                        const startY = 40;
+                        const sway = Math.sin(frameCount * 0.05 + i) * 20;
+                        const swayY = Math.cos(frameCount * 0.03 + i) * 10;
+
+                        ctx.moveTo(startX, startY);
+                        ctx.bezierCurveTo(
+                            startX * 1.5, startY + 50 + swayY,
+                            startX * 2 + sway, startY + 120 + swayY,
+                            startX * 1.5 + sway * 0.5, startY + 180
+                        );
+                        ctx.stroke();
+                    }
+
+                    // 2. Cabeza del Kraken (bulbo)
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(0, -30, 70, Math.PI, 0); // Parte superior
+                    ctx.lineTo(70, 40);
+                    ctx.lineTo(0, 70);
+                    ctx.lineTo(-70, 40);
+                    ctx.fill();
+
+                    // 3. Boca/Mentón (Más oscura)
+                    ctx.fillStyle = darkColor;
+                    ctx.beginPath();
+                    ctx.arc(0, 45, 20, 0, Math.PI);
+                    ctx.fill();
+
+                    // 4. Ojos (Más amenazantes)
+                    const eyePupil = Math.abs(Math.sin(this.pulse * 0.5)) * 5 + 5; // Pupila pulsante
+
+                    // Ojo Izq
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(-30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(-30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    // Ojo Der
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    if (this.damageFlash > 0) this.damageFlash--;
+                    // --- FIN DIBUJO DEL KRAKEN ---
+
+                }
+                else {
+                    // Jelly
+                    const bounce = Math.sin(this.pulse) * 4;
+                    ctx.fillStyle = 'rgba(0, 229, 255, 0.5)';
+                    ctx.strokeStyle = 'rgba(179, 229, 252, 0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, -5 + bounce, 20, Math.PI, 0);
+                    ctx.bezierCurveTo(20, 15 + bounce, -20, 15 + bounce, -20, -5 + bounce);
+                    ctx.fill(); ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(-10, 5 + bounce); ctx.lineTo(-5, 30 + bounce);
+                    ctx.moveTo(10, 5 + bounce); ctx.lineTo(5, 30 + bounce);
+                    ctx.moveTo(0, 5 + bounce); ctx.lineTo(0, 35 + bounce);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            takeDamage() {
+                if (this.invulnerabilityTimer > 0) return; // No toma daño si es invulnerable
+
+                this.health--;
+                this.invulnerabilityTimer = 30; // 0.5 seconds post-hit invulnerability
+                updateHUD();
+                spawnParticles(this.x, this.y, 'red', 20);
+                playSound('hit');
+                shake = 10;
+                floatingTexts.push(new FloatingText("-1 VIDA", this.x, this.y - 50, '#FF1744', 30));
+
+                if (this.health <= 0) endGame();
+            }
+
+            update() {
+                if (this.energy < this.maxEnergy) this.energy += 0.4;
+                energyBar.style.width = `${this.energy}%`;
+
+                // Handle timers
+                if (this.dashingTimer > 0) {
+                    this.dashingTimer--;
+                    this.dashing = true;
+                } else {
+                    this.dashing = false;
+                }
+
+                if (this.invulnerabilityTimer > 0) {
+                    this.invulnerabilityTimer--;
+                }
+
+                if (this.shielded) {
+                    this.shieldTimer--;
+                    if (this.shieldTimer <= 0) this.shielded = false;
+                }
+
+                if (this.magnet) {
+                    this.magnetTimer--;
+                    if (this.magnetTimer <= 0) this.magnet = false;
+                }
+
+                // --- Movement Logic with Joystick / Keyboard ---
+                const moveSpeed = 4.5;
+                let inputDx = 0;
+                let inputDy = 0;
+                let hasKeyboardInput = keyboardInput.w || keyboardInput.a || keyboardInput.s || keyboardInput.d;
+
+                if (this.dashing) {
+                    // Keep moving with Dash velocity (no friction while dashing)
+                    this.x += this.vx;
+                    this.y += this.vy;
+                } else {
+                    // 1. Determine Input Vector
+                    if (hasKeyboardInput) {
+                        // Keyboard Input takes priority
+                        if (keyboardInput.a) inputDx -= 1;
+                        if (keyboardInput.d) inputDx += 1;
+                        if (keyboardInput.w) inputDy -= 1;
+                        if (keyboardInput.s) inputDy += 1;
+                    } else {
+                        // Joystick Input
+                        inputDx = joystick.dx;
+                        inputDy = joystick.dy;
+                    }
+
+                    // 2. Normalize and Set Velocity
+                    if (inputDx !== 0 || inputDy !== 0) {
+                        // Normalize the direction vector (important for WASD diagonal movement)
+                        const magnitude = Math.hypot(inputDx, inputDy);
+                        const normalizedDx = inputDx / magnitude;
+                        const normalizedDy = inputDy / magnitude;
+
+                        this.vx = normalizedDx * moveSpeed;
+                        this.vy = normalizedDy * moveSpeed;
+
+                        // Set angle based on the combined input
+                        this.angle = Math.atan2(normalizedDy, normalizedDx) + Math.PI / 2;
+                    } else {
+                        // Apply friction if no input
+                        this.vx *= this.friction;
+                        this.vy *= this.friction;
+                    }
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                // Boundary checking
+                this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Invulnerability effect: red pulse
+                if (this.invulnerabilityTimer > 0) {
+                    const alpha = Math.abs(Math.sin(frameCount * 0.5)) * 0.5 + 0.5;
+                    ctx.globalAlpha = alpha;
+                    ctx.strokeStyle = `rgba(255, 69, 0, ${alpha})`;
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.shielded) {
+                    const shieldAlpha = Math.abs(Math.sin(frameCount * 0.1)) + 0.5;
+                    ctx.strokeStyle = `rgba(0, 229, 255, ${shieldAlpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.magnet) {
+                    ctx.strokeStyle = `rgba(170, 0, 255, 0.3)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 150, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.rotate(this.angle);
+
+                for (let t of this.tentacles) {
+                    const wave = Math.sin(frameCount * 0.2 + t.moveOffset) * (this.dashing ? 2 : 10);
+                    ctx.beginPath();
+                    const bx = Math.cos(t.angle) * 15;
+                    const by = Math.sin(t.angle) * 15;
+                    const stretch = this.dashing ? 25 : 0;
+                    const tx = Math.cos(t.angle + wave * 0.03) * (50 + stretch);
+                    const ty = Math.sin(t.angle + wave * 0.03) * (50 + stretch) + 10;
+
+                    ctx.moveTo(bx, by);
+                    ctx.quadraticCurveTo(bx * 2, by * 2 + 10 + stretch, tx, ty);
+
+                    ctx.lineWidth = 8;
+                    ctx.strokeStyle = this.color;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, -10, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Face
+                const eyeY = this.dashing ? -8 : -5;
+                const eyeSize = this.dashing ? 5 : 8;
+                // Left Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+                // Right Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor(type, difficultyMult) {
+                this.type = type;
+                // Aumenta la vida del jefe por oleada para hacerlo más difícil
+                this.maxHp = type === 'boss' ? 50 + (wave - 1) * 10 : 1;
+                this.hp = this.maxHp;
+                this.radius = type === 'mine' ? 20 : (type === 'shark' ? 30 : (type === 'boss' ? 80 : 25));
+
+                // Spawn logic
+                if (type === 'boss') {
+                    this.x = canvas.width / 2;
+                    this.y = -150;
+                } else {
+                    const edge = Math.floor(Math.random() * 4);
+                    if (edge === 0) { this.x = Math.random() * canvas.width; this.y = -50; }
+                    else if (edge === 1) { this.x = canvas.width + 50; this.y = Math.random() * canvas.height; }
+                    else if (edge === 2) { this.x = Math.random() * canvas.width; this.y = canvas.height + 50; }
+                    else { this.x = -50; this.y = Math.random() * canvas.height; }
+                }
+
+                const angle = Math.atan2((canvas.height / 2) - this.y, (canvas.width / 2) - this.x);
+                let speedBase = 2;
+                if (type === 'mine') speedBase = 2.5;
+                if (type === 'shark') speedBase = 3.5; // Faster
+                if (type === 'boss') speedBase = 1;
+
+                this.speed = speedBase * (1 + difficultyMult * 0.1);
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+
+                this.markedForDeletion = false;
+                this.pulse = 0;
+                this.damageFlash = 0; // Para el efecto visual del boss al ser golpeado
+            }
+
+            update() {
+                if (this.type === 'boss') {
+                    // Boss logic: slowly descend then hover
+                    if (this.y < 150) this.y += 1;
+                    else {
+                        this.x += Math.sin(frameCount * 0.02) * 2;
+                        // Spawner de minions del boss
+                        if (frameCount % 120 === 0) spawnEnemy('mine');
+                    }
+                } else if (this.type === 'shark') {
+                    // Shark chasing logic
+                    const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                    // Turn slowly
+                    this.vx = this.vx * 0.95 + Math.cos(angle) * this.speed * 0.05;
+                    this.vy = this.vy * 0.95 + Math.sin(angle) * this.speed * 0.05;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    // Rotation for drawing
+                    this.rot = Math.atan2(this.vy, this.vx);
+                } else {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                this.pulse += 0.1;
+
+                // Cleanup bounds (except boss)
+                if (this.type !== 'boss' && (this.x < -200 || this.x > canvas.width + 200 || this.y < -200 || this.y > canvas.height + 200)) {
+                    this.markedForDeletion = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.type === 'mine') {
+                    ctx.fillStyle = '#37474F';
+                    ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#90A4AE';
+                    for (let i = 0; i < 8; i++) {
+                        ctx.rotate(Math.PI / 4);
+                        ctx.beginPath(); ctx.moveTo(10, -5); ctx.lineTo(26, 0); ctx.lineTo(10, 5); ctx.fill();
+                    }
+                    const redVal = Math.sin(this.pulse * 0.5) * 100 + 155;
+                    ctx.fillStyle = `rgb(${redVal}, 0, 0)`;
+                    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'shark') {
+                    ctx.rotate(this.rot);
+                    ctx.fillStyle = '#D32F2F'; // Red shark
+                    ctx.beginPath();
+                    ctx.moveTo(20, 0);
+                    ctx.lineTo(-20, 15);
+                    ctx.lineTo(-15, 0);
+                    ctx.lineTo(-20, -15);
+                    ctx.fill();
+                    // Ojo
+                    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(5, -5, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(5, -5, 2, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'boss') {
+                    const shakeX = Math.random() * (this.damageFlash > 0 ? 5 : 0);
+                    ctx.translate(shakeX, 0);
+
+                    // --- INICIO DIBUJO DEL KRAKEN ---
+                    const color = this.damageFlash > 0 ? '#FFEB3B' : '#4A148C'; // Flash amarillo al golpear
+                    const darkColor = '#2C0A50';
+
+                    // 1. Tentáculos del fondo (más grandes y lentos)
+                    for (let i = 0; i < 6; i++) {
+                        ctx.strokeStyle = darkColor;
+                        ctx.lineWidth = 15;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        const startX = (i - 2.5) * 20;
+                        const startY = 40;
+                        const sway = Math.sin(frameCount * 0.05 + i) * 20;
+                        const swayY = Math.cos(frameCount * 0.03 + i) * 10;
+
+                        ctx.moveTo(startX, startY);
+                        ctx.bezierCurveTo(
+                            startX * 1.5, startY + 50 + swayY,
+                            startX * 2 + sway, startY + 120 + swayY,
+                            startX * 1.5 + sway * 0.5, startY + 180
+                        );
+                        ctx.stroke();
+                    }
+
+                    // 2. Cabeza del Kraken (bulbo)
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(0, -30, 70, Math.PI, 0); // Parte superior
+                    ctx.lineTo(70, 40);
+                    ctx.lineTo(0, 70);
+                    ctx.lineTo(-70, 40);
+                    ctx.fill();
+
+                    // 3. Boca/Mentón (Más oscura)
+                    ctx.fillStyle = darkColor;
+                    ctx.beginPath();
+                    ctx.arc(0, 45, 20, 0, Math.PI);
+                    ctx.fill();
+
+                    // 4. Ojos (Más amenazantes)
+                    const eyePupil = Math.abs(Math.sin(this.pulse * 0.5)) * 5 + 5; // Pupila pulsante
+
+                    // Ojo Izq
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(-30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(-30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    // Ojo Der
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    if (this.damageFlash > 0) this.damageFlash--;
+                    // --- FIN DIBUJO DEL KRAKEN ---
+
+                }
+                else {
+                    // Jelly
+                    const bounce = Math.sin(this.pulse) * 4;
+                    ctx.fillStyle = 'rgba(0, 229, 255, 0.5)';
+                    ctx.strokeStyle = 'rgba(179, 229, 252, 0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, -5 + bounce, 20, Math.PI, 0);
+                    ctx.bezierCurveTo(20, 15 + bounce, -20, 15 + bounce, -20, -5 + bounce);
+                    ctx.fill(); ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(-10, 5 + bounce); ctx.lineTo(-5, 30 + bounce);
+                    ctx.moveTo(10, 5 + bounce); ctx.lineTo(5, 30 + bounce);
+                    ctx.moveTo(0, 5 + bounce); ctx.lineTo(0, 35 + bounce);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            takeDamage() {
+                if (this.invulnerabilityTimer > 0) return; // No toma daño si es invulnerable
+
+                this.health--;
+                this.invulnerabilityTimer = 30; // 0.5 seconds post-hit invulnerability
+                updateHUD();
+                spawnParticles(this.x, this.y, 'red', 20);
+                playSound('hit');
+                shake = 10;
+                floatingTexts.push(new FloatingText("-1 VIDA", this.x, this.y - 50, '#FF1744', 30));
+
+                if (this.health <= 0) endGame();
+            }
+
+            update() {
+                if (this.energy < this.maxEnergy) this.energy += 0.4;
+                energyBar.style.width = `${this.energy}%`;
+
+                // Handle timers
+                if (this.dashingTimer > 0) {
+                    this.dashingTimer--;
+                    this.dashing = true;
+                } else {
+                    this.dashing = false;
+                }
+
+                if (this.invulnerabilityTimer > 0) {
+                    this.invulnerabilityTimer--;
+                }
+
+                if (this.shielded) {
+                    this.shieldTimer--;
+                    if (this.shieldTimer <= 0) this.shielded = false;
+                }
+
+                if (this.magnet) {
+                    this.magnetTimer--;
+                    if (this.magnetTimer <= 0) this.magnet = false;
+                }
+
+                // --- Movement Logic with Joystick / Keyboard ---
+                const moveSpeed = 4.5;
+                let inputDx = 0;
+                let inputDy = 0;
+                let hasKeyboardInput = keyboardInput.w || keyboardInput.a || keyboardInput.s || keyboardInput.d;
+
+                if (this.dashing) {
+                    // Keep moving with Dash velocity (no friction while dashing)
+                    this.x += this.vx;
+                    this.y += this.vy;
+                } else {
+                    // 1. Determine Input Vector
+                    if (hasKeyboardInput) {
+                        // Keyboard Input takes priority
+                        if (keyboardInput.a) inputDx -= 1;
+                        if (keyboardInput.d) inputDx += 1;
+                        if (keyboardInput.w) inputDy -= 1;
+                        if (keyboardInput.s) inputDy += 1;
+                    } else {
+                        // Joystick Input
+                        inputDx = joystick.dx;
+                        inputDy = joystick.dy;
+                    }
+
+                    // 2. Normalize and Set Velocity
+                    if (inputDx !== 0 || inputDy !== 0) {
+                        // Normalize the direction vector (important for WASD diagonal movement)
+                        const magnitude = Math.hypot(inputDx, inputDy);
+                        const normalizedDx = inputDx / magnitude;
+                        const normalizedDy = inputDy / magnitude;
+
+                        this.vx = normalizedDx * moveSpeed;
+                        this.vy = normalizedDy * moveSpeed;
+
+                        // Set angle based on the combined input
+                        this.angle = Math.atan2(normalizedDy, normalizedDx) + Math.PI / 2;
+                    } else {
+                        // Apply friction if no input
+                        this.vx *= this.friction;
+                        this.vy *= this.friction;
+                    }
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                // Boundary checking
+                this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Invulnerability effect: red pulse
+                if (this.invulnerabilityTimer > 0) {
+                    const alpha = Math.abs(Math.sin(frameCount * 0.5)) * 0.5 + 0.5;
+                    ctx.globalAlpha = alpha;
+                    ctx.strokeStyle = `rgba(255, 69, 0, ${alpha})`;
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.shielded) {
+                    const shieldAlpha = Math.abs(Math.sin(frameCount * 0.1)) + 0.5;
+                    ctx.strokeStyle = `rgba(0, 229, 255, ${shieldAlpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.magnet) {
+                    ctx.strokeStyle = `rgba(170, 0, 255, 0.3)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 150, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.rotate(this.angle);
+
+                for (let t of this.tentacles) {
+                    const wave = Math.sin(frameCount * 0.2 + t.moveOffset) * (this.dashing ? 2 : 10);
+                    ctx.beginPath();
+                    const bx = Math.cos(t.angle) * 15;
+                    const by = Math.sin(t.angle) * 15;
+                    const stretch = this.dashing ? 25 : 0;
+                    const tx = Math.cos(t.angle + wave * 0.03) * (50 + stretch);
+                    const ty = Math.sin(t.angle + wave * 0.03) * (50 + stretch) + 10;
+
+                    ctx.moveTo(bx, by);
+                    ctx.quadraticCurveTo(bx * 2, by * 2 + 10 + stretch, tx, ty);
+
+                    ctx.lineWidth = 8;
+                    ctx.strokeStyle = this.color;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, -10, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Face
+                const eyeY = this.dashing ? -8 : -5;
+                const eyeSize = this.dashing ? 5 : 8;
+                // Left Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+                // Right Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor(type, difficultyMult) {
+                this.type = type;
+                // Aumenta la vida del jefe por oleada para hacerlo más difícil
+                this.maxHp = type === 'boss' ? 50 + (wave - 1) * 10 : 1;
+                this.hp = this.maxHp;
+                this.radius = type === 'mine' ? 20 : (type === 'shark' ? 30 : (type === 'boss' ? 80 : 25));
+
+                // Spawn logic
+                if (type === 'boss') {
+                    this.x = canvas.width / 2;
+                    this.y = -150;
+                } else {
+                    const edge = Math.floor(Math.random() * 4);
+                    if (edge === 0) { this.x = Math.random() * canvas.width; this.y = -50; }
+                    else if (edge === 1) { this.x = canvas.width + 50; this.y = Math.random() * canvas.height; }
+                    else if (edge === 2) { this.x = Math.random() * canvas.width; this.y = canvas.height + 50; }
+                    else { this.x = -50; this.y = Math.random() * canvas.height; }
+                }
+
+                const angle = Math.atan2((canvas.height / 2) - this.y, (canvas.width / 2) - this.x);
+                let speedBase = 2;
+                if (type === 'mine') speedBase = 2.5;
+                if (type === 'shark') speedBase = 3.5; // Faster
+                if (type === 'boss') speedBase = 1;
+
+                this.speed = speedBase * (1 + difficultyMult * 0.1);
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+
+                this.markedForDeletion = false;
+                this.pulse = 0;
+                this.damageFlash = 0; // Para el efecto visual del boss al ser golpeado
+            }
+
+            update() {
+                if (this.type === 'boss') {
+                    // Boss logic: slowly descend then hover
+                    if (this.y < 150) this.y += 1;
+                    else {
+                        this.x += Math.sin(frameCount * 0.02) * 2;
+                        // Spawner de minions del boss
+                        if (frameCount % 120 === 0) spawnEnemy('mine');
+                    }
+                } else if (this.type === 'shark') {
+                    // Shark chasing logic
+                    const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                    // Turn slowly
+                    this.vx = this.vx * 0.95 + Math.cos(angle) * this.speed * 0.05;
+                    this.vy = this.vy * 0.95 + Math.sin(angle) * this.speed * 0.05;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    // Rotation for drawing
+                    this.rot = Math.atan2(this.vy, this.vx);
+                } else {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                this.pulse += 0.1;
+
+                // Cleanup bounds (except boss)
+                if (this.type !== 'boss' && (this.x < -200 || this.x > canvas.width + 200 || this.y < -200 || this.y > canvas.height + 200)) {
+                    this.markedForDeletion = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.type === 'mine') {
+                    ctx.fillStyle = '#37474F';
+                    ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#90A4AE';
+                    for (let i = 0; i < 8; i++) {
+                        ctx.rotate(Math.PI / 4);
+                        ctx.beginPath(); ctx.moveTo(10, -5); ctx.lineTo(26, 0); ctx.lineTo(10, 5); ctx.fill();
+                    }
+                    const redVal = Math.sin(this.pulse * 0.5) * 100 + 155;
+                    ctx.fillStyle = `rgb(${redVal}, 0, 0)`;
+                    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'shark') {
+                    ctx.rotate(this.rot);
+                    ctx.fillStyle = '#D32F2F'; // Red shark
+                    ctx.beginPath();
+                    ctx.moveTo(20, 0);
+                    ctx.lineTo(-20, 15);
+                    ctx.lineTo(-15, 0);
+                    ctx.lineTo(-20, -15);
+                    ctx.fill();
+                    // Ojo
+                    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(5, -5, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(5, -5, 2, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'boss') {
+                    const shakeX = Math.random() * (this.damageFlash > 0 ? 5 : 0);
+                    ctx.translate(shakeX, 0);
+
+                    // --- INICIO DIBUJO DEL KRAKEN ---
+                    const color = this.damageFlash > 0 ? '#FFEB3B' : '#4A148C'; // Flash amarillo al golpear
+                    const darkColor = '#2C0A50';
+
+                    // 1. Tentáculos del fondo (más grandes y lentos)
+                    for (let i = 0; i < 6; i++) {
+                        ctx.strokeStyle = darkColor;
+                        ctx.lineWidth = 15;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        const startX = (i - 2.5) * 20;
+                        const startY = 40;
+                        const sway = Math.sin(frameCount * 0.05 + i) * 20;
+                        const swayY = Math.cos(frameCount * 0.03 + i) * 10;
+
+                        ctx.moveTo(startX, startY);
+                        ctx.bezierCurveTo(
+                            startX * 1.5, startY + 50 + swayY,
+                            startX * 2 + sway, startY + 120 + swayY,
+                            startX * 1.5 + sway * 0.5, startY + 180
+                        );
+                        ctx.stroke();
+                    }
+
+                    // 2. Cabeza del Kraken (bulbo)
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(0, -30, 70, Math.PI, 0); // Parte superior
+                    ctx.lineTo(70, 40);
+                    ctx.lineTo(0, 70);
+                    ctx.lineTo(-70, 40);
+                    ctx.fill();
+
+                    // 3. Boca/Mentón (Más oscura)
+                    ctx.fillStyle = darkColor;
+                    ctx.beginPath();
+                    ctx.arc(0, 45, 20, 0, Math.PI);
+                    ctx.fill();
+
+                    // 4. Ojos (Más amenazantes)
+                    const eyePupil = Math.abs(Math.sin(this.pulse * 0.5)) * 5 + 5; // Pupila pulsante
+
+                    // Ojo Izq
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(-30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(-30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    // Ojo Der
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    if (this.damageFlash > 0) this.damageFlash--;
+                    // --- FIN DIBUJO DEL KRAKEN ---
+
+                }
+                else {
+                    // Jelly
+                    const bounce = Math.sin(this.pulse) * 4;
+                    ctx.fillStyle = 'rgba(0, 229, 255, 0.5)';
+                    ctx.strokeStyle = 'rgba(179, 229, 252, 0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, -5 + bounce, 20, Math.PI, 0);
+                    ctx.bezierCurveTo(20, 15 + bounce, -20, 15 + bounce, -20, -5 + bounce);
+                    ctx.fill(); ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(-10, 5 + bounce); ctx.lineTo(-5, 30 + bounce);
+                    ctx.moveTo(10, 5 + bounce); ctx.lineTo(5, 30 + bounce);
+                    ctx.moveTo(0, 5 + bounce); ctx.lineTo(0, 35 + bounce);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            takeDamage() {
+                if (this.invulnerabilityTimer > 0) return; // No toma daño si es invulnerable
+
+                this.health--;
+                this.invulnerabilityTimer = 30; // 0.5 seconds post-hit invulnerability
+                updateHUD();
+                spawnParticles(this.x, this.y, 'red', 20);
+                playSound('hit');
+                shake = 10;
+                floatingTexts.push(new FloatingText("-1 VIDA", this.x, this.y - 50, '#FF1744', 30));
+
+                if (this.health <= 0) endGame();
+            }
+
+            update() {
+                if (this.energy < this.maxEnergy) this.energy += 0.4;
+                energyBar.style.width = `${this.energy}%`;
+
+                // Handle timers
+                if (this.dashingTimer > 0) {
+                    this.dashingTimer--;
+                    this.dashing = true;
+                } else {
+                    this.dashing = false;
+                }
+
+                if (this.invulnerabilityTimer > 0) {
+                    this.invulnerabilityTimer--;
+                }
+
+                if (this.shielded) {
+                    this.shieldTimer--;
+                    if (this.shieldTimer <= 0) this.shielded = false;
+                }
+
+                if (this.magnet) {
+                    this.magnetTimer--;
+                    if (this.magnetTimer <= 0) this.magnet = false;
+                }
+
+                // --- Movement Logic with Joystick / Keyboard ---
+                const moveSpeed = 4.5;
+                let inputDx = 0;
+                let inputDy = 0;
+                let hasKeyboardInput = keyboardInput.w || keyboardInput.a || keyboardInput.s || keyboardInput.d;
+
+                if (this.dashing) {
+                    // Keep moving with Dash velocity (no friction while dashing)
+                    this.x += this.vx;
+                    this.y += this.vy;
+                } else {
+                    // 1. Determine Input Vector
+                    if (hasKeyboardInput) {
+                        // Keyboard Input takes priority
+                        if (keyboardInput.a) inputDx -= 1;
+                        if (keyboardInput.d) inputDx += 1;
+                        if (keyboardInput.w) inputDy -= 1;
+                        if (keyboardInput.s) inputDy += 1;
+                    } else {
+                        // Joystick Input
+                        inputDx = joystick.dx;
+                        inputDy = joystick.dy;
+                    }
+
+                    // 2. Normalize and Set Velocity
+                    if (inputDx !== 0 || inputDy !== 0) {
+                        // Normalize the direction vector (important for WASD diagonal movement)
+                        const magnitude = Math.hypot(inputDx, inputDy);
+                        const normalizedDx = inputDx / magnitude;
+                        const normalizedDy = inputDy / magnitude;
+
+                        this.vx = normalizedDx * moveSpeed;
+                        this.vy = normalizedDy * moveSpeed;
+
+                        // Set angle based on the combined input
+                        this.angle = Math.atan2(normalizedDy, normalizedDx) + Math.PI / 2;
+                    } else {
+                        // Apply friction if no input
+                        this.vx *= this.friction;
+                        this.vy *= this.friction;
+                    }
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                // Boundary checking
+                this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Invulnerability effect: red pulse
+                if (this.invulnerabilityTimer > 0) {
+                    const alpha = Math.abs(Math.sin(frameCount * 0.5)) * 0.5 + 0.5;
+                    ctx.globalAlpha = alpha;
+                    ctx.strokeStyle = `rgba(255, 69, 0, ${alpha})`;
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.shielded) {
+                    const shieldAlpha = Math.abs(Math.sin(frameCount * 0.1)) + 0.5;
+                    ctx.strokeStyle = `rgba(0, 229, 255, ${shieldAlpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.magnet) {
+                    ctx.strokeStyle = `rgba(170, 0, 255, 0.3)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 150, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.rotate(this.angle);
+
+                for (let t of this.tentacles) {
+                    const wave = Math.sin(frameCount * 0.2 + t.moveOffset) * (this.dashing ? 2 : 10);
+                    ctx.beginPath();
+                    const bx = Math.cos(t.angle) * 15;
+                    const by = Math.sin(t.angle) * 15;
+                    const stretch = this.dashing ? 25 : 0;
+                    const tx = Math.cos(t.angle + wave * 0.03) * (50 + stretch);
+                    const ty = Math.sin(t.angle + wave * 0.03) * (50 + stretch) + 10;
+
+                    ctx.moveTo(bx, by);
+                    ctx.quadraticCurveTo(bx * 2, by * 2 + 10 + stretch, tx, ty);
+
+                    ctx.lineWidth = 8;
+                    ctx.strokeStyle = this.color;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, -10, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Face
+                const eyeY = this.dashing ? -8 : -5;
+                const eyeSize = this.dashing ? 5 : 8;
+                // Left Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+                // Right Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor(type, difficultyMult) {
+                this.type = type;
+                // Aumenta la vida del jefe por oleada para hacerlo más difícil
+                this.maxHp = type === 'boss' ? 50 + (wave - 1) * 10 : 1;
+                this.hp = this.maxHp;
+                this.radius = type === 'mine' ? 20 : (type === 'shark' ? 30 : (type === 'boss' ? 80 : 25));
+
+                // Spawn logic
+                if (type === 'boss') {
+                    this.x = canvas.width / 2;
+                    this.y = -150;
+                } else {
+                    const edge = Math.floor(Math.random() * 4);
+                    if (edge === 0) { this.x = Math.random() * canvas.width; this.y = -50; }
+                    else if (edge === 1) { this.x = canvas.width + 50; this.y = Math.random() * canvas.height; }
+                    else if (edge === 2) { this.x = Math.random() * canvas.width; this.y = canvas.height + 50; }
+                    else { this.x = -50; this.y = Math.random() * canvas.height; }
+                }
+
+                const angle = Math.atan2((canvas.height / 2) - this.y, (canvas.width / 2) - this.x);
+                let speedBase = 2;
+                if (type === 'mine') speedBase = 2.5;
+                if (type === 'shark') speedBase = 3.5; // Faster
+                if (type === 'boss') speedBase = 1;
+
+                this.speed = speedBase * (1 + difficultyMult * 0.1);
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+
+                this.markedForDeletion = false;
+                this.pulse = 0;
+                this.damageFlash = 0; // Para el efecto visual del boss al ser golpeado
+            }
+
+            update() {
+                if (this.type === 'boss') {
+                    // Boss logic: slowly descend then hover
+                    if (this.y < 150) this.y += 1;
+                    else {
+                        this.x += Math.sin(frameCount * 0.02) * 2;
+                        // Spawner de minions del boss
+                        if (frameCount % 120 === 0) spawnEnemy('mine');
+                    }
+                } else if (this.type === 'shark') {
+                    // Shark chasing logic
+                    const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                    // Turn slowly
+                    this.vx = this.vx * 0.95 + Math.cos(angle) * this.speed * 0.05;
+                    this.vy = this.vy * 0.95 + Math.sin(angle) * this.speed * 0.05;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    // Rotation for drawing
+                    this.rot = Math.atan2(this.vy, this.vx);
+                } else {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                this.pulse += 0.1;
+
+                // Cleanup bounds (except boss)
+                if (this.type !== 'boss' && (this.x < -200 || this.x > canvas.width + 200 || this.y < -200 || this.y > canvas.height + 200)) {
+                    this.markedForDeletion = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.type === 'mine') {
+                    ctx.fillStyle = '#37474F';
+                    ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#90A4AE';
+                    for (let i = 0; i < 8; i++) {
+                        ctx.rotate(Math.PI / 4);
+                        ctx.beginPath(); ctx.moveTo(10, -5); ctx.lineTo(26, 0); ctx.lineTo(10, 5); ctx.fill();
+                    }
+                    const redVal = Math.sin(this.pulse * 0.5) * 100 + 155;
+                    ctx.fillStyle = `rgb(${redVal}, 0, 0)`;
+                    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'shark') {
+                    ctx.rotate(this.rot);
+                    ctx.fillStyle = '#D32F2F'; // Red shark
+                    ctx.beginPath();
+                    ctx.moveTo(20, 0);
+                    ctx.lineTo(-20, 15);
+                    ctx.lineTo(-15, 0);
+                    ctx.lineTo(-20, -15);
+                    ctx.fill();
+                    // Ojo
+                    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(5, -5, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(5, -5, 2, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'boss') {
+                    const shakeX = Math.random() * (this.damageFlash > 0 ? 5 : 0);
+                    ctx.translate(shakeX, 0);
+
+                    // --- INICIO DIBUJO DEL KRAKEN ---
+                    const color = this.damageFlash > 0 ? '#FFEB3B' : '#4A148C'; // Flash amarillo al golpear
+                    const darkColor = '#2C0A50';
+
+                    // 1. Tentáculos del fondo (más grandes y lentos)
+                    for (let i = 0; i < 6; i++) {
+                        ctx.strokeStyle = darkColor;
+                        ctx.lineWidth = 15;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        const startX = (i - 2.5) * 20;
+                        const startY = 40;
+                        const sway = Math.sin(frameCount * 0.05 + i) * 20;
+                        const swayY = Math.cos(frameCount * 0.03 + i) * 10;
+
+                        ctx.moveTo(startX, startY);
+                        ctx.bezierCurveTo(
+                            startX * 1.5, startY + 50 + swayY,
+                            startX * 2 + sway, startY + 120 + swayY,
+                            startX * 1.5 + sway * 0.5, startY + 180
+                        );
+                        ctx.stroke();
+                    }
+
+                    // 2. Cabeza del Kraken (bulbo)
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(0, -30, 70, Math.PI, 0); // Parte superior
+                    ctx.lineTo(70, 40);
+                    ctx.lineTo(0, 70);
+                    ctx.lineTo(-70, 40);
+                    ctx.fill();
+
+                    // 3. Boca/Mentón (Más oscura)
+                    ctx.fillStyle = darkColor;
+                    ctx.beginPath();
+                    ctx.arc(0, 45, 20, 0, Math.PI);
+                    ctx.fill();
+
+                    // 4. Ojos (Más amenazantes)
+                    const eyePupil = Math.abs(Math.sin(this.pulse * 0.5)) * 5 + 5; // Pupila pulsante
+
+                    // Ojo Izq
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(-30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(-30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    // Ojo Der
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    if (this.damageFlash > 0) this.damageFlash--;
+                    // --- FIN DIBUJO DEL KRAKEN ---
+
+                }
+                else {
+                    // Jelly
+                    const bounce = Math.sin(this.pulse) * 4;
+                    ctx.fillStyle = 'rgba(0, 229, 255, 0.5)';
+                    ctx.strokeStyle = 'rgba(179, 229, 252, 0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, -5 + bounce, 20, Math.PI, 0);
+                    ctx.bezierCurveTo(20, 15 + bounce, -20, 15 + bounce, -20, -5 + bounce);
+                    ctx.fill(); ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(-10, 5 + bounce); ctx.lineTo(-5, 30 + bounce);
+                    ctx.moveTo(10, 5 + bounce); ctx.lineTo(5, 30 + bounce);
+                    ctx.moveTo(0, 5 + bounce); ctx.lineTo(0, 35 + bounce);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            takeDamage() {
+                if (this.invulnerabilityTimer > 0) return; // No toma daño si es invulnerable
+
+                this.health--;
+                this.invulnerabilityTimer = 30; // 0.5 seconds post-hit invulnerability
+                updateHUD();
+                spawnParticles(this.x, this.y, 'red', 20);
+                playSound('hit');
+                shake = 10;
+                floatingTexts.push(new FloatingText("-1 VIDA", this.x, this.y - 50, '#FF1744', 30));
+
+                if (this.health <= 0) endGame();
+            }
+
+            update() {
+                if (this.energy < this.maxEnergy) this.energy += 0.4;
+                energyBar.style.width = `${this.energy}%`;
+
+                // Handle timers
+                if (this.dashingTimer > 0) {
+                    this.dashingTimer--;
+                    this.dashing = true;
+                } else {
+                    this.dashing = false;
+                }
+
+                if (this.invulnerabilityTimer > 0) {
+                    this.invulnerabilityTimer--;
+                }
+
+                if (this.shielded) {
+                    this.shieldTimer--;
+                    if (this.shieldTimer <= 0) this.shielded = false;
+                }
+
+                if (this.magnet) {
+                    this.magnetTimer--;
+                    if (this.magnetTimer <= 0) this.magnet = false;
+                }
+
+                // --- Movement Logic with Joystick / Keyboard ---
+                const moveSpeed = 4.5;
+                let inputDx = 0;
+                let inputDy = 0;
+                let hasKeyboardInput = keyboardInput.w || keyboardInput.a || keyboardInput.s || keyboardInput.d;
+
+                if (this.dashing) {
+                    // Keep moving with Dash velocity (no friction while dashing)
+                    this.x += this.vx;
+                    this.y += this.vy;
+                } else {
+                    // 1. Determine Input Vector
+                    if (hasKeyboardInput) {
+                        // Keyboard Input takes priority
+                        if (keyboardInput.a) inputDx -= 1;
+                        if (keyboardInput.d) inputDx += 1;
+                        if (keyboardInput.w) inputDy -= 1;
+                        if (keyboardInput.s) inputDy += 1;
+                    } else {
+                        // Joystick Input
+                        inputDx = joystick.dx;
+                        inputDy = joystick.dy;
+                    }
+
+                    // 2. Normalize and Set Velocity
+                    if (inputDx !== 0 || inputDy !== 0) {
+                        // Normalize the direction vector (important for WASD diagonal movement)
+                        const magnitude = Math.hypot(inputDx, inputDy);
+                        const normalizedDx = inputDx / magnitude;
+                        const normalizedDy = inputDy / magnitude;
+
+                        this.vx = normalizedDx * moveSpeed;
+                        this.vy = normalizedDy * moveSpeed;
+
+                        // Set angle based on the combined input
+                        this.angle = Math.atan2(normalizedDy, normalizedDx) + Math.PI / 2;
+                    } else {
+                        // Apply friction if no input
+                        this.vx *= this.friction;
+                        this.vy *= this.friction;
+                    }
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                // Boundary checking
+                this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Invulnerability effect: red pulse
+                if (this.invulnerabilityTimer > 0) {
+                    const alpha = Math.abs(Math.sin(frameCount * 0.5)) * 0.5 + 0.5;
+                    ctx.globalAlpha = alpha;
+                    ctx.strokeStyle = `rgba(255, 69, 0, ${alpha})`;
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.shielded) {
+                    const shieldAlpha = Math.abs(Math.sin(frameCount * 0.1)) + 0.5;
+                    ctx.strokeStyle = `rgba(0, 229, 255, ${shieldAlpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.magnet) {
+                    ctx.strokeStyle = `rgba(170, 0, 255, 0.3)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 150, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.rotate(this.angle);
+
+                for (let t of this.tentacles) {
+                    const wave = Math.sin(frameCount * 0.2 + t.moveOffset) * (this.dashing ? 2 : 10);
+                    ctx.beginPath();
+                    const bx = Math.cos(t.angle) * 15;
+                    const by = Math.sin(t.angle) * 15;
+                    const stretch = this.dashing ? 25 : 0;
+                    const tx = Math.cos(t.angle + wave * 0.03) * (50 + stretch);
+                    const ty = Math.sin(t.angle + wave * 0.03) * (50 + stretch) + 10;
+
+                    ctx.moveTo(bx, by);
+                    ctx.quadraticCurveTo(bx * 2, by * 2 + 10 + stretch, tx, ty);
+
+                    ctx.lineWidth = 8;
+                    ctx.strokeStyle = this.color;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, -10, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Face
+                const eyeY = this.dashing ? -8 : -5;
+                const eyeSize = this.dashing ? 5 : 8;
+                // Left Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+                // Right Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor(type, difficultyMult) {
+                this.type = type;
+                // Aumenta la vida del jefe por oleada para hacerlo más difícil
+                this.maxHp = type === 'boss' ? 50 + (wave - 1) * 10 : 1;
+                this.hp = this.maxHp;
+                this.radius = type === 'mine' ? 20 : (type === 'shark' ? 30 : (type === 'boss' ? 80 : 25));
+
+                // Spawn logic
+                if (type === 'boss') {
+                    this.x = canvas.width / 2;
+                    this.y = -150;
+                } else {
+                    const edge = Math.floor(Math.random() * 4);
+                    if (edge === 0) { this.x = Math.random() * canvas.width; this.y = -50; }
+                    else if (edge === 1) { this.x = canvas.width + 50; this.y = Math.random() * canvas.height; }
+                    else if (edge === 2) { this.x = Math.random() * canvas.width; this.y = canvas.height + 50; }
+                    else { this.x = -50; this.y = Math.random() * canvas.height; }
+                }
+
+                const angle = Math.atan2((canvas.height / 2) - this.y, (canvas.width / 2) - this.x);
+                let speedBase = 2;
+                if (type === 'mine') speedBase = 2.5;
+                if (type === 'shark') speedBase = 3.5; // Faster
+                if (type === 'boss') speedBase = 1;
+
+                this.speed = speedBase * (1 + difficultyMult * 0.1);
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+
+                this.markedForDeletion = false;
+                this.pulse = 0;
+                this.damageFlash = 0; // Para el efecto visual del boss al ser golpeado
+            }
+
+            update() {
+                if (this.type === 'boss') {
+                    // Boss logic: slowly descend then hover
+                    if (this.y < 150) this.y += 1;
+                    else {
+                        this.x += Math.sin(frameCount * 0.02) * 2;
+                        // Spawner de minions del boss
+                        if (frameCount % 120 === 0) spawnEnemy('mine');
+                    }
+                } else if (this.type === 'shark') {
+                    // Shark chasing logic
+                    const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                    // Turn slowly
+                    this.vx = this.vx * 0.95 + Math.cos(angle) * this.speed * 0.05;
+                    this.vy = this.vy * 0.95 + Math.sin(angle) * this.speed * 0.05;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    // Rotation for drawing
+                    this.rot = Math.atan2(this.vy, this.vx);
+                } else {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                this.pulse += 0.1;
+
+                // Cleanup bounds (except boss)
+                if (this.type !== 'boss' && (this.x < -200 || this.x > canvas.width + 200 || this.y < -200 || this.y > canvas.height + 200)) {
+                    this.markedForDeletion = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.type === 'mine') {
+                    ctx.fillStyle = '#37474F';
+                    ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#90A4AE';
+                    for (let i = 0; i < 8; i++) {
+                        ctx.rotate(Math.PI / 4);
+                        ctx.beginPath(); ctx.moveTo(10, -5); ctx.lineTo(26, 0); ctx.lineTo(10, 5); ctx.fill();
+                    }
+                    const redVal = Math.sin(this.pulse * 0.5) * 100 + 155;
+                    ctx.fillStyle = `rgb(${redVal}, 0, 0)`;
+                    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'shark') {
+                    ctx.rotate(this.rot);
+                    ctx.fillStyle = '#D32F2F'; // Red shark
+                    ctx.beginPath();
+                    ctx.moveTo(20, 0);
+                    ctx.lineTo(-20, 15);
+                    ctx.lineTo(-15, 0);
+                    ctx.lineTo(-20, -15);
+                    ctx.fill();
+                    // Ojo
+                    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(5, -5, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(5, -5, 2, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'boss') {
+                    const shakeX = Math.random() * (this.damageFlash > 0 ? 5 : 0);
+                    ctx.translate(shakeX, 0);
+
+                    // --- INICIO DIBUJO DEL KRAKEN ---
+                    const color = this.damageFlash > 0 ? '#FFEB3B' : '#4A148C'; // Flash amarillo al golpear
+                    const darkColor = '#2C0A50';
+
+                    // 1. Tentáculos del fondo (más grandes y lentos)
+                    for (let i = 0; i < 6; i++) {
+                        ctx.strokeStyle = darkColor;
+                        ctx.lineWidth = 15;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        const startX = (i - 2.5) * 20;
+                        const startY = 40;
+                        const sway = Math.sin(frameCount * 0.05 + i) * 20;
+                        const swayY = Math.cos(frameCount * 0.03 + i) * 10;
+
+                        ctx.moveTo(startX, startY);
+                        ctx.bezierCurveTo(
+                            startX * 1.5, startY + 50 + swayY,
+                            startX * 2 + sway, startY + 120 + swayY,
+                            startX * 1.5 + sway * 0.5, startY + 180
+                        );
+                        ctx.stroke();
+                    }
+
+                    // 2. Cabeza del Kraken (bulbo)
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(0, -30, 70, Math.PI, 0); // Parte superior
+                    ctx.lineTo(70, 40);
+                    ctx.lineTo(0, 70);
+                    ctx.lineTo(-70, 40);
+                    ctx.fill();
+
+                    // 3. Boca/Mentón (Más oscura)
+                    ctx.fillStyle = darkColor;
+                    ctx.beginPath();
+                    ctx.arc(0, 45, 20, 0, Math.PI);
+                    ctx.fill();
+
+                    // 4. Ojos (Más amenazantes)
+                    const eyePupil = Math.abs(Math.sin(this.pulse * 0.5)) * 5 + 5; // Pupila pulsante
+
+                    // Ojo Izq
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(-30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(-30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    // Ojo Der
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    if (this.damageFlash > 0) this.damageFlash--;
+                    // --- FIN DIBUJO DEL KRAKEN ---
+
+                }
+                else {
+                    // Jelly
+                    const bounce = Math.sin(this.pulse) * 4;
+                    ctx.fillStyle = 'rgba(0, 229, 255, 0.5)';
+                    ctx.strokeStyle = 'rgba(179, 229, 252, 0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, -5 + bounce, 20, Math.PI, 0);
+                    ctx.bezierCurveTo(20, 15 + bounce, -20, 15 + bounce, -20, -5 + bounce);
+                    ctx.fill(); ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(-10, 5 + bounce); ctx.lineTo(-5, 30 + bounce);
+                    ctx.moveTo(10, 5 + bounce); ctx.lineTo(5, 30 + bounce);
+                    ctx.moveTo(0, 5 + bounce); ctx.lineTo(0, 35 + bounce);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            takeDamage() {
+                if (this.invulnerabilityTimer > 0) return; // No toma daño si es invulnerable
+
+                this.health--;
+                this.invulnerabilityTimer = 30; // 0.5 seconds post-hit invulnerability
+                updateHUD();
+                spawnParticles(this.x, this.y, 'red', 20);
+                playSound('hit');
+                shake = 10;
+                floatingTexts.push(new FloatingText("-1 VIDA", this.x, this.y - 50, '#FF1744', 30));
+
+                if (this.health <= 0) endGame();
+            }
+
+            update() {
+                if (this.energy < this.maxEnergy) this.energy += 0.4;
+                energyBar.style.width = `${this.energy}%`;
+
+                // Handle timers
+                if (this.dashingTimer > 0) {
+                    this.dashingTimer--;
+                    this.dashing = true;
+                } else {
+                    this.dashing = false;
+                }
+
+                if (this.invulnerabilityTimer > 0) {
+                    this.invulnerabilityTimer--;
+                }
+
+                if (this.shielded) {
+                    this.shieldTimer--;
+                    if (this.shieldTimer <= 0) this.shielded = false;
+                }
+
+                if (this.magnet) {
+                    this.magnetTimer--;
+                    if (this.magnetTimer <= 0) this.magnet = false;
+                }
+
+                // --- Movement Logic with Joystick / Keyboard ---
+                const moveSpeed = 4.5;
+                let inputDx = 0;
+                let inputDy = 0;
+                let hasKeyboardInput = keyboardInput.w || keyboardInput.a || keyboardInput.s || keyboardInput.d;
+
+                if (this.dashing) {
+                    // Keep moving with Dash velocity (no friction while dashing)
+                    this.x += this.vx;
+                    this.y += this.vy;
+                } else {
+                    // 1. Determine Input Vector
+                    if (hasKeyboardInput) {
+                        // Keyboard Input takes priority
+                        if (keyboardInput.a) inputDx -= 1;
+                        if (keyboardInput.d) inputDx += 1;
+                        if (keyboardInput.w) inputDy -= 1;
+                        if (keyboardInput.s) inputDy += 1;
+                    } else {
+                        // Joystick Input
+                        inputDx = joystick.dx;
+                        inputDy = joystick.dy;
+                    }
+
+                    // 2. Normalize and Set Velocity
+                    if (inputDx !== 0 || inputDy !== 0) {
+                        // Normalize the direction vector (important for WASD diagonal movement)
+                        const magnitude = Math.hypot(inputDx, inputDy);
+                        const normalizedDx = inputDx / magnitude;
+                        const normalizedDy = inputDy / magnitude;
+
+                        this.vx = normalizedDx * moveSpeed;
+                        this.vy = normalizedDy * moveSpeed;
+
+                        // Set angle based on the combined input
+                        this.angle = Math.atan2(normalizedDy, normalizedDx) + Math.PI / 2;
+                    } else {
+                        // Apply friction if no input
+                        this.vx *= this.friction;
+                        this.vy *= this.friction;
+                    }
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                // Boundary checking
+                this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Invulnerability effect: red pulse
+                if (this.invulnerabilityTimer > 0) {
+                    const alpha = Math.abs(Math.sin(frameCount * 0.5)) * 0.5 + 0.5;
+                    ctx.globalAlpha = alpha;
+                    ctx.strokeStyle = `rgba(255, 69, 0, ${alpha})`;
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.shielded) {
+                    const shieldAlpha = Math.abs(Math.sin(frameCount * 0.1)) + 0.5;
+                    ctx.strokeStyle = `rgba(0, 229, 255, ${shieldAlpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.magnet) {
+                    ctx.strokeStyle = `rgba(170, 0, 255, 0.3)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 150, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.rotate(this.angle);
+
+                for (let t of this.tentacles) {
+                    const wave = Math.sin(frameCount * 0.2 + t.moveOffset) * (this.dashing ? 2 : 10);
+                    ctx.beginPath();
+                    const bx = Math.cos(t.angle) * 15;
+                    const by = Math.sin(t.angle) * 15;
+                    const stretch = this.dashing ? 25 : 0;
+                    const tx = Math.cos(t.angle + wave * 0.03) * (50 + stretch);
+                    const ty = Math.sin(t.angle + wave * 0.03) * (50 + stretch) + 10;
+
+                    ctx.moveTo(bx, by);
+                    ctx.quadraticCurveTo(bx * 2, by * 2 + 10 + stretch, tx, ty);
+
+                    ctx.lineWidth = 8;
+                    ctx.strokeStyle = this.color;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, -10, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Face
+                const eyeY = this.dashing ? -8 : -5;
+                const eyeSize = this.dashing ? 5 : 8;
+                // Left Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+                // Right Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor(type, difficultyMult) {
+                this.type = type;
+                // Aumenta la vida del jefe por oleada para hacerlo más difícil
+                this.maxHp = type === 'boss' ? 50 + (wave - 1) * 10 : 1;
+                this.hp = this.maxHp;
+                this.radius = type === 'mine' ? 20 : (type === 'shark' ? 30 : (type === 'boss' ? 80 : 25));
+
+                // Spawn logic
+                if (type === 'boss') {
+                    this.x = canvas.width / 2;
+                    this.y = -150;
+                } else {
+                    const edge = Math.floor(Math.random() * 4);
+                    if (edge === 0) { this.x = Math.random() * canvas.width; this.y = -50; }
+                    else if (edge === 1) { this.x = canvas.width + 50; this.y = Math.random() * canvas.height; }
+                    else if (edge === 2) { this.x = Math.random() * canvas.width; this.y = canvas.height + 50; }
+                    else { this.x = -50; this.y = Math.random() * canvas.height; }
+                }
+
+                const angle = Math.atan2((canvas.height / 2) - this.y, (canvas.width / 2) - this.x);
+                let speedBase = 2;
+                if (type === 'mine') speedBase = 2.5;
+                if (type === 'shark') speedBase = 3.5; // Faster
+                if (type === 'boss') speedBase = 1;
+
+                this.speed = speedBase * (1 + difficultyMult * 0.1);
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+
+                this.markedForDeletion = false;
+                this.pulse = 0;
+                this.damageFlash = 0; // Para el efecto visual del boss al ser golpeado
+            }
+
+            update() {
+                if (this.type === 'boss') {
+                    // Boss logic: slowly descend then hover
+                    if (this.y < 150) this.y += 1;
+                    else {
+                        this.x += Math.sin(frameCount * 0.02) * 2;
+                        // Spawner de minions del boss
+                        if (frameCount % 120 === 0) spawnEnemy('mine');
+                    }
+                } else if (this.type === 'shark') {
+                    // Shark chasing logic
+                    const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                    // Turn slowly
+                    this.vx = this.vx * 0.95 + Math.cos(angle) * this.speed * 0.05;
+                    this.vy = this.vy * 0.95 + Math.sin(angle) * this.speed * 0.05;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    // Rotation for drawing
+                    this.rot = Math.atan2(this.vy, this.vx);
+                } else {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                this.pulse += 0.1;
+
+                // Cleanup bounds (except boss)
+                if (this.type !== 'boss' && (this.x < -200 || this.x > canvas.width + 200 || this.y < -200 || this.y > canvas.height + 200)) {
+                    this.markedForDeletion = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.type === 'mine') {
+                    ctx.fillStyle = '#37474F';
+                    ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#90A4AE';
+                    for (let i = 0; i < 8; i++) {
+                        ctx.rotate(Math.PI / 4);
+                        ctx.beginPath(); ctx.moveTo(10, -5); ctx.lineTo(26, 0); ctx.lineTo(10, 5); ctx.fill();
+                    }
+                    const redVal = Math.sin(this.pulse * 0.5) * 100 + 155;
+                    ctx.fillStyle = `rgb(${redVal}, 0, 0)`;
+                    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'shark') {
+                    ctx.rotate(this.rot);
+                    ctx.fillStyle = '#D32F2F'; // Red shark
+                    ctx.beginPath();
+                    ctx.moveTo(20, 0);
+                    ctx.lineTo(-20, 15);
+                    ctx.lineTo(-15, 0);
+                    ctx.lineTo(-20, -15);
+                    ctx.fill();
+                    // Ojo
+                    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(5, -5, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(5, -5, 2, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'boss') {
+                    const shakeX = Math.random() * (this.damageFlash > 0 ? 5 : 0);
+                    ctx.translate(shakeX, 0);
+
+                    // --- INICIO DIBUJO DEL KRAKEN ---
+                    const color = this.damageFlash > 0 ? '#FFEB3B' : '#4A148C'; // Flash amarillo al golpear
+                    const darkColor = '#2C0A50';
+
+                    // 1. Tentáculos del fondo (más grandes y lentos)
+                    for (let i = 0; i < 6; i++) {
+                        ctx.strokeStyle = darkColor;
+                        ctx.lineWidth = 15;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        const startX = (i - 2.5) * 20;
+                        const startY = 40;
+                        const sway = Math.sin(frameCount * 0.05 + i) * 20;
+                        const swayY = Math.cos(frameCount * 0.03 + i) * 10;
+
+                        ctx.moveTo(startX, startY);
+                        ctx.bezierCurveTo(
+                            startX * 1.5, startY + 50 + swayY,
+                            startX * 2 + sway, startY + 120 + swayY,
+                            startX * 1.5 + sway * 0.5, startY + 180
+                        );
+                        ctx.stroke();
+                    }
+
+                    // 2. Cabeza del Kraken (bulbo)
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(0, -30, 70, Math.PI, 0); // Parte superior
+                    ctx.lineTo(70, 40);
+                    ctx.lineTo(0, 70);
+                    ctx.lineTo(-70, 40);
+                    ctx.fill();
+
+                    // 3. Boca/Mentón (Más oscura)
+                    ctx.fillStyle = darkColor;
+                    ctx.beginPath();
+                    ctx.arc(0, 45, 20, 0, Math.PI);
+                    ctx.fill();
+
+                    // 4. Ojos (Más amenazantes)
+                    const eyePupil = Math.abs(Math.sin(this.pulse * 0.5)) * 5 + 5; // Pupila pulsante
+
+                    // Ojo Izq
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(-30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(-30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    // Ojo Der
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    if (this.damageFlash > 0) this.damageFlash--;
+                    // --- FIN DIBUJO DEL KRAKEN ---
+
+                }
+                else {
+                    // Jelly
+                    const bounce = Math.sin(this.pulse) * 4;
+                    ctx.fillStyle = 'rgba(0, 229, 255, 0.5)';
+                    ctx.strokeStyle = 'rgba(179, 229, 252, 0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, -5 + bounce, 20, Math.PI, 0);
+                    ctx.bezierCurveTo(20, 15 + bounce, -20, 15 + bounce, -20, -5 + bounce);
+                    ctx.fill(); ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(-10, 5 + bounce); ctx.lineTo(-5, 30 + bounce);
+                    ctx.moveTo(10, 5 + bounce); ctx.lineTo(5, 30 + bounce);
+                    ctx.moveTo(0, 5 + bounce); ctx.lineTo(0, 35 + bounce);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            takeDamage() {
+                if (this.invulnerabilityTimer > 0) return; // No toma daño si es invulnerable
+
+                this.health--;
+                this.invulnerabilityTimer = 30; // 0.5 seconds post-hit invulnerability
+                updateHUD();
+                spawnParticles(this.x, this.y, 'red', 20);
+                playSound('hit');
+                shake = 10;
+                floatingTexts.push(new FloatingText("-1 VIDA", this.x, this.y - 50, '#FF1744', 30));
+
+                if (this.health <= 0) endGame();
+            }
+
+            update() {
+                if (this.energy < this.maxEnergy) this.energy += 0.4;
+                energyBar.style.width = `${this.energy}%`;
+
+                // Handle timers
+                if (this.dashingTimer > 0) {
+                    this.dashingTimer--;
+                    this.dashing = true;
+                } else {
+                    this.dashing = false;
+                }
+
+                if (this.invulnerabilityTimer > 0) {
+                    this.invulnerabilityTimer--;
+                }
+
+                if (this.shielded) {
+                    this.shieldTimer--;
+                    if (this.shieldTimer <= 0) this.shielded = false;
+                }
+
+                if (this.magnet) {
+                    this.magnetTimer--;
+                    if (this.magnetTimer <= 0) this.magnet = false;
+                }
+
+                // --- Movement Logic with Joystick / Keyboard ---
+                const moveSpeed = 4.5;
+                let inputDx = 0;
+                let inputDy = 0;
+                let hasKeyboardInput = keyboardInput.w || keyboardInput.a || keyboardInput.s || keyboardInput.d;
+
+                if (this.dashing) {
+                    // Keep moving with Dash velocity (no friction while dashing)
+                    this.x += this.vx;
+                    this.y += this.vy;
+                } else {
+                    // 1. Determine Input Vector
+                    if (hasKeyboardInput) {
+                        // Keyboard Input takes priority
+                        if (keyboardInput.a) inputDx -= 1;
+                        if (keyboardInput.d) inputDx += 1;
+                        if (keyboardInput.w) inputDy -= 1;
+                        if (keyboardInput.s) inputDy += 1;
+                    } else {
+                        // Joystick Input
+                        inputDx = joystick.dx;
+                        inputDy = joystick.dy;
+                    }
+
+                    // 2. Normalize and Set Velocity
+                    if (inputDx !== 0 || inputDy !== 0) {
+                        // Normalize the direction vector (important for WASD diagonal movement)
+                        const magnitude = Math.hypot(inputDx, inputDy);
+                        const normalizedDx = inputDx / magnitude;
+                        const normalizedDy = inputDy / magnitude;
+
+                        this.vx = normalizedDx * moveSpeed;
+                        this.vy = normalizedDy * moveSpeed;
+
+                        // Set angle based on the combined input
+                        this.angle = Math.atan2(normalizedDy, normalizedDx) + Math.PI / 2;
+                    } else {
+                        // Apply friction if no input
+                        this.vx *= this.friction;
+                        this.vy *= this.friction;
+                    }
+
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                // Boundary checking
+                this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Invulnerability effect: red pulse
+                if (this.invulnerabilityTimer > 0) {
+                    const alpha = Math.abs(Math.sin(frameCount * 0.5)) * 0.5 + 0.5;
+                    ctx.globalAlpha = alpha;
+                    ctx.strokeStyle = `rgba(255, 69, 0, ${alpha})`;
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.shielded) {
+                    const shieldAlpha = Math.abs(Math.sin(frameCount * 0.1)) + 0.5;
+                    ctx.strokeStyle = `rgba(0, 229, 255, ${shieldAlpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                if (this.magnet) {
+                    ctx.strokeStyle = `rgba(170, 0, 255, 0.3)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 150, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.rotate(this.angle);
+
+                for (let t of this.tentacles) {
+                    const wave = Math.sin(frameCount * 0.2 + t.moveOffset) * (this.dashing ? 2 : 10);
+                    ctx.beginPath();
+                    const bx = Math.cos(t.angle) * 15;
+                    const by = Math.sin(t.angle) * 15;
+                    const stretch = this.dashing ? 25 : 0;
+                    const tx = Math.cos(t.angle + wave * 0.03) * (50 + stretch);
+                    const ty = Math.sin(t.angle + wave * 0.03) * (50 + stretch) + 10;
+
+                    ctx.moveTo(bx, by);
+                    ctx.quadraticCurveTo(bx * 2, by * 2 + 10 + stretch, tx, ty);
+
+                    ctx.lineWidth = 8;
+                    ctx.strokeStyle = this.color;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(0, -10, this.radius, this.radius * 1.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Face
+                const eyeY = this.dashing ? -8 : -5;
+                const eyeSize = this.dashing ? 5 : 8;
+                // Left Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(-10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+                // Right Eye
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(10, eyeY, eyeSize * 0.4, 0, Math.PI * 2); ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor(type, difficultyMult) {
+                this.type = type;
+                // Aumenta la vida del jefe por oleada para hacerlo más difícil
+                this.maxHp = type === 'boss' ? 50 + (wave - 1) * 10 : 1;
+                this.hp = this.maxHp;
+                this.radius = type === 'mine' ? 20 : (type === 'shark' ? 30 : (type === 'boss' ? 80 : 25));
+
+                // Spawn logic
+                if (type === 'boss') {
+                    this.x = canvas.width / 2;
+                    this.y = -150;
+                } else {
+                    const edge = Math.floor(Math.random() * 4);
+                    if (edge === 0) { this.x = Math.random() * canvas.width; this.y = -50; }
+                    else if (edge === 1) { this.x = canvas.width + 50; this.y = Math.random() * canvas.height; }
+                    else if (edge === 2) { this.x = Math.random() * canvas.width; this.y = canvas.height + 50; }
+                    else { this.x = -50; this.y = Math.random() * canvas.height; }
+                }
+
+                const angle = Math.atan2((canvas.height / 2) - this.y, (canvas.width / 2) - this.x);
+                let speedBase = 2;
+                if (type === 'mine') speedBase = 2.5;
+                if (type === 'shark') speedBase = 3.5; // Faster
+                if (type === 'boss') speedBase = 1;
+
+                this.speed = speedBase * (1 + difficultyMult * 0.1);
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+
+                this.markedForDeletion = false;
+                this.pulse = 0;
+                this.damageFlash = 0; // Para el efecto visual del boss al ser golpeado
+            }
+
+            update() {
+                if (this.type === 'boss') {
+                    // Boss logic: slowly descend then hover
+                    if (this.y < 150) this.y += 1;
+                    else {
+                        this.x += Math.sin(frameCount * 0.02) * 2;
+                        // Spawner de minions del boss
+                        if (frameCount % 120 === 0) spawnEnemy('mine');
+                    }
+                } else if (this.type === 'shark') {
+                    // Shark chasing logic
+                    const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                    // Turn slowly
+                    this.vx = this.vx * 0.95 + Math.cos(angle) * this.speed * 0.05;
+                    this.vy = this.vy * 0.95 + Math.sin(angle) * this.speed * 0.05;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    // Rotation for drawing
+                    this.rot = Math.atan2(this.vy, this.vx);
+                } else {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+
+                this.pulse += 0.1;
+
+                // Cleanup bounds (except boss)
+                if (this.type !== 'boss' && (this.x < -200 || this.x > canvas.width + 200 || this.y < -200 || this.y > canvas.height + 200)) {
+                    this.markedForDeletion = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.type === 'mine') {
+                    ctx.fillStyle = '#37474F';
+                    ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#90A4AE';
+                    for (let i = 0; i < 8; i++) {
+                        ctx.rotate(Math.PI / 4);
+                        ctx.beginPath(); ctx.moveTo(10, -5); ctx.lineTo(26, 0); ctx.lineTo(10, 5); ctx.fill();
+                    }
+                    const redVal = Math.sin(this.pulse * 0.5) * 100 + 155;
+                    ctx.fillStyle = `rgb(${redVal}, 0, 0)`;
+                    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'shark') {
+                    ctx.rotate(this.rot);
+                    ctx.fillStyle = '#D32F2F'; // Red shark
+                    ctx.beginPath();
+                    ctx.moveTo(20, 0);
+                    ctx.lineTo(-20, 15);
+                    ctx.lineTo(-15, 0);
+                    ctx.lineTo(-20, -15);
+                    ctx.fill();
+                    // Ojo
+                    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(5, -5, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(5, -5, 2, 0, Math.PI * 2); ctx.fill();
+                }
+                else if (this.type === 'boss') {
+                    const shakeX = Math.random() * (this.damageFlash > 0 ? 5 : 0);
+                    ctx.translate(shakeX, 0);
+
+                    // --- INICIO DIBUJO DEL KRAKEN ---
+                    const color = this.damageFlash > 0 ? '#FFEB3B' : '#4A148C'; // Flash amarillo al golpear
+                    const darkColor = '#2C0A50';
+
+                    // 1. Tentáculos del fondo (más grandes y lentos)
+                    for (let i = 0; i < 6; i++) {
+                        ctx.strokeStyle = darkColor;
+                        ctx.lineWidth = 15;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        const startX = (i - 2.5) * 20;
+                        const startY = 40;
+                        const sway = Math.sin(frameCount * 0.05 + i) * 20;
+                        const swayY = Math.cos(frameCount * 0.03 + i) * 10;
+
+                        ctx.moveTo(startX, startY);
+                        ctx.bezierCurveTo(
+                            startX * 1.5, startY + 50 + swayY,
+                            startX * 2 + sway, startY + 120 + swayY,
+                            startX * 1.5 + sway * 0.5, startY + 180
+                        );
+                        ctx.stroke();
+                    }
+
+                    // 2. Cabeza del Kraken (bulbo)
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(0, -30, 70, Math.PI, 0); // Parte superior
+                    ctx.lineTo(70, 40);
+                    ctx.lineTo(0, 70);
+                    ctx.lineTo(-70, 40);
+                    ctx.fill();
+
+                    // 3. Boca/Mentón (Más oscura)
+                    ctx.fillStyle = darkColor;
+                    ctx.beginPath();
+                    ctx.arc(0, 45, 20, 0, Math.PI);
+                    ctx.fill();
+
+                    // 4. Ojos (Más amenazantes)
+                    const eyePupil = Math.abs(Math.sin(this.pulse * 0.5)) * 5 + 5; // Pupila pulsante
+
+                    // Ojo Izq
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(-30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(-30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    // Ojo Der
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(30, -10, 18, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(30, -10, eyePupil, 0, Math.PI * 2); ctx.fill();
+
+                    if (this.damageFlash > 0) this.damageFlash--;
+                    // --- FIN DIBUJO DEL KRAKEN ---
+
+                }
+                else {
+                    // Jelly
+                    const bounce = Math.sin(this.pulse) * 4;
+                    ctx.fillStyle = 'rgba(0, 229, 255, 0.5)';
+                    ctx.strokeStyle = 'rgba(179, 229, 252, 0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, -5 + bounce, 20, Math.PI, 0);
+                    ctx.bezierCurveTo(20, 15 + bounce

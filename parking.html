@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chilango Parking Simulator: Caos Vial</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        :root {
+            --asphalt: #2d3436;
+            --line-yellow: #f1c40f;
+            --sidewalk: #95a5a6;
+            --microbus-green: #2ecc71;
+            --microbus-grey: #bdc3c7;
+            --taxi-pink: #cd84f1;
+            --ui-bg: rgba(0, 0, 0, 0.85);
+            --text-color: #fff;
+            /* Corregido: faltaba un guión */
+        }
+
+        body {
+            margin: 0;
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Press Start 2P', cursive;
+            color: var(--text-color);
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            border: 4px solid #555;
+        }
+
+        canvas {
+            display: block;
+            background-color: var(--asphalt);
+        }
+
+        /* UI OVERLAYS */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: var(--ui-bg);
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #e67e22;
+            text-shadow: 4px 4px 0 #000;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 0.8rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #ddd;
+        }
+
+        button {
+            background: #e74c3c;
+            border: 4px solid #c0392b;
+            color: white;
+            padding: 15px 30px;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.1s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 20px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .hud-box {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border: 2px solid #fff;
+            font-size: 0.8rem;
+        }
+
+        #parking-timer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: #2ecc71;
+            text-shadow: 2px 2px 0 #000;
+            display: none;
+            z-index: 4;
+        }
+
+        /* Controls hint */
+        .controls-hint {
+            margin-top: 20px;
+            font-size: 0.6rem;
+            color: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <!-- HUD -->
+        <div id="hud" class="hidden">
+            <div class="hud-box">NIVEL: <span id="level-val">1</span></div>
+            <div class="hud-box">VIDA: <span id="health-val" style="color:#2ecc71">100%</span></div>
+            <div class="hud-box">TIEMPO: <span id="time-val">00:00</span></div>
+        </div>
+
+        <!-- TIMER FLOTANTE (PARKING) -->
+        <div id="parking-timer">3</div>
+
+        <!-- START SCREEN -->
+        <div id="start-screen" class="overlay">
+            <h1>CHILANGO<br>PARKING SIMULATOR</h1>
+            <p>
+                Maneja por las calles de la CDMX.<br>
+                Esquiva los micros, los baches y los puestos de tacos.<br>
+                Estaciónate en el <strong>CUADRO VERDE</strong> sin chocar.
+            </p>
+            <button onclick="startGame()">¡A DARLE!</button>
+            <div class="controls-hint">Usa FLECHAS o WASD para manejar.</div>
+        </div>
+
+        <!-- GAME OVER SCREEN -->
+        <div id="game-over-screen" class="overlay hidden">
+            <h1 style="color: #e74c3c;">¡CHOQUE!</h1>
+            <p id="death-reason">Te raspaste la pintura.</p>
+            <p>Nivel alcanzado: <span id="final-level">1</span></p>
+            <button onclick="restartGame()">OTRA VEZ</button>
+        </div>
+
+        <!-- LEVEL COMPLETE SCREEN -->
+        <div id="level-screen" class="overlay hidden">
+            <h1 style="color: #2ecc71;">¡ESTACIONADO!</h1>
+            <p>¡Qué elegancia la de Francia!</p>
+            <button onclick="nextLevel()">SIGUIENTE NIVEL</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN Y VARIABLES GLOBALES ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Audio Context
+        let audioCtx;
+        let engineOsc;
+        let engineGain;
+
+        const GAME_WIDTH = 800;
+        const GAME_HEIGHT = 600;
+
+        let gameState = 'MENU'; // MENU, PLAYING, PARKED, GAMEOVER
+        let level = 1;
+        let parkingTimer = 0; // Tiempo estacionado correctamente
+        let gameTime = 0;
+        let lastTime = 0;
+
+        // Inputs
+        const keys = {
+            ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false,
+            w: false, s: false, a: false, d: false
+        };
+
+        // --- CLASES ---
+
+        class Car {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 24;
+                this.height = 44;
+                this.angle = 0; // Radianes
+                this.speed = 0;
+                this.maxSpeed = 6;
+                this.acceleration = 0.2;
+                this.friction = 0.05;
+                this.turnSpeed = 0.06;
+                this.health = 100;
+                this.color = '#3498db'; // Azul genérico
+                this.driftFactor = 0.9; // 1 = no drift
+            }
+
+            update() {
+                // Input
+                if (keys.ArrowUp || keys.w) {
+                    this.speed += this.acceleration;
+                }
+                if (keys.ArrowDown || keys.s) {
+                    this.speed -= this.acceleration;
+                }
+
+                // Limites de velocidad
+                if (this.speed > this.maxSpeed) this.speed = this.maxSpeed;
+                if (this.speed < -this.maxSpeed / 2) this.speed = -this.maxSpeed / 2;
+
+                // Fricción
+                if (this.speed > 0) this.speed -= this.friction;
+                if (this.speed < 0) this.speed += this.friction;
+                if (Math.abs(this.speed) < this.friction) this.speed = 0;
+
+                // Girar (solo si se mueve)
+                if (Math.abs(this.speed) > 0.1) {
+                    const flip = this.speed > 0 ? 1 : -1;
+                    if (keys.ArrowLeft || keys.a) {
+                        this.angle -= this.turnSpeed * flip;
+                    }
+                    if (keys.ArrowRight || keys.d) {
+                        this.angle += this.turnSpeed * flip;
+                    }
+                }
+
+                // Movimiento (Física simple de tanque con ligero drift)
+                this.x += Math.sin(this.angle) * this.speed;
+                this.y -= Math.cos(this.angle) * this.speed;
+
+                // Sonido de motor
+                updateEngineSound(Math.abs(this.speed));
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+
+                // Sombra
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(-this.width / 2 + 4, -this.height / 2 + 4, this.width, this.height);
+
+                // Chasis
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+
+                // Ventanas
+                ctx.fillStyle = '#111';
+                ctx.fillRect(-this.width / 2 + 2, -this.height / 2 + 10, this.width - 4, 8); // Parabrisas
+                ctx.fillRect(-this.width / 2 + 2, -this.height / 2 + 28, this.width - 4, 6); // Trasero
+
+                // Faros
+                ctx.fillStyle = '#f1c40f';
+                ctx.fillRect(-this.width / 2 + 1, -this.height / 2, 6, 4);
+                ctx.fillRect(this.width / 2 - 7, -this.height / 2, 6, 4);
+
+                // Luces traseras
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillRect(-this.width / 2 + 1, this.height / 2 - 4, 6, 4);
+                ctx.fillRect(this.width / 2 - 7, this.height / 2 - 4, 6, 4);
+
+                ctx.restore();
+            }
+
+            getBounds() {
+                // Aproximación simple: 4 esquinas rotadas
+                // Para colisión perfecta usaríamos SAT, pero para esto basta con verificar esquinas
+                const cos = Math.cos(this.angle);
+                const sin = Math.sin(this.angle);
+                const hw = this.width / 2;
+                const hh = this.height / 2;
+
+                // Esquinas relativas al centro (sin rotar)
+                // TL, TR, BR, BL
+                const corners = [
+                    { x: -hw, y: -hh }, { x: hw, y: -hh }, { x: hw, y: hh }, { x: -hw, y: hh }
+                ];
+
+                // Rotar y trasladar
+                return corners.map(p => ({
+                    x: this.x + (p.x * cos - p.y * sin), // Math.cos(angle) es para Y en canvas standard pero aqui angle es 0 = UP
+                    // Ajuste trigonométrico: 
+                    // x' = x cos - y sin (rotación standard)
+                    // Como mi 0 grados es UP (Y negativo), las formulas cambian un poco.
+                    // Usaré una simplificación: hitbox circular para baches, hitbox rectangular axis-aligned para paredes (más fácil).
+                    // Para paredes, vamos a usar 4 puntos de prueba.
+                    x: this.x + (p.x * Math.cos(this.angle) - p.y * Math.sin(this.angle)), // No, standard rotation formula
+                    y: this.y + (p.x * Math.sin(this.angle) + p.y * Math.cos(this.angle))
+                }));
+            }
+
+            // Colisión simplificada (Círculo vs Rectangulo es mejor para rendimiento en JS puro rápido)
+            checkCollision(rect) {
+                // Checar si el centro del coche está cerca del rect
+                return (
+                    this.x > rect.x && this.x < rect.x + rect.w &&
+                    this.y > rect.y && this.y < rect.y + rect.h
+                );
+            }
+        }
+
+        class Obstacle {
+            constructor(x, y, w, h, type) {
+                this.x = x; this.y = y; this.w = w; this.h = h;
+                this.type = type; // 'wall', 'tope', 'bache', 'puesto', 'microbus'
+
+                if (type === 'microbus') {
+                    this.speed = 2 + Math.random() * 3;
+                    this.dir = Math.random() > 0.5 ? 1 : -1;
+                }
+            }
+
+            update() {
+                if (this.type === 'microbus') {
+                    this.y += this.speed * this.dir;
+                    // Rebotar o reiniciar
+                    if (this.y < -100) this.y = GAME_HEIGHT + 100;
+                    if (this.y > GAME_HEIGHT + 100) this.y = -100;
+                }
+            }
+
+            draw() {
+                if (this.type === 'wall') {
+                    ctx.fillStyle = '#7f8c8d'; // Banqueta
+                    ctx.fillRect(this.x, this.y, this.w, this.h);
+                    // Borde
+                    ctx.strokeStyle = '#bdc3c7';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(this.x, this.y, this.w, this.h);
+                } else if (this.type === 'tope') {
+                    ctx.fillStyle = '#f1c40f'; // Amarillo
+                    // Dibujar rayas
+                    for (let i = 0; i < this.w; i += 20) {
+                        ctx.fillRect(this.x + i, this.y, 10, this.h);
+                    }
+                } else if (this.type === 'bache') {
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.w / 2, this.y + this.h / 2, this.w / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (this.type === 'puesto') {
+                    // Toldo
+                    ctx.fillStyle = '#e74c3c'; // Rojo
+                    ctx.fillRect(this.x, this.y, this.w, this.h);
+                    ctx.fillStyle = '#f1c40f'; // Rayas
+                    for (let i = 0; i < this.w; i += 20) ctx.fillRect(this.x + i, this.y, 10, this.h);
+                    // Letrero
+                    ctx.fillStyle = 'white';
+                    ctx.font = '10px Arial';
+                    ctx.fillText("TACOS", this.x + 5, this.y + this.h / 2);
+                } else if (this.type === 'microbus') {
+                    ctx.fillStyle = '#27ae60'; // Verde Micro
+                    ctx.fillRect(this.x, this.y, this.w, this.h);
+                    ctx.fillStyle = '#ecf0f1'; // Techo gris
+                    ctx.fillRect(this.x + 2, this.y + 2, this.w - 4, this.h - 40);
+                    // Detalles CDMX
+                    ctx.fillStyle = '#f39c12';
+                    ctx.fillRect(this.x, this.y + 10, this.w, 5); // Franja
+                }
+            }
+        }
+
+        // --- OBJETOS DEL JUEGO ---
+        let car;
+        let obstacles = [];
+        let parkingSpot = { x: 0, y: 0, w: 60, h: 100 };
+
+        // --- SISTEMA DE AUDIO (Web Audio API) ---
+        function initAudio() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+            // Engine Drone
+            engineOsc = audioCtx.createOscillator();
+            engineGain = audioCtx.createGain();
+            engineOsc.type = 'sawtooth';
+            engineOsc.frequency.value = 50;
+            engineGain.gain.value = 0;
+
+            // Lowpass filter for muffling
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 400;
+
+            engineOsc.connect(filter);
+            filter.connect(engineGain);
+            engineGain.connect(audioCtx.destination);
+            engineOsc.start();
+        }
+
+        function updateEngineSound(speed) {
+            if (!audioCtx) return;
+            const baseFreq = 60;
+            engineOsc.frequency.value = baseFreq + (speed * 40); // Pitch up
+            engineGain.gain.value = 0.1 + (speed * 0.05); // Volume up
+        }
+
+        function playCrashSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.5);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function playWinSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(554, audioCtx.currentTime + 0.1); // C#
+            osc.frequency.setValueAtTime(659, audioCtx.currentTime + 0.2); // E
+
+            gain.gain.value = 0.2;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // --- GENERADOR DE NIVELES ---
+        function generateLevel(lvl) {
+            obstacles = [];
+
+            // 1. Bordes (Banquetas)
+            obstacles.push(new Obstacle(0, 0, 800, 50, 'wall')); // Arriba
+            obstacles.push(new Obstacle(0, 550, 800, 50, 'wall')); // Abajo
+            obstacles.push(new Obstacle(0, 0, 50, 600, 'wall')); // Izq
+            obstacles.push(new Obstacle(750, 0, 50, 600, 'wall')); // Der
+
+            // 2. Elementos Procedurales según nivel
+            const density = lvl * 2;
+
+            // Puestos de Tacos (En banquetas)
+            if (lvl > 1) {
+                obstacles.push(new Obstacle(60, 60, 60, 40, 'puesto'));
+                obstacles.push(new Obstacle(600, 500, 60, 40, 'puesto'));
+            }
+
+            // Baches (En medio) - Asegurando que no spawneen en zona de inicio
+            for (let i = 0; i < lvl + 2; i++) {
+                let bx, by;
+                do {
+                    bx = 100 + Math.random() * 600;
+                    by = 100 + Math.random() * 400;
+                } while (Math.abs(bx - 120) < 100 && Math.abs(by - 300) < 100); // Zona segura
+
+                obstacles.push(new Obstacle(bx, by, 30, 30, 'bache'));
+            }
+
+            // Topes (Lineales)
+            if (lvl % 2 === 0) {
+                obstacles.push(new Obstacle(200, 300, 400, 20, 'tope'));
+            }
+
+            // Microbuses (Tráfico dinámico)
+            if (lvl >= 3) {
+                const laneX = 150 + Math.random() * 500;
+                obstacles.push(new Obstacle(laneX, 0, 40, 80, 'microbus'));
+            }
+            if (lvl >= 5) {
+                const laneX2 = 150 + Math.random() * 500;
+                obstacles.push(new Obstacle(laneX2, 600, 40, 80, 'microbus'));
+            }
+
+            // 3. Estacionamiento (Objetivo)
+            // Buscar un lugar que no choque (simple random retry)
+            let validSpot = false;
+            while (!validSpot) {
+                parkingSpot.x = 100 + Math.random() * 600;
+                parkingSpot.y = 100 + Math.random() * 400;
+                // Verificar overlap simple con obstaculos Y coche
+                validSpot = true;
+                for (let o of obstacles) {
+                    if (checkRectOverlap(parkingSpot, o)) validSpot = false;
+                }
+                // No spawnear encima del coche
+                if (Math.abs(parkingSpot.x - 120) < 100 && Math.abs(parkingSpot.y - 300) < 100) validSpot = false;
+            }
+
+            // 4. Posición del coche (Zona Segura y Centrada a la izquierda)
+            car = new Car(120, 300);
+            car.angle = Math.PI / 2; // Mirando a la derecha
+        }
+
+        function checkRectOverlap(r1, r2) {
+            return !(r2.x > r1.x + r1.w ||
+                r2.x + r2.w < r1.x ||
+                r2.y > r1.y + r1.h ||
+                r2.y + r2.h < r1.y);
+        }
+
+        // --- SISTEMA DE FÍSICA Y COLISIÓN ---
+
+        // Colisión simple de Punto en Rectángulo (para esquinas del coche)
+        function pointInRect(px, py, rx, ry, rw, rh) {
+            return (px >= rx && px <= rx + rw && py >= ry && py <= ry + rh);
+        }
+
+        function checkCollisions() {
+            // Verificar limites del canvas
+            if (car.x < 0 || car.x > GAME_WIDTH || car.y < 0 || car.y > GAME_HEIGHT) {
+                handleCrash("Te saliste del mapa.");
+                return;
+            }
+
+            // Puntos de colisión del coche (4 esquinas + centro frontal/trasero)
+            // Simplificado: usar el centro para baches y esquinas para sólidos
+
+            // 1. Checar Baches y Topes (No matan, solo molestan)
+            for (let obs of obstacles) {
+                if (obs.type === 'bache') {
+                    // Distancia
+                    const dx = car.x - (obs.x + obs.w / 2);
+                    const dy = car.y - (obs.y + obs.h / 2);
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < (car.height / 2 + obs.w / 2)) {
+                        car.speed *= 0.8; // Frenar
+                        // Efecto visual?
+                    }
+                } else if (obs.type === 'tope') {
+                    if (car.checkCollision(obs)) {
+                        car.speed *= 0.5; // Frenar duro
+                    }
+                }
+            }
+
+            // 2. Checar Sólidos (Paredes, Micros, Puestos) -> Game Over
+            // Usamos 4 esquinas rotadas
+            const corners = [
+                { x: car.x + Math.sin(car.angle) * 20, y: car.y - Math.cos(car.angle) * 20 }, // Front
+                { x: car.x - Math.sin(car.angle) * 20, y: car.y + Math.cos(car.angle) * 20 }, // Back
+                { x: car.x + Math.cos(car.angle) * 10, y: car.y + Math.sin(car.angle) * 10 }, // Side
+                { x: car.x - Math.cos(car.angle) * 10, y: car.y - Math.sin(car.angle) * 10 }  // Side
+            ];
+
+            for (let obs of obstacles) {
+                if (obs.type === 'wall' || obs.type === 'puesto' || obs.type === 'microbus') {
+                    for (let p of corners) {
+                        if (pointInRect(p.x, p.y, obs.x, obs.y, obs.w, obs.h)) {
+                            if (obs.type === 'microbus') handleCrash("Te aplastó un micro.");
+                            else if (obs.type === 'puesto') handleCrash("Tiraste los tacos.");
+                            else handleCrash("Banquetazo.");
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        function checkWinCondition() {
+            // Verificar si está dentro del parking spot
+            // Carro: 24x44. Spot: 60x100.
+            // Tolerancia
+
+            // Centro del coche dentro del spot?
+            const cx = car.x;
+            const cy = car.y;
+
+            // Esta dentro del rectangulo?
+            if (cx > parkingSpot.x + 10 && cx < parkingSpot.x + parkingSpot.w - 10 &&
+                cy > parkingSpot.y + 10 && cy < parkingSpot.y + parkingSpot.h - 10) {
+
+                // Velocidad casi 0?
+                if (Math.abs(car.speed) < 0.2) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function handleCrash(reason) {
+            playCrashSound();
+            document.getElementById('death-reason').innerText = reason;
+            document.getElementById('final-level').innerText = level;
+            setGameState('GAMEOVER');
+        }
+
+        // --- GAME LOOP ---
+
+        function update() {
+            if (gameState !== 'PLAYING') return;
+
+            car.update();
+            obstacles.forEach(o => o.update());
+            checkCollisions();
+
+            // Win Logic
+            if (checkWinCondition()) {
+                parkingTimer += 1000 / 60; // ms por frame aprox
+                document.getElementById('parking-timer').style.display = 'block';
+                document.getElementById('parking-timer').innerText = (3 - (parkingTimer / 1000)).toFixed(1);
+
+                if (parkingTimer > 2000) { // 2 segundos
+                    playWinSound();
+                    setGameState('LEVEL_COMPLETE');
+                }
+            } else {
+                parkingTimer = 0;
+                document.getElementById('parking-timer').style.display = 'none';
+            }
+
+            // Update HUD
+            const now = Date.now();
+            const diff = Math.floor((now - gameTime) / 1000);
+            const m = Math.floor(diff / 60).toString().padStart(2, '0');
+            const s = (diff % 60).toString().padStart(2, '0');
+            document.getElementById('time-val').innerText = `${m}:${s}`;
+        }
+
+        function draw() {
+            // Background
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            // Parking Spot
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([10, 5]);
+            ctx.strokeRect(parkingSpot.x, parkingSpot.y, parkingSpot.w, parkingSpot.h);
+            ctx.setLineDash([]);
+            ctx.fillStyle = 'rgba(46, 204, 113, 0.2)';
+            ctx.fillRect(parkingSpot.x, parkingSpot.y, parkingSpot.w, parkingSpot.h);
+            ctx.fillStyle = '#2ecc71';
+            ctx.font = '10px Arial';
+            ctx.fillText("RESERVADO", parkingSpot.x + 5, parkingSpot.y + 50);
+
+            // Obstacles
+            obstacles.forEach(o => o.draw());
+
+            // Car (Draw only if exists)
+            if (car) {
+                car.draw();
+            }
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        // --- STATE MANAGEMENT ---
+
+        function setGameState(state) {
+            gameState = state;
+            document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
+
+            if (state === 'MENU') {
+                document.getElementById('start-screen').classList.remove('hidden');
+            } else if (state === 'PLAYING') {
+                document.getElementById('hud').classList.remove('hidden');
+            } else if (state === 'GAMEOVER') {
+                document.getElementById('game-over-screen').classList.remove('hidden');
+                if (engineGain) engineGain.gain.value = 0;
+            } else if (state === 'LEVEL_COMPLETE') {
+                document.getElementById('level-screen').classList.remove('hidden');
+                if (engineGain) engineGain.gain.value = 0;
+            }
+        }
+
+        function startGame() {
+            initAudio();
+            level = 1;
+            gameTime = Date.now();
+            document.getElementById('level-val').innerText = level;
+            generateLevel(level);
+            setGameState('PLAYING');
+        }
+
+        function nextLevel() {
+            level++;
+            document.getElementById('level-val').innerText = level;
+            generateLevel(level);
+            setGameState('PLAYING');
+        }
+
+        function restartGame() {
+            level = 1;
+            gameTime = Date.now();
+            document.getElementById('level-val').innerText = level;
+            generateLevel(level);
+            setGameState('PLAYING');
+        }
+
+        // --- EVENT LISTENERS ---
+        window.addEventListener('keydown', e => { keys[e.key] = true; });
+        window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+        // Init
+        loop();
+
+    </script>
+</body>
+
+</html>

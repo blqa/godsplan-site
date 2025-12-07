@@ -1,0 +1,1465 @@
+<!DOCTYPE=html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADUANA MÉXICO - LA LEY DE LA FRONTERA</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        :root {
+            --bg-dark: #2d3436;
+            --bg-desk: #636e72;
+            --mex-green: #009432;
+            --mex-red: #EA2027;
+            --mex-white: #f1f2f6;
+            --paper-color: #f7f1e3;
+            --passport-mex: #006266;
+            --passport-usa: #0984e3;
+            --text-pixel: 'VT323', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            cursor: default;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-dark);
+            font-family: var(--text-pixel);
+            height: 100vh;
+            overflow: hidden;
+            color: #111;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- UI PANTALLAS --- */
+        .overlay-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--mex-white);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .title-text {
+            font-size: 4rem;
+            text-shadow: 4px 4px var(--mex-red);
+            margin-bottom: 20px;
+            border-bottom: 4px solid var(--mex-green);
+        }
+
+        .summary-box {
+            background: #222;
+            border: 2px solid var(--mex-green);
+            padding: 30px;
+            width: 400px;
+            font-size: 1.5rem;
+            text-align: left;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px dotted #555;
+        }
+
+        .red-text {
+            color: var(--mex-red);
+        }
+
+        .green-text {
+            color: var(--mex-green);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .start-btn {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            font-family: var(--text-pixel);
+            background: var(--mex-green);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #006400;
+            transition: transform 0.1s;
+        }
+
+        .start-btn.secondary {
+            background: #e67e22;
+            box-shadow: 0 5px 0 #d35400;
+        }
+
+        .start-btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        .start-btn:hover {
+            filter: brightness(1.2);
+        }
+
+        /* --- VISTA VENTANILLA --- */
+        #booth-view {
+            height: 40%;
+            background: #b2bec3;
+            border-bottom: 8px solid #2d3436;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            perspective: 500px;
+            background-image: radial-gradient(#2d3436 10%, transparent 10%);
+            background-size: 10px 10px;
+        }
+
+        .flag-deco {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            height: 20px;
+            background: linear-gradient(90deg, var(--mex-green) 33%, var(--mex-white) 33%, var(--mex-white) 66%, var(--mex-red) 66%);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .shutter {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, #636e72, #636e72 20px, #2d3436 20px, #2d3436 40px);
+            transition: transform 0.8s ease-in-out;
+            z-index: 10;
+            border-bottom: 5px solid #000;
+        }
+
+        .shutter.open {
+            transform: translateY(-80%);
+        }
+
+        .entrant-sprite {
+            width: 160px;
+            height: 200px;
+            position: relative;
+            z-index: 1;
+            image-rendering: pixelated;
+            display: none;
+            /* Animación de "hablar" saltando */
+            transition: transform 0.1s;
+        }
+
+        .entrant-sprite.talking {
+            transform: scaleY(1.05);
+        }
+
+        #dialog-box {
+            position: absolute;
+            bottom: 30px;
+            background: #fff;
+            color: #000;
+            padding: 15px 25px;
+            border: 3px solid #000;
+            border-radius: 15px;
+            font-size: 1.6rem;
+            z-index: 20;
+            display: none;
+            max-width: 80%;
+            box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        #dialog-box::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: #000 transparent;
+        }
+
+        /* --- VISTA ESCRITORIO --- */
+        #desk-view {
+            height: 60%;
+            background: var(--bg-desk);
+            position: relative;
+            box-shadow: inset 0 0 50px #000;
+            overflow: hidden;
+        }
+
+        /* OBJETOS DE ESCRITORIO (COSITAS) */
+        #family-photo {
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            width: 80px;
+            height: 60px;
+            background: #dcdde1;
+            border: 4px solid #353b48;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #555;
+            transform: rotate(5deg);
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+            z-index: 5;
+        }
+
+        #family-photo::after {
+            content: 'FAMILIA';
+        }
+
+        #radio {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 120px;
+            height: 60px;
+            background: #c0392b;
+            border-radius: 5px;
+            border: 2px solid #000;
+            z-index: 5;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.4);
+        }
+
+        #radio::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 10px;
+            width: 2px;
+            height: 20px;
+            background: #c0c0c0;
+            /* Usamos código hex de Silver */
+            border: 1px solid #777;
+            /* Sutil borde */
+        }
+
+        #radio.playing {
+            animation: bounce 0.5s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        /* UI BARRA */
+        .info-bar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            background: #2d3436;
+            color: var(--mex-white);
+            padding: 5px 15px;
+            font-size: 1.2rem;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--mex-green);
+        }
+
+        .rule-book {
+            position: absolute;
+            left: 20px;
+            top: 40px;
+            width: 200px;
+            height: 160px;
+            background: #dfe6e9;
+            color: #2d3436;
+            padding: 10px;
+            border: 2px solid #2d3436;
+            font-size: 1rem;
+            box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
+            transform: rotate(-3deg);
+            transition: transform 0.2s;
+            z-index: 10;
+        }
+
+        .rule-book:hover {
+            transform: scale(1.1) rotate(0deg);
+            z-index: 100;
+        }
+
+        .rule-book h3 {
+            margin: 0 0 5px 0;
+            color: var(--mex-red);
+            border-bottom: 2px solid var(--mex-green);
+            text-align: center;
+        }
+
+        /* --- DOCUMENTOS --- */
+        .document {
+            position: absolute;
+            background: var(--paper-color);
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
+            transition: transform 0.1s;
+            cursor: grab;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .document:active {
+            cursor: grabbing;
+            transform: scale(1.02);
+        }
+
+        .passport {
+            width: 220px;
+            height: 320px;
+            background: var(--passport-mex);
+            color: gold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .passport.usa {
+            background: var(--passport-usa);
+            color: white;
+        }
+
+        .passport.canada {
+            background: #8e44ad;
+            color: white;
+        }
+
+        .passport-inner {
+            width: 100%;
+            height: 100%;
+            background: var(--paper-color);
+            color: black;
+            padding: 15px;
+            display: none;
+            flex-direction: column;
+            font-size: 1rem;
+            position: relative;
+            background-image: url('data:image/svg+xml;utf8,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="2" cy="2" r="1" fill="%23000" opacity="0.05"/></svg>');
+        }
+
+        .passport.open .passport-inner {
+            display: flex;
+        }
+
+        .passport.open .cover-content {
+            display: none;
+        }
+
+        .photo-area {
+            width: 90px;
+            height: 110px;
+            background: #b2bec3;
+            margin-bottom: 10px;
+            border: 2px solid #2d3436;
+            image-rendering: pixelated;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            border-bottom: 1px dotted #aaa;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #636e72;
+            font-size: 0.9rem;
+        }
+
+        .value {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        /* --- ESTAMPADORA --- */
+        #stamp-bar {
+            position: absolute;
+            right: -220px;
+            top: 20%;
+            width: 200px;
+            background: #2d3436;
+            padding: 10px;
+            border: 4px solid #b2bec3;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transition: right 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 50;
+            box-shadow: -10px 10px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #stamp-bar.visible {
+            right: 20px;
+        }
+
+        .stamp-btn {
+            height: 70px;
+            border: none;
+            font-family: var(--text-pixel);
+            font-size: 1.8rem;
+            color: white;
+            cursor: pointer;
+            text-shadow: 2px 2px 0 #000;
+            transition: 0.1s;
+            border-radius: 5px;
+        }
+
+        .btn-approve {
+            background: var(--mex-green);
+            box-shadow: 0 6px 0 #006400;
+        }
+
+        .btn-approve:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+
+        .btn-deny {
+            background: var(--mex-red);
+            box-shadow: 0 6px 0 #8B0000;
+        }
+
+        .btn-deny:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+
+        .stamp-mark {
+            position: absolute;
+            border: 5px solid;
+            padding: 5px 15px;
+            font-weight: bold;
+            font-size: 1.5rem;
+            transform: rotate(-15deg);
+            opacity: 0.9;
+            pointer-events: none;
+            mix-blend-mode: multiply;
+            text-transform: uppercase;
+        }
+
+        .mark-green {
+            color: var(--mex-green);
+            border-color: var(--mex-green);
+        }
+
+        .mark-red {
+            color: var(--mex-red);
+            border-color: var(--mex-red);
+        }
+
+        /* --- CONTROLES --- */
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .main-btn {
+            padding: 15px 25px;
+            font-family: var(--text-pixel);
+            font-size: 1.4rem;
+            background: #dfe6e9;
+            border: 3px solid #2d3436;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 #2d3436;
+            transition: transform 0.1s;
+        }
+
+        .main-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: none;
+        }
+
+        .main-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* --- CITACIONES / MULTAS --- */
+        #citation {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-200%);
+            background: #fff;
+            padding: 20px;
+            border: 4px solid var(--mex-red);
+            text-align: center;
+            width: 350px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            font-family: 'Courier New', monospace;
+            z-index: 200;
+        }
+
+        #citation.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .bribe-money {
+            position: absolute;
+            width: 100px;
+            height: 50px;
+            background: #27ae60;
+            border: 1px solid #2ecc71;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: grab;
+            z-index: 10;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+            animation: wiggle 1s infinite;
+        }
+
+        @keyframes wiggle {
+
+            0%,
+            100% {
+                transform: rotate(-2deg);
+            }
+
+            50% {
+                transform: rotate(2deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PANTALLA DE INICIO -->
+    <div id="start-screen" class="overlay-screen">
+        <div class="title-text">ADUANA: MÉXICO</div>
+        <p style="font-size: 1.5rem; max-width: 600px; color: #f1c40f;">
+            EDICIÓN LA LEY DE LA FRONTERA (Final)
+        </p>
+        <div class="btn-group">
+            <button class="start-btn" onclick="startGame('story')">MODO HISTORIA (8 DÍAS)</button>
+            <button class="start-btn secondary" onclick="startGame('endless')">MODO INFINITO</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA FIN DE DÍA -->
+    <div id="end-day-screen" class="overlay-screen hidden">
+        <div class="title-text" id="end-title">FIN DEL DÍA</div>
+        <div class="summary-box">
+            <div class="summary-row">
+                <span>Ahorros:</span> <span class="green-text" id="sum-savings">$0</span>
+            </div>
+            <div class="summary-row">
+                <span>Salario:</span> <span class="green-text" id="sum-salary">$0</span>
+            </div>
+            <div class="summary-row">
+                <span>Sobornos:</span> <span class="green-text" id="sum-bribes">$0</span>
+            </div>
+            <div class="summary-row">
+                <span>Multas:</span> <span class="red-text" id="sum-fines">-$0</span>
+            </div>
+            <div class="summary-row">
+                <span>Renta:</span> <span class="red-text" id="sum-rent">-$20</span>
+            </div>
+            <div class="summary-row">
+                <span>Comida:</span> <span class="red-text" id="sum-food">-$10</span>
+            </div>
+            <div class="summary-row"
+                style="border-top: 2px solid #fff; margin-top: 20px; padding-top: 10px; font-size: 1.8rem;">
+                <span>TOTAL:</span> <span id="sum-total">$0</span>
+            </div>
+        </div>
+        <p id="status-msg" style="color: yellow; margin-top: 10px;"></p>
+        <button class="start-btn" onclick="nextDay()">SIGUIENTE DÍA</button>
+    </div>
+
+    <!-- PANTALLA GAME OVER -->
+    <div id="game-over-screen" class="overlay-screen hidden">
+        <h1 style="color: var(--mex-red); font-size: 5rem;">DESPEDIDO</h1>
+        <p id="fail-reason" style="font-size: 2rem;">Te moriste de hambre we.</p>
+        <button class="start-btn" onclick="location.reload()">REINTENTAR</button>
+    </div>
+
+    <!-- JUEGO PRINCIPAL -->
+    <div id="booth-view">
+        <div class="flag-deco"></div>
+        <div class="shutter" id="shutter"></div>
+        <canvas id="face-canvas" class="entrant-sprite" width="160" height="200"></canvas>
+        <div id="dialog-box">Papeles, por favor.</div>
+    </div>
+
+    <div id="desk-view">
+        <!-- Cositas nuevas -->
+        <div id="family-photo"></div>
+        <div id="radio" onclick="toggleMusic()">📻 RADIO: OFF</div>
+
+        <div class="info-bar">
+            <span>📅 <span id="calendar-date" style="color: gold;">NOV 23, 1982</span></span>
+            <span id="day-display">DÍA 1</span>
+            <span id="time-display">08:00</span>
+            <span style="color:var(--mex-green)">DINERO: $<span id="credits">0</span></span>
+        </div>
+
+        <div class="rule-book">
+            <h3>REGLAMENTO</h3>
+            <ul id="rules-list" style="padding-left: 20px; margin: 5px 0; font-size: 0.9rem;">
+                <!-- Dinámico -->
+            </ul>
+        </div>
+
+        <div id="stamp-bar">
+            <button class="stamp-btn btn-approve" onclick="selectStamp('APROBADO')">PÁSELE</button>
+            <button class="stamp-btn btn-deny" onclick="selectStamp('DENEGADO')">VÁYASE</button>
+            <button class="stamp-btn" style="background:#636e72; font-size:1.2rem; height: 50px;"
+                onclick="toggleStampBar()">GUARDAR</button>
+        </div>
+
+        <div id="controls">
+            <button class="main-btn" onclick="toggleStampBar()">🔨 SELLAR</button>
+            <button class="main-btn" onclick="callNext()" id="btn-next">📢 ¡EL QUE SIGUE!</button>
+            <button class="main-btn" onclick="returnPapers()" id="btn-return" style="display:none;">DAR PAPELES</button>
+            <!-- Nuevo botón de Contrabando -->
+            <button class="main-btn" onclick="searchEntrant()" id="btn-search"
+                style="display:none; background:#d63031; color:white; box-shadow: 4px 4px 0 #8B0000;">🔎 REVISAR
+                MALETA</button>
+        </div>
+    </div>
+
+    <!-- MULTA -->
+    <div id="citation">
+        <h2 style="margin:0; color:var(--mex-red);">INFRACCIÓN</h2>
+        <p>TE EQUIVOCASTE</p>
+        <p id="citation-reason" style="font-weight:bold;">Documentos inválidos.</p>
+        <div style="border-top:1px solid #000; margin-top:10px; padding-top:5px;">
+            MULTA: <span style="color:var(--mex-red)">$5</span>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        const gameState = {
+            mode: 'story', // story | endless
+            day: 1,
+            money: 20,
+            salary: 0,
+            bribes: 0,
+            fines: 0,
+            currentEntrant: null,
+            documentsOnDesk: [],
+            stampMode: null,
+            isProcessing: false,
+            time: 8 * 60,
+            dayDuration: 18 * 60,
+            timerInterval: null,
+            musicOn: false,
+            currentDate: new Date(1982, 10, 23), // Nov 23
+            falseSearchCount: 0 // Contador para multas de búsqueda
+        };
+
+        // --- DIÁLOGOS (AMPLIADOS) ---
+        const DIALOGOS = {
+            saludos: [
+                "Buenos días oficial, ¿me da el pase?", "Ya llegué, ¿me apuro o qué? Que tengo camiones esperándome.", "Qué onda patrón, tengo hambre y prisa.", "¿Cómo anda la chamba? ¿Está muy duro el tráfico?",
+                "Tengo prisa we, nomás chéquelo rápido.", "Hola hola, vengo de visita familiar. Todo en orden.", "¿Ya me puedo pasar o me formo otra vez?",
+                "Buenos días, ¿cómo ha estado la jornada de hoy? Mis papeles están completos, créame.", "Vengo a ver a la abuela, ¿tardo mucho en el trámite?", "Órale, ¿qué papeles necesita ver? Aquí están todos.", "Permiso, vengo de lejos y ando cansado del viaje.",
+                "¡Saludos! Vengo a traer unos regalos, es rápido.", "¿Todo bien, oficial? Aquí le dejo mis documentos.", "Un placer, vengo a México de vacaciones. ¡Viva México!"
+            ],
+            saludos_mentira: [
+                // Estos diálogos se usan cuando el ciudadano VA A MENTIR sobre una de sus propiedades.
+                (nation, sex) => `Soy de ${nation} y tengo todo en regla. Además, soy ${sex === 'M' ? 'mujer' : 'hombre'}.`,
+                (nation) => `Soy originario de ${nation}, vengo de volada.`,
+                (sex) => `Solo vengo a pasear. Por cierto, soy ${sex === 'M' ? 'mujer' : 'hombre'}.`,
+            ],
+            soborno: [
+                "Tira paro jefe... porfa. $", "Pa' los chescos we... $", "¿Cómo nos arreglamos? $", "Ahí te va un sor juana si le da 'Aprobado'. $",
+                "Si me deja pasar, le doy la mitad de mis ahorros. $", "Écheme la mano, la familia espera. Con esto tiene. $",
+                "Ayúdeme, oficial. La necesidad es grande. ¿Acepta un trato? $", "Mire, le doy esto y no se preocupe por el pasaporte vencido. $"
+            ],
+            aprobado: [
+                "¡A huevo, gracias! ¡Viva México!", "Gracias carnal, que le vaya bien.", "¡Fierro pariente, a pasarla bien!", "Ya rugiste. Arre.",
+                "¡Qué chido! Gracias, oficial.", "¡Mi más sincero agradecimiento! Que tenga un gran día.", "¡Paso a toda madre! Gracias por su rapidez."
+            ],
+            denegado: [
+                "¡No mames, ¿por qué?! ¡Explíquese!", "¡Chale, ya ni la friega, no es mi culpa!", "¡Me lleva la que me trajo, qué injusticia de ley!", "¡Voy a llorar we, no tengo a dónde ir de regreso!",
+                "¡Eres bien gacho, se va a arrepentir de negarme el paso!", "¿Me puede decir la razón? ¡Esto es un abuso!", "¡Mi jefe me va a matar! ¡No es justo que me regrese!"
+            ],
+            oficial_next: [
+                "Siguiente. Pase el documento a la ventanilla.", "Apresure el paso. Documentación a la vista.", "¡El que sigue! Rápido, por favor.",
+                "Muestre papeles de inmediato.", "Documentos en la mesa, por favor. Continúe.", "No hay tiempo que perder. Siguiente ciudadano.",
+                "Ponga sus documentos aquí. Rápido y sin distracciones.", "Continúe. Entregue los documentos solicitados."
+            ],
+            contrabando_catch: [
+                "¡ALTO! Queda detenido por posesión de mercancía ilegal. ¡Multa de $20!",
+                "La mercancía ilegal ha sido confiscada. Ciudadano, regrese a su país. ¡Penalización de $20!"
+            ],
+            falsa_alarma_warning: [
+                "No se encontró nada. ¿Está perdiendo el tiempo, oficial? ¡Una advertencia!",
+                "La revisión fue negativa. Retírese. Un error más y será multado."
+            ],
+            falsa_alarma_fine: [
+                "Abuso de autoridad. ¡MULTA por $5 y advertencia oficial!",
+                "Revisión injustificada. Se aplica multa de $5. No más errores."
+            ],
+            lie_caught: [
+                "Falsedad en la declaración. Sus papeles no concuerdan con su palabra. ¡DENEGADO!",
+                "Sus documentos no coinciden con su testimonio verbal. ¡Váyase!",
+            ],
+            photo_mismatch: [
+                "La foto del pasaporte no concuerda con su persona. ¡DENEGADO!",
+                "La identidad visual no es la misma. Fraude. ¡Regrese por donde vino!",
+            ]
+        };
+
+        const STORY = {
+            1: {
+                rules: ["Solo ciudadanos de MÉXICO.", "Pasaporte vigente."],
+                allowedNations: ["MÉXICO"],
+                rent: 10, food: 10,
+                intro: "DÍA 1: El Novato. Hoy es fácil: solo gente de MÉXICO y que su pasaporte NO esté vencido (Fecha de hoy: NOV 23, 1982)."
+            },
+            2: {
+                rules: ["MÉXICO y USA permitidos.", "Pasaporte vigente."],
+                allowedNations: ["MÉXICO", "USA"],
+                rent: 15, food: 10,
+                intro: "DÍA 2: Apertura comercial. Se permite el paso a ciudadanos de USA. La renta subió. ¡A trabajar más!"
+            },
+            3: {
+                rules: ["TODOS permitidos EXCEPTO 'GUATEMALA'.", "Rechazar GUATEMALA (Brote viral)."],
+                allowedNations: ["MÉXICO", "USA", "CANADÁ", "BELICE"],
+                deniedNations: ["GUATEMALA"],
+                rent: 20, food: 15,
+                intro: "DÍA 3: Crisis Sanitaria. Bloquee el paso a GUATEMALA por un virus. ¡No acepte sobornos de nadie de allá!"
+            },
+            4: {
+                rules: ["SOLO MÉXICO Y CANADÁ.", "USA ESTÁ VETADO (Pleito político).", "Ojo: ¡Algunos mienten en su diálogo!"], // MISMATH_VERBAL activa
+                allowedNations: ["MÉXICO", "CANADÁ"],
+                deniedNations: ["USA", "GUATEMALA", "BELICE"],
+                rent: 25, food: 20,
+                intro: "DÍA 4: Tensión en la frontera. Los gringos (USA) están vetados. ¡Fíjese bien! La vida se pone cara. Y CUIDADO: algunos mentirán al hablar."
+            },
+            5: {
+                rules: ["TODOS PERMITIDOS.", "Pasaportes deben vencer DESPUÉS de 1983."],
+                allowedNations: ["MÉXICO", "USA", "CANADÁ", "GUATEMALA", "BELICE"],
+                rent: 30, food: 25,
+                intro: "DÍA 5: Ley de Turismo. Se abren fronteras, pero los pasaportes deben tener vigencia MÍNIMA de UN AÑO. ¡Ponga el ojo en 1983!"
+            },
+            6: {
+                rules: ["SOLO MUJERES (SEXO: F) Y MÉXICO.", "Pasaporte vigente. DENEGAR a todos los HOMBRES.", "Cuidado: ¡Algunas fotos no concuerdan!"], // MISMATH_VISUAL activa
+                allowedNations: ["MÉXICO"],
+                allowedSex: "F",
+                rent: 40, food: 30,
+                intro: "DÍA 6: Alerta de Búsqueda. Solo se permite el acceso a MUJERES mexicanas. DENEGAR el paso a cualquier HOMBRE. ¡Y REVISE BIEN LA FOTO!"
+            },
+            7: {
+                rules: ["TODOS permitidos.", "Pasaporte vigente.", "REVISAR por contrabando (Pista: USA/GUATEMALA tiene mayor chance)."],
+                allowedNations: ["MÉXICO", "USA", "CANADÁ", "GUATEMALA", "BELICE"],
+                contrabandNations: ["USA", "GUATEMALA"],
+                rent: 50, food: 40,
+                intro: "DÍA 7: La Ley del Narco. Se reabren fronteras, pero el contrabando es alto. Si sospecha, use 'REVISAR MALETA'. ¡Cuidado con falsas alarmas!"
+            },
+            8: {
+                rules: ["SOLO MÉXICO Y CANADÁ.", "Pasaporte vigente.", "Contrabando y Mentiras VERBALES Y VISUALES activas."],
+                allowedNations: ["MÉXICO", "CANADÁ"],
+                deniedNations: ["USA", "GUATEMALA", "BELICE"],
+                contrabandNations: ["USA", "GUATEMALA"],
+                rent: 60, food: 50,
+                intro: "DÍA 8: CAOS TOTAL. Hay tensión, contrabando, mentiras y documentos falsos. ¡REVISE TODO, OFICIAL! Tu salario es alto, pero también los riesgos."
+            }
+        };
+
+        const NATIONS = ["MÉXICO", "USA", "CANADÁ", "GUATEMALA", "BELICE"];
+        const NAMES = ["El Kevin", "El Brayan", "La Britany", "Juan", "Maria", "Firulais", "Don Gato", "Benito", "Karen", "Michi"];
+        const HAIR_COLORS = ['#111', '#553300', '#888', '#F5F5DC'];
+        const SKIN_COLORS = ['#ffeaa7', '#fab1a0', '#e17055', '#c68642'];
+
+        // --- AUDIO ---
+        function playTone(freq, type, duration, vol = 0.1) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // Voz del Oficial (Gruesa y Lenta) vs Ciudadano (Aguda y Rápida)
+        function speak(text, isOfficial = false) {
+            window.speechSynthesis.cancel();
+            const utt = new SpeechSynthesisUtterance(text);
+            utt.lang = 'es-MX';
+
+            if (isOfficial) {
+                // Oficial: Voz gruesa, lenta y seria.
+                utt.rate = 0.9;
+                utt.pitch = 0.6;
+            } else {
+                // Ciudadano: Voz aguda y rápida (Estilo humano pero chillón)
+                utt.rate = 1.3;
+                utt.pitch = 1.6;
+            }
+
+            // Animación
+            const sprite = document.querySelector('.entrant-sprite');
+            sprite.classList.add('talking');
+
+            utt.onend = () => sprite.classList.remove('talking');
+            window.speechSynthesis.speak(utt);
+        }
+
+        let musicInterval;
+        function toggleMusic() {
+            gameState.musicOn = !gameState.musicOn;
+            const radio = document.getElementById('radio');
+
+            if (gameState.musicOn) {
+                radio.textContent = "📻 RADIO: ON";
+                radio.classList.add('playing');
+                // Loop de música simple
+                musicInterval = setInterval(() => {
+                    playTone(400 + Math.random() * 200, 'triangle', 0.1, 0.05);
+                }, 200);
+            } else {
+                radio.textContent = "📻 RADIO: OFF";
+                radio.classList.remove('playing');
+                clearInterval(musicInterval);
+            }
+        }
+
+        // --- GAME LOOP ---
+        function startGame(mode) {
+            gameState.mode = mode;
+            document.getElementById('start-screen').classList.add('hidden');
+            audioCtx.resume();
+
+            if (mode === 'endless') {
+                gameState.money = 50; // Más dinero inicial en infinito
+            }
+            startDay(1);
+        }
+
+        function formatDate(date) {
+            const m = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
+            return `${m[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+        }
+
+        function startDay(dayNum) {
+            gameState.day = dayNum;
+            gameState.salary = 0;
+            gameState.bribes = 0;
+            gameState.fines = 0;
+            gameState.time = 8 * 60;
+            gameState.falseSearchCount = 0; // Resetear multas de búsqueda
+
+            // Avanzar fecha
+            const newDate = new Date(1982, 10, 23);
+            newDate.setDate(newDate.getDate() + (dayNum - 1));
+            gameState.currentDate = newDate;
+            document.getElementById('calendar-date').textContent = formatDate(newDate);
+
+            // Setup Rules
+            let dayData;
+            if (gameState.mode === 'story') {
+                if (dayNum > 8) { // Límite de 8 días
+                    alert("¡GANASTE! Sobreviviste la semana más dura de la Aduana. ¡Felicidades!");
+                    location.reload();
+                    return;
+                }
+                dayData = STORY[dayNum];
+            } else {
+                // Endless Mode Gen
+                dayData = {
+                    rules: [`Día ${dayNum}: Reglas aleatorias.`, "Pasaporte vigente."],
+                    allowedNations: NATIONS.filter(() => Math.random() > 0.5),
+                    rent: 10 + (dayNum * 2),
+                    food: 5 + dayNum,
+                    intro: `MODO INFINITO DÍA ${dayNum}. ¡Sobrevive!`
+                };
+                if (dayData.allowedNations.length === 0) dayData.allowedNations = ["MÉXICO"];
+            }
+
+            document.getElementById('day-display').textContent = `DÍA ${dayNum}`;
+            document.getElementById('credits').textContent = gameState.money;
+
+            const list = document.getElementById('rules-list');
+            list.innerHTML = "";
+            dayData.rules.forEach(r => {
+                const li = document.createElement('li');
+                li.textContent = r;
+                list.appendChild(li);
+            });
+
+            // Guardar reglas actuales en estado para validación
+            gameState.currentRules = dayData;
+
+            setTimeout(() => {
+                // Voz del Oficial (Gruesa) para la introducción del día
+                speak(dayData.intro, true);
+                startTimer();
+            }, 500);
+        }
+
+        function startTimer() {
+            if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+            gameState.timerInterval = setInterval(() => {
+                gameState.time += 1;
+                const h = Math.floor(gameState.time / 60);
+                const m = gameState.time % 60;
+                document.getElementById('time-display').textContent =
+                    `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+
+                if (gameState.time >= gameState.dayDuration) {
+                    endDay();
+                }
+            }, 100);
+        }
+
+        function endDay() {
+            clearInterval(gameState.timerInterval);
+            document.getElementById('end-day-screen').classList.remove('hidden');
+
+            const rules = gameState.currentRules;
+            const salary = gameState.salary;
+            const bribes = gameState.bribes;
+            const fines = gameState.fines;
+            const rent = rules.rent;
+            const food = rules.food;
+
+            const totalDaily = salary + bribes - fines - rent - food;
+            gameState.money += totalDaily;
+
+            document.getElementById('sum-savings').textContent = `$${gameState.money - totalDaily}`;
+            document.getElementById('sum-salary').textContent = `+$${salary}`;
+            document.getElementById('sum-bribes').textContent = `+$${bribes}`;
+            document.getElementById('sum-fines').textContent = `-$${fines}`;
+            document.getElementById('sum-rent').textContent = `-$${rent}`;
+            document.getElementById('sum-food').textContent = `-$${food}`;
+            document.getElementById('sum-total').textContent = `$${gameState.money}`;
+
+            const status = document.getElementById('status-msg');
+            if (gameState.money < 0) {
+                status.textContent = "ESTÁS EN BANCARROTA. NO HAY PARA LA RENTA.";
+                status.style.color = "red";
+                document.querySelector('#end-day-screen button').textContent = "GAME OVER";
+                document.querySelector('#end-day-screen button').onclick = () => location.reload();
+            } else {
+                status.textContent = "Sobreviviste otro día. ¡Gloria a la Aduana!";
+                status.style.color = "lightgreen";
+                document.querySelector('#end-day-screen button').textContent = "SIGUIENTE DÍA";
+                document.querySelector('#end-day-screen button').onclick = () => {
+                    document.getElementById('end-day-screen').classList.add('hidden');
+                    startDay(gameState.day + 1);
+                };
+            }
+        }
+
+        // --- ENTRANT GENERATION ---
+        function generateEntrant() {
+            const rules = gameState.currentRules;
+            let nation = NATIONS[Math.floor(Math.random() * NATIONS.length)];
+
+            let isValid = true;
+            let discrepancy = "";
+
+            // Propiedades del pasaporte
+            const passportSex = Math.random() > 0.5 ? "M" : "F";
+            const passportHair = HAIR_COLORS[Math.floor(Math.random() * HAIR_COLORS.length)];
+            const passportSkin = SKIN_COLORS[Math.floor(Math.random() * SKIN_COLORS.length)];
+            const passportName = NAMES[Math.floor(Math.random() * NAMES.length)];
+
+            // Propiedades de la persona real (que pueden ser diferentes a las del pasaporte)
+            let actualSex = passportSex;
+            let actualHair = passportHair;
+            let actualSkin = passportSkin;
+            let speakingNation = nation;
+            let speakingSex = passportSex;
+
+            let hasContraband = false;
+            let mismatchVerbal = false; // El ciudadano miente en su diálogo
+            let mismatchVisual = false; // La foto no coincide con la persona
+
+            // --- 1. Generación de Discrepancias Ocultas ---
+
+            // Mismatch Verbal (Días 4, 8)
+            if ((gameState.day === 4 || gameState.day === 8) && Math.random() < 0.20) {
+                mismatchVerbal = true;
+                // Hace que el ciudadano diga una nación o sexo diferente al del pasaporte
+                speakingSex = (passportSex === 'M' ? 'F' : 'M'); // Miente en el sexo
+                speakingNation = NATIONS.filter(n => n !== nation)[Math.floor(Math.random() * (NATIONS.length - 1))]; // Miente en la nación
+            }
+
+            // Mismatch Visual (Días 6, 8)
+            if ((gameState.day === 6 || gameState.day === 8) && Math.random() < 0.25) {
+                mismatchVisual = true;
+                // Cambia el sexo o el color de piel de la persona real
+                actualSex = (passportSex === 'M' ? 'F' : 'M');
+                actualHair = HAIR_COLORS.filter(c => c !== passportHair)[Math.floor(Math.random() * (HAIR_COLORS.length - 1))];
+
+                // Si la discrepancia visual es activa, esto podría causar que la foto no concuerde, pero no afecta la validez legal inicial (solo la validación del oficial)
+            }
+
+
+            // --- 2. Validación de Reglas Burocráticas (Lo legal) ---
+
+            // A. Nación Permitida?
+            if (!rules.allowedNations.includes(nation)) {
+                isValid = false;
+                discrepancy = "Nación no permitida.";
+            }
+            if (rules.deniedNations && rules.deniedNations.includes(nation)) {
+                isValid = false;
+                discrepancy = "Nación vetada.";
+            }
+
+            // B. Sexo Permitido? (Solo DÍA 6)
+            if (rules.allowedSex && rules.allowedSex !== passportSex) {
+                isValid = false;
+                discrepancy = `Solo se permite sexo ${rules.allowedSex}.`;
+            }
+
+            // C. Fecha
+            const today = gameState.currentDate;
+            const expYear = today.getFullYear() - 1 + Math.floor(Math.random() * 4);
+            const expMonth = Math.floor(Math.random() * 12);
+            const expiry = new Date(expYear, expMonth, 1);
+
+            const oneYearLater = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+            if (rules.rules.includes("Pasaportes deben vencer DESPUÉS de 1983.") && expiry < oneYearLater) {
+                if (isValid) {
+                    isValid = false;
+                    discrepancy = "Vigencia menor a 1 año.";
+                }
+            } else if (expiry < today) { // Vencido normal
+                if (isValid) {
+                    isValid = false;
+                    discrepancy = "Pasaporte vencido.";
+                }
+            }
+
+            // D. Contrabando (Mecánica del Día 7/8/Endless)
+            if (gameState.day >= 7 || gameState.mode === 'endless') {
+                const isContrabandNation = rules.contrabandNations ? rules.contrabandNations.includes(nation) : false;
+                if (Math.random() < (isContrabandNation ? 0.25 : 0.10)) {
+                    hasContraband = true;
+                }
+            }
+
+            // E. Mismatch Verbal hace que sea inválido (Si el oficial lo detecta, debe DENEGAR)
+            if (mismatchVerbal || mismatchVisual) {
+                // Si hay una mentira, no es válido, pero el oficial debe detectarlo
+                // NO alteramos isValid, sino que agregamos el motivo de rechazo.
+            }
+
+            // 5. Soborno
+            let bribeOffer = 0;
+            // Si tiene cualquier fallo (legal, mentira o contrabando) hay chance de soborno
+            if ((!isValid || hasContraband || mismatchVerbal || mismatchVisual) && nation !== "GUATEMALA" && Math.random() > 0.7) {
+                bribeOffer = Math.floor(Math.random() * 15) + 5;
+            }
+
+            return {
+                name: passportName,
+                sex: passportSex,
+                nation: nation,
+                expiry,
+                isValid, // Falla legal (fecha, nación, sexo)
+                discrepancy,
+                bribeOffer,
+                hasContraband,
+                mismatchVerbal,
+                mismatchVisual,
+                actualSex, // Usado para dibujar al que se ve
+                actualHair, // Usado para dibujar al que se ve
+                actualSkin,
+                speakingNation, // Lo que dice verbalmente (puede ser mentira)
+                speakingSex, // Lo que dice verbalmente (puede ser mentira)
+                faceSeed: Math.random()
+            };
+        }
+
+        // --- DRAWING FACE (HUMAN PIXEL ART) ---
+        function drawFace(sex, hair, skin) {
+            const canvas = document.getElementById('face-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 160, 200);
+
+            const isMale = sex === 'M';
+
+            // Cabeza (más rectangular)
+            ctx.fillStyle = skin;
+            ctx.fillRect(50, 60, 60, 80);
+
+            // Cabello
+            ctx.fillStyle = hair;
+            ctx.fillRect(40, 50, 80, 20); // Top
+            if (isMale) {
+                ctx.fillRect(45, 50, 70, 5); // Corte simple
+            } else {
+                ctx.fillRect(40, 70, 10, 50); // Cabello largo a la izquierda
+            }
+
+            // Ojos
+            ctx.fillStyle = '#000';
+            ctx.fillRect(60, 80, 5, 5);
+            ctx.fillRect(95, 80, 5, 5);
+
+            // Boca
+            ctx.fillStyle = '#D63031';
+            ctx.fillRect(75, 105, 10, 3);
+
+            // Ropa/Cuello
+            ctx.fillStyle = isMale ? '#0984e3' : '#d63031';
+            ctx.fillRect(40, 140, 80, 60);
+
+            return canvas.toDataURL();
+        }
+
+        // --- INTERACTION ---
+        function callNext() {
+            if (gameState.isProcessing) return;
+            document.getElementById('btn-next').disabled = true;
+            document.getElementById('citation').classList.remove('show');
+            gameState.documentsOnDesk.forEach(d => d.remove());
+            gameState.documentsOnDesk = [];
+            document.getElementById('btn-search').style.display = 'none';
+
+            // Voz del Oficial (Gruesa)
+            let officialText = DIALOGOS.oficial_next[Math.floor(Math.random() * DIALOGOS.oficial_next.length)];
+            speak(officialText, true);
+
+            setTimeout(() => {
+                document.getElementById('shutter').classList.add('open');
+                playTone(100, 'sawtooth', 0.5);
+
+                setTimeout(() => {
+                    const ent = generateEntrant();
+                    gameState.currentEntrant = ent;
+                    document.querySelector('.entrant-sprite').style.display = 'block';
+
+                    // Dibuja la persona REAL (con posible mismatch visual)
+                    const faceUrl = drawFace(ent.actualSex, ent.actualHair, ent.actualSkin);
+                    document.getElementById('face-canvas').src = faceUrl;
+
+                    const dialog = document.getElementById('dialog-box');
+                    dialog.style.display = 'block';
+
+                    let text;
+                    if (ent.mismatchVerbal) {
+                        // Diálogo que miente sobre Nación o Sexo
+                        const template = DIALOGOS.saludos_mentira[Math.floor(Math.random() * DIALOGOS.saludos_mentira.length)];
+                        text = template(ent.speakingNation, ent.speakingSex);
+                        dialog.style.color = "blue"; // Pista visual de "mentira"
+                    } else {
+                        // Diálogo normal
+                        text = DIALOGOS.saludos[Math.floor(Math.random() * DIALOGOS.saludos.length)];
+                        dialog.style.color = "black";
+                    }
+
+                    dialog.textContent = text;
+                    speak(text, false);
+
+
+                    if (ent.bribeOffer > 0) {
+                        setTimeout(() => {
+                            let bribeText = DIALOGOS.soborno[Math.floor(Math.random() * DIALOGOS.soborno.length)];
+                            dialog.textContent = bribeText.replace('$', `$${ent.bribeOffer}`); // Reemplaza el placeholder con el monto
+                            dialog.style.color = "green";
+                            speak(dialog.textContent, false);
+                            spawnBribe(ent.bribeOffer);
+                        }, 1500);
+                    }
+
+                    // Muestra el botón de búsqueda si la regla está activa
+                    if (gameState.day >= 7 || gameState.mode === 'endless') {
+                        document.getElementById('btn-search').style.display = 'inline-block';
+                    }
+
+                    setTimeout(() => {
+                        dialog.style.display = 'none';
+                        spawnPassport(ent, faceUrl);
+                        gameState.isProcessing = true;
+                    }, 2500);
+
+                }, 1000);
+            }, 800);
+        }
+
+        function spawnBribe(amount) {
+            const bribe = document.createElement('div');
+            bribe.className = 'bribe-money';
+            bribe.innerHTML = `$${amount}`;
+            bribe.style.left = '300px'; bribe.style.top = '300px';
+            bribe.onclick = () => {
+                playTone(800, 'sine', 0.1);
+                gameState.bribes += amount;
+                gameState.money += amount;
+                document.getElementById('credits').textContent = gameState.money;
+                bribe.remove();
+            };
+            document.getElementById('desk-view').appendChild(bribe);
+            gameState.documentsOnDesk.push(bribe);
+        }
+
+        function spawnPassport(data, faceUrl) {
+            const doc = document.createElement('div');
+            let nationClass = data.nation === 'USA' ? 'usa' : (data.nation === 'CANADÁ' ? 'canada' : '');
+            doc.className = `document passport ${nationClass}`;
+            doc.style.left = '50px'; doc.style.top = '400px';
+            doc.id = 'doc-passport';
+
+            const expDate = formatDate(data.expiry);
+            const isExpired = data.expiry < gameState.currentDate;
+
+            // La foto en el pasaporte es la que DEBERÍA ser, si no hay mismatch es igual a la real.
+            // Si hay mismatch visual, la foto del pasaporte es diferente a la persona real.
+            const passportPhotoUrl = drawFace(data.sex, data.passportHair || HAIR_COLORS[0], data.passportSkin || SKIN_COLORS[0]);
+
+            doc.innerHTML = `
+                <div class="cover-content">
+                    <div style="font-size:3rem">🛂</div>
+                    <div>PASAPORTE</div>
+                    <div>${data.nation}</div>
+                </div>
+                <div class="passport-inner">
+                    <div style="display:flex; gap:10px;">
+                        <div class="photo-area">
+                            <img src="${passportPhotoUrl}" width="100%" height="100%">
+                        </div>
+                        <div style="flex:1">
+                            <div class="data-row"><span class="label">NOMBRE</span><span class="value" style="font-size:0.8rem">${data.name}</span></div>
+                            <div class="data-row"><span class="label">NACION</span><span class="value">${data.nation}</span></div>
+                            <div class="data-row"><span class="label">SEXO</span><span class="value">${data.sex}</span></div>
+                            <div class="data-row"><span class="label">VENCE</span><span class="value" style="${isExpired ? 'color:red' : ''}">${expDate}</span></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            doc.addEventListener('dblclick', () => {
+                doc.classList.toggle('open');
+                playTone(400, 'sine', 0.05);
+            });
+            doc.addEventListener('click', (e) => {
+                if (gameState.stampMode && doc.classList.contains('open')) applyStamp(doc, e.offsetX, e.offsetY);
+                doc.style.zIndex = 100;
+            });
+            makeDraggable(doc);
+            document.getElementById('desk-view').appendChild(doc);
+            gameState.documentsOnDesk.push(doc);
+            setTimeout(() => { doc.style.top = '50px'; doc.style.left = '100px'; }, 100);
+        }
+
+        function makeDraggable(el) {
+            let isDown = false, startX, startY, initL, initT;
+            el.addEventListener('mousedown', e => {
+                if (gameState.stampMode) return;
+                isDown = true; startX = e.clientX; startY = e.clientY;
+                initL = el.offsetLeft; initT = el.offsetTop;
+                el.style.zIndex = 100;
+            });
+            window.addEventListener('mousemove', e => {
+                if (!isDown) return;
+                el.style.left = (initL + (e.clientX - startX)) + 'px';
+                el.style.top = (initT + (e.clientY - startY)) + 'px';
+            });
+            window.addEventListener('mouseup', () => isDown = false);
+        }
+
+        // --- NEW MECHANIC: SEARCH ENTRANT ---
+        function searchEntrant() {
+            if (!gameState.isProcessing) return;
+
+            const ent = gameState.currentEntrant;
+            const dialog = document.getElementById('dialog-box');
+            dialog.style.display = 'block';
+
+            if (ent.hasContraband) {
+                // Success: Contraband found
+                playTone(600, 'square', 0.2);
+                let txt = DIALOGOS.contrabando_catch[Math.floor(Math.random() * DIALOGOS.contrabando_catch.length)];
+                dialog.textContent = txt;
+                speak(txt, true); // La voz del Oficial anuncia la detención
+
+                // Bonificación
+                gameState.salary += 20;
+                ent.isValid = false; // El contrabando hace inválida la entrada
+                ent.discrepancy = "Contrabando detectado. (Rechazo forzado)";
+
+                // Retornar papeles y Denegar automáticamente
+                document.getElementById('doc-passport').dataset.stamped = 'DENEGADO';
+                returnPapers();
+
+            } else {
+                // Failure: False Alarm
+                gameState.falseSearchCount++;
+                let txt;
+
+                if (gameState.falseSearchCount < 2) {
+                    // Advertencia
+                    txt = DIALOGOS.falsa_alarma_warning[Math.floor(Math.random() * DIALOGOS.falsa_alarma_warning.length)];
+                } else {
+                    // Multa
+                    gameState.fines += 5;
+                    txt = DIALOGOS.falsa_alarma_fine[Math.floor(Math.random() * DIALOGOS.falsa_alarma_fine.length)];
+                }
+
+                playTone(150, 'sawtooth', 0.5);
+                dialog.textContent = txt;
+                speak(txt, true); // Voz del Oficial (regaño)
+
+                // El ciudadano se queda esperando, el jugador debe estampar manualmente
+                setTimeout(() => {
+                    dialog.style.display = 'none';
+                }, 2000);
+            }
+            document.getElementById('btn-search').style.display = 'none'; // Se usa una vez por turno
+        }
+
+
+        // --- STAMP & EVAL ---
+        function toggleStampBar() {
+            document.getElementById('stamp-bar').classList.toggle('visible');
+            gameState.stampMode = null;
+            document.body.style.cursor = 'default';
+        }
+
+        function selectStamp(type) {
+            gameState.stampMode = type;
+            document.body.style.cursor = 'crosshair';
+        }
+
+        function applyStamp(doc, x, y) {
+            if (doc.dataset.stamped) return;
+            const mark = document.createElement('div');
+            mark.className = `stamp-mark ${gameState.stampMode === 'APROBADO' ? 'mark-green' : 'mark-red'}`;
+            mark.textContent = gameState.stampMode;
+            mark.style.left = (x - 40) + 'px'; mark.style.top = (y - 20) + 'px';
+            doc.querySelector('.passport-inner').appendChild(mark);
+            doc.dataset.stamped = gameState.stampMode;
+            playTone(100, 'square', 0.1);
+            toggleStampBar();
+            document.getElementById('btn-return').style.display = 'inline-block';
+        }
+
+        function returnPapers() {
+            if (!gameState.isProcessing) return;
+            const doc = document.getElementById('doc-passport');
+            if (!doc || !doc.dataset.stamped) { alert("¡Falta sello!"); return; }
+
+            const decision = doc.dataset.stamped;
+            const ent = gameState.currentEntrant;
+
+            doc.style.transition = 'top 0.5s'; doc.style.top = '-500px';
+            gameState.documentsOnDesk.forEach(d => { if (d.className.includes('bribe')) d.remove(); });
+            document.getElementById('btn-search').style.display = 'none';
+
+            // --- EVALUACIÓN FINAL DE ERRORES ---
+            let finalDiscrepancy = ent.discrepancy;
+            let finalIsValid = ent.isValid;
+
+            // 1. Detección de Mismatch Verbal (Mentira)
+            if (ent.mismatchVerbal) {
+                // Si el oficial sella APROBADO, falló. Si sella DENEGADO, acertó.
+                if (finalIsValid) finalIsValid = false; // El mentir es un motivo de rechazo.
+                finalDiscrepancy = finalDiscrepancy || "Declaración verbal falsa.";
+            }
+
+            // 2. Detección de Mismatch Visual (Doble identidad)
+            if (ent.mismatchVisual) {
+                if (finalIsValid) finalIsValid = false;
+                finalDiscrepancy = finalDiscrepancy || "Discrepancia visual con la foto.";
+            }
+
+            setTimeout(() => {
+                const dialog = document.getElementById('dialog-box');
+                dialog.style.display = 'block';
+                dialog.style.color = 'black';
+
+                if (decision === 'APROBADO') {
+                    let txt = DIALOGOS.aprobado[Math.floor(Math.random() * DIALOGOS.aprobado.length)];
+                    dialog.textContent = txt;
+                    speak(txt, false);
+                } else {
+                    let txt = DIALOGOS.denegado[Math.floor(Math.random() * DIALOGOS.denegado.length)];
+                    dialog.textContent = txt;
+                    speak(txt, false);
+                }
+
+                setTimeout(() => {
+                    dialog.style.display = 'none';
+                    document.querySelector('.entrant-sprite').style.display = 'none';
+                    document.getElementById('shutter').classList.remove('open');
+
+                    const isCorrect = (finalIsValid && decision === 'APROBADO') || (!finalIsValid && decision === 'DENEGADO');
+
+                    if (isCorrect) {
+                        gameState.salary += 5;
+                    } else {
+                        playTone(150, 'sawtooth', 0.5);
+                        const cit = document.getElementById('citation');
+                        document.getElementById('citation-reason').textContent = finalIsValid ? "Rechazaste a un buen ciudadano." : (finalDiscrepancy || "Error desconocido.");
+                        cit.classList.add('show');
+                        gameState.fines += 5;
+                    }
+
+                    document.getElementById('credits').textContent = (gameState.money + gameState.salary + gameState.bribes - gameState.fines);
+                    gameState.isProcessing = false;
+                    document.getElementById('btn-next').disabled = false;
+                    document.getElementById('btn-return').style.display = 'none';
+                }, 2000);
+            }, 600);
+        }
+
+    </script>
+</body>
+
+</html>
