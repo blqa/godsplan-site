@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Título final de tu portafolio -->
+    <title>EL PATRON: LEGADO | blqa</title>
+    <!-- Carga de Tailwind CSS para el estilo moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de la fuente Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Fuente para el modo Hacker -->
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        /* Aplicamos la fuente Inter y un fondo negro intenso a todo el cuerpo */
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s, color 0.5s, filter 0.3s;
+            /* Transición suave */
+        }
+
+        /* Color personalizado para el desplazamiento (scrollbar) */
+        ::-webkit-scrollbar-thumb {
+            background-color: #8B0000;
+        }
+
+        .main-container {
+            max-width: 1200px;
+        }
+
+        /* Clase para el efecto de ruido sutil en el fondo del Hero */
+        .hero-noise {
+            background-image: radial-gradient(circle, rgba(240, 128, 128, 0.08) 1px, transparent 1px);
+            background-size: 8px 8px;
+        }
+
+        /* --- ESTILOS DEL MODO INVERSO (SANGRE OSCURO) --- */
+        .inverse-theme {
+            background-color: #1a0505 !important;
+            /* Negro Sangre Oscuro */
+            color: #ffcccc !important;
+            /* Rojo muy pálido para texto general */
+        }
+
+        /* Forzamos el color de los textos grises cuando estamos en modo inverso */
+        .inverse-theme .text-gray-100,
+        .inverse-theme .text-gray-300,
+        .inverse-theme .text-gray-400,
+        .inverse-theme .text-gray-500 {
+            color: #ffb3b3 !important;
+            /* Rojo claro para que sea legible */
+        }
+
+        /* Títulos en rojo sangre brillante en modo inverso */
+        .inverse-theme h1,
+        .inverse-theme h2,
+        .inverse-theme h3,
+        .inverse-theme .text-red-300,
+        .inverse-theme .text-red-400 {
+            color: #ff0000 !important;
+            /* Rojo intenso */
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+        }
+
+        /* Ajuste de fondos de tarjetas y navegación en modo inverso */
+        .inverse-theme nav,
+        .inverse-theme .bg-gray-900,
+        .inverse-theme .bg-gray-950 {
+            background-color: #2b0a0a !important;
+            /* Rojo muy oscuro para contenedores */
+            border-color: #4a0f0f !important;
+        }
+
+        /* Ajuste del botón en modo inverso */
+        .inverse-theme #theme-toggle {
+            background-color: #ff0000;
+            color: #000;
+            border: 1px solid #fff;
+        }
+
+        /* Estilo para el icono del proyecto principal */
+        .icon-huge {
+            font-size: 3rem;
+            line-height: 1;
+        }
+
+        /* Estilo para etiquetas de código */
+        code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #ff8888;
+        }
+
+        /* --- FUERZA CONSISTENCIA EN MODO INVERSO (TODAS LAS TARJETAS) --- */
+        .inverse-theme .text-gray-500,
+        .inverse-theme .text-gray-400,
+        .inverse-theme .text-red-500,
+        .inverse-theme .text-yellow-500,
+        .inverse-theme .text-pink-500 {
+            color: #ff0000 !important;
+            /* Rojo Neón */
+        }
+
+        .inverse-theme .border-gray-600,
+        .inverse-theme .border-yellow-500,
+        .inverse-theme .border-red-900 {
+            border-color: #ff0000 !important;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3) !important;
+        }
+
+        /* --- PARTICULAS GLITCH CURSOR --- */
+        .glitch-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            animation: glitch-fade 0.6s forwards cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        @keyframes glitch-fade {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(var(--mx), var(--my)) scale(0);
+            }
+        }
+
+        /* --- EASTER EGG: MODO HACKER --- */
+        .hacker-mode {
+            background-color: #000 !important;
+            color: #0f0 !important;
+            font-family: 'VT323', monospace !important;
+        }
+
+        .hacker-mode nav,
+        .hacker-mode .bg-gray-900,
+        .hacker-mode .bg-gray-950 {
+            background-color: #051105 !important;
+            border-color: #0f0 !important;
+            box-shadow: 0 0 5px #0f0 !important;
+        }
+
+        .hacker-mode h1,
+        .hacker-mode h2,
+        .hacker-mode h3,
+        .hacker-mode .text-red-300,
+        .hacker-mode .text-red-400,
+        .hacker-mode .text-red-500,
+        .hacker-mode .text-yellow-500,
+        .hacker-mode .text-pink-500 {
+            color: #0f0 !important;
+            text-shadow: 0 0 5px #0f0 !important;
+        }
+
+        .hacker-mode a,
+        .hacker-mode button {
+            background: black !important;
+            color: #0f0 !important;
+            border-color: #0f0 !important;
+        }
+
+        /* --- EASTER EGG: BMO --- */
+        #bmo-container {
+            /* Estado inicial: Fuera de pantalla hacia abajo */
+            transform: translateY(200%);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #bmo-container.active {
+            /* Estado visible: En su lugar original */
+            transform: translateY(0);
+        }
+
+        .animate-blink {
+            animation: blink 4s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            48%,
+            52%,
+            100% {
+                height: 8px;
+            }
+
+            50% {
+                height: 1px;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-[#0A0A0A] text-gray-100 min-h-screen relative overflow-x-hidden">
+
+    <!-- BARRA DE NAVEGACIÓN (STICKY) -->
+    <nav
+        class="sticky top-0 z-50 bg-[#0A0A0A]/95 border-b-2 border-red-900 shadow-2xl shadow-red-900/30 backdrop-blur-sm transition-colors duration-500">
+        <div class="main-container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
+            <!-- Logo/Nombre con listener para el secreto -->
+            <div class="flex items-center">
+                <a href="#inicio" id="logo"
+                    class="text-4xl font-extrabold text-gray-100 tracking-wider hover:text-red-400 transition duration-300 cursor-pointer select-none">
+                    BELEKINGGG
+                </a>
+                <!-- Botón para cambiar tema -->
+                <button id="theme-toggle"
+                    class="ml-6 px-3 py-1 bg-red-900/70 text-red-300 rounded-lg text-sm font-semibold hover:bg-red-900 transition duration-300 border border-transparent">
+                    Modo Sangre
+                </button>
+            </div>
+            <!-- Menú de Navegación -->
+            <div class="flex space-x-6 text-lg font-semibold hidden md:flex">
+                <a href="#acerca-de-mi" class="hover:text-red-300 transition duration-300">Acerca de Mí</a>
+                <a href="#proyectos" class="hover:text-red-300 transition duration-300">Proyectos</a>
+                <a href="#contacto"
+                    class="text-red-300 hover:text-gray-100 transition duration-300 border-b-2 border-transparent hover:border-red-300">Contacto</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+        <!-- SECCIÓN DE INICIO / HERO -->
+        <section id="inicio" class="py-20 text-center border-b-4 border-red-900/50 mb-16 hero-noise">
+            <h1 class="text-6xl sm:text-7xl font-black mb-6 tracking-tighter">
+                EJECUCIÓN CON <span class="text-red-400">IMPACTO</span> Y CÓDIGO.
+            </h1>
+            <div class="flex flex-col items-center space-y-4">
+                <p class="text-xl sm:text-2xl text-gray-300 max-w-3xl mx-auto font-light">
+                    <span class="font-bold text-red-400">Diseño</span>, <span
+                        class="font-bold text-red-400">Lógica</span> y una paleta de colores <span
+                        class="italic">dramática</span>.
+                </p>
+                <p class="text-lg text-gray-400 max-w-2xl mx-auto">
+                    Este es el inicio de mi camino en el desarrollo web.
+                </p>
+            </div>
+            <div class="mt-10">
+                <a href="#proyectos"
+                    class="inline-block px-10 py-4 bg-red-900/70 text-red-100 font-bold text-lg rounded-full border border-red-500 shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:bg-red-800 hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] hover:scale-105 transition-all duration-300">
+                    VER PROYECTOS
+                </a>
+            </div>
+        </section>
+
+        <!-- SECCIÓN ACERCA DE MÍ -->
+        <section id="acerca-de-mi"
+            class="mb-16 p-8 bg-gray-950/80 rounded-2xl shadow-2xl border border-red-900/50 transition-colors duration-500 backdrop-blur-sm">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+
+                <!-- Columna Izquierda: Bio y Filosofía -->
+                <div>
+                    <h2 class="text-4xl font-extrabold text-white mb-2">LUIS <span class="text-red-500">"BLQA"</span>
+                    </h2>
+                    <p class="text-sm text-red-400 font-mono mb-6 tracking-widest uppercase">// Arquitecto de la Lógica
+                        & Creador</p>
+
+                    <div class="prose prose-invert text-gray-300 mb-8">
+                        <p class="text-lg leading-relaxed">
+                            A mis **19 años**, mi formación se basa en el **talento autodidacta** y la obsesión por
+                            resolver problemas. Empecé a programar a los 14 años creando redes complejas para
+                            **Minecraft** y automatizando tareas con bots para **Discord**. No tengo educación formal ni
+                            experiencia laboral tradicional, pero mi portafolio demuestra una capacidad de ejecución de
+                            nivel senior.
+                        </p>
+                    </div>
+
+                    <div class="bg-black/40 p-6 rounded-xl border-l-4 border-red-600">
+                        <h3 class="text-xl font-bold text-red-400 mb-3">Manifiesto de Ejecución</h3>
+                        <p class="text-gray-400 text-sm italic">
+                            "La Lógica es mi único maestro. Mi código no busca ser diplomático; busca la **eficiencia y
+                            el impacto absoluto**. Creo por la pura satisfacción de construir lo que parece imposible."
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Arsenal de Habilidades -->
+                <div class="flex flex-col justify-center">
+                    <h3 class="text-2xl font-bold text-white mb-6 border-b border-gray-800 pb-2">ARSENAL TÁCTICO</h3>
+
+                    <div class="space-y-6">
+                        <!-- Skill Group 1 -->
+                        <div>
+                            <div class="flex justify-between text-sm text-gray-400 mb-2">
+                                <span>Lógica & Backend</span>
+                                <span class="text-red-400 font-bold">PYTHON</span>
+                            </div>
+                            <div class="w-full bg-gray-900 rounded-full h-2">
+                                <div class="bg-red-600 h-2 rounded-full" style="width: 90%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Skill Group 2 -->
+                        <div>
+                            <div class="flex justify-between text-sm text-gray-400 mb-2">
+                                <span>Frontend & Estructura</span>
+                                <span class="text-red-400 font-bold">HTML5 / CSS / TAILWIND</span>
+                            </div>
+                            <div class="w-full bg-gray-900 rounded-full h-2">
+                                <div class="bg-red-600 h-2 rounded-full" style="width: 85%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Skill Group 3 -->
+                        <div>
+                            <div class="flex justify-between text-sm text-gray-400 mb-2">
+                                <span>Interactividad</span>
+                                <span class="text-red-400 font-bold">JAVASCRIPT (VANILLA & ES6+)</span>
+                            </div>
+                            <div class="w-full bg-gray-900 rounded-full h-2">
+                                <div class="bg-red-600 h-2 rounded-full" style="width: 80%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Skill Group 4 -->
+                        <div>
+                            <div class="flex justify-between text-sm text-gray-400 mb-2">
+                                <span>Aplicaciones de Escritorio</span>
+                                <span class="text-red-400 font-bold">PyQt6 / GUI</span>
+                            </div>
+                            <div class="w-full bg-gray-900 rounded-full h-2">
+                                <div class="bg-red-600 h-2 rounded-full" style="width: 75%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Badges Extra -->
+                        <div class="pt-4 flex flex-wrap gap-2">
+                            <span
+                                class="px-3 py-1 bg-red-900/30 border border-red-600 rounded text-xs text-red-300 font-mono">SIMULACIÓN
+                                AVANZADA</span>
+                            <span
+                                class="px-3 py-1 bg-red-900/30 border border-red-600 rounded text-xs text-red-300 font-mono">OPTIMIZACIÓN
+                                GPGPU</span>
+                            <span
+                                class="px-3 py-1 bg-red-900/30 border border-red-600 rounded text-xs text-red-300 font-mono">AUTOMATIZACIÓN</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN PROYECTOS -->
+        <section id="proyectos" class="mb-16">
+            <h2 class="text-5xl font-extrabold text-red-400 mb-10 text-center">Mis Proyectos</h2>
+
+            <!-- Cuadrícula para los proyectos -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+
+                <!-- Tarjeta 1: NEON SPACE DEFENDER -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">👾</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">Neon Space Defender (3D
+                            Arcade)</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Un juego de disparos espacial arcade en 3D desarrollado con
+                        **Three.js**. Destaca por su estética **Synthwave/Neon** lograda a través de post-procesado
+                        (Unreal Bloom Pass).
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Implementación de Post-Procesado (Unreal Bloom).</li>
+                        <li>Detección de Colisiones 3D en tiempo real.</li>
+                        <li>Generación dinámica de enemigos.</li>
+                    </ul>
+                    <a href="neox.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">JUGAR ARCADE 3D
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 2: SINGULARIDAD GPGPU -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">⚛️</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">Nivel 5: Singularidad
+                            (GPGPU)</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Proyecto de simulación de alto rendimiento que utiliza **Vertex
+                        Shaders (GLSL)** y **GPGPU** para mover 100,000 partículas en un vórtice galáctico.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Shaders GLSL con Three.js.</li>
+                        <li>Simulación de fluidos (*Curl Noise*).</li>
+                        <li>Optimización masiva para GPU.</li>
+                    </ul>
+                    <a href="galaxia.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">VER SIMULACIÓN GPGPU
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 3: MICROBÚS SIMULATOR MX 2024 -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">🚌</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">Microbús Simulator MX 2024
+                        </h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Simulador de conducción 3D en primera persona creado con
+                        **Three.js**. Recrea la experiencia de manejar un microbús en la CDMX.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Motor 3D con Three.js.</li>
+                        <li>Lógica de físicas y colisiones.</li>
+                        <li>Gestión de Pasajeros y Ganancias.</li>
+                    </ul>
+                    <a href="microbus.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">JUGAR SIMULACIÓN 3D
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 4: CHILANGO PARKING SIMULATOR -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">🅿️</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">Chilango Parking Simulator
+                        </h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Simulador de física 2D (Canvas API) que recrea el caos vial de la
+                        CDMX, con física de derrape y obstáculos urbanos.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Físicas de Vehículo 2D.</li>
+                        <li>Obstáculos: Topes, Baches, Micros.</li>
+                        <li>Detección de Colisiones Rotativas.</li>
+                    </ul>
+                    <a href="parking.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">JUGAR SIMULACIÓN
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 5: PULPI 7.0 -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">🐙</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">PULPI 7.0: La Aventura
+                            Abisal</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Juego de acción y esquiva 2D con controles multiplataforma
+                        (PC/Móvil) y estética submarina.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Controles Móviles (Joystick/Táctil).</li>
+                        <li>Sistema de Energía y Ataque.</li>
+                        <li>Patrones de Jefe (Kraken).</li>
+                    </ul>
+                    <a href="pulpi.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">JUGAR AVENTURA 2D
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 6: PLANIFICACIÓN URBANA -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">🏙️</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">Planificación Urbana: El
+                            Alcalde</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Simulador de gestión urbana (*Cities/SimCity*) en Canvas 2D con
+                        balance de recursos concurrentes.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Motor de recursos (Prod vs. Cons).</li>
+                        <li>Gestión de felicidad y población.</li>
+                        <li>Construcción en cuadrícula.</li>
+                    </ul>
+                    <a href="ciudad.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">JUGAR SIMULACIÓN
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 7: EL GRAN RETO DEL MAESTRO -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">&#127942;</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">EL GRAN RETO DEL MAESTRO
+                            (PAPIUX)</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Juego de trivia de alta dificultad con modos de juego, logros y
+                        *lifelines*.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Motor de preguntas dinámico.</li>
+                        <li>Modos Normal, Extremo e Infinito.</li>
+                        <li>Sistema de logros y rachas.</li>
+                    </ul>
+                    <a href="triviapapiux.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">VER QUIZ AVANZADO
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 8: CARTEL LORD: RELOADED -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">💉</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">CARTEL LORD: RELOADED
+                            (v6.0)</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Simulador de gestión criminal con interfaz retro y elementos de
+                        rol (XP, atributos).
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Simulación de Riesgo (HEAT) y Combate.</li>
+                        <li>Eventos aleatorios y sistema de Influencia.</li>
+                        <li>Progresión de personaje RPG.</li>
+                    </ul>
+                    <a href="cartel-lord.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">¡JUGAR SIMULACIÓN!
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 9: EL PATRON: LEGADO -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 transform hover:-translate-y-1">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">👑</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">EL PATRON: LEGADO v30.0
+                        </h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Simulador *idle* complejo de gestión de cártel con economía de
+                        doble moneda.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Economía Sucia/Limpia y Lavado.</li>
+                        <li>Guerra de Territorios y Gabinete Sombra.</li>
+                        <li>Motor de Mercado Cripto y Bolsa.</li>
+                    </ul>
+                    <a href="elpatron.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">¡JUGAR SIMULACIÓN!
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 10: EL IMPERIO: EMPORIO TOTAL -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 transform hover:-translate-y-1">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">🔱</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">EL IMPERIO: EMPORIO TOTAL
+                        </h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> El juego de gestión incremental original. Un simulador económico
+                        oscuro y desafiante con gestión de efectivo/deuda y un mercado negro.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Gestión de efectivo, deuda y ingresos pasivos.</li>
+                        <li>Mercado Negro (Personal, Autos, Propiedades).</li>
+                        <li>Mini-juegos (Blackjack, Slots, Cripto).</li>
+                    </ul>
+                    <a href="elimperio.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">JUGAR DEMO &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 11: OCTOSHOPPER -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 transform hover:-translate-y-1">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">⚔️</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">OCTOSHOPPER <span
+                                class="text-base font-normal text-red-500">(EA)</span></h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Un ambicioso juego de aventura y rol creado como un regalo.
+                        Demuestra la creación de un **motor RPG básico** desde cero, enfocado en combate, inventario y
+                        progresión de personaje.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Motor de Combate (HP, Ataque, Defensa).</li>
+                        <li>Gestión de Inventario y Equipo.</li>
+                        <li>Narrativa y Diálogos Personalizados.</li>
+                    </ul>
+                    <a href="octoshopper.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">VER PROYECTO &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 12: NADIA'S FARM -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 transform hover:-translate-y-1">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">💖</span>
+                        <h3 class="text-xl font-bold text-red-300">Nadia's Farm: Un Regalo</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Simulador de gestión de granja *idle* con estaciones y mascotas.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Simulación de Estaciones y Ciclos.</li>
+                        <li>Sistema de Mascotas y Logros.</li>
+                        <li>Mini-juego integrado.</li>
+                    </ul>
+                    <a href="nadias-farm.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">JUGAR EN LA GRANJA
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 13: NADIA'S FARM 3D TYCOON -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">🚜</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">Nadia's Farm 3D Tycoon</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Simulador de granja *Tycoon* en 3D interactivo (**Three.js**).
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Terreno 3D procedural.</li>
+                        <li>Gestión de cultivos y producción.</li>
+                        <li>Ciclo día/noche dinámico.</li>
+                    </ul>
+                    <a href="nadias-farm-3d.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">JUGAR SIMULACIÓN 3D
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 14: GOD'S PLAN: ADHERENCE -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">⏱️</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">God's Plan: Adherence</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Herramienta de productividad laboral (*time clock*) con lógica de
+                        tiempo real.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Reloj checador y cálculo de horas.</li>
+                        <li>Importación de historial JSON.</li>
+                        <li>Gestión de pagos extra.</li>
+                    </ul>
+                    <a href="ADH.HTML" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">VER HERRAMIENTA
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 15: GOD'S PLAN: FINANCE -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">💰</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">God's Plan: Finance</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Herramienta de gestión financiera personal y proyección de flujo
+                        de caja.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Cálculo de flujo quincenal.</li>
+                        <li>Organización de gastos por categoría.</li>
+                        <li>Motor de fechas de pago.</li>
+                    </ul>
+                    <a href="FINANZAS.HTML" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">VER HERRAMIENTA
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 16: AUTOMATIZADOR DE TIMESTAMPS -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">✍️</span>
+                        <h3 class="text-xl font-bold text-red-300">Automatizador de Timestamps</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Script de automatización para **Google Sheets** que inserta
+                        timestamps automáticos al editar celdas.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Programación de eventos (`onEdit`).</li>
+                        <li>Lógica de fechas en Sheets.</li>
+                        <li>Manejo de errores.</li>
+                    </ul>
+                    <a href="#" class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">VER CÓDIGO
+                        FUENTE &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 17: BRIEFING DE BATALLA -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">📧</span>
+                        <h3 class="text-xl font-bold text-red-300">Briefing de Batalla (Email Automation)</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Sistema de automatización (**App Script**) que envía emails
+                        diarios con misiones tácticas y motivación.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Email HTML automatizado.</li>
+                        <li>Lógica de detección de días.</li>
+                        <li>Persistencia de datos de entrenamiento.</li>
+                    </ul>
+                    <a href="#" class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">VER CÓDIGO
+                        FUENTE &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 18: DETALLE DIARIO -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">💌</span>
+                        <h3 class="text-xl font-bold text-red-300">Detalle Diario: Amor & Automatización</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Automatización afectiva avanzada (**App Script**). Envía correos
+                        diarios con clima, fotos únicas de Drive y contadores de aniversario.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Integración de múltiples APIs (Open-Meteo, Drive, Sheets).</li>
+                        <li>Lógica anti-repetición de recursos.</li>
+                        <li>Emails HTML dinámicos.</li>
+                    </ul>
+                    <a href="#" class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">VER CÓDIGO
+                        FUENTE &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 19: GENERADOR BRUTAL -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">&#128274;</span>
+                        <h3 class="text-xl font-bold text-red-300">Generador Brutal (React/JS)</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Generador de contraseñas seguras (React) con cálculo de entropía y
+                        modo "Hacker" (Leet Speak).
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Cálculo de entropía.</li>
+                        <li>Generación de Leet Speak.</li>
+                        <li>Interfaz React dinámica.</li>
+                    </ul>
+                    <a href="generador-brutal.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">VER HERRAMIENTA
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 20: NEXUS: OMEGA -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">📡</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">NEXUS: OMEGA (Cyber
+                            Dashboard)</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Estación de control que explora APIs de bajo nivel del navegador
+                        (Web Audio, WebRTC, Gamepad) con diseño *glitch*.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Integración Web Audio y Visualizador.</li>
+                        <li>Acceso a WebRTC y Hardware.</li>
+                        <li>Efectos Canvas (Matrix/Warp).</li>
+                    </ul>
+                    <a href="nexus-omega.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">VER DASHBOARD
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 21: NEXUS HTML5 -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">🧱</span>
+                        <h3 class="text-xl font-bold text-red-300">Nexus HTML5 (Natividad)</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Demostración técnica de APIs nativas de HTML5 (Drag & Drop,
+                        Speech, Canvas) sin dependencias.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Canvas API para efectos de fondo.</li>
+                        <li>CSS Variables dinámicas.</li>
+                        <li>Implementación de Drag & Drop y Modales nativos.</li>
+                    </ul>
+                    <a href="nexus.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">VER DEMO TÉCNICA
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 22: NAVEGADOR ENTERPRISE -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">💻</span>
+                        <h3 class="text-xl font-bold text-red-300">Navegador Enterprise (Python)</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Aplicación de escritorio completa desarrollada en **Python** con
+                        el *framework* **PyQt6**. Enfocada en ofrecer una experiencia de navegación optimizada.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Desarrollo de GUI profesional y estable.</li>
+                        <li>Panel lateral con Notas, Calculadora y Tareas.</li>
+                        <li>Motor WebEngine personalizado.</li>
+                    </ul>
+                    <a href="#" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">Ver Código Fuente
+                        &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 23: ADUANA MÉXICO -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">&#9905;</span>
+                        <h3 class="text-xl font-bold text-red-300">ADUANA MÉXICO: La Ley de la Frontera</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Un juego de simulación estilo *Papers, Please* desarrollado en
+                        HTML/CSS/JS. Demuestra lógica de validación de documentos y manejo de dilemas éticos.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Lógica de validación con reglas dinámicas.</li>
+                        <li>Detección de contrabando y multas.</li>
+                        <li>Integración de voz (Speech Synthesis).</li>
+                    </ul>
+                    <a href="aduana.html" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">JUGAR DEMO &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 24: PORTAFOLIO WEB -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 transform hover:-translate-y-1">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">⚡</span>
+                        <h3 class="text-xl font-bold text-red-300">Portafolio Web (Aesthetic Dark)</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Este sitio web. Un proyecto de desarrollo Front-End con diseño
+                        *Aesthetic Dark* y Tailwind CSS.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Diseño responsivo avanzado.</li>
+                        <li>Temas dinámicos (Modo Sangre).</li>
+                        <li>Estructura modular HTML5.</li>
+                    </ul>
+                    <a href="#" class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">Inspeccionar
+                        Elemento &rarr;</a>
+                </div>
+
+                <!-- Tarjeta 25: MOTOR DE DATOS: ETERNIDAD -->
+                <div
+                    class="bg-gray-900 p-6 rounded-xl shadow-2xl shadow-red-400/30 border-t-4 border-red-400/90 transition duration-500 hover:shadow-red-400/50 hover:scale-[1.01]">
+                    <div class="flex items-start space-x-3 mb-4">
+                        <span class="text-3xl text-red-400">❤️</span>
+                        <h3 class="text-xl font-bold text-red-300 uppercase tracking-widest">Nadia & Luis: Nuestro
+                            Universo</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">
+                        <strong>Descripción:</strong> Una plataforma web integral dedicada a nuestra historia. Incluye
+                        el <em>Motor de Datos</em>, cuentos personalizados, galería mensual y playlists.
+                    </p>
+                    <ul class="text-gray-400 text-xs list-disc ml-4 space-y-1">
+                        <li>Motor de estadísticas en tiempo real.</li>
+                        <li>Módulos interactivos: Cartas y Cuentos.</li>
+                        <li>Integración multimedia y diseño romántico.</li>
+                    </ul>
+                    <a href="https://www.nadiayluis.art/" target="_blank"
+                        class="mt-4 block text-red-400 hover:text-red-300 font-semibold text-sm">VISITAR SITIO WEB
+                        &rarr;</a>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECCIÓN CONTACTO -->
+        <section id="contacto"
+            class="p-8 bg-gray-950/70 rounded-xl shadow-2xl border border-red-400/50 text-center transition-colors duration-500">
+            <h2 class="text-4xl font-extrabold mb-6 text-red-400">¡Conéctate!</h2>
+            <p class="text-lg mb-8 max-w-2xl mx-auto text-gray-300">
+                Si te gustó el diseño o quieres compartir alguna idea, no dudes en contactarme. Estoy abierto a
+                comentarios y nuevos desafíos.
+            </p>
+            <!-- ¡ATENCIÓN BLQA! Tienes que reemplazar estos placeholders con tu información real: -->
+            <div class="flex justify-center space-x-6">
+                <!-- REEMPLAZAR 'tu.correo@ejemplo.com' por tu email real -->
+                <a href="https://wa.me/525510590927" target="_blank"
+                    class="px-6 py-3 bg-red-400 text-gray-900 font-bold rounded-full shadow-lg hover:bg-red-300 transition duration-300">
+                    WhatsApp
+                </a>
+                <!-- REEMPLAZAR '#' por tu URL de GitHub, LinkedIn o X/Twitter -->
+                <a href="https://www.instagram.com/belecuack/" target="_blank"
+                    class="px-6 py-3 border-2 border-red-900 text-red-300 font-bold rounded-full hover:bg-red-900 hover:text-gray-100 transition duration-300">
+                    Instagram
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Mensaje Secreto Oculto (Arreglado para legibilidad) -->
+    <div id="secret-message"
+        class="fixed bottom-0 right-0 m-8 p-6 bg-black border-2 border-red-500 rounded-xl shadow-[0_0_15px_rgba(255,0,0,0.6)] text-red-100 text-base opacity-0 transform translate-y-full transition-all duration-500 ease-in-out z-50 max-w-sm">
+        <p class="font-bold text-red-500 mb-2 uppercase tracking-widest">⚠️ Secreto Desbloqueado</p>
+        <p>El código es la verdad. Gracias por buscar más allá de la superficie, <strong>blqa</strong>.</p>
+    </div>
+
+    <!-- PIE DE PÁGINA -->
+    <footer
+        class="bg-gray-950 border-t border-red-900/50 py-6 mt-16 text-center text-gray-400 text-sm transition-colors duration-500">
+        <p>&copy; 2025 BELEKINGGG. Desarrollado con HTML y un estilo Tailwind CSS.</p>
+    </footer>
+
+    <!-- BMO EASTER EGG -->
+    <div id="bmo-container" class="fixed bottom-10 right-10 transition-all duration-500 z-50 cursor-pointer"
+        onclick="hideBMO()">
+        <!-- BMO CSS Art -->
+        <div class="relative w-32 h-48 bg-[#63c7a9] rounded-xl border-4 border-[#1d2b53] shadow-2xl overflow-hidden">
+            <!-- Face -->
+            <div
+                class="absolute top-4 left-4 right-4 h-20 bg-[#dbf4ea] rounded-lg border-2 border-[#1d2b53] flex justify-center items-center">
+                <!-- Eyes -->
+                <div class="w-2 h-2 bg-black rounded-full mr-4 animate-blink"></div>
+                <div class="w-2 h-2 bg-black rounded-full ml-4 animate-blink"></div>
+                <!-- Mouth -->
+                <div class="absolute mt-4 w-4 h-2 border-b-2 border-black rounded-[50%]"></div>
+            </div>
+            <!-- Controls -->
+            <div class="absolute bottom-8 left-4 w-8 h-8">
+                <!-- Plus Pad -->
+                <div class="absolute top-0 left-1/3 w-1/3 h-full bg-[#f7d076] rounded-sm"></div>
+                <div class="absolute top-1/3 left-0 w-full h-1/3 bg-[#f7d076] rounded-sm"></div>
+                <div class="w-2 h-2 bg-[#1d2b53] absolute top-1/3 left-1/3 rounded-full"></div>
+            </div>
+            <div class="absolute bottom-10 right-4">
+                <!-- Buttons -->
+                <div class="w-4 h-4 bg-[#ff5e5e] rounded-full border-2 border-[#1d2b53] mb-1"></div>
+                <div class="w-3 h-3 bg-[#1d2b53] rounded-full ml-2"></div>
+            </div>
+        </div>
+        <!-- Speech Bubble -->
+        <div id="bmo-speech"
+            class="absolute -top-16 -left-20 bg-white text-black p-2 rounded-lg text-xs font-bold font-mono border-2 border-black w-40 text-center opacity-0 transition-opacity duration-300">
+            ¡Hola blqa! ¿Jugamos?
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        const body = document.body;
+        const logo = document.getElementById('logo');
+        const themeToggle = document.getElementById('theme-toggle');
+        const secretMessage = document.getElementById('secret-message');
+
+        // Función para alternar temas (Ahora con Modo Sangre Oscuro)
+        function toggleTheme() {
+            if (body.classList.contains('inverse-theme')) {
+                // Volver a Tema Original
+                body.classList.remove('inverse-theme');
+                themeToggle.textContent = 'Modo Sangre';
+                themeToggle.classList.remove('bg-red-600', 'text-black');
+                themeToggle.classList.add('bg-red-900/70', 'text-red-300');
+                // Remover modo hacker si estaba activo al cambiar de tema
+                body.classList.remove('hacker-mode');
+            } else {
+                // Cambiar a Tema Sangre Oscuro
+                body.classList.add('inverse-theme');
+                themeToggle.textContent = 'Modo Original';
+                themeToggle.classList.remove('bg-red-900/70', 'text-red-300');
+                themeToggle.classList.add('bg-red-600', 'text-black');
+                // Remover modo hacker si estaba activo al cambiar de tema
+                body.classList.remove('hacker-mode');
+            }
+        }
+
+        // Función para revelar el mensaje secreto
+        function revealSecret() {
+            if (secretMessage.classList.contains('opacity-0')) {
+                secretMessage.classList.remove('opacity-0', 'translate-y-full');
+                secretMessage.classList.add('opacity-100', 'translate-y-0');
+
+                // Ocultar después de 5 segundos
+                setTimeout(() => {
+                    secretMessage.classList.remove('opacity-100', 'translate-y-0');
+                    secretMessage.classList.add('opacity-0', 'translate-y-full');
+                }, 5000);
+            }
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+        logo.addEventListener('click', revealSecret);
+
+        // --- EFECTO DE CURSOR GLITCH ---
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.4) return; // Reducir cantidad de partículas
+
+            const particle = document.createElement('div');
+            particle.classList.add('glitch-particle');
+
+            // Colores glitch: Rojo, Cian, Blanco, Magenta
+            const colors = ['#ff0000', '#00ffff', '#ffffff', '#ff0055'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+
+            // Tamaño aleatorio
+            const size = Math.floor(Math.random() * 5) + 2;
+
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.backgroundColor = color;
+            particle.style.left = `${e.clientX}px`;
+            particle.style.top = `${e.clientY}px`;
+
+            // Movimiento aleatorio para la animación
+            const mx = (Math.random() - 0.5) * 50 + 'px';
+            const my = (Math.random() - 0.5) * 50 + 'px';
+            particle.style.setProperty('--mx', mx);
+            particle.style.setProperty('--my', my);
+
+            document.body.appendChild(particle);
+
+            // Limpieza
+            setTimeout(() => {
+                particle.remove();
+            }, 600);
+        });
+
+        // --- EASTER EGGS (BMO & HACKER) ---
+        let keyBuffer = "";
+        const bmoContainer = document.getElementById('bmo-container');
+        const bmoSpeech = document.getElementById('bmo-speech');
+
+        document.addEventListener('keydown', (e) => {
+            keyBuffer += e.key.toLowerCase();
+            if (keyBuffer.length > 10) keyBuffer = keyBuffer.slice(-10);
+
+            if (keyBuffer.endsWith("bmo")) {
+                showBMO();
+                keyBuffer = "";
+            }
+
+            if (keyBuffer.endsWith("hack")) {
+                toggleHackerMode();
+                keyBuffer = "";
+            }
+        });
+
+        function showBMO() {
+            // Usamos transform para moverlo desde abajo
+            bmoContainer.classList.add('active');
+            // Primero quitamos la transformación que lo esconde
+            bmoContainer.style.transform = "translateY(0)";
+            setTimeout(() => {
+                bmoSpeech.style.opacity = "1";
+            }, 600);
+        }
+
+        function hideBMO() {
+            bmoSpeech.style.opacity = "0";
+            // Volvemos a aplicar la transformación que lo esconde
+            bmoContainer.style.transform = "translateY(200%)";
+            bmoContainer.classList.remove('active');
+        }
+
+        // Expose hideBMO to global scope for onclick attribute
+        window.hideBMO = hideBMO;
+
+        function toggleHackerMode() {
+            body.classList.toggle('hacker-mode');
+        }
+
+        // Inicializar estado oculto de BMO vía JS para asegurar consistencia
+        bmoContainer.style.transform = "translateY(200%)";
+
+    </script>
+</body>
+
+</html>
