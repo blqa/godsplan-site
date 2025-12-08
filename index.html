@@ -30,6 +30,7 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; justify-content: space-between;
         }
         .glass-card:hover {
             transform: translateY(-5px) scale(1.02);
@@ -62,7 +63,7 @@
             to { text-shadow: 0 0 30px rgba(239, 68, 68, 0.6), 0 0 10px rgba(239, 68, 68, 0.4); }
         }
 
-        /* --- SCROLL REVEAL ANIMATION (NUEVO) --- */
+        /* --- SCROLL REVEAL ANIMATION --- */
         .reveal {
             opacity: 0;
             transform: translateY(30px);
@@ -73,10 +74,10 @@
             transform: translateY(0);
         }
         
-        /* Retrasos para elementos en grupo */
-        .delay-100 { transition-delay: 0.1s; }
-        .delay-200 { transition-delay: 0.2s; }
+        .delay-100 { transition-delay: 0.1s; } 
+        .delay-200 { transition-delay: 0.2s; } 
         .delay-300 { transition-delay: 0.3s; }
+        .delay-400 { transition-delay: 0.4s; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen items-center justify-center p-4 sm:p-6">
@@ -86,7 +87,7 @@
         <div class="bg-orb" style="bottom: -10%; right: -10%; animation-delay: 5s;"></div>
     </div>
 
-    <main class="w-full max-w-5xl z-10 py-6 sm:py-10">
+    <main class="w-full max-w-[1400px] z-10 py-6 sm:py-10">
         
         <!-- Encabezado -->
         <div class="text-center mb-10 sm:mb-16 reveal active">
@@ -99,8 +100,8 @@
             </p>
         </div>
 
-        <!-- Grid Ajustado para Móvil -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-10">
+        <!-- Grid de Aplicaciones (4 COLUMNAS) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-10">
 
             <!-- APP 1: ADHERENCIA -->
             <a href="https://adherencia.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-100">
@@ -108,10 +109,12 @@
                 <div class="w-12 h-12 sm:w-16 sm:h-16 bg-blue-900/30 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-blue-400 group-hover:text-blue-300 group-hover:scale-110 transition-all duration-300">
                     <i class="ph-fill ph-clock-user text-3xl sm:text-4xl"></i>
                 </div>
-                <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">Adherencia</h3>
-                <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                    Control de asistencia, descansos y nómina.
-                </p>
+                <div>
+                    <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">Adherencia</h3>
+                    <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                        Control de asistencia y nómina.
+                    </p>
+                </div>
                 <div class="mt-4 sm:mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono text-blue-400/80 uppercase tracking-wider font-bold">
                     <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Operativo
                 </div>
@@ -123,27 +126,48 @@
                 <div class="w-12 h-12 sm:w-16 sm:h-16 bg-red-900/30 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-red-400 group-hover:text-red-300 group-hover:scale-110 transition-all duration-300">
                     <i class="ph-fill ph-chats-teardrop text-3xl sm:text-4xl"></i>
                 </div>
-                <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">CorpoChat</h3>
-                <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                    Comunicación interna y solicitudes.
-                </p>
+                <div>
+                    <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">CorpoChat</h3>
+                    <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                        Comunicación interna segura.
+                    </p>
+                </div>
                 <div class="mt-4 sm:mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono text-red-400/80 uppercase tracking-wider font-bold">
                     <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> En Línea
                 </div>
             </a>
 
-            <!-- APP 3: AUTH VAULT (NUEVO) -->
-            <a href="https://auth.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-300">
+            <!-- APP 3: TREASURY (FINANZAS) -->
+            <a href="/finanzas/" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-300 border-green-900/30">
                 <div class="absolute top-0 right-0 p-4 opacity-50"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
-                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-neutral-800/80 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-neutral-400 group-hover:text-white group-hover:scale-110 transition-all duration-300 border border-neutral-700">
+                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-green-900/30 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-green-400 group-hover:text-green-300 group-hover:scale-110 transition-all duration-300">
+                    <i class="ph-fill ph-wallet text-3xl sm:text-4xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">Treasury</h3>
+                    <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                        Gestión de flujo de efectivo.
+                    </p>
+                </div>
+                <div class="mt-4 sm:mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono text-green-400/80 uppercase tracking-wider font-bold">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Activo
+                </div>
+            </a>
+
+            <!-- APP 4: AUTH VAULT (SEGURIDAD) -->
+            <a href="https://auth.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-400 border-gray-700">
+                <div class="absolute top-0 right-0 p-4 opacity-50"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
+                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-neutral-800/80 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-neutral-400 group-hover:text-white group-hover:scale-110 transition-all duration-300">
                     <i class="ph-fill ph-shield-check text-3xl sm:text-4xl"></i>
                 </div>
-                <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">Auth Vault</h3>
-                <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                    Generador de claves y bóveda encriptada personal.
-                </p>
+                <div>
+                    <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">Auth Vault</h3>
+                    <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                        Bóveda de claves encriptada.
+                    </p>
+                </div>
                 <div class="mt-4 sm:mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono text-neutral-500 uppercase tracking-wider font-bold group-hover:text-red-400 transition-colors">
-                    <span class="w-2 h-2 rounded-full bg-green-500"></span> Seguro
+                    <span class="w-2 h-2 rounded-full bg-gray-500"></span> Seguro
                 </div>
             </a>
 
@@ -151,7 +175,6 @@
 
         <!-- Botones Inferiores -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mb-10 reveal delay-300">
-            
             <a href="https://godsplan.site/proyectos/" class="glass-btn rounded-xl p-4 flex items-center gap-4 group">
                 <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-gray-300 group-hover:text-white">
                     <i class="ph-fill ph-folder-open text-xl"></i>
