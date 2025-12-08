@@ -6,12 +6,25 @@
     <title>God's Plan | Hub</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fuentes e Iconos -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <!-- Fuentes e Iconos (Unificados a Plus Jakarta Sans) -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; overflow-x: hidden; }
+        body { background-color: #050505; color: white; overflow-x: hidden; }
         
         /* --- FONDOS ANIMADOS --- */
         .bg-gradient {
@@ -64,30 +77,41 @@
         }
 
         /* --- SCROLL REVEAL ANIMATION --- */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
-        }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
         .delay-100 { transition-delay: 0.1s; } 
         .delay-200 { transition-delay: 0.2s; } 
         .delay-300 { transition-delay: 0.3s; }
         .delay-400 { transition-delay: 0.4s; }
+
+        /* Nav specific overrides for Hub transparency */
+        #global-nav { backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
-<body class="flex flex-col min-h-screen items-center justify-center p-4 sm:p-6">
+<body class="flex flex-col min-h-screen">
+
+    <!-- NAV SUPERIOR (Global) - Integrado -->
+    <nav id="global-nav" class="fixed top-0 w-full h-14 bg-black/80 flex items-center justify-between px-5 z-50 transition-all duration-300">
+        <a href="https://godsplan.site" class="flex items-center gap-2 font-black tracking-wider text-white group">
+            <i class="ph-bold ph-circles-three-plus text-lg text-white group-hover:text-red-500 transition-colors"></i> God's Plan
+        </a>
+        <div class="flex gap-4 items-center">
+            <a href="https://adherencia.godsplan.site" class="text-[10px] font-bold text-zinc-500 hover:text-white transition-colors tracking-wider">ADHERENCIA</a>
+            <a href="https://chat.godsplan.site" class="text-[10px] font-bold text-zinc-500 hover:text-white transition-colors tracking-wider">CHAT</a>
+            <a href="https://godsplan.site/proyectos" class="text-[10px] font-bold text-white border-b border-white pb-0.5 tracking-wider">PROYECTOS</a>
+            
+            <!-- Indicador de estado (Simulado para Hub) -->
+            <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-emerald-500 ml-1 shadow-[0_0_8px_rgba(16,185,129,0.5)]" title="Sistema Operativo"></div>
+        </div>
+    </nav>
 
     <div class="bg-gradient">
         <div class="bg-orb" style="top: -10%; left: -10%;"></div>
         <div class="bg-orb" style="bottom: -10%; right: -10%; animation-delay: 5s;"></div>
     </div>
 
-    <main class="w-full max-w-[1400px] z-10 py-6 sm:py-10">
+    <!-- Main con padding-top para compensar el Nav Fijo -->
+    <main class="flex-grow w-full max-w-[1400px] mx-auto z-10 py-10 px-4 sm:px-6 flex flex-col items-center justify-center pt-24">
         
         <!-- Encabezado -->
         <div class="text-center mb-10 sm:mb-16 reveal active">
@@ -101,11 +125,11 @@
         </div>
 
         <!-- Grid de Aplicaciones (4 COLUMNAS) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-10 w-full">
 
             <!-- APP 1: ADHERENCIA -->
             <a href="https://adherencia.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-100">
-                <div class="absolute top-0 right-0 p-4 opacity-50"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
+                <div class="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
                 <div class="w-12 h-12 sm:w-16 sm:h-16 bg-blue-900/30 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-blue-400 group-hover:text-blue-300 group-hover:scale-110 transition-all duration-300">
                     <i class="ph-fill ph-clock-user text-3xl sm:text-4xl"></i>
                 </div>
@@ -122,7 +146,7 @@
 
             <!-- APP 2: CHAT CORPORATIVO -->
             <a href="https://chat.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-200">
-                <div class="absolute top-0 right-0 p-4 opacity-50"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
+                <div class="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
                 <div class="w-12 h-12 sm:w-16 sm:h-16 bg-red-900/30 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-red-400 group-hover:text-red-300 group-hover:scale-110 transition-all duration-300">
                     <i class="ph-fill ph-chats-teardrop text-3xl sm:text-4xl"></i>
                 </div>
@@ -138,8 +162,8 @@
             </a>
 
             <!-- APP 3: TREASURY (FINANZAS) -->
-            <a href="/finanzas/" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-300 border-green-900/30">
-                <div class="absolute top-0 right-0 p-4 opacity-50"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
+            <a href="/finanzas/" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-300 border-green-900/30 hover:border-green-500/50">
+                <div class="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
                 <div class="w-12 h-12 sm:w-16 sm:h-16 bg-green-900/30 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-green-400 group-hover:text-green-300 group-hover:scale-110 transition-all duration-300">
                     <i class="ph-fill ph-wallet text-3xl sm:text-4xl"></i>
                 </div>
@@ -155,8 +179,8 @@
             </a>
 
             <!-- APP 4: AUTH VAULT (SEGURIDAD) -->
-            <a href="https://auth.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-400 border-gray-700">
-                <div class="absolute top-0 right-0 p-4 opacity-50"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
+            <a href="https://auth.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-400 border-gray-700 hover:border-gray-500">
+                <div class="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
                 <div class="w-12 h-12 sm:w-16 sm:h-16 bg-neutral-800/80 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-neutral-400 group-hover:text-white group-hover:scale-110 transition-all duration-300">
                     <i class="ph-fill ph-shield-check text-3xl sm:text-4xl"></i>
                 </div>
@@ -174,9 +198,9 @@
         </div>
 
         <!-- Botones Inferiores -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mb-10 reveal delay-300">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mb-10 reveal delay-300 w-full sm:w-auto">
             <a href="https://godsplan.site/proyectos/" class="glass-btn rounded-xl p-4 flex items-center gap-4 group">
-                <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-gray-300 group-hover:text-white">
+                <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-gray-300 group-hover:text-white transition-colors">
                     <i class="ph-fill ph-folder-open text-xl"></i>
                 </div>
                 <div>
@@ -186,7 +210,7 @@
             </a>
 
             <a href="https://wa.me/525510590927" target="_blank" class="glass-btn rounded-xl p-4 flex items-center gap-4 group">
-                <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-gray-300 group-hover:text-white">
+                <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-gray-300 group-hover:text-white transition-colors">
                     <i class="ph-fill ph-whatsapp-logo text-xl"></i>
                 </div>
                 <div>
@@ -196,7 +220,7 @@
             </a>
         </div>
 
-        <div class="border-t border-gray-800/50 pt-6 text-[10px] sm:text-xs text-gray-600 font-mono text-center reveal delay-300">
+        <div class="border-t border-gray-800/50 pt-6 text-[10px] sm:text-xs text-gray-600 font-mono text-center reveal delay-300 w-full">
             © 2025 GOD'S PLAN INC. | BLQA LEGACY
         </div>
 
