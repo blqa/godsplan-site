@@ -4,207 +4,312 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>God's Plan | Portal de Acceso</title>
-    <!-- Tailwind CSS (Eficiencia en Desarrollo) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Fuentes e Iconos -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
-        // Configuración de Tailwind para usar la fuente Plus Jakarta Sans
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        brand: '#E70000', // Rojo Vivo GodsPlan
+                        dark: '#050505',
+                        glass: 'rgba(255, 255, 255, 0.05)'
+                    }
                 }
             }
         }
     </script>
 
     <style>
-        /* Estilos de fondo y colores (Negro y Rojo Vivo) */
-        body { background-color: #050505; color: white; }
+        body { background-color: #050505; color: white; overflow: hidden; }
+        
+        /* Fondo Animado */
         .bg-gradient {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
             background: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 100%);
         }
-        .text-gradient {
-            background: linear-gradient(to right, #f87171, #ef4444, #dc2626);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .bg-orb {
+            position: absolute; width: 800px; height: 800px; 
+            background: radial-gradient(circle, rgba(231, 0, 0, 0.15) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%; pointer-events: none;
+            animation: float 10s infinite ease-in-out;
         }
-        /* Tarjeta de autenticación con borde Rojo (Lujo y Seguridad) */
+        @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -30px); } }
+
+        /* Tarjeta de Acceso */
         .card-auth {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(220, 38, 38, 0.3); 
-            box-shadow: 0 0 40px rgba(220, 38, 38, 0.1);
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(231, 0, 0, 0.3);
+            box-shadow: 0 0 50px rgba(231, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+        .card-auth:hover {
+            box-shadow: 0 0 70px rgba(231, 0, 0, 0.25);
+            border-color: rgba(231, 0, 0, 0.6);
+        }
+
+        /* Inputs - Simplificado sin iconos */
+        .input-group { position: relative; margin-bottom: 1.5rem; }
         .input-style {
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid #444;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid #333;
             color: white;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
+            padding-left: 1rem; /* Padding estándar, ya no necesitamos 72px */
         }
         .input-style:focus {
-            border-color: #E70000; /* Rojo Vivo en foco */
+            border-color: #E70000;
+            background-color: rgba(231, 0, 0, 0.05);
+            box-shadow: 0 0 0 4px rgba(231, 0, 0, 0.1);
             outline: none;
         }
+
+        /* Botones */
         .btn-primary {
-            background-color: #E70000; /* Botón de acción principal en Rojo Vivo */
+            background: linear-gradient(135deg, #E70000 0%, #990000 100%);
             transition: all 0.3s;
+            position: relative; overflow: hidden;
         }
         .btn-primary:hover {
-            background-color: #FF4444;
-            box-shadow: 0 5px 15px rgba(231, 0, 0, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(231, 0, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #aaa;
+            transition: all 0.3s;
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .btn-google {
+            background: white; color: #333;
+            transition: all 0.3s;
+        }
+        .btn-google:hover { background: #f1f1f1; transform: translateY(-2px); }
+
+        .text-gradient {
+            background: linear-gradient(to right, #ff4444, #E70000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="bg-gradient"></div>
+    <div class="bg-gradient">
+        <div class="bg-orb" style="top: -20%; left: -10%;"></div>
+        <div class="bg-orb" style="bottom: -20%; right: -10%; animation-delay: 5s;"></div>
+    </div>
 
-    <main class="w-full max-w-md z-10">
-        <div class="text-center mb-10">
-            <h1 class="text-5xl font-black tracking-tighter text-white">
-                <span class="text-gradient">ACCESS</span> VAULT
+    <main class="w-full max-w-md z-10 relative">
+        <!-- Logo Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand/10 border border-brand/30 mb-4 animate-pulse">
+                <i class="ph-fill ph-circles-three-plus text-3xl text-brand"></i>
+            </div>
+            <h1 class="text-4xl font-black tracking-tighter text-white">
+                GOD'S <span class="text-gradient">PLAN</span>
             </h1>
-            <p class="text-gray-400 mt-2 text-sm">Portal de Seguridad GodsPlan</p>
+            <p class="text-gray-500 text-xs font-bold tracking-[0.2em] uppercase mt-2">Portal de Acceso Unificado</p>
         </div>
 
-        <div class="card-auth rounded-xl p-8 space-y-6">
-            <h2 id="form-title" class="text-3xl font-bold text-white text-center">INICIAR SESIÓN</h2>
+        <div class="card-auth rounded-2xl p-8">
+            <h2 id="form-title" class="text-2xl font-bold text-white mb-6 text-center">Bienvenido</h2>
 
-            <form id="auth-form" onsubmit="event.preventDefault(); handleAuth();">
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-400 mb-1">Email</label>
-                    <input type="email" id="email" required class="input-style w-full p-3 rounded-lg">
-                </div>
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-400 mb-1 mt-4">Contraseña</label>
-                    <input type="password" id="password" required class="input-style w-full p-3 rounded-lg">
+            <form id="auth-form" onsubmit="event.preventDefault(); window.authLogic.processEmailAuth();">
+                
+                <!-- Campo Nombre (Solo visible en Registro) -->
+                <div id="name-field" class="input-group hidden">
+                    <input type="text" id="reg-name" class="input-style w-full p-4 rounded-xl" placeholder="Nombre Completo">
                 </div>
 
-                <div id="error-message" class="text-sm text-red-400 mt-4 hidden"></div>
+                <!-- Campo ID/Email - Sin icono -->
+                <div class="input-group">
+                    <input type="text" id="email" required class="input-style w-full p-4 rounded-xl" placeholder="ID de Empleado o Email">
+                </div>
 
-                <button type="submit" id="submit-button" class="btn-primary w-full text-black font-bold p-3 rounded-lg mt-6">
-                    <span id="button-text">ACCEDER</span>
+                <!-- Campo Password - Sin icono -->
+                <div class="input-group">
+                    <input type="password" id="password" required class="input-style w-full p-4 rounded-xl" placeholder="Contraseña">
+                </div>
+
+                <div id="error-message" class="text-sm text-red-500 bg-red-900/20 p-3 rounded-lg mb-4 hidden border border-red-500/20 text-center font-bold"></div>
+
+                <button type="submit" id="submit-button" class="btn-primary w-full text-white font-bold p-4 rounded-xl text-sm tracking-wider uppercase">
+                    Acceder
                 </button>
             </form>
 
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-800"></div></div>
+                <div class="relative flex justify-center text-xs uppercase"><span class="bg-black px-2 text-gray-500 font-bold">O continúa con</span></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <button onclick="window.authLogic.loginGoogle()" class="btn-google w-full font-bold p-3 rounded-xl flex items-center justify-center gap-2">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
+                    <span class="text-sm">Google</span>
+                </button>
+                <button onclick="window.authLogic.loginGuest()" class="btn-secondary w-full font-bold p-3 rounded-xl flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-user-circle text-lg"></i>
+                    <span class="text-sm">Invitado</span>
+                </button>
+            </div>
+
             <div class="text-center">
-                <button onclick="toggleMode()" class="text-sm text-gray-400 hover:text-red-300 transition-colors">
-                    <span id="toggle-text">¿Necesita una cuenta? Registrarse</span>
+                <button onclick="window.authLogic.toggleMode()" class="text-xs text-gray-400 hover:text-brand transition-colors font-semibold">
+                    <span id="toggle-text">¿No tienes cuenta? Regístrate aquí</span>
                 </button>
             </div>
         </div>
+        
+        <p class="text-center text-gray-600 text-[10px] mt-8 font-mono">
+            SISTEMA SEGURO BLQA LEGACY © 2025
+        </p>
     </main>
 
+    <!-- LÓGICA DE FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, updateProfile, signInWithCustomToken, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
-        // --- CONFIGURACIÓN DE FIREBASE (Eficiencia: Usa las variables de entorno) ---
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // --- CONFIGURACIÓN ---
+        const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
+        let firebaseConfig = fallbackConfig;
         
-        let authMode = 'login'; // 'login' o 'register'
-        let auth;
-        // IMPORTANTE: Definimos el nuevo destino de redirección
-        const DASHBOARD_URL = "dashboard.godsplan.site"; 
+        try { 
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) { 
+                const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; 
+                if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; 
+            } 
+        } catch(e) { console.error("Error cargando config:", e); }
+        
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        // URL del Dashboard
+        const DASHBOARD_URL = "https://dashboard.godsplan.site"; 
 
-        const el = {
-            title: document.getElementById('form-title'),
-            button: document.getElementById('submit-button'),
-            buttonText: document.getElementById('button-text'),
-            toggle: document.getElementById('toggle-text'),
-            error: document.getElementById('error-message'),
-            email: document.getElementById('email'),
-            password: document.getElementById('password')
+        // Variable para evitar redirección en carga inicial
+        let isInitialLoad = true;
+
+        window.authLogic = {
+            mode: 'login',
+            
+            toggleMode: function() {
+                this.mode = this.mode === 'login' ? 'register' : 'login';
+                const isReg = this.mode === 'register';
+                
+                document.getElementById('form-title').textContent = isReg ? 'Crear Cuenta' : 'Bienvenido';
+                document.getElementById('submit-button').textContent = isReg ? 'REGISTRARME' : 'ACCEDER';
+                document.getElementById('toggle-text').textContent = isReg ? '¿Ya tienes cuenta? Inicia Sesión' : '¿No tienes cuenta? Regístrate aquí';
+                document.getElementById('name-field').classList.toggle('hidden', !isReg);
+                document.getElementById('error-message').classList.add('hidden');
+            },
+
+            showError: function(msg) {
+                const errEl = document.getElementById('error-message');
+                errEl.textContent = msg;
+                errEl.classList.remove('hidden');
+                document.getElementById('submit-button').disabled = false;
+                document.getElementById('submit-button').innerHTML = this.mode === 'login' ? 'ACCEDER' : 'REGISTRARME';
+            },
+
+            // Login con Email/ID
+            processEmailAuth: async function() {
+                const btn = document.getElementById('submit-button');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> PROCESANDO...';
+                document.getElementById('error-message').classList.add('hidden');
+
+                let inputVal = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!inputVal.includes('@')) {
+                    inputVal = `${inputVal}@godsplan.site`;
+                    console.log("ID detectado. Convirtiendo a:", inputVal);
+                }
+
+                try {
+                    // Marcamos que ya no es carga inicial, el usuario interactuó
+                    isInitialLoad = false; 
+                    if (this.mode === 'login') {
+                        await signInWithEmailAndPassword(auth, inputVal, password);
+                    } else {
+                        const name = document.getElementById('reg-name').value;
+                        const userCredential = await createUserWithEmailAndPassword(auth, inputVal, password);
+                        if (name) await updateProfile(userCredential.user, { displayName: name });
+                    }
+                } catch (error) {
+                    console.error("Auth Error:", error);
+                    let msg = "Error desconocido.";
+                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') msg = "Credenciales incorrectas.";
+                    if (error.code === 'auth/email-already-in-use') msg = "Este ID/Email ya está registrado.";
+                    if (error.code === 'auth/weak-password') msg = "La contraseña es muy débil.";
+                    if (error.code === 'auth/invalid-email') msg = "Formato de ID/Email inválido.";
+                    this.showError(msg);
+                }
+            },
+
+            // Login con Google
+            loginGoogle: async function() {
+                try {
+                    isInitialLoad = false;
+                    const provider = new GoogleAuthProvider();
+                    await signInWithPopup(auth, provider);
+                } catch (error) {
+                    this.showError("Error con Google: " + error.message);
+                }
+            },
+
+            // Login Invitado
+            loginGuest: async function() {
+                try {
+                    isInitialLoad = false;
+                    await signInAnonymously(auth);
+                } catch (error) {
+                    this.showError("Error invitado: " + error.message);
+                }
+            }
         };
 
-        // Función para cambiar entre Login y Registro (Ergonomía)
-        window.toggleMode = function() {
-            authMode = authMode === 'login' ? 'register' : 'login';
-            if (authMode === 'register') {
-                el.title.textContent = 'REGISTRAR NUEVA CUENTA';
-                el.buttonText.textContent = 'CREAR CUENTA';
-                el.toggle.textContent = '¿Ya tiene cuenta? Iniciar Sesión';
-            } else {
-                el.title.textContent = 'INICIAR SESIÓN';
-                el.buttonText.textContent = 'ACCEDER';
-                el.toggle.textContent = '¿Necesita una cuenta? Registrarse';
-            }
-            el.error.classList.add('hidden');
-        }
-
-        // Manejo de errores simplificado (Ergonomía)
-        function showFeedback(message) {
-            el.error.textContent = message;
-            el.error.classList.remove('hidden');
-            el.button.disabled = false;
-            el.buttonText.textContent = authMode === 'login' ? 'ACCEDER' : 'CREAR CUENTA';
-        }
-
-        // Función principal de autenticación
-        window.handleAuth = async function() {
-            el.error.classList.add('hidden');
-            el.button.disabled = true;
-            el.buttonText.textContent = 'PROCESANDO...';
-
-            const email = el.email.value;
-            const password = el.password.value;
-
-            try {
-                if (authMode === 'login') {
-                    await signInWithEmailAndPassword(auth, email, password);
-                } else {
-                    await createUserWithEmailAndPassword(auth, email, password);
-                }
+        // Listener de Estado
+        onAuthStateChanged(auth, (user) => {
+            if (user && !isInitialLoad) {
+                console.log("Usuario autenticado activamente:", user.uid);
                 
-                // ÉXITO: Redirección al nuevo Dashboard (Ergonomía del flujo)
-                window.location.href = `https://${DASHBOARD_URL}`;
-
-            } catch (error) {
-                console.error("Error de autenticación:", error.code, error.message);
+                // Animación y Redirección
+                document.querySelector('.card-auth').style.transform = 'scale(0.95)';
+                document.querySelector('.card-auth').style.opacity = '0';
                 
-                let userMessage;
-                switch(error.code) {
-                    case 'auth/user-not-found':
-                    case 'auth/wrong-password':
-                        userMessage = 'Credenciales inválidas. Verifique su email y contraseña.';
-                        break;
-                    case 'auth/email-already-in-use':
-                        userMessage = 'Este email ya está registrado.';
-                        break;
-                    case 'auth/weak-password':
-                        userMessage = 'Contraseña débil. Use al menos 6 caracteres.';
-                        break;
-                    default:
-                        userMessage = 'Error de sistema. Intente de nuevo más tarde.';
-                }
-                showFeedback(userMessage);
+                setTimeout(() => {
+                    document.body.innerHTML = `
+                        <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; background:black;">
+                            <h1 style="color:#E70000; font-size:2rem; font-weight:bold;">ACCESO AUTORIZADO</h1>
+                            <p>Redirigiendo a Dashboard...</p>
+                            <a href="${DASHBOARD_URL}" style="color:gray; font-size:0.8rem; margin-top:10px; text-decoration:underline;">Click si no redirige</a>
+                        </div>
+                    `;
+                    // window.location.href = DASHBOARD_URL; // Descomentar en producción
+                }, 500);
+            } else if (user && isInitialLoad) {
+                 console.log("Sesión existente detectada. Esperando interacción.");
             }
-        }
-
-        // Inicialización de Firebase
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (Object.keys(firebaseConfig).length > 0) {
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-            } else {
-                // Modo de demostración si la configuración no está disponible
-                console.warn("Configuración de Firebase no disponible. Usando modo de demostración.");
-                auth = { currentUser: null }; 
-            }
-
-            // Chequeo de estado de autenticación (SSO inicial)
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    console.log("Usuario autenticado. Redirigiendo a Dashboard.");
-                    window.location.href = `https://${DASHBOARD_URL}`;
-                }
-            });
+            
+            isInitialLoad = false;
         });
     </script>
 </body>
