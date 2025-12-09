@@ -18,7 +18,7 @@
                     colors: {
                         brand: '#E70000', // Rojo Vivo GodsPlan
                         dark: '#050505',
-                        glass: 'rgba(255, 255, 255, 0.05)'
+                        glass: 'rgba(255, 255, 2FF5, 0.05)'
                     }
                 }
             }
@@ -26,7 +26,8 @@
     </script>
 
     <style>
-        body { background-color: #050505; color: white; overflow: hidden; }
+        /* CORRECCIÓN DE VISUALIZACIÓN: Se eliminó 'overflow: hidden' */
+        body { background-color: #050505; color: white; } 
         
         /* Fondo Animado */
         .bg-gradient {
@@ -35,12 +36,11 @@
         }
         .bg-orb {
             position: absolute; 
-            width: 150vmax; /* CORRECCIÓN: Usamos VMAX para que escale y no se corte */
-            height: 150vmax; 
+            width: 250vmax; 
+            height: 250vmax; 
             background: radial-gradient(circle, rgba(231, 0, 0, 0.15) 0%, rgba(0,0,0,0) 70%);
             border-radius: 50%; pointer-events: none;
             animation: float 10s infinite ease-in-out;
-            /* Agregamos una sombra difusa para realzar el brillo sin recorte */
             box-shadow: 0 0 100px rgba(231, 0, 0, 0.2); 
         }
         @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -30px); } }
@@ -65,7 +65,7 @@
             border: 1px solid #333;
             color: white;
             transition: all 0.3s;
-            padding-left: 1rem; /* Padding estándar */
+            padding-left: 1rem; 
         }
         .input-style:focus {
             border-color: #E70000;
@@ -113,9 +113,9 @@
 <body class="flex items-center justify-center min-h-screen p-4">
 
     <div class="bg-gradient">
-        <!-- Posicionamiento ajustado para VMAX -->
-        <div class="bg-orb" style="top: -50vmax; left: -50vmax;"></div>
-        <div class="bg-orb" style="bottom: -50vmax; right: -50vmax; animation-delay: 5s;"></div>
+        <!-- Posicionamiento ajustado para VMAX (usando -75vmax para offset) -->
+        <div class="bg-orb" style="top: -75vmax; left: -75vmax;"></div>
+        <div class="bg-orb" style="bottom: -75vmax; right: -75vmax; animation-delay: 5s;"></div>
     </div>
 
     <main class="w-full max-w-md z-10 relative">
