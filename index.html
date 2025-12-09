@@ -3,265 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>God's Plan | Centro de Control Unificado</title>
+    <title>God's Plan | Portal de Acceso</title>
     <!-- Tailwind CSS (Eficiencia en Desarrollo) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fuentes e Iconos (Unificados a Plus Jakarta Sans para seriedad) -->
+    <!-- Fuentes e Iconos -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
+    
     <script>
         // Configuración de Tailwind para usar la fuente Plus Jakarta Sans
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
                 }
             }
         }
     </script>
 
     <style>
-        /* Ajustes Estilísticos Globales */
-        body { background-color: #050505; color: white; overflow-x: hidden; }
-        
-        /* --- FONDOS ANIMADOS (Para proyectar modernidad y poder) --- */
+        /* Estilos de fondo y colores (Negro y Rojo Vivo) */
+        body { background-color: #050505; color: white; }
         .bg-gradient {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
             background: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 100%);
         }
-        .bg-orb {
-            position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(220,38,38,0.15) 0%, rgba(0,0,0,0) 70%);
-            border-radius: 50%; animation: float 10s infinite ease-in-out; pointer-events: none;
-        }
-        @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -30px); } }
-
-        /* --- EFECTO CRISTAL (GLASSMORPHISM) - Da sensación de profundidad y lujo --- */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
-        .glass-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(220, 38, 38, 0.4); /* El rojo intenso en el borde al interactuar */
-            box-shadow: 0 20px 40px -10px rgba(220, 38, 38, 0.2);
-        }
-        
-        /* Botones pequeños estilo cristal */
-        .glass-btn {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-        .glass-btn:hover {
-            background: rgba(220, 38, 38, 0.2);
-            border-color: rgba(220, 38, 38, 0.5);
-            transform: translateY(-3px);
-        }
-
-        /* --- TEXTO Y ANIMACIONES DE TEXTO (El Rojo Vivo) --- */
         .text-gradient {
             background: linear-gradient(to right, #f87171, #ef4444, #dc2626);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: titleGlow 3s ease-in-out infinite alternate;
         }
-        @keyframes titleGlow {
-            from { text-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
-            to { text-shadow: 0 0 30px rgba(239, 68, 68, 0.6), 0 0 10px rgba(239, 68, 68, 0.4); }
+        /* Tarjeta de autenticación con borde Rojo (Lujo y Seguridad) */
+        .card-auth {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(220, 38, 38, 0.3); 
+            box-shadow: 0 0 40px rgba(220, 38, 38, 0.1);
         }
-
-        /* --- Animación de Revelado (Ergonomía visual) --- */
-        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
-        .reveal.active { opacity: 1; transform: translateY(0); }
-        .delay-100 { transition-delay: 0.1s; } 
-        .delay-200 { transition-delay: 0.2s; } 
-        .delay-300 { transition-delay: 0.3s; }
-        .delay-400 { transition-delay: 0.4s; }
-
-        /* Nav specific overrides for Hub transparency */
-        #global-nav { backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .input-style {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid #444;
+            color: white;
+            transition: border-color 0.3s;
+        }
+        .input-style:focus {
+            border-color: #E70000; /* Rojo Vivo en foco */
+            outline: none;
+        }
+        .btn-primary {
+            background-color: #E70000; /* Botón de acción principal en Rojo Vivo */
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #FF4444;
+            box-shadow: 0 5px 15px rgba(231, 0, 0, 0.4);
+        }
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="flex items-center justify-center min-h-screen p-4">
 
-    <!-- ESTE ES EL CONTENEDOR VACÍO DONDE ENTRA LA BARRA DE NAVEGACIÓN -->
-    <div id="nav-container">
-        <!-- El contenido será cargado por JavaScript desde global-header.html -->
-    </div>
+    <div class="bg-gradient"></div>
 
-
-    <div class="bg-gradient">
-        <!-- Orbes de fondo que simulan profundidad y dinamismo -->
-        <div class="bg-orb" style="top: -10%; left: -10%;"></div>
-        <div class="bg-orb" style="bottom: -10%; right: -10%; animation-delay: 5s;"></div>
-    </div>
-
-    <!-- Main Content -->
-    <main class="flex-grow w-full max-w-[1400px] mx-auto z-10 py-10 px-4 sm:px-6 flex flex-col items-center justify-center pt-24">
-        
-        <!-- Encabezado de la Marca -->
-        <div class="text-center mb-10 sm:mb-16 reveal">
-            <p class="text-red-500 font-mono text-[10px] sm:text-xs tracking-[0.4em] mb-2 sm:mb-4 uppercase font-bold">Ecosistema Empresarial</p>
-            <h1 class="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter mb-4 text-white">
-                GOD'S <span class="text-gradient">PLAN</span>
+    <main class="w-full max-w-md z-10">
+        <div class="text-center mb-10">
+            <h1 class="text-5xl font-black tracking-tighter text-white">
+                <span class="text-gradient">ACCESS</span> VAULT
             </h1>
-            <p class="text-gray-400 text-base sm:text-lg font-light max-w-xl mx-auto leading-relaxed px-4">
-                Centro de control unificado.
-            </p>
+            <p class="text-gray-400 mt-2 text-sm">Portal de Seguridad GodsPlan</p>
         </div>
 
-        <!-- Grid de Aplicaciones (Micro-Frontends) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-10 w-full">
+        <div class="card-auth rounded-xl p-8 space-y-6">
+            <h2 id="form-title" class="text-3xl font-bold text-white text-center">INICIAR SESIÓN</h2>
 
-            <!-- APP 1: ADHERENCIA -->
-            <a href="https://adherencia.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-100">
-                <div class="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
-                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-blue-900/30 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-blue-400 group-hover:text-blue-300 group-hover:scale-110 transition-all duration-300">
-                    <i class="ph-fill ph-clock-user text-3xl sm:text-4xl"></i>
+            <form id="auth-form" onsubmit="event.preventDefault(); handleAuth();">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                    <input type="email" id="email" required class="input-style w-full p-3 rounded-lg">
                 </div>
                 <div>
-                    <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">Adherencia</h3>
-                    <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                        Control de asistencia y nómina.
-                    </p>
+                    <label for="password" class="block text-sm font-medium text-gray-400 mb-1 mt-4">Contraseña</label>
+                    <input type="password" id="password" required class="input-style w-full p-3 rounded-lg">
                 </div>
-                <div class="mt-4 sm:mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono text-blue-400/80 uppercase tracking-wider font-bold">
-                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Operativo
-                </div>
-            </a>
 
-            <!-- APP 2: CHAT CORPORATIVO -->
-            <a href="https://chat.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-200">
-                <div class="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
-                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-red-900/30 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-red-400 group-hover:text-red-300 group-hover:scale-110 transition-all duration-300">
-                    <i class="ph-fill ph-chats-teardrop text-3xl sm:text-4xl"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">CorpoChat</h3>
-                    <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                        Comunicación interna segura.
-                    </p>
-                </div>
-                <div class="mt-4 sm:mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono text-red-400/80 uppercase tracking-wider font-bold">
-                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> En Línea
-                </div>
-            </a>
+                <div id="error-message" class="text-sm text-red-400 mt-4 hidden"></div>
 
-            <!-- APP 3: TREASURY (FINANZAS) -->
-            <a href="https://finanzas.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-300 border-green-900/30 hover:border-green-500/50">
-                <div class="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
-                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-green-900/30 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-green-400 group-hover:text-green-300 group-hover:scale-110 transition-all duration-300">
-                    <i class="ph-fill ph-wallet text-3xl sm:text-4xl"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">Treasury</h3>
-                    <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                        Gestión de flujo de efectivo.
-                    </p>
-                </div>
-                <div class="mt-4 sm:mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono text-green-400/80 uppercase tracking-wider font-bold">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Activo
-                </div>
-            </a>
+                <button type="submit" id="submit-button" class="btn-primary w-full text-black font-bold p-3 rounded-lg mt-6">
+                    <span id="button-text">ACCEDER</span>
+                </button>
+            </form>
 
-            <!-- APP 4: AUTH VAULT (SEGURIDAD) -->
-            <a href="https://auth.godsplan.site" class="glass-card rounded-2xl p-6 sm:p-8 group relative overflow-hidden reveal delay-400 border-gray-700 hover:border-gray-500">
-                <div class="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-arrow-up-right text-white text-xl"></i></div>
-                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-neutral-800/80 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-neutral-400 group-hover:text-white group-hover:scale-110 transition-all duration-300">
-                    <i class="ph-fill ph-shield-check text-3xl sm:text-4xl"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-100">Auth Vault</h3>
-                    <p class="text-gray-400 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                        Bóveda de claves encriptada.
-                    </p>
-                </div>
-                <div class="mt-4 sm:mt-6 flex items-center gap-2 text-[10px] sm:text-xs font-mono text-neutral-500 uppercase tracking-wider font-bold group-hover:text-red-400 transition-colors">
-                    <span class="w-2 h-2 rounded-full bg-gray-500"></span> Seguro
-                </div>
-            </a>
-
+            <div class="text-center">
+                <button onclick="toggleMode()" class="text-sm text-gray-400 hover:text-red-300 transition-colors">
+                    <span id="toggle-text">¿Necesita una cuenta? Registrarse</span>
+                </button>
+            </div>
         </div>
-
-        <!-- Botones Inferiores -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mb-10 reveal delay-300 w-full sm:w-auto">
-            <a href="https://godsplan.site/proyectos/" class="glass-btn rounded-xl p-4 flex items-center gap-4 group">
-                <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-gray-300 group-hover:text-white transition-colors">
-                    <i class="ph-fill ph-folder-open text-xl"></i>
-                </div>
-                <div>
-                    <h4 class="font-bold text-base text-gray-200">Ver Proyectos</h4>
-                    <p class="text-gray-500 text-[10px] font-mono uppercase">Portafolio Completo</p>
-                </div>
-            </a>
-
-            <a href="https://wa.me/525510590927" target="_blank" class="glass-btn rounded-xl p-4 flex items-center gap-4 group">
-                <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-gray-300 group-hover:text-white transition-colors">
-                    <i class="ph-fill ph-whatsapp-logo text-xl"></i>
-                </div>
-                <div>
-                    <h4 class="font-bold text-base text-gray-200">Contacto</h4>
-                    <p class="text-gray-500 text-[10px] font-mono uppercase">WhatsApp Directo</p>
-                </div>
-            </a>
-        </div>
-
-        <div class="border-t border-gray-800/50 pt-6 text-[10px] sm:text-xs text-gray-600 font-mono text-center reveal delay-300 w-full">
-            © 2025 GOD'S PLAN INC. | BLQA LEGACY
-        </div>
-
     </main>
 
-    <script>
-        // FUNCIÓN CLAVE: La que se encarga de cargar el Plano Maestro.
-        async function loadGlobalHeader() {
-            const container = document.getElementById('nav-container');
-            if (!container) return;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // --- CONFIGURACIÓN DE FIREBASE (Eficiencia: Usa las variables de entorno) ---
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        let authMode = 'login'; // 'login' o 'register'
+        let auth;
+        // IMPORTANTE: Definimos el nuevo destino de redirección
+        const DASHBOARD_URL = "dashboard.godsplan.site"; 
 
-            // La URL donde estará alojado el archivo maestro.
-            const headerUrl = 'global-header.html'; 
+        const el = {
+            title: document.getElementById('form-title'),
+            button: document.getElementById('submit-button'),
+            buttonText: document.getElementById('button-text'),
+            toggle: document.getElementById('toggle-text'),
+            error: document.getElementById('error-message'),
+            email: document.getElementById('email'),
+            password: document.getElementById('password')
+        };
+
+        // Función para cambiar entre Login y Registro (Ergonomía)
+        window.toggleMode = function() {
+            authMode = authMode === 'login' ? 'register' : 'login';
+            if (authMode === 'register') {
+                el.title.textContent = 'REGISTRAR NUEVA CUENTA';
+                el.buttonText.textContent = 'CREAR CUENTA';
+                el.toggle.textContent = '¿Ya tiene cuenta? Iniciar Sesión';
+            } else {
+                el.title.textContent = 'INICIAR SESIÓN';
+                el.buttonText.textContent = 'ACCEDER';
+                el.toggle.textContent = '¿Necesita una cuenta? Registrarse';
+            }
+            el.error.classList.add('hidden');
+        }
+
+        // Manejo de errores simplificado (Ergonomía)
+        function showFeedback(message) {
+            el.error.textContent = message;
+            el.error.classList.remove('hidden');
+            el.button.disabled = false;
+            el.buttonText.textContent = authMode === 'login' ? 'ACCEDER' : 'CREAR CUENTA';
+        }
+
+        // Función principal de autenticación
+        window.handleAuth = async function() {
+            el.error.classList.add('hidden');
+            el.button.disabled = true;
+            el.buttonText.textContent = 'PROCESANDO...';
+
+            const email = el.email.value;
+            const password = el.password.value;
 
             try {
-                // Llama al archivo maestro
-                const response = await fetch(headerUrl);
-                if (!response.ok) {
-                    // Si falla, se muestra un mensaje, pero la página sigue cargando.
-                    throw new Error(`Error ${response.status} al cargar el plano maestro: ${response.statusText}`);
+                if (authMode === 'login') {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } else {
+                    await createUserWithEmailAndPassword(auth, email, password);
                 }
-                const headerHtml = await response.text();
                 
-                // Inserta el HTML cargado en el contenedor
-                container.innerHTML = headerHtml;
-                console.log(`[GodsPlan Arquitectura] Navegación cargada de forma eficiente desde el Plano Maestro.`);
+                // ÉXITO: Redirección al nuevo Dashboard (Ergonomía del flujo)
+                window.location.href = `https://${DASHBOARD_URL}`;
 
             } catch (error) {
-                console.error("[Error de Arquitectura - NAV]", error);
+                console.error("Error de autenticación:", error.code, error.message);
+                
+                let userMessage;
+                switch(error.code) {
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                        userMessage = 'Credenciales inválidas. Verifique su email y contraseña.';
+                        break;
+                    case 'auth/email-already-in-use':
+                        userMessage = 'Este email ya está registrado.';
+                        break;
+                    case 'auth/weak-password':
+                        userMessage = 'Contraseña débil. Use al menos 6 caracteres.';
+                        break;
+                    default:
+                        userMessage = 'Error de sistema. Intente de nuevo más tarde.';
+                }
+                showFeedback(userMessage);
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. Carga la barra de navegación ANTES que el contenido principal.
-            loadGlobalHeader();
-            
-            // 2. Animación de aparición (UX/Ergonomía)
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('active');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.1 });
-            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        // Inicialización de Firebase
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (Object.keys(firebaseConfig).length > 0) {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+            } else {
+                // Modo de demostración si la configuración no está disponible
+                console.warn("Configuración de Firebase no disponible. Usando modo de demostración.");
+                auth = { currentUser: null }; 
+            }
+
+            // Chequeo de estado de autenticación (SSO inicial)
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    console.log("Usuario autenticado. Redirigiendo a Dashboard.");
+                    window.location.href = `https://${DASHBOARD_URL}`;
+                }
+            });
         });
     </script>
 </body>
