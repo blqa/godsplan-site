@@ -71,10 +71,18 @@
 
         /* Sticky Login Container */
         .sticky-container {
-            position: sticky;
-            top: 100px; /* Espacio desde arriba */
-            height: fit-content;
+            /* Fixes the sticky element height issue on mobile when not needed */
+            position: static; 
+            height: auto;
         }
+        @media (min-width: 1024px) { /* lg breakpoint */
+            .sticky-container {
+                position: sticky;
+                top: 100px; 
+                height: fit-content;
+            }
+        }
+
 
         /* Animaciones de Scroll */
         .reveal {
@@ -142,7 +150,7 @@
     <main class="relative w-full max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-12 pt-32 pb-20">
         
         <!-- COLUMNA IZQUIERDA (SCROLLABLE CONTENT) -->
-        <div class="lg:col-span-7 flex flex-col gap-32">
+        <div class="lg:col-span-7 flex flex-col gap-32 order-2 lg:order-1"> <!-- order-2 para que vaya después del login en móvil -->
             
             <!-- SECCIÓN 1: HERO -->
             <section class="reveal active relative pt-10">
@@ -233,7 +241,7 @@
         </div>
 
         <!-- COLUMNA DERECHA (STICKY LOGIN) -->
-        <div class="lg:col-span-5 relative">
+        <div class="lg:col-span-5 relative order-1 lg:order-2"> <!-- order-1 para que vaya antes del contenido en móvil -->
             <div class="sticky-container w-full">
                 
                 <!-- CARD LOGIN / REGISTER -->
@@ -353,7 +361,10 @@
     <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, updateProfile, signInWithCustomToken, signInAnonymously, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, updateProfile, signInWithCustomToken, signInAnonymously, signOut, 
+            setPersistence, browserLocalPersistence 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Scroll Animation Logic
@@ -382,6 +393,8 @@
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
+        // ** CORRECCIÓN: Persistencia de Sesión **
+        // Aseguramos que se configure la persistencia de la sesión.
         setPersistence(auth, browserLocalPersistence).catch(console.error);
 
         // UI Refs
@@ -432,13 +445,8 @@
                 if (!email.includes('@')) email = `${email}@godsplan.site`;
 
                 try {
-                    if (this.mode === 'login') {
-                        await signInWithEmailAndPassword(auth, email, pass);
-                    } else {
-                        const name = document.getElementById('reg-name').value;
-                        const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                        if (name) await updateProfile(cred.user, { displayName: name });
-                    }
+                    // La persistencia ya está configurada arriba
+                    await signInWithEmailAndPassword(auth, email, pass);
                 } catch (e) {
                     let msg = "Error de conexión. Inténtalo de nuevo.";
                     if(e.code.includes('invalid') || e.code.includes('found')) msg = "Credenciales inválidas. Por favor, verifica.";
@@ -454,12 +462,12 @@
 
         // Init System
         async function init() {
-            // Metrics (Se mantiene la conexión a Firebase Firestore, aunque no se usen los datos en el front por ahora)
+            // Metrics (Se mantiene la conexión a Firebase Firestore)
             if(!auth.currentUser) try { await signInAnonymously(auth); } catch(e){}
             const metricsRef = doc(db, 'artifacts', appId, 'public', 'data', 'system_metrics', 'dashboard_stats');
             onSnapshot(metricsRef, (s) => {
                 const d = s.exists() ? s.data() : { efficiency: 98, modules: [1,2,3,4] };
-                // Aquí podrías agregar lógica futura para, por ejemplo, cambiar el estado del "100%"
+                // Lógica de métricas futura
             });
 
             // Auth State
