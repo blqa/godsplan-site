@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>God's Plan | Mi Cuenta</title>
+    
+    <!-- LIBRERIAS & FUENTES -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- FIREBASE MODULAR (v9+) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, onAuthStateChanged, signOut, updateProfile, 
+            signInWithCustomToken, signInAnonymously 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // Exportar al scope global para usar en window.app
+        window.firebaseImports = { initializeApp, getAuth, onAuthStateChanged, signOut, updateProfile, signInWithCustomToken, signInAnonymously };
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        dark: { 900: '#050505', 800: '#0a0a0a', 700: '#121212', card: '#18181b' },
+                        brand: { 500: '#ef4444', 600: '#dc2626' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg: #050505; --card: #121212; --text: #e5e5e5; --text-mute: #737373;
+            --brand: #ef4444; --border: #27272a; --input-bg: #18181b;
+        }
+
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* NAV GLOBAL */
+        #global-nav { height: 56px; background: #000000; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 50; }
+        .g-logo { color: #fff; font-weight: 900; text-decoration: none; font-size: 1rem; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+        .g-links { display: flex; align-items: center; gap: 20px; }
+        .g-link { color: #71717a; text-decoration: none; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; transition: color 0.2s; }
+        .g-link.active { color: #fff; border-bottom: 2px solid #fff; padding-bottom: 2px; }
+        #syncStatus { width: 6px; height: 6px; border-radius: 50%; background-color: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.5); margin-left: 5px; }
+
+        /* MAIN LAYOUT */
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; flex-grow: 1; }
+        
+        .section-title { font-size: 0.75rem; font-weight: 800; color: var(--text-mute); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; margin-top: 30px; display: flex; align-items: center; gap: 8px; }
+        .section-title i { font-size: 1rem; color: var(--brand); }
+
+        .profile-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 30px 20px; text-align: center; position: relative; overflow: hidden; }
+        
+        .avatar-container { position: relative; width: 100px; height: 100px; margin: 0 auto 15px; }
+        .avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #333, #111); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; color: #555; overflow: hidden; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .status-badge { position: absolute; bottom: 2px; right: 2px; width: 20px; height: 20px; background: #10b981; border: 3px solid var(--card); border-radius: 50%; }
+
+        .profile-name { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 2px; }
+        .profile-email { font-size: 0.9rem; color: var(--text-mute); font-family: monospace; }
+        .profile-uid { font-size: 0.7rem; color: #444; margin-top: 10px; font-family: monospace; background: rgba(255,255,255,0.03); display: inline-block; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+        .profile-uid:hover { color: var(--text); background: rgba(255,255,255,0.08); }
+
+        /* FORM ELEMENTS */
+        .info-group { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 15px; }
+        .info-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .info-item:last-child { border-bottom: none; }
+        .info-label { font-size: 0.9rem; font-weight: 600; color: var(--text-mute); }
+        .info-value { font-size: 0.9rem; font-weight: 600; color: #fff; text-align: right; }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-mute); margin-bottom: 8px; }
+        .custom-input { width: 100%; background: var(--input-bg); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 10px; font-weight: 600; transition: all 0.2s; }
+        .custom-input:focus { border-color: var(--brand); outline: none; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); }
+        .custom-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn { width: 100%; padding: 14px; border-radius: 10px; font-weight: 800; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; border: none; }
+        .btn-primary { background: var(--brand); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.1); }
+        .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text-mute); }
+        .btn-secondary:hover { border-color: #555; color: #fff; background: rgba(255,255,255,0.03); }
+        .btn-danger { color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
+
+        /* MODAL */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .modal.active { opacity: 1; pointer-events: auto; display: flex; }
+        .modal-card { background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; }
+
+        /* TOAST */
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #10b981; color: white; padding: 10px 20px; border-radius: 50px; font-weight: 700; font-size: 0.9rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2000; display: flex; align-items: center; gap: 8px; }
+        #toast.active { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <!-- NAV GLOBAL -->
+    <nav id="global-nav">
+        <a href="/" class="g-logo"><i class="ph-bold ph-circles-three-plus"></i> God's Plan</a>
+        <div class="g-links">
+            <a href="/adherencia.html" class="g-link">ADHERENCIA</a>
+            <a href="/chat.html" class="g-link">CHAT</a>
+            <a href="/finanzas.html" class="g-link">FINANZAS</a>
+            <a href="#" class="g-link active">CUENTA</a>
+            <div id="syncStatus" title="Conectado"></div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- PERFIL -->
+        <div class="profile-card">
+            <div class="avatar-container">
+                <div class="avatar" id="avatarDisplay">?</div>
+                <div class="status-badge"></div>
+            </div>
+            <h1 class="profile-name" id="displayName">Cargando...</h1>
+            <p class="profile-email" id="displayEmail">...</p>
+            <div class="profile-uid" id="displayUid" onclick="window.app.copyUid()" title="Copiar ID">UID: ...</div>
+        </div>
+
+        <!-- FORMULARIO EDICION -->
+        <div class="section-title"><i class="ph-bold ph-pencil-simple"></i> Editar Perfil</div>
+        <div class="info-group" style="padding: 20px;">
+            <div class="input-group">
+                <label class="input-label">Nombre Visible</label>
+                <input type="text" id="inputName" class="custom-input" placeholder="Tu nombre">
+            </div>
+            <!-- El email no se edita aquí por seguridad básica -->
+            <div class="input-group">
+                <label class="input-label">Correo Electrónico (Solo Lectura)</label>
+                <input type="text" id="inputEmail" class="custom-input" disabled>
+            </div>
+            <button class="btn btn-primary" onclick="window.app.saveProfile()">
+                <i class="ph-bold ph-floppy-disk"></i> Guardar Cambios
+            </button>
+        </div>
+
+        <!-- ESTADISTICAS -->
+        <div class="section-title"><i class="ph-bold ph-chart-bar"></i> Datos de la Cuenta</div>
+        <div class="info-group">
+            <div class="info-item">
+                <span class="info-label">Miembro desde</span>
+                <span class="info-value" id="metaCreation">--</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Último acceso</span>
+                <span class="info-value" id="metaLastSign">--</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Proveedor</span>
+                <span class="info-value" id="metaProvider">--</span>
+            </div>
+        </div>
+
+        <!-- ACCIONES -->
+        <div class="section-title"><i class="ph-bold ph-gear"></i> Acciones</div>
+        <div style="display: flex; gap: 10px; flex-direction: column;">
+            <button class="btn btn-secondary" onclick="alert('Esta función estará disponible próximamente.')">
+                <i class="ph-bold ph-lock-key"></i> Cambiar Contraseña
+            </button>
+            <button class="btn btn-danger" onclick="window.app.logout()">
+                <i class="ph-bold ph-sign-out"></i> Cerrar Sesión
+            </button>
+        </div>
+        
+        <p class="text-center text-zinc-700 text-[10px] mt-8 font-mono pb-8">
+            GOD'S PLAN ID: <span id="footerUid">...</span>
+        </p>
+    </div>
+
+    <!-- MODAL DE BLOQUEO (Si no hay sesión) -->
+    <div class="modal" id="authModal">
+        <div class="modal-card">
+            <div class="mb-4 flex justify-center text-red-500 text-4xl"><i class="ph-fill ph-lock-key"></i></div>
+            <h2 class="text-xl font-bold text-white mb-2">Acceso Restringido</h2>
+            <p class="text-xs text-gray-500 mb-6">Debes iniciar sesión para ver tu perfil.</p>
+            <button class="btn btn-primary" onclick="window.location.href='/'">Ir al Inicio</button>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast"><i class="ph-bold ph-check-circle"></i> <span id="toastMsg">Guardado</span></div>
+
+    <script type="module">
+        const { initializeApp, getAuth, onAuthStateChanged, signOut, updateProfile, signInWithCustomToken, signInAnonymously } = window.firebaseImports;
+
+        const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
+        let firebaseConfig = fallbackConfig;
+        try { if (typeof __firebase_config !== 'undefined' && __firebase_config) { const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; } } catch(e) { console.error(e); }
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        window.app = {
+            user: null,
+
+            init() {
+                onAuthStateChanged(auth, async (u) => {
+                    if (u && !u.isAnonymous) {
+                        this.user = u;
+                        this.renderProfile();
+                    } else {
+                        // Intento silencioso de login si hay token
+                        if (!u && initialAuthToken) {
+                            try { await signInWithCustomToken(auth, initialAuthToken); return; } catch(e){}
+                        }
+                        
+                        // Si es anónimo o no hay usuario, bloquear
+                        document.getElementById('authModal').classList.add('active');
+                    }
+                });
+            },
+
+            renderProfile() {
+                const u = this.user;
+                if (!u) return;
+
+                const name = u.displayName || u.email?.split('@')[0] || "Usuario";
+                const email = u.email || "Sin correo (Anónimo)";
+                const initial = name.charAt(0).toUpperCase();
+                
+                // Header Display
+                document.getElementById('avatarDisplay').textContent = initial;
+                document.getElementById('displayName').textContent = name;
+                document.getElementById('displayEmail').textContent = email;
+                document.getElementById('displayUid').textContent = `ID: ${u.uid}`;
+                document.getElementById('footerUid').textContent = u.uid;
+
+                // Form Inputs
+                document.getElementById('inputName').value = name;
+                document.getElementById('inputEmail').value = email;
+
+                // Meta Data
+                if (u.metadata) {
+                    document.getElementById('metaCreation').textContent = new Date(u.metadata.creationTime).toLocaleDateString();
+                    document.getElementById('metaLastSign').textContent = new Date(u.metadata.lastSignInTime).toLocaleDateString() + ' ' + new Date(u.metadata.lastSignInTime).toLocaleTimeString();
+                }
+                
+                // Provider info
+                const provider = u.providerData[0]?.providerId;
+                document.getElementById('metaProvider').textContent = provider === 'password' ? 'Correo/ID' : (provider || 'Desconocido');
+            },
+
+            async saveProfile() {
+                const newName = document.getElementById('inputName').value.trim();
+                if (!newName) return alert("El nombre no puede estar vacío");
+                
+                try {
+                    await updateProfile(this.user, { displayName: newName });
+                    this.showToast("Perfil actualizado correctamente");
+                    this.renderProfile(); // Refrescar UI
+                } catch (error) {
+                    alert("Error al actualizar: " + error.message);
+                }
+            },
+
+            copyUid() {
+                if (this.user) {
+                    navigator.clipboard.writeText(this.user.uid);
+                    this.showToast("ID copiado al portapapeles");
+                }
+            },
+
+            showToast(msg) {
+                const t = document.getElementById('toast');
+                document.getElementById('toastMsg').textContent = msg;
+                t.classList.add('active');
+                setTimeout(() => t.classList.remove('active'), 3000);
+            },
+
+            logout() {
+                if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
+                    signOut(auth).then(() => {
+                        window.location.href = '/';
+                    });
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => window.app.init());
+    </script>
+</body>
+</html>
