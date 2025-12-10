@@ -105,8 +105,8 @@
                     GOD'S <span class="text-gradient">PLAN</span>
                 </div>
                 <div class="hidden sm:flex space-x-4 text-sm font-semibold text-gray-400">
-                    <a href="https://godsplan.site" class="hover:text-brand transition-colors">Inicio</a>
-                    <a href="https://adherencia.godsplan.site" class="hover:text-brand transition-colors">Adherencia</a>
+                    <a href="/" class="hover:text-brand transition-colors">Inicio</a>
+                    <a href="/adherencia.html" class="hover:text-brand transition-colors">Adherencia</a>
                     <a href="#" class="hover:text-brand transition-colors">Soporte</a>
                 </div>
             </div>
@@ -210,8 +210,8 @@
                         <h3 class="text-xl font-bold text-white">¡Sesión Iniciada!</h3>
                         <p id="auth-card-user-name" class="text-gray-400 mt-1">Bienvenido de vuelta.</p>
                      </div>
-                     <p class="text-gray-300 mb-4">Tu sesión está activa en GodsPlan. Navega a cualquier subdominio.</p>
-                     <button onclick="window.location.href = 'https://adherencia.godsplan.site'" class="btn-primary w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase">
+                     <p class="text-gray-300 mb-4">Tu sesión está activa en GodsPlan. Navega a cualquier subdirectorio.</p>
+                     <button onclick="window.location.href = '/adherencia.html'" class="btn-primary w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase">
                         Ir a Adherencia
                     </button>
                 </div>
@@ -235,7 +235,6 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // --- CONFIGURACIÓN DE ENTORNO ---
-        // Usamos el dominio para la persistencia global
         const DOMAIN_ROOT = "godsplan.site"; 
         
         const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
@@ -252,14 +251,14 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         
-        // ** SOLUCIÓN CLAVE SSO: Establecer persistencia en el dominio raíz **
+        // ** SOLUCIÓN CLAVE SSO (Mecanismo de Persistencia y Comprobación) **
         async function setGlobalPersistence() {
              try {
-                 // Intentar establecer la persistencia para todo el dominio.
-                 await setPersistence(auth, browserLocalPersistence, { domain: DOMAIN_ROOT });
-                 console.log("Persistencia de Firebase establecida para el dominio raíz.");
+                 // Esta configuración es fundamental para que los subdominios reconozcan el token.
+                 await setPersistence(auth, browserLocalPersistence); // Quitamos { domain: DOMAIN_ROOT } para asegurar que funcione en el mismo origen.
+                 console.log("Persistencia de Firebase establecida para el origen actual.");
              } catch (error) {
-                 console.warn("Fallo al establecer la persistencia global de Firebase. Usando persistencia local:", error);
+                 console.warn("Fallo al establecer la persistencia:", error);
                  await setPersistence(auth, browserLocalPersistence);
              }
         }
@@ -314,7 +313,6 @@
                 }
 
                 try {
-                    // ** FIX: Asegurar que la persistencia está establecida antes del login **
                     await setGlobalPersistence();
                     if (this.mode === 'login') {
                         await signInWithEmailAndPassword(auth, inputVal, password);
@@ -337,7 +335,6 @@
             // Login con Google
             loginGoogle: async function() {
                 try {
-                    // ** FIX: Asegurar que la persistencia está establecida antes del login **
                     await setGlobalPersistence();
                     const provider = new GoogleAuthProvider();
                     await signInWithPopup(auth, provider);
@@ -350,7 +347,6 @@
             // Login Invitado (Anónimo)
             loginGuest: async function() {
                 try {
-                    // ** FIX: Asegurar que la persistencia está establecida antes del login **
                     await setGlobalPersistence();
                     await signInAnonymously(auth);
                 } catch (error) {
@@ -364,8 +360,8 @@
                  try {
                     await signOut(auth);
                     console.log("Sesión cerrada.");
-                    // Redirigir a la URL raíz para forzar la recarga del estado
-                    window.location.href = "https://" + DOMAIN_ROOT; 
+                    // Forzar recarga en el mismo origen
+                    window.location.reload(); 
                 } catch (error) {
                     console.error("Error al cerrar sesión:", error);
                 }
