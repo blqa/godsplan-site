@@ -149,7 +149,7 @@
             <span class="text-sm font-medium text-gray-400 hidden sm:block">Centro de Ayuda</span>
         </div>
         <div class="text-xs font-mono text-brand flex items-center gap-2">
-            <i class="ph-fill ph-book-open"></i> MANUAL v2.0
+            <i class="ph-fill ph-book-open"></i> MANUAL v2.1
         </div>
     </header>
 
@@ -390,7 +390,7 @@
                                     <i class="ph-fill ph-lightning text-yellow-500"></i>
                                     <div>
                                         <div class="text-xs font-bold text-white">BLINTS</div>
-                                        <div class="text-[10px] text-zinc-500">Avisos generales y urgentes.</div>
+                                        <div class="text-[10px] text-zinc-500">Solicitudes para retiro de bloqueos de internet en líneas.</div>
                                     </div>
                                 </div>
                                 <div class="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center gap-3">
@@ -476,19 +476,33 @@
 
     <footer class="p-6 text-center border-t border-gray-900 bg-black z-20">
         <p class="text-zinc-600 text-[10px] font-mono tracking-widest">
-            // DOCUMENTACIÓN INTERNA - GOD'S PLAN v2.0
+            // DOCUMENTACIÓN INTERNA - GOD'S PLAN v2.1
         </p>
     </footer>
 
-    <!-- Script para navegación activa -->
+    <!-- Botón Volver Arriba -->
+    <button id="backToTop" class="fixed bottom-6 right-6 bg-brand hover:bg-red-700 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 opacity-0 pointer-events-none translate-y-10 z-50 group" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <i class="ph-bold ph-arrow-up text-xl group-hover:-translate-y-1 transition-transform"></i>
+    </button>
+
+    <!-- Script para navegación activa y scroll -->
     <script>
         function setActive(element) {
             document.querySelectorAll('.doc-link').forEach(link => link.classList.remove('active'));
             element.classList.add('active');
         }
 
-        // Detectar scroll para actualizar sidebar automáticamente
+        // Detectar scroll
         window.addEventListener('scroll', () => {
+            // Lógica Botón Volver Arriba
+            const btn = document.getElementById('backToTop');
+            if (window.scrollY > 500) {
+                btn.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10');
+            } else {
+                btn.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10');
+            }
+
+            // Lógica Sidebar
             let sections = document.querySelectorAll('section');
             let navLinks = document.querySelectorAll('.doc-link');
             
