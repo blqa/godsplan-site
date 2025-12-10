@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>God's Plan | Portal de Acceso y Principal</title>
+    <title>God's Plan | Portal Corporativo</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Fuentes e Iconos -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
@@ -16,18 +16,17 @@
                 extend: {
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: {
-                        brand: '#E70000', // Rojo Vivo GodsPlan
+                        brand: '#E70000', 
+                        brandDark: '#8a0000',
                         dark: '#050505',
-                        glass: 'rgba(255, 255, 255, 0.05)'
                     },
                     animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'bar-grow': 'grow 1.5s ease-out forwards',
+                        'float': 'float 6s ease-in-out infinite',
                     },
                     keyframes: {
-                        grow: {
-                            '0%': { height: '0%' },
-                            '100%': { height: 'var(--h)' }
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
                         }
                     }
                 }
@@ -37,598 +36,453 @@
 
     <style>
         body { 
-            background-color: #050505; 
+            background-color: #000; 
             color: white; 
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            overflow-x: hidden;
         } 
 
-        /* Fondo Animado */
-        .bg-gradient {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-            background: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 100%);
-        }
-        .bg-orb {
-            position: absolute; 
-            width: 250vmax; 
-            height: 250vmax; 
-            background: radial-gradient(circle, rgba(231, 0, 0, 0.15) 0%, rgba(0,0,0,0) 70%);
-            border-radius: 50%; pointer-events: none;
-            animation: float 10s infinite ease-in-out;
-            box-shadow: 0 0 100px rgba(231, 0, 0, 0.2); 
-        }
-        @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -30px); } }
+        /* Scrollbar Personalizado */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #E70000; }
 
-        /* Tarjetas Estilo Glass/Dashboard */
-        .card-auth, .card-dashboard {
-            background: rgba(10, 10, 10, 0.6);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease, border-color 0.3s ease;
+        /* Fondo Grid Tecnológico */
+        .bg-tech {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: radial-gradient(circle at 10% 10%, #150000 0%, #000 80%);
         }
-        
-        .card-dashboard:hover {
-            border-color: rgba(231, 0, 0, 0.3);
+        .grid-overlay {
+            position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+            pointer-events: none;
+        }
+
+        /* Glass Cards */
+        .glass-panel {
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Sticky Login Container */
+        .sticky-container {
+            position: sticky;
+            top: 100px; /* Espacio desde arriba */
+            height: fit-content;
+        }
+
+        /* Animaciones de Scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         /* Inputs */
-        .input-group { position: relative; margin-bottom: 1.5rem; }
-        .input-style {
-            background-color: rgba(255, 255, 255, 0.03);
-            border: 1px solid #333;
+        .input-modern {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
             color: white;
             transition: all 0.3s;
-            padding-left: 1rem; 
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
         }
-        .input-style:focus {
+        .input-modern:focus {
             border-color: #E70000;
-            background-color: rgba(231, 0, 0, 0.05);
-            box-shadow: 0 0 0 4px rgba(231, 0, 0, 0.1);
+            background: rgba(231,0,0,0.05);
             outline: none;
-        }
-
-        /* Botones */
-        .btn-primary {
-            background: linear-gradient(135deg, #E70000 0%, #990000 100%);
-            transition: all 0.3s;
-        }
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 5px 15px rgba(231, 0, 0, 0.3);
-        }
-        .text-gradient {
-            background: linear-gradient(to right, #ff4444, #E70000);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Nav */
-        .nav-link {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #71717a;
-            transition: color 0.2s;
-        }
-        .nav-link:hover { color: white; }
-        
-        /* Dashboard Mini Bars */
-        .stat-bar {
-            width: 6px;
-            background: #333;
-            border-radius: 4px;
-            position: relative;
-            overflow: hidden;
-        }
-        .stat-bar::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            background: #E70000;
-            border-radius: 4px;
-            transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
-            height: var(--h);
+            box-shadow: 0 0 0 2px rgba(231,0,0,0.1);
         }
     </style>
 </head>
-<body>
+<body class="antialiased">
 
-    <div class="bg-gradient">
-        <div class="bg-orb" style="top: -75vmax; left: -75vmax;"></div>
-        <div class="bg-orb" style="bottom: -75vmax; right: -75vmax; animation-delay: 5s;"></div>
+    <div class="bg-tech">
+        <div class="grid-overlay"></div>
     </div>
 
-    <!-- NAVEGACIÓN GLOBAL UNIFICADA -->
-    <header class="h-14 bg-black/80 border-b border-white/10 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-5">
-        <div class="flex items-center gap-8">
-            <a href="/" class="flex items-center gap-2 font-black tracking-wider text-white group decoration-0">
-                <i class="ph-bold ph-circles-three-plus text-lg text-white group-hover:text-red-500 transition-colors"></i> 
-                GOD'S PLAN
-            </a>
-            <!-- Links Desktop -->
-            <div class="hidden md:flex items-center gap-6">
-                <a href="/adherencia.html" class="nav-link">Adherencia</a>
-                <a href="/chat.html" class="nav-link">Chat</a>
-                <a href="/finanzas.html" class="nav-link">Finanzas</a>
+    <!-- HEADER -->
+    <header class="h-20 border-b border-white/5 backdrop-blur-md fixed top-0 w-full z-50 flex items-center justify-between px-6 lg:px-12 bg-black/50">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-brand flex items-center justify-center text-white shadow-lg shadow-brand/20">
+                <i class="ph-bold ph-circles-three-plus text-xl"></i>
             </div>
+            <span class="font-bold tracking-widest text-sm md:text-base">GOD'S PLAN</span>
         </div>
-
-        <div id="auth-status-container" class="flex items-center gap-4">
-            <!-- Botón Login -->
-            <button id="show-login-btn" class="btn-primary text-white font-bold py-1.5 px-4 rounded-lg text-xs transition hidden" onclick="window.location.hash = '#login-section'">
-                <i class="ph-bold ph-sign-in mr-1"></i> Entrar
+        
+        <!-- User Status (Visible on Header) -->
+        <div id="user-display-mini" class="hidden flex items-center gap-3">
+            <span id="header-user-name" class="text-xs font-mono text-zinc-400 hidden sm:block">Usuario</span>
+            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <button id="logout-button-mini" class="text-zinc-500 hover:text-white transition-colors" title="Salir">
+                <i class="ph-bold ph-sign-out text-lg"></i>
             </button>
-            
-            <!-- User Display -->
-            <div id="user-display" class="hidden flex items-center gap-3">
-                <a href="/cuenta.html" class="flex items-center gap-2 hover:bg-white/5 p-1.5 rounded-lg transition-colors group">
-                    <span id="user-initials" class="w-6 h-6 flex items-center justify-center rounded-full bg-brand font-bold text-[10px]"></span>
-                    <span id="user-name" class="font-semibold text-xs hidden sm:block group-hover:text-brand transition-colors"></span>
-                </a>
-                <button id="logout-button" class="text-zinc-500 hover:text-white transition-colors p-1" title="Cerrar Sesión">
-                     <i class="ph-bold ph-sign-out text-lg"></i>
-                </button>
-            </div>
         </div>
     </header>
 
-    <!-- CONTENIDO PRINCIPAL / LANDING -->
-    <main class="flex-grow flex items-center justify-center p-4">
-        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 py-10 w-full items-center">
+    <!-- MAIN LAYOUT -->
+    <main class="relative w-full max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-12 pt-32 pb-20">
+        
+        <!-- COLUMNA IZQUIERDA (SCROLLABLE CONTENT) -->
+        <div class="lg:col-span-7 flex flex-col gap-32">
             
-            <!-- SECCIÓN IZQUIERDA: DASHBOARD PREVIEW & COPY -->
-            <!-- MODIFICADO: order-2 en móvil (abajo), order-1 en Desktop (izquierda) -->
-            <section class="flex flex-col relative z-10 order-2 lg:order-1">
+            <!-- SECCIÓN 1: HERO -->
+            <section class="reveal active relative pt-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand/30 bg-brand/5 text-brand text-[10px] font-bold tracking-widest mb-6">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand animate-ping"></span>
+                    SISTEMA ACTIVO v2.5
+                </div>
+                <h1 class="text-6xl md:text-8xl font-black tracking-tighter text-white mb-6 leading-[0.9]">
+                    CORPO<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-brand to-red-600">DATOS</span>
+                </h1>
+                <p class="text-zinc-400 text-lg md:text-xl max-w-lg leading-relaxed border-l-4 border-brand/50 pl-6">
+                    La central de inteligencia definitiva. Controla adherencia, finanzas y comunicaciones en una interfaz unificada.
+                </p>
                 
-                <!-- Contenedor estilo Dashboard -->
-                <div class="card-dashboard rounded-3xl p-1 overflow-hidden relative group">
-                    <!-- Efecto de borde brillante sutil -->
-                    <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-
-                    <div class="bg-[#0A0A0A] rounded-[20px] p-6 sm:p-8 relative overflow-hidden">
-                        
-                        <!-- Header del "Dashboard Visual" -->
-                        <div class="flex justify-between items-start mb-8 border-b border-white/5 pb-4">
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="relative flex h-2 w-2">
-                                      <span id="status-dot-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                      <span id="status-dot-solid" class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                    </span>
-                                    <span id="system-status-text" class="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">System Operational</span>
-                                </div>
-                                <h1 class="text-4xl sm:text-5xl font-black tracking-tighter leading-none text-white mt-2">
-                                    GOD'S PLAN <br>
-                                    <span class="text-gradient">CORPODATOS</span>
-                                </h1>
-                            </div>
-                            <!-- Icono decorativo -->
-                            <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
-                                <i class="ph-fill ph-database text-zinc-400"></i>
-                            </div>
+                <!-- Métricas Hero -->
+                <div class="grid grid-cols-2 gap-8 mt-12">
+                    <div>
+                        <div class="text-4xl font-bold text-white mb-1" id="hero-efficiency">--%</div>
+                        <div class="text-xs text-zinc-500 font-mono uppercase tracking-widest">Eficiencia Global</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-bold text-white mb-1 flex items-center gap-2">
+                            <span id="hero-modules">--</span>
+                            <span class="text-base text-zinc-600 font-normal">/ 5</span>
                         </div>
-
-                        <!-- Grid de "Widgets" Visuales -->
-                        <div class="grid grid-cols-2 gap-4 mb-8">
-                            
-                            <!-- Widget 1: Resumen (Datos Reales) -->
-                            <div class="col-span-2 sm:col-span-1 bg-white/5 rounded-xl p-4 border border-white/5">
-                                <p class="text-[10px] text-zinc-500 font-bold uppercase mb-2">Eficiencia Operativa</p>
-                                <div class="flex items-end gap-3 h-16" id="efficiency-bars">
-                                    <!-- Las barras se llenarán con JS -->
-                                    <div class="stat-bar h-full" style="--h: 0%"></div>
-                                    <div class="stat-bar h-full" style="--h: 0%"></div>
-                                    <div class="stat-bar h-full" style="--h: 0%"></div>
-                                    <div class="stat-bar h-full" style="--h: 0%"></div>
-                                    <div class="stat-bar h-full" style="--h: 0%"></div>
-                                    <div id="efficiency-value" class="ml-auto text-2xl font-bold text-white tracking-tighter self-end">--%</div>
-                                </div>
-                            </div>
-
-                            <!-- Widget 2: Módulos (Datos Reales) -->
-                            <div class="col-span-2 sm:col-span-1 bg-white/5 rounded-xl p-4 border border-white/5 flex flex-col justify-between">
-                                <div class="flex justify-between items-center mb-2">
-                                    <p class="text-[10px] text-zinc-500 font-bold uppercase">Módulos Activos</p>
-                                    <i class="ph-bold ph-cpu text-brand"></i>
-                                </div>
-                                <div id="active-modules-list" class="space-y-2">
-                                    <!-- Se llenará con JS -->
-                                    <div class="animate-pulse flex items-center gap-2 text-xs text-zinc-500">
-                                        <div class="w-2 h-2 bg-zinc-700 rounded-full"></div> Cargando datos...
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Texto Descriptivo dentro del panel -->
-                        <p class="text-zinc-400 text-sm mb-6 leading-relaxed border-t border-white/5 pt-4">
-                            Infraestructura centralizada para el control de tiempos, comunicación segura y gestión financiera. Datos sincronizados en tiempo real.
-                        </p>
-
-                        <!-- Botón CTA integrado -->
-                        <div class="flex gap-4">
-                            <a href="#login-section" class="flex-1 bg-white text-black font-bold py-3 px-4 rounded-xl text-center hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2">
-                                <i class="ph-bold ph-lightning"></i>
-                                Acceder al Core
-                            </a>
-                            <div class="flex items-center gap-2 px-4 rounded-xl border border-white/10 bg-white/5">
-                                <span id="version-display" class="text-xs font-mono text-zinc-500">v--</span>
-                            </div>
-                        </div>
-
+                        <div class="text-xs text-zinc-500 font-mono uppercase tracking-widest">Módulos Online</div>
                     </div>
                 </div>
             </section>
-            
-            <!-- SECCIÓN DERECHA: ACCESO / FORMULARIO -->
-            <!-- MODIFICADO: order-1 en móvil (arriba), order-2 en Desktop (derecha) -->
-            <section id="login-section" class="flex items-center justify-center p-4 relative order-1 lg:order-2">
-                
-                <!-- Decoración detrás del form -->
-                <div class="absolute -z-10 bg-brand/10 w-full h-full blur-3xl opacity-20 rounded-full"></div>
 
-                <!-- 1. FORMULARIO DE LOGIN (Visible si no hay sesión) -->
-                <div id="auth-card" class="card-auth rounded-2xl p-8 w-full max-w-sm relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand to-transparent"></div>
-                    
-                    <h2 id="form-title" class="text-2xl font-bold text-white mb-6 text-center">Acceso Privado</h2>
-        
+            <!-- SECCIÓN 2: CARACTERÍSTICAS -->
+            <section class="reveal space-y-8">
+                <h2 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                    <i class="ph-fill ph-cpu text-brand"></i>
+                    Núcleo Operativo
+                </h2>
+                
+                <!-- Feature Card 1 -->
+                <div class="glass-panel p-8 rounded-2xl hover:border-brand/30 transition-colors group">
+                    <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center mb-4 group-hover:bg-brand/10 transition-colors">
+                        <i class="ph-bold ph-chart-line-up text-2xl text-zinc-400 group-hover:text-brand"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Finanzas en Tiempo Real</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Visualización instantánea de flujo de caja, nómina y gastos operativos. Sin retrasos, sin errores.
+                    </p>
+                </div>
+
+                <!-- Feature Card 2 -->
+                <div class="glass-panel p-8 rounded-2xl hover:border-brand/30 transition-colors group">
+                    <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center mb-4 group-hover:bg-brand/10 transition-colors">
+                        <i class="ph-bold ph-shield-check text-2xl text-zinc-400 group-hover:text-brand"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Seguridad Grado Militar</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Encriptación de extremo a extremo para todas las comunicaciones internas y datos sensibles.
+                    </p>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 3: VISUALIZACIÓN DATA -->
+            <section class="reveal">
+                <div class="glass-panel rounded-3xl p-1 overflow-hidden relative">
+                    <div class="absolute inset-0 bg-gradient-to-b from-brand/10 to-transparent opacity-20"></div>
+                    <div class="bg-black/80 rounded-[20px] p-8 relative">
+                        <div class="flex justify-between items-center mb-8">
+                            <h3 class="font-bold text-white">Monitoreo de Red</h3>
+                            <div class="flex gap-2">
+                                <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                                <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+                                <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                            </div>
+                        </div>
+                        <!-- Gráfica decorativa CSS -->
+                        <div class="flex items-end justify-between h-40 gap-2">
+                            <div class="w-full bg-zinc-800 rounded-t-sm h-[40%] hover:bg-brand transition-all duration-500"></div>
+                            <div class="w-full bg-zinc-800 rounded-t-sm h-[70%] hover:bg-brand transition-all duration-500"></div>
+                            <div class="w-full bg-zinc-800 rounded-t-sm h-[50%] hover:bg-brand transition-all duration-500"></div>
+                            <div class="w-full bg-zinc-800 rounded-t-sm h-[90%] hover:bg-brand transition-all duration-500"></div>
+                            <div class="w-full bg-zinc-800 rounded-t-sm h-[60%] hover:bg-brand transition-all duration-500"></div>
+                            <div class="w-full bg-zinc-800 rounded-t-sm h-[80%] hover:bg-brand transition-all duration-500"></div>
+                        </div>
+                        <div class="mt-4 flex justify-between text-xs text-zinc-500 font-mono">
+                            <span>00:00</span>
+                            <span>12:00</span>
+                            <span>24:00</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             <footer class="text-zinc-600 text-sm pt-20">
+                &copy; 2025 God's Plan Enterprise System. Todos los derechos reservados.
+            </footer>
+        </div>
+
+        <!-- COLUMNA DERECHA (STICKY LOGIN) -->
+        <div class="lg:col-span-5 relative">
+            <div class="sticky-container w-full">
+                
+                <!-- CARD LOGIN / REGISTER -->
+                <div id="auth-panel" class="glass-panel rounded-3xl p-8 shadow-2xl shadow-black/50 transition-all duration-500">
+                    <div class="text-center mb-8">
+                        <h2 id="auth-title" class="text-2xl font-bold text-white">Bienvenido</h2>
+                        <p id="auth-subtitle" class="text-zinc-400 text-sm mt-2">Ingresa tus credenciales para acceder</p>
+                    </div>
+
                     <form id="auth-form" onsubmit="event.preventDefault(); window.authLogic.processEmailAuth();">
-                        <div id="name-field" class="input-group mb-4 hidden">
-                            <input type="text" id="reg-name" class="input-style w-full p-3 rounded-lg text-sm" placeholder="Nombre Oficial">
+                         <div id="name-field" class="mb-4 hidden fade-in">
+                            <label class="block text-xs font-bold text-zinc-500 uppercase mb-2">Nombre</label>
+                            <input type="text" id="reg-name" class="input-modern w-full" placeholder="Tu nombre oficial">
                         </div>
-                        <div class="input-group mb-4">
-                            <input type="text" id="email" required class="input-style w-full p-3 rounded-lg text-sm" placeholder="ID Empleado o Email">
+
+                        <div class="mb-4">
+                            <label class="block text-xs font-bold text-zinc-500 uppercase mb-2">Identificación</label>
+                            <input type="text" id="email" class="input-modern w-full" placeholder="ID o Email corporativo">
                         </div>
-                        <div class="input-group mb-6">
-                            <input type="password" id="password" required class="input-style w-full p-3 rounded-lg text-sm" placeholder="Clave de Acceso">
+
+                        <div class="mb-6">
+                            <label class="block text-xs font-bold text-zinc-500 uppercase mb-2">Contraseña</label>
+                            <input type="password" id="password" class="input-modern w-full" placeholder="••••••••">
                         </div>
-                        <div id="error-message" class="text-xs text-red-500 bg-red-900/10 p-2 rounded border border-red-500/20 mb-4 hidden text-center"></div>
-                        <button type="submit" id="submit-button" class="btn-primary w-full text-white font-bold p-3 rounded-lg text-xs tracking-widest uppercase">
-                            Autenticar
+
+                        <div id="error-message" class="text-xs text-red-400 bg-red-500/10 p-3 rounded-lg mb-4 hidden border border-red-500/20 text-center"></div>
+
+                        <button type="submit" id="submit-btn" class="w-full bg-brand hover:bg-red-600 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_0_20px_rgba(231,0,0,0.3)] hover:shadow-[0_0_30px_rgba(231,0,0,0.5)] flex items-center justify-center gap-2">
+                            <span>ACCEDER</span>
+                            <i class="ph-bold ph-arrow-right"></i>
                         </button>
                     </form>
 
-                    <div class="relative my-6">
-                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
-                        <div class="relative flex justify-center text-[10px] uppercase tracking-widest"><span class="bg-[#0a0a0a] px-2 text-zinc-600">Métodos Alternativos</span></div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3 mb-6">
-                        <button onclick="window.authLogic.loginGoogle()" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white w-full font-bold p-2.5 rounded-lg flex items-center justify-center gap-2 transition text-xs">
-                            <i class="ph-bold ph-google-logo text-lg"></i> Google
-                        </button>
-                        <button onclick="window.authLogic.loginGuest()" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white w-full font-bold p-2.5 rounded-lg flex items-center justify-center gap-2 transition text-xs">
-                            <i class="ph-bold ph-ghost text-lg"></i> Invitado
-                        </button>
-                    </div>
-
-                    <div class="text-center">
-                        <button onclick="window.authLogic.toggleMode()" class="text-[10px] text-zinc-500 hover:text-brand transition-colors uppercase tracking-wider">
-                            <span id="toggle-text">¿Nuevo usuario? Crear Credencial</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 2. DASHBOARD DE ACCESO RÁPIDO (Visible si hay sesión) -->
-                <div id="dashboard-info-card" class="card-auth rounded-2xl p-8 w-full max-w-md hidden border-brand/20">
-                     <div class="text-center mb-6 border-b border-white/10 pb-6">
-                        <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-brand/10 border border-brand/30 mb-3 animate-pulse">
-                            <i class="ph-fill ph-fingerprint text-2xl text-brand"></i>
+                    <div class="mt-6 space-y-3">
+                         <div class="grid grid-cols-2 gap-3">
+                            <button onclick="window.authLogic.loginGoogle()" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-2.5 flex items-center justify-center transition-colors">
+                                <i class="ph-bold ph-google-logo text-lg text-white"></i>
+                            </button>
+                            <button onclick="window.authLogic.loginGuest()" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-2.5 flex items-center justify-center transition-colors group text-zinc-400 hover:text-white" title="Invitado">
+                                <i class="ph-bold ph-ghost text-lg"></i>
+                            </button>
                         </div>
-                        <h3 class="text-xl font-bold text-white">Identidad Confirmada</h3>
-                        <p id="auth-card-user-name" class="text-zinc-500 text-xs mt-1 font-mono">Acceso concedido.</p>
-                     </div>
-                     
-                     <div class="grid grid-cols-2 gap-3">
-                         <!-- Botones de Acceso a Apps -->
-                         <button onclick="window.location.href='/adherencia.html'" class="bg-black/40 hover:bg-brand/10 border border-white/5 hover:border-brand/50 transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
-                             <i class="ph-duotone ph-clock text-2xl text-zinc-400 group-hover:text-brand transition-colors"></i>
-                             <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-300 group-hover:text-white">Adherencia</span>
-                         </button>
-                         
-                         <button onclick="window.location.href='/chat.html'" class="bg-black/40 hover:bg-brand/10 border border-white/5 hover:border-brand/50 transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
-                             <i class="ph-duotone ph-chat-teardrop-text text-2xl text-zinc-400 group-hover:text-brand transition-colors"></i>
-                             <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-300 group-hover:text-white">Chat</span>
-                         </button>
-
-                         <button onclick="window.location.href='/finanzas.html'" class="bg-black/40 hover:bg-brand/10 border border-white/5 hover:border-brand/50 transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
-                             <i class="ph-duotone ph-currency-dollar text-2xl text-zinc-400 group-hover:text-brand transition-colors"></i>
-                             <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-300 group-hover:text-white">Finanzas</span>
-                         </button>
-
-                         <button onclick="window.location.href='/cuenta.html'" class="bg-black/40 hover:bg-brand/10 border border-white/5 hover:border-brand/50 transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
-                             <i class="ph-duotone ph-user-circle text-2xl text-zinc-400 group-hover:text-brand transition-colors"></i>
-                             <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-300 group-hover:text-white">Perfil</span>
-                         </button>
-                     </div>
+                        
+                        <div class="text-center pt-2">
+                            <button onclick="window.authLogic.toggleMode()" class="text-xs text-zinc-500 hover:text-white transition-colors">
+                                <span id="toggle-text">¿No tienes cuenta? Regístrate</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </section>
-        </div>
-    </main>
-    
-    <!-- FOOTER -->
-    <footer class="p-6 text-center border-t border-gray-900 mt-auto bg-black z-20">
-        <p class="text-zinc-700 text-[10px] font-mono tracking-widest">
-            GOD'S PLAN ENTERPRISE SYSTEM © 2025 // SECURE CONNECTION
-        </p>
-    </footer>
 
-    <!-- LÓGICA DE FIREBASE -->
+                <!-- DASHBOARD RÁPIDO (Se muestra al loguear, reemplaza al login) -->
+                <div id="dashboard-panel" class="glass-panel rounded-3xl p-8 shadow-2xl shadow-black/50 hidden animate-float">
+                    <div class="flex items-center gap-4 mb-8 border-b border-white/5 pb-6">
+                        <div class="w-16 h-16 rounded-full bg-brand flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-brand/40">
+                            <span id="user-initial">U</span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-white leading-tight">Hola, <br><span id="user-name-large" class="text-brand">Usuario</span></h2>
+                            <p class="text-xs text-zinc-400 mt-1">Sesión Segura Activa</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-3">
+                        <a href="/adherencia.html" class="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-brand/50 transition-all group">
+                            <div class="w-10 h-10 rounded-lg bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:text-brand transition-colors">
+                                <i class="ph-duotone ph-clock text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">Adherencia</h4>
+                                <p class="text-[10px] text-zinc-500">Gestión de tiempos</p>
+                            </div>
+                            <i class="ph-bold ph-caret-right ml-auto text-zinc-600 group-hover:text-white"></i>
+                        </a>
+
+                        <a href="/chat.html" class="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-brand/50 transition-all group">
+                             <div class="w-10 h-10 rounded-lg bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:text-brand transition-colors">
+                                <i class="ph-duotone ph-chat-centered-text text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">Chat Seguro</h4>
+                                <p class="text-[10px] text-zinc-500">Canales encriptados</p>
+                            </div>
+                            <i class="ph-bold ph-caret-right ml-auto text-zinc-600 group-hover:text-white"></i>
+                        </a>
+
+                        <a href="/finanzas.html" class="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-brand/50 transition-all group">
+                             <div class="w-10 h-10 rounded-lg bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:text-brand transition-colors">
+                                <i class="ph-duotone ph-currency-dollar text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">Finanzas</h4>
+                                <p class="text-[10px] text-zinc-500">Nómina y Gastos</p>
+                            </div>
+                            <i class="ph-bold ph-caret-right ml-auto text-zinc-600 group-hover:text-white"></i>
+                        </a>
+                        
+                         <a href="/cuenta.html" class="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-brand/50 transition-all group">
+                             <div class="w-10 h-10 rounded-lg bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:text-brand transition-colors">
+                                <i class="ph-duotone ph-user-gear text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">Mi Cuenta</h4>
+                                <p class="text-[10px] text-zinc-500">Ajustes personales</p>
+                            </div>
+                            <i class="ph-bold ph-caret-right ml-auto text-zinc-600 group-hover:text-white"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, updateProfile, signInWithCustomToken, signInAnonymously, signOut,
-            setPersistence, browserLocalPersistence 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, collection, doc, onSnapshot, setDoc, getDoc 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
-        // --- CONFIGURACIÓN DE ENTORNO ---
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, updateProfile, signInWithCustomToken, signInAnonymously, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Scroll Animation Logic
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // Firebase Config
         const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
         let firebaseConfig = fallbackConfig;
-        
         try { 
             if (typeof __firebase_config !== 'undefined' && __firebase_config) { 
                 const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; 
                 if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; 
             } 
-        } catch(e) { console.error("Error cargando config:", e); }
-        
-        // Inicializar Firebase
+        } catch(e) {}
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        
-        // App ID Global
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        // ** SOLUCIÓN CLAVE SSO: Persistencia Local (funciona entre directorios) **
         setPersistence(auth, browserLocalPersistence).catch(console.error);
-        
-        // Elementos de la UI
-        const authCard = document.getElementById('auth-card');
-        const dashboardInfoCard = document.getElementById('dashboard-info-card');
-        const showLoginBtn = document.getElementById('show-login-btn');
-        const userDisplay = document.getElementById('user-display');
-        const userInitialsEl = document.getElementById('user-initials');
-        const userNameEl = document.getElementById('user-name');
-        const authCardUserNameEl = document.getElementById('auth-card-user-name');
-        
-        // --- LÓGICA DE MÉTRICAS REALES (CORPODATOS) ---
-        async function initSystemMetrics() {
-            // Aseguramos autenticación anónima mínima para leer DB pública
-            if (!auth.currentUser) {
-                try { await signInAnonymously(auth); } catch(e) { console.error("Error auth anonima metrics", e); }
-            }
 
-            const metricsRef = doc(db, 'artifacts', appId, 'public', 'data', 'system_metrics', 'dashboard_stats');
-            
-            // Escuchar cambios en tiempo real
-            onSnapshot(metricsRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    updateDashboardUI(docSnap.data());
-                } else {
-                    // Si no existen datos, creamos datos iniciales "reales" en la DB
-                    seedInitialMetrics(metricsRef);
-                }
-            }, (error) => {
-                console.error("Error leyendo métricas:", error);
-                // Fallback visual si falla la red
-                updateDashboardUI({
-                    efficiency: 92,
-                    bars: [45, 60, 30, 80, 50],
-                    modules: ['Finanzas', 'Adherencia', 'Chat Seguro'],
-                    version: '2.4.1'
-                });
-            });
-        }
+        // UI Refs
+        const els = {
+            authPanel: document.getElementById('auth-panel'),
+            dashPanel: document.getElementById('dashboard-panel'),
+            authTitle: document.getElementById('auth-title'),
+            authSub: document.getElementById('auth-subtitle'),
+            submitBtn: document.getElementById('submit-btn'),
+            toggleTxt: document.getElementById('toggle-text'),
+            nameField: document.getElementById('name-field'),
+            errorMsg: document.getElementById('error-message'),
+            miniUserDisplay: document.getElementById('user-display-mini'),
+            headerUserName: document.getElementById('header-user-name'),
+            largeUserName: document.getElementById('user-name-large'),
+            userInitial: document.getElementById('user-initial'),
+            // Metrics
+            heroEff: document.getElementById('hero-efficiency'),
+            heroMods: document.getElementById('hero-modules')
+        };
 
-        function updateDashboardUI(data) {
-            // 1. Eficiencia
-            const efficiency = data.efficiency || 0;
-            const bars = data.bars || [20, 40, 60, 80, 50];
-            
-            // Animación de contador simple
-            document.getElementById('efficiency-value').textContent = `+${efficiency}%`;
-            
-            // Actualizar barras
-            const barElements = document.querySelectorAll('#efficiency-bars .stat-bar');
-            barElements.forEach((bar, index) => {
-                if (bars[index] !== undefined) {
-                    bar.style.setProperty('--h', `${bars[index]}%`);
-                }
-            });
-
-            // 2. Módulos
-            const modulesContainer = document.getElementById('active-modules-list');
-            modulesContainer.innerHTML = '';
-            (data.modules || []).forEach(mod => {
-                const div = document.createElement('div');
-                div.className = 'flex items-center gap-2 text-xs text-zinc-300';
-                div.innerHTML = `<i class="ph-fill ph-check-circle text-green-500"></i> ${mod}`;
-                modulesContainer.appendChild(div);
-            });
-
-            // 3. Versión
-            document.getElementById('version-display').textContent = `v${data.version || '2.0'}`;
-        }
-
-        async function seedInitialMetrics(ref) {
-            // Datos iniciales que se guardarán en la DB real
-            const initialData = {
-                efficiency: 98,
-                bars: [40, 75, 55, 95, 65], // Alturas de las barras
-                modules: ['Finanzas Core', 'Adherencia RRHH', 'Chat Encriptado', 'Nómina'],
-                version: '2.5.0',
-                lastUpdate: new Date().toISOString()
-            };
-            try {
-                await setDoc(ref, initialData);
-            } catch (e) {
-                console.error("No se pudo crear semilla de datos (posiblemente permisos):", e);
-                // Si falla escritura (por reglas de seguridad), usamos los datos localmente
-                updateDashboardUI(initialData);
-            }
-        }
-
-        // --- LÓGICA DE AUTH ---
+        // Auth Logic
         window.authLogic = {
             mode: 'login',
-            
             toggleMode: function() {
                 this.mode = this.mode === 'login' ? 'register' : 'login';
                 const isReg = this.mode === 'register';
-                
-                document.getElementById('form-title').textContent = isReg ? 'Crear Credencial' : 'Acceso Privado';
-                document.getElementById('submit-button').textContent = isReg ? 'REGISTRARME' : 'AUTENTICAR';
-                document.getElementById('toggle-text').textContent = isReg ? '¿Ya tienes cuenta? Inicia Sesión' : '¿Nuevo usuario? Crear Credencial';
-                document.getElementById('name-field').classList.toggle('hidden', !isReg);
-                document.getElementById('error-message').classList.add('hidden');
+                els.authTitle.textContent = isReg ? 'Crear Cuenta' : 'Bienvenido';
+                els.authSub.textContent = isReg ? 'Completa tus datos para registrarte' : 'Ingresa tus credenciales para acceder';
+                els.submitBtn.innerHTML = isReg ? '<span>REGISTRARSE</span>' : '<span>ACCEDER</span> <i class="ph-bold ph-arrow-right"></i>';
+                els.toggleTxt.textContent = isReg ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate';
+                els.nameField.classList.toggle('hidden', !isReg);
+                els.errorMsg.classList.add('hidden');
             },
-
             showError: function(msg) {
-                const errEl = document.getElementById('error-message');
-                errEl.textContent = msg;
-                errEl.classList.remove('hidden');
-                document.getElementById('submit-button').disabled = false;
-                document.getElementById('submit-button').innerHTML = this.mode === 'login' ? 'AUTENTICAR' : 'REGISTRARME';
+                els.errorMsg.textContent = msg;
+                els.errorMsg.classList.remove('hidden');
+                els.submitBtn.disabled = false;
+                els.submitBtn.classList.remove('opacity-50');
             },
-
-            // Login con Email/ID
             processEmailAuth: async function() {
-                const btn = document.getElementById('submit-button');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> PROCESANDO...';
-                document.getElementById('error-message').classList.add('hidden');
+                els.submitBtn.disabled = true;
+                els.submitBtn.classList.add('opacity-50');
+                els.errorMsg.classList.add('hidden');
 
-                let inputVal = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value;
-
-                if (!inputVal.includes('@')) {
-                    inputVal = `${inputVal}@godsplan.site`;
-                }
+                let email = document.getElementById('email').value.trim();
+                const pass = document.getElementById('password').value;
+                if (!email.includes('@')) email = `${email}@godsplan.site`;
 
                 try {
-                    await setPersistence(auth, browserLocalPersistence);
                     if (this.mode === 'login') {
-                        await signInWithEmailAndPassword(auth, inputVal, password);
+                        await signInWithEmailAndPassword(auth, email, pass);
                     } else {
                         const name = document.getElementById('reg-name').value;
-                        const userCredential = await createUserWithEmailAndPassword(auth, inputVal, password);
-                        if (name) await updateProfile(userCredential.user, { displayName: name });
+                        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                        if (name) await updateProfile(cred.user, { displayName: name });
                     }
-                } catch (error) {
-                    console.error("Auth Error:", error);
-                    let msg = "Error desconocido.";
-                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') msg = "Credenciales incorrectas.";
-                    if (error.code === 'auth/email-already-in-use') msg = "Este ID/Email ya está registrado.";
-                    if (error.code === 'auth/weak-password') msg = "La contraseña es muy débil.";
-                    if (error.code === 'auth/invalid-email') msg = "Formato de ID/Email inválido.";
+                } catch (e) {
+                    let msg = "Error de conexión";
+                    if(e.code.includes('invalid') || e.code.includes('found')) msg = "Credenciales incorrectas";
                     this.showError(msg);
                 }
             },
-
-            // Login con Google
-            loginGoogle: async function() {
-                try {
-                    await setPersistence(auth, browserLocalPersistence);
-                    const provider = new GoogleAuthProvider();
-                    await signInWithPopup(auth, provider);
-                } catch (error) {
-                    this.showError("Error con Google: " + error.message);
-                }
-            },
-
-            // Login Invitado
-            loginGuest: async function() {
-                try {
-                    await setPersistence(auth, browserLocalPersistence);
-                    await signInAnonymously(auth);
-                } catch (error) {
-                    this.showError("Error invitado: " + error.message);
-                }
-            },
-
-            // Logout
-            logout: async function() {
-                 try {
-                    await signOut(auth);
-                    window.location.reload(); 
-                } catch (error) {
-                    console.error("Error al cerrar sesión:", error);
-                }
-            }
+            loginGoogle: async () => { try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e){ els.errorMsg.textContent=e.message; els.errorMsg.classList.remove('hidden'); } },
+            loginGuest: async () => { try { await signInAnonymously(auth); } catch(e){ els.errorMsg.textContent=e.message; els.errorMsg.classList.remove('hidden'); } },
+            logout: async () => { await signOut(auth); window.location.reload(); }
         };
 
-        // Autenticación inicial (para manejo de token de Canvas y Métricas)
-        async function handleInitialAuth() {
-            const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            
-            // 1. Intentar token custom
-            if (initialToken) {
-                try { await signInWithCustomToken(auth, initialToken); } catch (error) {}
-            }
-            // 2. Si no hay usuario, loguear como anónimo para poder LEER las métricas públicas
-            if (!auth.currentUser) {
-                try { await signInAnonymously(auth); } catch (e) {}
-            }
-            
-            // 3. Iniciar métricas
-            initSystemMetrics();
+        document.getElementById('logout-button-mini').onclick = window.authLogic.logout;
+
+        // Init System
+        async function init() {
+            // Metrics
+            if(!auth.currentUser) try { await signInAnonymously(auth); } catch(e){}
+            const metricsRef = doc(db, 'artifacts', appId, 'public', 'data', 'system_metrics', 'dashboard_stats');
+            onSnapshot(metricsRef, (s) => {
+                const d = s.exists() ? s.data() : { efficiency: 98, modules: [1,2,3,4] };
+                if(els.heroEff) els.heroEff.textContent = `${d.efficiency || 98}%`;
+                if(els.heroMods) els.heroMods.textContent = (d.modules || []).length;
+            });
+
+            // Auth State
+            const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            if(token) try { await signInWithCustomToken(auth, token); } catch(e){}
+
+            onAuthStateChanged(auth, (user) => {
+                if(user && !user.isAnonymous) {
+                    const name = user.displayName || user.email.split('@')[0];
+                    els.headerUserName.textContent = name;
+                    els.largeUserName.textContent = name;
+                    els.userInitial.textContent = name.charAt(0).toUpperCase();
+                    
+                    els.miniUserDisplay.classList.remove('hidden');
+                    els.authPanel.classList.add('hidden');
+                    els.dashPanel.classList.remove('hidden');
+                } else {
+                    els.miniUserDisplay.classList.add('hidden');
+                    els.authPanel.classList.remove('hidden');
+                    els.dashPanel.classList.add('hidden');
+                }
+            });
         }
-        handleInitialAuth();
-        
-        document.getElementById('logout-button').onclick = window.authLogic.logout;
-        document.getElementById('show-login-btn').onclick = () => {
-             authCard.classList.remove('hidden');
-             dashboardInfoCard.classList.add('hidden');
-             window.location.hash = '#login-section'; 
-        };
-
-        // Listener de Estado: Actualiza la UI
-        onAuthStateChanged(auth, (user) => {
-            if (user && !user.isAnonymous) {
-                // Usuario REAL autenticado
-                const displayName = user.displayName || user.email?.split('@')[0] || 'Usuario';
-                const initial = displayName.charAt(0).toUpperCase();
-
-                // 1. Header UI
-                showLoginBtn.classList.add('hidden');
-                userDisplay.classList.remove('hidden');
-                userInitialsEl.textContent = initial;
-                userNameEl.textContent = displayName;
-
-                // 2. Auth Card UI
-                authCard.classList.add('hidden');
-                dashboardInfoCard.classList.remove('hidden');
-                authCardUserNameEl.textContent = `Bienvenido de vuelta, ${displayName}.`;
-            } else {
-                // Usuario no autenticado (o Anónimo para métricas)
-                
-                // Si es anónimo, NO mostramos UI de logueado en el header
-                if(user && user.isAnonymous) {
-                     // Mantener estado "público" visualmente
-                     showLoginBtn.classList.remove('hidden');
-                     userDisplay.classList.add('hidden');
-                     authCard.classList.remove('hidden');
-                     dashboardInfoCard.classList.add('hidden');
-                     return;
-                }
-
-                // 1. Header UI
-                showLoginBtn.classList.remove('hidden');
-                userDisplay.classList.add('hidden');
-                
-                // 2. Auth Card UI
-                authCard.classList.remove('hidden');
-                dashboardInfoCard.classList.add('hidden');
-            }
-        });
+        init();
     </script>
 </body>
 </html>
