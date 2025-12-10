@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>God's Plan | Portal de Acceso (SSO)</title>
+    <title>God's Plan | Portal de Acceso y Principal</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Fuentes e Iconos -->
@@ -89,6 +89,18 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
+        /* Enlaces del Nav */
+        .nav-link {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #71717a;
+            transition: color 0.2s;
+        }
+        .nav-link:hover { color: white; }
+        .nav-link.active { color: white; border-bottom: 2px solid white; padding-bottom: 2px; }
     </style>
 </head>
 <body>
@@ -98,83 +110,78 @@
         <div class="bg-orb" style="bottom: -75vmax; right: -75vmax; animation-delay: 5s;"></div>
     </div>
 
-    <!-- NAVEGACIÓN / HEADER -->
-    <header class="p-4 border-b border-gray-800 backdrop-blur-sm sticky top-0 z-20">
-        <nav class="flex justify-between items-center max-w-7xl mx-auto">
-            <div class="flex items-center space-x-4">
-                <div class="text-2xl font-black tracking-tighter text-white">
-                    GOD'S <span class="text-gradient">PLAN</span>
-                </div>
-                <div class="hidden sm:flex space-x-4 text-sm font-semibold text-gray-400">
-                    <a href="/" class="hover:text-brand transition-colors">Inicio</a>
-                    <a href="/adherencia.html" class="hover:text-brand transition-colors">Adherencia</a>
-                    <a href="#" class="hover:text-brand transition-colors">Soporte</a>
-                </div>
+    <!-- NAVEGACIÓN GLOBAL UNIFICADA -->
+    <header class="h-14 bg-black border-b border-white/10 backdrop-blur-sm sticky top-0 z-50 flex items-center justify-between px-5">
+        <div class="flex items-center gap-8">
+            <a href="/" class="flex items-center gap-2 font-black tracking-wider text-white group decoration-0">
+                <i class="ph-bold ph-circles-three-plus text-lg text-white group-hover:text-red-500 transition-colors"></i> 
+                GOD'S PLAN
+            </a>
+            <!-- Links Desktop -->
+            <div class="hidden md:flex items-center gap-6">
+                <a href="/adherencia.html" class="nav-link">Adherencia</a>
+                <a href="/chat.html" class="nav-link">Chat</a>
+                <a href="/finanzas.html" class="nav-link">Finanzas</a>
             </div>
+        </div>
 
-            <div id="auth-status-container">
-                <!-- Se llenará dinámicamente con botones de login o info de usuario -->
-                <button id="show-login-btn" class="btn-primary text-white font-bold py-2 px-4 rounded-xl text-sm transition hidden" onclick="window.location.hash = '#login-section'">
-                    <i class="ph-bold ph-sign-in text-lg mr-1"></i> Iniciar Sesión
+        <div id="auth-status-container" class="flex items-center gap-4">
+            <!-- Botón Login -->
+            <button id="show-login-btn" class="btn-primary text-white font-bold py-1.5 px-4 rounded-lg text-xs transition hidden" onclick="window.location.hash = '#login-section'">
+                <i class="ph-bold ph-sign-in mr-1"></i> Entrar
+            </button>
+            
+            <!-- User Display -->
+            <div id="user-display" class="hidden flex items-center gap-3">
+                <a href="/cuenta.html" class="flex items-center gap-2 hover:bg-white/5 p-1.5 rounded-lg transition-colors group">
+                    <span id="user-initials" class="w-6 h-6 flex items-center justify-center rounded-full bg-brand font-bold text-[10px]"></span>
+                    <span id="user-name" class="font-semibold text-xs hidden sm:block group-hover:text-brand transition-colors"></span>
+                </a>
+                <button id="logout-button" class="text-zinc-500 hover:text-white transition-colors p-1" title="Cerrar Sesión">
+                     <i class="ph-bold ph-sign-out text-lg"></i>
                 </button>
-                <div id="user-display" class="hidden flex items-center gap-3 bg-gray-900 p-2 rounded-full border border-brand/50">
-                    <span id="user-initials" class="w-8 h-8 flex items-center justify-center rounded-full bg-brand font-bold text-sm">...</span>
-                    <span id="user-name" class="font-semibold text-sm hidden sm:block">Usuario</span>
-                    <button id="logout-button" class="text-gray-400 hover:text-white transition-colors p-1" title="Cerrar Sesión">
-                         <i class="ph-bold ph-sign-out text-xl"></i>
-                    </button>
-                </div>
             </div>
-        </nav>
+        </div>
     </header>
 
     <!-- CONTENIDO PRINCIPAL / LANDING -->
     <main class="flex-grow flex items-center justify-center p-4">
-        <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 py-16">
+        <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 py-16 w-full">
             
             <!-- SECCIÓN DE BIENVENIDA -->
             <section class="flex flex-col justify-center text-center md:text-left">
                 <p class="text-sm font-bold tracking-[0.2em] uppercase text-brand mb-2">Ecosistema Empresarial</p>
-                <h1 class="text-6xl font-black tracking-tighter mb-4">
-                    La <span class="text-gradient">Plataforma</span> que Impulsa tu Operación
+                <h1 class="text-5xl lg:text-6xl font-black tracking-tighter mb-4 leading-tight">
+                    Tu <span class="text-gradient">Operación</span><br>Centralizada
                 </h1>
                 <p class="text-gray-400 text-lg mb-8 max-w-md mx-auto md:mx-0">
-                    Accede a todos tus servicios, datos y herramientas empresariales en un solo lugar. Conéctate y comienza a trabajar.
+                    Control de tiempos, comunicación segura y gestión financiera en una sola plataforma unificada.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                    <a href="#login-section" class="btn-primary text-white font-bold py-3 px-6 rounded-xl text-lg shadow-lg">
-                        Acceder al Sistema
-                    </a>
-                    <a href="#" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-xl text-lg transition shadow-md">
-                        Explorar Documentación
+                    <a href="#login-section" class="btn-primary text-white font-bold py-3 px-6 rounded-xl text-lg shadow-lg text-center">
+                        Comenzar
                     </a>
                 </div>
             </section>
             
-            <!-- TARJETA DE ACCESO (MÓDULO DE LOGIN/REGISTRO) -->
+            <!-- SECCIÓN DE ACCESO / DASHBOARD -->
             <section id="login-section" class="flex items-center justify-center p-4">
+                
+                <!-- 1. FORMULARIO DE LOGIN (Visible si no hay sesión) -->
                 <div id="auth-card" class="card-auth rounded-2xl p-8 w-full max-w-sm">
                     <h2 id="form-title" class="text-2xl font-bold text-white mb-6 text-center">Bienvenido</h2>
         
                     <form id="auth-form" onsubmit="event.preventDefault(); window.authLogic.processEmailAuth();">
-                        
-                        <!-- Campo Nombre (Solo visible en Registro) -->
                         <div id="name-field" class="input-group mb-4 hidden">
                             <input type="text" id="reg-name" class="input-style w-full p-3 rounded-lg" placeholder="Nombre Completo">
                         </div>
-
-                        <!-- Campo ID/Email -->
                         <div class="input-group mb-4">
                             <input type="text" id="email" required class="input-style w-full p-3 rounded-lg" placeholder="ID de Empleado o Email">
                         </div>
-
-                        <!-- Campo Password -->
                         <div class="input-group mb-6">
                             <input type="password" id="password" required class="input-style w-full p-3 rounded-lg" placeholder="Contraseña">
                         </div>
-
                         <div id="error-message" class="text-sm text-red-500 bg-red-900/20 p-3 rounded-lg mb-4 hidden border border-red-500/20 text-center font-bold"></div>
-
                         <button type="submit" id="submit-button" class="btn-primary w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase">
                             ACCEDER
                         </button>
@@ -203,22 +210,37 @@
                     </div>
                 </div>
 
-                <div id="dashboard-info-card" class="card-auth rounded-2xl p-8 w-full max-w-sm hidden">
-                     <div class="text-center mb-6">
-                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-brand/10 border border-brand/30 mb-4">
-                            <i class="ph-fill ph-check-circle text-2xl text-brand"></i>
+                <!-- 2. DASHBOARD DE ACCESO RÁPIDO (Visible si hay sesión) -->
+                <div id="dashboard-info-card" class="card-auth rounded-2xl p-8 w-full max-w-md hidden">
+                     <div class="text-center mb-6 border-b border-white/10 pb-6">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand/10 border border-brand/30 mb-4 animate-pulse">
+                            <i class="ph-fill ph-check-circle text-3xl text-brand"></i>
                         </div>
-                        <h3 class="text-xl font-bold text-white">¡Sesión Iniciada!</h3>
-                        <p id="auth-card-user-name" class="text-gray-400 mt-1">Bienvenido de vuelta.</p>
+                        <h3 class="text-2xl font-bold text-white">Sesión Activa</h3>
+                        <p id="auth-card-user-name" class="text-gray-400 mt-1">Bienvenido al sistema.</p>
                      </div>
-                     <p class="text-gray-300 mb-4">Tu sesión está activa en GodsPlan. Navega a cualquier subdirectorio.</p>
-                     <div class="grid gap-3">
-                         <button onclick="window.location.href = '/adherencia.html'" class="btn-primary w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase flex items-center justify-center gap-2">
-                            <i class="ph-bold ph-clock"></i> Ir a Adherencia
-                        </button>
-                        <button onclick="window.location.href = '/chat.html'" class="bg-gray-800 hover:bg-gray-700 text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase transition flex items-center justify-center gap-2">
-                            <i class="ph-bold ph-chat-text"></i> Ir al Chat
-                        </button>
+                     
+                     <div class="grid grid-cols-2 gap-3">
+                         <!-- Botones de Acceso a Apps -->
+                         <button onclick="window.location.href='/adherencia.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
+                             <i class="ph-bold ph-clock text-2xl text-zinc-500 group-hover:text-brand"></i>
+                             <span class="text-xs font-bold uppercase tracking-wider">Adherencia</span>
+                         </button>
+                         
+                         <button onclick="window.location.href='/chat.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
+                             <i class="ph-bold ph-chat-circle-text text-2xl text-zinc-500 group-hover:text-brand"></i>
+                             <span class="text-xs font-bold uppercase tracking-wider">Chat</span>
+                         </button>
+
+                         <button onclick="window.location.href='/finanzas.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
+                             <i class="ph-bold ph-currency-dollar text-2xl text-zinc-500 group-hover:text-brand"></i>
+                             <span class="text-xs font-bold uppercase tracking-wider">Finanzas</span>
+                         </button>
+
+                         <button onclick="window.location.href='/cuenta.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
+                             <i class="ph-bold ph-user-gear text-2xl text-zinc-500 group-hover:text-brand"></i>
+                             <span class="text-xs font-bold uppercase tracking-wider">Mi Cuenta</span>
+                         </button>
                      </div>
                 </div>
             </section>
@@ -226,9 +248,9 @@
     </main>
     
     <!-- FOOTER -->
-    <footer class="p-4 text-center border-t border-gray-900 mt-auto">
-        <p class="text-gray-600 text-[10px] font-mono">
-            SISTEMA SEGURO BLQA LEGACY © 2025
+    <footer class="p-6 text-center border-t border-gray-900 mt-auto bg-black">
+        <p class="text-zinc-600 text-[10px] font-mono tracking-widest">
+            GOD'S PLAN ENTERPRISE SYSTEM © 2025
         </p>
     </footer>
 
@@ -255,8 +277,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         
-        // ** SOLUCIÓN CLAVE: Establecer persistencia en LOCAL para soportar subdirectorios **
-        // Esto asegura que la sesión sobreviva a recargas y navegación.
+        // ** SOLUCIÓN CLAVE SSO: Persistencia Local (funciona entre directorios) **
         setPersistence(auth, browserLocalPersistence).catch(console.error);
         
         // Elementos de la UI
@@ -318,7 +339,7 @@
                     let msg = "Error desconocido.";
                     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') msg = "Credenciales incorrectas.";
                     if (error.code === 'auth/email-already-in-use') msg = "Este ID/Email ya está registrado.";
-                    if (error.code === 'auth/weak-password') msg = "La contraseña es muy débil (mín. 6 caracteres).";
+                    if (error.code === 'auth/weak-password') msg = "La contraseña es muy débil.";
                     if (error.code === 'auth/invalid-email') msg = "Formato de ID/Email inválido.";
                     this.showError(msg);
                 }
@@ -331,18 +352,16 @@
                     const provider = new GoogleAuthProvider();
                     await signInWithPopup(auth, provider);
                 } catch (error) {
-                    console.error("Error con Google:", error);
-                    this.showError("Error con Google: " + (error.message || "Fallo en la ventana emergente."));
+                    this.showError("Error con Google: " + error.message);
                 }
             },
 
-            // Login Invitado (Anónimo)
+            // Login Invitado
             loginGuest: async function() {
                 try {
                     await setPersistence(auth, browserLocalPersistence);
                     await signInAnonymously(auth);
                 } catch (error) {
-                    console.error("Error invitado:", error);
                     this.showError("Error invitado: " + error.message);
                 }
             },
@@ -351,7 +370,6 @@
             logout: async function() {
                  try {
                     await signOut(auth);
-                    console.log("Sesión cerrada.");
                     window.location.reload(); 
                 } catch (error) {
                     console.error("Error al cerrar sesión:", error);
@@ -359,20 +377,14 @@
             }
         };
 
-        // --- FIX CRÍTICO: Eliminar la lógica agresiva de auto-login anónimo ---
-        // Anteriormente, si Firebase tardaba en cargar, este script creaba una sesión anónima
-        // sobrescribiendo la real. Ahora, solo usamos el token inicial si existe, o esperamos.
+        // Autenticación inicial (para manejo de token de Canvas)
         async function handleInitialAuth() {
             const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
             if (initialToken) {
                 try {
                     await signInWithCustomToken(auth, initialToken);
-                } catch (error) {
-                    console.warn("Token inicial inválido");
-                }
+                } catch (error) {}
             }
-            // NO llamamos a signInAnonymously() automáticamente aquí.
-            // Dejamos que el usuario elija "Invitado" si quiere.
         }
         handleInitialAuth();
         
@@ -386,7 +398,7 @@
         // Listener de Estado: Actualiza la UI
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) {
-                // Usuario autenticado (Email/Google)
+                // Usuario autenticado
                 const displayName = user.displayName || user.email?.split('@')[0] || 'Usuario';
                 const initial = displayName.charAt(0).toUpperCase();
 
@@ -396,7 +408,7 @@
                 userInitialsEl.textContent = initial;
                 userNameEl.textContent = displayName;
 
-                // 2. Auth Card UI -> Mostrar panel de bienvenida
+                // 2. Auth Card UI
                 authCard.classList.add('hidden');
                 dashboardInfoCard.classList.remove('hidden');
                 authCardUserNameEl.textContent = `Bienvenido de vuelta, ${displayName}.`;
@@ -407,7 +419,7 @@
                 showLoginBtn.classList.remove('hidden');
                 userDisplay.classList.add('hidden');
                 
-                // 2. Auth Card UI -> Mostrar formulario
+                // 2. Auth Card UI
                 authCard.classList.remove('hidden');
                 dashboardInfoCard.classList.add('hidden');
             }
