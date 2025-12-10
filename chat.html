@@ -282,19 +282,35 @@
                 const box = document.getElementById('messages');
                 box.innerHTML = '<div class="text-center p-10 text-zinc-600 text-xs uppercase font-bold tracking-widest animate-pulse">Cargando...</div>';
                 
+                // --- FIX: CONSULTA SIMPLIFICADA PARA EVITAR ERROR DE ÍNDICE ---
                 const q = query(
                     collection(db, COLLECTION_NAME),
-                    where('channel', '==', this.currentChannel),
-                    orderBy('at', 'asc'),
-                    limit(60)
+                    where('channel', '==', this.currentChannel)
                 );
 
                 this.unsub = onSnapshot(q, (s) => {
                     const wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 100;
                     box.innerHTML = '';
-                    if(s.empty) box.innerHTML = '<div class="text-center p-10 text-zinc-700 text-xs uppercase tracking-widest">Sin mensajes</div>';
                     
-                    s.forEach(d => box.appendChild(this.createMessage(d.data(), d.id)));
+                    let messages = [];
+                    s.forEach(d => messages.push({id: d.id, data: d.data()}));
+                    
+                    // Ordenar en cliente
+                    messages.sort((a, b) => {
+                        const tA = a.data.at?.toMillis ? a.data.at.toMillis() : Date.now();
+                        const tB = b.data.at?.toMillis ? b.data.at.toMillis() : Date.now();
+                        return tA - tB;
+                    });
+                    
+                    // Limitar a últimos 60
+                    if (messages.length > 60) messages = messages.slice(messages.length - 60);
+
+                    if(messages.length === 0) {
+                        box.innerHTML = '<div class="text-center p-10 text-zinc-700 text-xs uppercase tracking-widest">Sin mensajes</div>';
+                    } else {
+                        messages.forEach(m => box.appendChild(this.createMessage(m.data, m.id)));
+                    }
+                    
                     if(wasAtBottom) box.scrollTop = box.scrollHeight;
                 });
             },
