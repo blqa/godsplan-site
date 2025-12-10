@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual de Usuario | God's Plan CorpoDatos</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuentes e Iconos -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        brand: '#E70000',
+                        brandDark: '#990000',
+                        dark: '#050505',
+                        card: '#121212'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            background-color: #050505; 
+            color: #e4e4e7; /* zinc-200 */
+            min-height: 100vh;
+            overflow-x: hidden;
+        } 
+
+        /* Fondo Animado */
+        .bg-gradient-fixed {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 100%);
+        }
+        .bg-orb {
+            position: fixed; 
+            width: 80vmax; height: 80vmax; 
+            background: radial-gradient(circle, rgba(231, 0, 0, 0.08) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%; pointer-events: none;
+            animation: float 15s infinite ease-in-out;
+            z-index: -1;
+        }
+        @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(20px, -20px); } }
+
+        /* Sidebar de Navegación */
+        .doc-sidebar {
+            position: sticky;
+            top: 6rem;
+            height: fit-content;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .doc-link {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            color: #71717a;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-left: 2px solid transparent;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .doc-link:hover { color: white; background: rgba(255,255,255,0.03); }
+        .doc-link.active { 
+            color: #E70000; 
+            border-left-color: #E70000; 
+            background: linear-gradient(90deg, rgba(231, 0, 0, 0.05) 0%, rgba(0,0,0,0) 100%);
+        }
+
+        /* Tarjetas de Contenido */
+        .glass-card {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .feature-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #a1a1aa;
+            margin-bottom: 1rem;
+        }
+
+        /* Mockups de UI (Simulación visual de tus módulos) */
+        .ui-mockup {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .code-snippet {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            color: #E70000;
+            font-size: 0.85em;
+        }
+
+        /* Tipografía */
+        h1, h2, h3 { color: white; letter-spacing: -0.02em; }
+        .text-gradient {
+            background: linear-gradient(to right, #ff4444, #E70000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- FONDO -->
+    <div class="bg-gradient-fixed"></div>
+    <div class="bg-orb" style="top: -20%; left: -10%;"></div>
+    <div class="bg-orb" style="bottom: -20%; right: -10%; animation-delay: 5s;"></div>
+
+    <!-- HEADER -->
+    <header class="h-16 bg-black/80 border-b border-white/10 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-6">
+        <div class="flex items-center gap-3">
+            <a href="/" class="flex items-center gap-2 font-black tracking-wider text-white hover:text-brand transition-colors">
+                <i class="ph-bold ph-arrow-left"></i>
+                VOLVER
+            </a>
+            <div class="h-6 w-px bg-white/10 mx-2"></div>
+            <span class="text-sm font-medium text-gray-400 hidden sm:block">Centro de Ayuda</span>
+        </div>
+        <div class="text-xs font-mono text-brand flex items-center gap-2">
+            <i class="ph-fill ph-book-open"></i> MANUAL v2.0
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-12 flex flex-col lg:flex-row gap-12">
+        
+        <!-- SIDEBAR DE NAVEGACIÓN -->
+        <aside class="w-full lg:w-64 flex-shrink-0 hidden lg:block">
+            <div class="doc-sidebar">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4 px-4">Índice</h3>
+                <nav class="flex flex-col space-y-1">
+                    <a href="#intro" class="doc-link active" onclick="setActive(this)">Inicio</a>
+                    <a href="#auth" class="doc-link" onclick="setActive(this)">Acceso & Login</a>
+                    
+                    <div class="pt-4 pb-2 px-4 text-[10px] font-bold text-zinc-600 uppercase">Módulos</div>
+                    <a href="#adherencia" class="doc-link" onclick="setActive(this)">1. Adherencia</a>
+                    <a href="#finanzas" class="doc-link" onclick="setActive(this)">2. Finanzas</a>
+                    <a href="#chat" class="doc-link" onclick="setActive(this)">3. Chat</a>
+                    <a href="#cuenta" class="doc-link" onclick="setActive(this)">4. Mi Cuenta</a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <div class="flex-grow max-w-4xl">
+
+            <!-- INTRODUCCIÓN -->
+            <section id="intro" class="mb-16">
+                <p class="text-brand font-bold tracking-widest text-xs uppercase mb-2">Documentación Oficial</p>
+                <h1 class="text-4xl md:text-5xl font-black mb-6">Sistema <span class="text-gradient">CorpoDatos</span></h1>
+                <p class="text-lg text-gray-400 leading-relaxed mb-8">
+                    Esta guía detalla el funcionamiento técnico y práctico de los 4 módulos principales de la plataforma <strong>God's Plan</strong>.
+                </p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <a href="#adherencia" class="p-4 bg-zinc-900 border border-zinc-800 rounded-xl hover:border-brand/50 transition-colors text-center">
+                        <i class="ph-bold ph-clock text-2xl text-brand mb-2"></i>
+                        <div class="text-xs font-bold uppercase">Reloj</div>
+                    </a>
+                    <a href="#finanzas" class="p-4 bg-zinc-900 border border-zinc-800 rounded-xl hover:border-brand/50 transition-colors text-center">
+                        <i class="ph-bold ph-wallet text-2xl text-brand mb-2"></i>
+                        <div class="text-xs font-bold uppercase">Cartera</div>
+                    </a>
+                    <a href="#chat" class="p-4 bg-zinc-900 border border-zinc-800 rounded-xl hover:border-brand/50 transition-colors text-center">
+                        <i class="ph-bold ph-chat-circle-text text-2xl text-brand mb-2"></i>
+                        <div class="text-xs font-bold uppercase">Chat</div>
+                    </a>
+                    <a href="#cuenta" class="p-4 bg-zinc-900 border border-zinc-800 rounded-xl hover:border-brand/50 transition-colors text-center">
+                        <i class="ph-bold ph-user text-2xl text-brand mb-2"></i>
+                        <div class="text-xs font-bold uppercase">Perfil</div>
+                    </a>
+                </div>
+            </section>
+
+            <!-- ACCESO -->
+            <section id="auth" class="mb-16 scroll-mt-24">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 rounded bg-zinc-800 flex items-center justify-center text-white"><i class="ph-bold ph-lock-key"></i></div>
+                    <h2 class="text-2xl font-bold">Acceso y Seguridad</h2>
+                </div>
+                <div class="glass-card">
+                    <p class="text-sm text-gray-400 mb-4">
+                        El sistema utiliza Firebase Auth para la gestión de sesiones. Puedes acceder desde la página principal mediante:
+                    </p>
+                    <ul class="list-disc list-inside text-sm text-gray-300 space-y-2 ml-2">
+                        <li><strong>Email Corporativo:</strong> Tu ID o correo + contraseña.</li>
+                        <li><strong>Google SSO:</strong> Acceso directo con cuenta Google vinculada.</li>
+                        <li><strong>Invitado:</strong> Acceso limitado (Solo lectura, sin persistencia en nube).</li>
+                    </ul>
+                    <div class="mt-6 p-4 bg-red-900/20 border border-red-900/50 rounded-lg flex gap-3">
+                        <i class="ph-fill ph-warning text-brand text-xl"></i>
+                        <div>
+                            <h4 class="text-brand text-sm font-bold">Importante</h4>
+                            <p class="text-xs text-gray-400 mt-1">
+                                Si intentas acceder a módulos críticos (como Adherencia o Chat) sin iniciar sesión, verás una pantalla de bloqueo con un botón para redirigirte al login.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MÓDULO 1: ADHERENCIA -->
+            <section id="adherencia" class="mb-20 scroll-mt-24">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-brand flex items-center justify-center text-white"><i class="ph-bold ph-clock"></i></div>
+                        <h2 class="text-2xl font-bold">1. Módulo de Adherencia</h2>
+                    </div>
+                    <div class="feature-badge">Control de Tiempos</div>
+                </div>
+
+                <div class="glass-card">
+                    <h3 class="text-lg font-bold text-white mb-4">Funcionamiento del Reloj</h3>
+                    <p class="text-sm text-gray-400 mb-6">
+                        Este módulo calcula tu nómina en base al tiempo efectivo. El sistema descuenta automáticamente los tiempos de descanso.
+                    </p>
+
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="text-sm font-bold text-white mb-2 border-b border-white/10 pb-2">Controles Principales</h4>
+                            <ul class="space-y-4">
+                                <li class="flex gap-3">
+                                    <span class="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-xs font-bold h-fit">INICIAR</span>
+                                    <p class="text-xs text-gray-400">Comienza tu turno. El contador principal se pone en marcha.</p>
+                                </li>
+                                <li class="flex gap-3">
+                                    <span class="bg-zinc-800 text-zinc-300 px-2 py-1 rounded text-xs font-bold h-fit border border-zinc-700">BAÑO/COMIDA</span>
+                                    <p class="text-xs text-gray-400">
+                                        Pausa el tiempo efectivo. <br>
+                                        <span class="text-red-400">Límites:</span> Baño (15m), Comida (45m). Si te excedes, se descuenta de tu tiempo trabajado.
+                                    </p>
+                                </li>
+                                <li class="flex gap-3">
+                                    <span class="bg-red-600/20 text-red-400 px-2 py-1 rounded text-xs font-bold h-fit">TERMINAR</span>
+                                    <p class="text-xs text-gray-400">Cierra el turno y guarda el registro en el historial.</p>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Mockup Visual -->
+                        <div class="ui-mockup flex flex-col items-center justify-center text-center">
+                            <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-2">SIMULACIÓN</div>
+                            <div class="text-3xl font-black text-white font-mono mb-2">04:23:10</div>
+                            <div class="flex gap-2 w-full px-4">
+                                <div class="flex-1 bg-zinc-900 border border-zinc-800 py-2 rounded text-[10px] text-zinc-400">
+                                    <i class="ph-bold ph-toilet"></i> 05:00 / 15m
+                                </div>
+                                <div class="flex-1 bg-zinc-900 border border-zinc-800 py-2 rounded text-[10px] text-zinc-400">
+                                    <i class="ph-bold ph-hamburger"></i> 00:00 / 45m
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-white/10">
+                        <h4 class="text-sm font-bold text-white mb-2">Cálculo de Pagos (KPIs)</h4>
+                        <p class="text-xs text-gray-400 mb-4">
+                            El sistema proyecta tu pago semanal basándose en las tarifas configuradas en el menú <i class="ph-bold ph-list inline"></i>.
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
+                            <div class="bg-black/40 p-3 rounded-lg border border-white/5">
+                                <div class="text-[10px] text-zinc-500 uppercase">Meta Semanal</div>
+                                <div class="font-bold text-white">48:00h</div>
+                            </div>
+                            <div class="bg-black/40 p-3 rounded-lg border border-white/5">
+                                <div class="text-[10px] text-zinc-500 uppercase">Trabajado</div>
+                                <div class="font-bold text-brand">42:15h</div>
+                            </div>
+                            <div class="bg-black/40 p-3 rounded-lg border border-white/5">
+                                <div class="text-[10px] text-zinc-500 uppercase">Balance</div>
+                                <div class="font-bold text-red-500">-05:45h</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MÓDULO 2: FINANZAS -->
+            <section id="finanzas" class="mb-20 scroll-mt-24">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-brand flex items-center justify-center text-white"><i class="ph-bold ph-wallet"></i></div>
+                        <h2 class="text-2xl font-bold">2. Módulo de Finanzas</h2>
+                    </div>
+                    <div class="feature-badge">Gestión de Gastos</div>
+                </div>
+
+                <div class="glass-card">
+                    <h3 class="text-lg font-bold text-white mb-4">La "Fórmula del Día"</h3>
+                    <p class="text-sm text-gray-400 mb-6">
+                        A diferencia de otras apps, aquí no solo registras gastos. El sistema calcula cuánto puedes gastar <strong>hoy</strong> para llegar a fin de quincena sin deudas.
+                    </p>
+
+                    <div class="bg-zinc-900/50 p-4 rounded-lg border border-zinc-800 mb-6">
+                        <code class="text-xs text-zinc-400 block mb-2">// Fórmula de Cálculo:</code>
+                        <div class="text-sm font-mono text-white">
+                            ( <span class="text-emerald-400">Ingresos</span> - <span class="text-red-400">Gastos Fijos</span> - <span class="text-orange-400">Gasto Acumulado</span> ) / <span class="text-brand">Días Restantes</span>
+                        </div>
+                    </div>
+
+                    <h4 class="text-sm font-bold text-white mb-4 border-b border-white/10 pb-2">Funciones Clave</h4>
+                    <div class="space-y-6">
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-brand font-bold text-lg">1</div>
+                            <div>
+                                <h5 class="text-white font-bold text-sm">Configuración del Plan</h5>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    Ve a la pestaña <strong>"PLAN"</strong> abajo. Configura tu Ingreso Neto Quincenal y agrega tus Gastos Fijos (Renta, Netflix, etc.) y Deudas pendientes. Esto es vital para que el cálculo funcione.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-brand font-bold text-lg">2</div>
+                            <div>
+                                <h5 class="text-white font-bold text-sm">Billetera Diaria</h5>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    En la pantalla principal, verás un número gigante. Ese es tu presupuesto para <strong>HOY</strong>. Si gastas menos, el sobrante se reparte en los días siguientes. Si gastas más, el presupuesto diario futuro bajará.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-brand font-bold text-lg">3</div>
+                            <div>
+                                <h5 class="text-white font-bold text-sm">Ciclos Automáticos</h5>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    El sistema detecta automáticamente si estás en la 1ra quincena (Días 5-19) o la 2da (Día 20 al 4 del sig. mes) y filtra los gastos fijos correspondientes.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <button class="w-full py-2 bg-zinc-800 border border-zinc-700 rounded text-xs text-zinc-400 font-bold uppercase">
+                            <i class="ph-bold ph-file-pdf"></i> Generar Estado de Cuenta (Función de Impresión)
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MÓDULO 3: CHAT -->
+            <section id="chat" class="mb-20 scroll-mt-24">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-brand flex items-center justify-center text-white"><i class="ph-bold ph-chat-circle-text"></i></div>
+                        <h2 class="text-2xl font-bold">3. Chat Interno</h2>
+                    </div>
+                    <div class="feature-badge">Comunicación</div>
+                </div>
+
+                <div class="glass-card">
+                    <p class="text-sm text-gray-400 mb-6">
+                        Sistema de mensajería en tiempo real dividido por canales. Los mensajes se guardan en Firebase Firestore.
+                    </p>
+
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-white mb-2">Canales Disponibles</h4>
+                            <div class="space-y-2">
+                                <div class="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center gap-3">
+                                    <i class="ph-fill ph-lightning text-yellow-500"></i>
+                                    <div>
+                                        <div class="text-xs font-bold text-white">BLINTS</div>
+                                        <div class="text-[10px] text-zinc-500">Avisos generales y urgentes.</div>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center gap-3">
+                                    <i class="ph-fill ph-chat-circle-text text-blue-500"></i>
+                                    <div>
+                                        <div class="text-xs font-bold text-white">CHAT</div>
+                                        <div class="text-[10px] text-zinc-500">Conversación general del equipo.</div>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center gap-3">
+                                    <i class="ph-fill ph-package text-amber-600"></i>
+                                    <div>
+                                        <div class="text-xs font-bold text-white">PAQUETES</div>
+                                        <div class="text-[10px] text-zinc-500">Solicitudes de apoyo logístico.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                            <h4 class="text-xs font-bold text-zinc-500 uppercase mb-3">Función Especial: Solicitud</h4>
+                            <p class="text-xs text-gray-400 mb-4">
+                                En el canal "Paquetes", el input de texto cambia por un botón grande <strong>"SOLICITAR APOYO"</strong>. Esto envía una tarjeta con formato especial.
+                            </p>
+                            <!-- Mockup Mensaje -->
+                            <div class="bg-amber-900/20 border border-amber-600/30 rounded-lg p-3 max-w-[80%] ml-auto">
+                                <div class="flex items-center gap-2 text-amber-500 font-bold text-xs mb-1">
+                                    <i class="ph-bold ph-package"></i> SOLICITUD
+                                </div>
+                                <div class="text-xs text-white">Requiere apoyo el <strong>2025-10-15</strong></div>
+                                <div class="text-[10px] text-amber-200/70 mt-1">Material pesado en bodega.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MÓDULO 4: CUENTA -->
+            <section id="cuenta" class="mb-24 scroll-mt-24">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-brand flex items-center justify-center text-white"><i class="ph-bold ph-user-gear"></i></div>
+                        <h2 class="text-2xl font-bold">4. Mi Cuenta</h2>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="flex flex-col md:flex-row items-center gap-8">
+                        <!-- Avatar -->
+                        <div class="relative">
+                            <div class="w-24 h-24 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center text-4xl text-zinc-500">
+                                <i class="ph-fill ph-alien"></i>
+                            </div>
+                            <div class="absolute bottom-0 right-0 w-8 h-8 bg-brand rounded-full flex items-center justify-center border-2 border-zinc-900 text-white text-xs">
+                                <i class="ph-bold ph-pencil-simple"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Info -->
+                        <div class="flex-1 w-full text-center md:text-left">
+                            <h3 class="text-xl font-bold text-white">Personalización</h3>
+                            <p class="text-sm text-gray-400 mb-4">
+                                En este apartado puedes ver tu <strong>UID</strong> (Identificador único de Firebase) necesario para soporte técnico.
+                            </p>
+                            <ul class="text-sm space-y-2 text-zinc-300">
+                                <li class="flex items-center gap-2 justify-center md:justify-start">
+                                    <i class="ph-bold ph-check text-brand"></i> Cambiar Nombre Visible
+                                </li>
+                                <li class="flex items-center gap-2 justify-center md:justify-start">
+                                    <i class="ph-bold ph-check text-brand"></i> Elegir Icono/Avatar (Grid de iconos predefinidos)
+                                </li>
+                                <li class="flex items-center gap-2 justify-center md:justify-start">
+                                    <i class="ph-bold ph-check text-brand"></i> Ver fecha de registro y último acceso
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="p-6 text-center border-t border-gray-900 bg-black z-20">
+        <p class="text-zinc-600 text-[10px] font-mono tracking-widest">
+            // DOCUMENTACIÓN INTERNA - GOD'S PLAN v2.0
+        </p>
+    </footer>
+
+    <!-- Script para navegación activa -->
+    <script>
+        function setActive(element) {
+            document.querySelectorAll('.doc-link').forEach(link => link.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        // Detectar scroll para actualizar sidebar automáticamente
+        window.addEventListener('scroll', () => {
+            let sections = document.querySelectorAll('section');
+            let navLinks = document.querySelectorAll('.doc-link');
+            
+            sections.forEach(sec => {
+                let top = window.scrollY;
+                let offset = sec.offsetTop - 150;
+                let height = sec.offsetHeight;
+                let id = sec.getAttribute('id');
+                
+                if(top >= offset && top < offset + height) {
+                    navLinks.forEach(links => {
+                        links.classList.remove('active');
+                        if (links.getAttribute('href').includes(id)) {
+                            links.classList.add('active');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
