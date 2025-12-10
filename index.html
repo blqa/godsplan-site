@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>God's Plan | Portal de Acceso y Principal</title>
+    <title>God's Plan | Portal de Acceso (SSO)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Fuentes e Iconos -->
@@ -56,6 +56,7 @@
             backdrop-filter: blur(20px);
             border: 1px solid rgba(231, 0, 0, 0.3);
             box-shadow: 0 0 50px rgba(231, 0, 0, 0.15);
+            transition: transform 0.3s ease, opacity 0.3s ease;
         }
 
         /* Inputs */
@@ -211,9 +212,14 @@
                         <p id="auth-card-user-name" class="text-gray-400 mt-1">Bienvenido de vuelta.</p>
                      </div>
                      <p class="text-gray-300 mb-4">Tu sesión está activa en GodsPlan. Navega a cualquier subdirectorio.</p>
-                     <button onclick="window.location.href = '/adherencia.html'" class="btn-primary w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase">
-                        Ir a Adherencia
-                    </button>
+                     <div class="grid gap-3">
+                         <button onclick="window.location.href = '/adherencia.html'" class="btn-primary w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase flex items-center justify-center gap-2">
+                            <i class="ph-bold ph-clock"></i> Ir a Adherencia
+                        </button>
+                        <button onclick="window.location.href = '/chat.html'" class="bg-gray-800 hover:bg-gray-700 text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase transition flex items-center justify-center gap-2">
+                            <i class="ph-bold ph-chat-text"></i> Ir al Chat
+                        </button>
+                     </div>
                 </div>
             </section>
         </div>
@@ -235,8 +241,6 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // --- CONFIGURACIÓN DE ENTORNO ---
-        const DOMAIN_ROOT = "godsplan.site"; 
-        
         const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
         let firebaseConfig = fallbackConfig;
         
@@ -251,18 +255,9 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         
-        // ** SOLUCIÓN CLAVE SSO (Mecanismo de Persistencia y Comprobación) **
-        async function setGlobalPersistence() {
-             try {
-                 // Esta configuración es fundamental para que los subdominios reconozcan el token.
-                 await setPersistence(auth, browserLocalPersistence); // Quitamos { domain: DOMAIN_ROOT } para asegurar que funcione en el mismo origen.
-                 console.log("Persistencia de Firebase establecida para el origen actual.");
-             } catch (error) {
-                 console.warn("Fallo al establecer la persistencia:", error);
-                 await setPersistence(auth, browserLocalPersistence);
-             }
-        }
-        setGlobalPersistence();
+        // ** SOLUCIÓN CLAVE: Establecer persistencia en LOCAL para soportar subdirectorios **
+        // Esto asegura que la sesión sobreviva a recargas y navegación.
+        setPersistence(auth, browserLocalPersistence).catch(console.error);
         
         // Elementos de la UI
         const authCard = document.getElementById('auth-card');
@@ -273,9 +268,6 @@
         const userNameEl = document.getElementById('user-name');
         const authCardUserNameEl = document.getElementById('auth-card-user-name');
         
-        let initialAuthAttempted = false;
-
-
         window.authLogic = {
             mode: 'login',
             
@@ -313,7 +305,7 @@
                 }
 
                 try {
-                    await setGlobalPersistence();
+                    await setPersistence(auth, browserLocalPersistence);
                     if (this.mode === 'login') {
                         await signInWithEmailAndPassword(auth, inputVal, password);
                     } else {
@@ -335,7 +327,7 @@
             // Login con Google
             loginGoogle: async function() {
                 try {
-                    await setGlobalPersistence();
+                    await setPersistence(auth, browserLocalPersistence);
                     const provider = new GoogleAuthProvider();
                     await signInWithPopup(auth, provider);
                 } catch (error) {
@@ -347,7 +339,7 @@
             // Login Invitado (Anónimo)
             loginGuest: async function() {
                 try {
-                    await setGlobalPersistence();
+                    await setPersistence(auth, browserLocalPersistence);
                     await signInAnonymously(auth);
                 } catch (error) {
                     console.error("Error invitado:", error);
@@ -360,7 +352,6 @@
                  try {
                     await signOut(auth);
                     console.log("Sesión cerrada.");
-                    // Forzar recarga en el mismo origen
                     window.location.reload(); 
                 } catch (error) {
                     console.error("Error al cerrar sesión:", error);
@@ -368,22 +359,22 @@
             }
         };
 
-        // Autenticación inicial (para manejo de token de Canvas)
+        // --- FIX CRÍTICO: Eliminar la lógica agresiva de auto-login anónimo ---
+        // Anteriormente, si Firebase tardaba en cargar, este script creaba una sesión anónima
+        // sobrescribiendo la real. Ahora, solo usamos el token inicial si existe, o esperamos.
         async function handleInitialAuth() {
-             if (initialAuthAttempted) return;
-             initialAuthAttempted = true;
-             
             const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
             if (initialToken) {
                 try {
                     await signInWithCustomToken(auth, initialToken);
                 } catch (error) {
-                    await signInAnonymously(auth);
+                    console.warn("Token inicial inválido");
                 }
-            } else {
-                await signInAnonymously(auth);
             }
+            // NO llamamos a signInAnonymously() automáticamente aquí.
+            // Dejamos que el usuario elija "Invitado" si quiere.
         }
+        handleInitialAuth();
         
         document.getElementById('logout-button').onclick = window.authLogic.logout;
         document.getElementById('show-login-btn').onclick = () => {
@@ -405,32 +396,20 @@
                 userInitialsEl.textContent = initial;
                 userNameEl.textContent = displayName;
 
-                // 2. Auth Card UI
+                // 2. Auth Card UI -> Mostrar panel de bienvenida
                 authCard.classList.add('hidden');
                 dashboardInfoCard.classList.remove('hidden');
                 authCardUserNameEl.textContent = `Bienvenido de vuelta, ${displayName}.`;
             } else {
                 // Usuario no autenticado (o Anónimo)
                 
-                // Forzamos la carga inicial si aún no se ha hecho
-                if (!initialAuthAttempted) {
-                    handleInitialAuth(); 
-                }
-                
                 // 1. Header UI
                 showLoginBtn.classList.remove('hidden');
                 userDisplay.classList.add('hidden');
                 
-                // 2. Auth Card UI
+                // 2. Auth Card UI -> Mostrar formulario
                 authCard.classList.remove('hidden');
                 dashboardInfoCard.classList.add('hidden');
-            }
-        });
-        
-        // Ejecutar handleInitialAuth en la carga si el listener no lo ha cubierto.
-        window.addEventListener('load', () => {
-            if (!auth.currentUser) {
-                handleInitialAuth();
             }
         });
     </script>
