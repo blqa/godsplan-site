@@ -235,6 +235,7 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // --- CONFIGURACIÓN DE ENTORNO ---
+        // Usamos el dominio para la persistencia global
         const DOMAIN_ROOT = "godsplan.site"; 
         
         const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
@@ -254,8 +255,7 @@
         // ** SOLUCIÓN CLAVE SSO: Establecer persistencia en el dominio raíz **
         async function setGlobalPersistence() {
              try {
-                 // Esta configuración es fundamental para que los subdominios reconozcan el token.
-                 // Si falla (ej. Canvas), usamos la persistencia local por defecto.
+                 // Intentar establecer la persistencia para todo el dominio.
                  await setPersistence(auth, browserLocalPersistence, { domain: DOMAIN_ROOT });
                  console.log("Persistencia de Firebase establecida para el dominio raíz.");
              } catch (error) {
@@ -314,7 +314,7 @@
                 }
 
                 try {
-                    // Asegurar que la persistencia está establecida antes del login
+                    // ** FIX: Asegurar que la persistencia está establecida antes del login **
                     await setGlobalPersistence();
                     if (this.mode === 'login') {
                         await signInWithEmailAndPassword(auth, inputVal, password);
@@ -337,6 +337,7 @@
             // Login con Google
             loginGoogle: async function() {
                 try {
+                    // ** FIX: Asegurar que la persistencia está establecida antes del login **
                     await setGlobalPersistence();
                     const provider = new GoogleAuthProvider();
                     await signInWithPopup(auth, provider);
@@ -349,6 +350,7 @@
             // Login Invitado (Anónimo)
             loginGuest: async function() {
                 try {
+                    // ** FIX: Asegurar que la persistencia está establecida antes del login **
                     await setGlobalPersistence();
                     await signInAnonymously(auth);
                 } catch (error) {
