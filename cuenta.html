@@ -62,9 +62,19 @@
         .profile-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 30px 20px; text-align: center; position: relative; overflow: hidden; }
         
         .avatar-container { position: relative; width: 100px; height: 100px; margin: 0 auto 15px; }
-        .avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #333, #111); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; color: #555; overflow: hidden; }
-        .avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .status-badge { position: absolute; bottom: 2px; right: 2px; width: 20px; height: 20px; background: #10b981; border: 3px solid var(--card); border-radius: 50%; }
+        .avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #333, #111); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 3.5rem; color: #555; overflow: hidden; transition: all 0.3s ease; }
+        .avatar i { color: #fff; } /* Icon color */
+        
+        /* Edit Avatar Button */
+        .edit-avatar-btn {
+            position: absolute; bottom: 0; right: 0;
+            background: var(--brand); color: white;
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--card); cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .edit-avatar-btn:hover { transform: scale(1.1); }
 
         .profile-name { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 2px; }
         .profile-email { font-size: 0.9rem; color: var(--text-mute); font-family: monospace; }
@@ -95,7 +105,13 @@
         /* MODAL */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal.active { opacity: 1; pointer-events: auto; display: flex; }
-        .modal-card { background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; }
+        .modal-card { background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; max-height: 80vh; overflow-y: auto; }
+
+        /* ICON GRID */
+        .icon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
+        .icon-option { aspect-ratio: 1; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; font-size: 1.5rem; color: #aaa; }
+        .icon-option:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .icon-option.selected { border-color: var(--brand); background: rgba(239, 68, 68, 0.1); color: var(--brand); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
 
         /* TOAST */
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #10b981; color: white; padding: 10px 20px; border-radius: 50px; font-weight: 700; font-size: 0.9rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2000; display: flex; align-items: center; gap: 8px; }
@@ -120,8 +136,13 @@
         <!-- PERFIL -->
         <div class="profile-card">
             <div class="avatar-container">
-                <div class="avatar" id="avatarDisplay">?</div>
-                <div class="status-badge"></div>
+                <div class="avatar" id="avatarDisplay">
+                    <!-- Se rellena con JS -->
+                </div>
+                <!-- Botón para cambiar icono -->
+                <div class="edit-avatar-btn" onclick="window.app.openIconModal()">
+                    <i class="ph-bold ph-pencil-simple"></i>
+                </div>
             </div>
             <h1 class="profile-name" id="displayName">Cargando...</h1>
             <p class="profile-email" id="displayEmail">...</p>
@@ -178,6 +199,21 @@
         </p>
     </div>
 
+    <!-- MODAL DE SELECCION DE ICONO -->
+    <div class="modal" id="iconModal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="text-lg font-bold text-white">Elige tu Avatar</h2>
+                <button onclick="window.app.closeIconModal()" class="text-gray-500 hover:text-white"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <p class="text-xs text-gray-500">Selecciona un icono para identificar tu cuenta.</p>
+            
+            <div class="icon-grid" id="iconGrid">
+                <!-- Se rellena con JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DE BLOQUEO (Si no hay sesión) -->
     <div class="modal" id="authModal">
         <div class="modal-card">
@@ -202,6 +238,17 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
+        // LISTA DE ICONOS DISPONIBLES
+        const AVAILABLE_ICONS = [
+            'ph-user', 'ph-smiley', 'ph-alien', 'ph-ghost',
+            'ph-crown', 'ph-skull', 'ph-robot', 'ph-mask-happy',
+            'ph-cat', 'ph-dog', 'ph-bird', 'ph-fish-simple',
+            'ph-sword', 'ph-shield', 'ph-fire', 'ph-lightning',
+            'ph-basketball', 'ph-barbell', 'ph-trophy', 'ph-medal',
+            'ph-planet', 'ph-rocket', 'ph-shooting-star', 'ph-sun',
+            'ph-heart', 'ph-star', 'ph-diamond', 'ph-clover'
+        ];
+
         window.app = {
             user: null,
 
@@ -210,13 +257,11 @@
                     if (u && !u.isAnonymous) {
                         this.user = u;
                         this.renderProfile();
+                        this.renderIconGrid();
                     } else {
-                        // Intento silencioso de login si hay token
                         if (!u && initialAuthToken) {
                             try { await signInWithCustomToken(auth, initialAuthToken); return; } catch(e){}
                         }
-                        
-                        // Si es anónimo o no hay usuario, bloquear
                         document.getElementById('authModal').classList.add('active');
                     }
                 });
@@ -228,10 +273,25 @@
 
                 const name = u.displayName || u.email?.split('@')[0] || "Usuario";
                 const email = u.email || "Sin correo (Anónimo)";
-                const initial = name.charAt(0).toUpperCase();
+                
+                // --- LOGICA DE ICONO ACTUALIZADA ---
+                const avatarEl = document.getElementById('avatarDisplay');
+                // Usamos el campo photoURL para guardar el nombre del icono (ej: "ph-skull")
+                const iconClass = u.photoURL; 
+
+                if (iconClass && iconClass.startsWith('ph-')) {
+                    // Es un icono seleccionado
+                    avatarEl.innerHTML = `<i class="${iconClass} ph-fill"></i>`;
+                } else if (iconClass && iconClass.startsWith('http')) {
+                    // Es una imagen real (por si acaso en el futuro)
+                    avatarEl.innerHTML = `<img src="${iconClass}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                } else {
+                    // Es la inicial por defecto
+                    const initial = name.charAt(0).toUpperCase();
+                    avatarEl.textContent = initial;
+                }
                 
                 // Header Display
-                document.getElementById('avatarDisplay').textContent = initial;
                 document.getElementById('displayName').textContent = name;
                 document.getElementById('displayEmail').textContent = email;
                 document.getElementById('displayUid').textContent = `ID: ${u.uid}`;
@@ -247,9 +307,52 @@
                     document.getElementById('metaLastSign').textContent = new Date(u.metadata.lastSignInTime).toLocaleDateString() + ' ' + new Date(u.metadata.lastSignInTime).toLocaleTimeString();
                 }
                 
-                // Provider info
                 const provider = u.providerData[0]?.providerId;
                 document.getElementById('metaProvider').textContent = provider === 'password' ? 'Correo/ID' : (provider || 'Desconocido');
+            },
+
+            // --- FUNCIONES DEL MODAL DE ICONOS ---
+            openIconModal() {
+                document.getElementById('iconModal').classList.add('active');
+            },
+
+            closeIconModal() {
+                document.getElementById('iconModal').classList.remove('active');
+            },
+
+            renderIconGrid() {
+                const grid = document.getElementById('iconGrid');
+                grid.innerHTML = ''; // Limpiar
+
+                const currentIcon = this.user.photoURL || '';
+
+                AVAILABLE_ICONS.forEach(icon => {
+                    const btn = document.createElement('div');
+                    btn.className = `icon-option ${currentIcon === icon ? 'selected' : ''}`;
+                    btn.innerHTML = `<i class="${icon} ph-fill"></i>`;
+                    btn.onclick = () => this.selectIcon(icon);
+                    grid.appendChild(btn);
+                });
+            },
+
+            async selectIcon(iconName) {
+                // UI optimista: Actualizar inmediatamente antes de guardar
+                const avatarEl = document.getElementById('avatarDisplay');
+                avatarEl.innerHTML = `<i class="${iconName} ph-fill"></i>`;
+                this.closeIconModal();
+
+                try {
+                    // Guardar en Firebase Auth (photoURL soporta strings, así que guardamos la clase del icono ahí)
+                    await updateProfile(this.user, { photoURL: iconName });
+                    
+                    // Actualizar estado local
+                    this.renderIconGrid(); 
+                    this.showToast("Avatar actualizado");
+                } catch (error) {
+                    console.error(error);
+                    alert("Error guardando el icono");
+                    this.renderProfile(); // Revertir si falla
+                }
             },
 
             async saveProfile() {
@@ -259,7 +362,7 @@
                 try {
                     await updateProfile(this.user, { displayName: newName });
                     this.showToast("Perfil actualizado correctamente");
-                    this.renderProfile(); // Refrescar UI
+                    this.renderProfile(); 
                 } catch (error) {
                     alert("Error al actualizar: " + error.message);
                 }
