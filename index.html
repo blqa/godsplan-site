@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>God's Plan | Home</title>
-    <!-- Tailwind CSS (Solo para estética del loader) -->
+    <title>God's Plan | Portal de Acceso y Principal</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700&display=swap" rel="stylesheet">
+    <!-- Fuentes e Iconos -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
@@ -14,36 +15,224 @@
             theme: {
                 extend: {
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
-                    colors: { brand: '#E70000', dark: '#050505' }
+                    colors: {
+                        brand: '#E70000', // Rojo Vivo GodsPlan
+                        dark: '#050505',
+                        glass: 'rgba(255, 255, 2FF5, 0.05)'
+                    }
                 }
             }
         }
     </script>
+
     <style>
-        body { background-color: #050505; color: white; }
+        body { 
+            background-color: #050505; 
+            color: white; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        } 
+
+        /* Fondo Animado */
+        .bg-gradient {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 100%);
+        }
+        .bg-orb {
+            position: absolute; 
+            width: 250vmax; 
+            height: 250vmax; 
+            background: radial-gradient(circle, rgba(231, 0, 0, 0.15) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%; pointer-events: none;
+            animation: float 10s infinite ease-in-out;
+            box-shadow: 0 0 100px rgba(231, 0, 0, 0.2); 
+        }
+        @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -30px); } }
+
+        /* Tarjeta de Acceso */
+        .card-auth {
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(231, 0, 0, 0.3);
+            box-shadow: 0 0 50px rgba(231, 0, 0, 0.15);
+        }
+
+        /* Inputs */
+        .input-style {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid #333;
+            color: white;
+            transition: all 0.3s;
+            padding-left: 1rem; 
+        }
+        .input-style:focus {
+            border-color: #E70000;
+            background-color: rgba(231, 0, 0, 0.05);
+            box-shadow: 0 0 0 4px rgba(231, 0, 0, 0.1);
+            outline: none;
+        }
+
+        /* Botones */
+        .btn-primary {
+            background: linear-gradient(135deg, #E70000 0%, #990000 100%);
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 10px rgba(231, 0, 0, 0.3);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #ff4444, #E70000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen bg-dark">
+<body>
 
-    <div id="loading-screen" class="text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand/10 border border-brand/30 mb-4 animate-spin">
-            <i class="ph-bold ph-circles-three-plus text-3xl text-brand"></i>
-        </div>
-        <p class="text-xl font-bold text-gray-400">Verificando estado de sesión...</p>
+    <div class="bg-gradient">
+        <div class="bg-orb" style="top: -75vmax; left: -75vmax;"></div>
+        <div class="bg-orb" style="bottom: -75vmax; right: -75vmax; animation-delay: 5s;"></div>
     </div>
 
-    <!-- LÓGICA DE FIREBASE PARA REDIRECCIÓN -->
+    <!-- NAVEGACIÓN / HEADER -->
+    <header class="p-4 border-b border-gray-800 backdrop-blur-sm sticky top-0 z-20">
+        <nav class="flex justify-between items-center max-w-7xl mx-auto">
+            <div class="flex items-center space-x-4">
+                <div class="text-2xl font-black tracking-tighter text-white">
+                    GOD'S <span class="text-gradient">PLAN</span>
+                </div>
+                <div class="hidden sm:flex space-x-4 text-sm font-semibold text-gray-400">
+                    <a href="#" class="hover:text-brand transition-colors">Inicio</a>
+                    <a href="#" class="hover:text-brand transition-colors">Servicios</a>
+                    <a href="#" class="hover:text-brand transition-colors">Soporte</a>
+                </div>
+            </div>
+
+            <div id="auth-status-container">
+                <!-- Se llenará dinámicamente con botones de login o info de usuario -->
+                <button id="show-login-btn" class="btn-primary text-white font-bold py-2 px-4 rounded-xl text-sm transition hidden">
+                    <i class="ph-bold ph-sign-in text-lg mr-1"></i> Iniciar Sesión
+                </button>
+                <div id="user-display" class="hidden flex items-center gap-3 bg-gray-900 p-2 rounded-full border border-brand/50">
+                    <span id="user-initials" class="w-8 h-8 flex items-center justify-center rounded-full bg-brand font-bold text-sm">...</span>
+                    <span id="user-name" class="font-semibold text-sm hidden sm:block">Usuario</span>
+                    <button id="logout-button" class="text-gray-400 hover:text-white transition-colors p-1" title="Cerrar Sesión">
+                         <i class="ph-bold ph-sign-out text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL / LANDING -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 py-16">
+            
+            <!-- SECCIÓN DE BIENVENIDA -->
+            <section class="flex flex-col justify-center text-center md:text-left">
+                <p class="text-sm font-bold tracking-[0.2em] uppercase text-brand mb-2">Ecosistema Empresarial</p>
+                <h1 class="text-6xl font-black tracking-tighter mb-4">
+                    La <span class="text-gradient">Plataforma</span> que Impulsa tu Operación
+                </h1>
+                <p class="text-gray-400 text-lg mb-8 max-w-md mx-auto md:mx-0">
+                    Accede a todos tus servicios, datos y herramientas empresariales en un solo lugar. Conéctate y comienza a trabajar.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                    <a href="#login-section" class="btn-primary text-white font-bold py-3 px-6 rounded-xl text-lg shadow-lg">
+                        Acceder al Sistema
+                    </a>
+                    <a href="#" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-xl text-lg transition shadow-md">
+                        Explorar Documentación
+                    </a>
+                </div>
+            </section>
+            
+            <!-- TARJETA DE ACCESO (MÓDULO DE LOGIN/REGISTRO) -->
+            <section id="login-section" class="flex items-center justify-center p-4">
+                <div id="auth-card" class="card-auth rounded-2xl p-8 w-full max-w-sm">
+                    <h2 id="form-title" class="text-2xl font-bold text-white mb-6 text-center">Bienvenido</h2>
+        
+                    <form id="auth-form" onsubmit="event.preventDefault(); window.authLogic.processEmailAuth();">
+                        
+                        <!-- Campo Nombre (Solo visible en Registro) -->
+                        <div id="name-field" class="input-group mb-4 hidden">
+                            <input type="text" id="reg-name" class="input-style w-full p-3 rounded-lg" placeholder="Nombre Completo">
+                        </div>
+
+                        <!-- Campo ID/Email -->
+                        <div class="input-group mb-4">
+                            <input type="text" id="email" required class="input-style w-full p-3 rounded-lg" placeholder="ID de Empleado o Email">
+                        </div>
+
+                        <!-- Campo Password -->
+                        <div class="input-group mb-6">
+                            <input type="password" id="password" required class="input-style w-full p-3 rounded-lg" placeholder="Contraseña">
+                        </div>
+
+                        <div id="error-message" class="text-sm text-red-500 bg-red-900/20 p-3 rounded-lg mb-4 hidden border border-red-500/20 text-center font-bold"></div>
+
+                        <button type="submit" id="submit-button" class="btn-primary w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase">
+                            ACCEDER
+                        </button>
+                    </form>
+
+                    <div class="relative my-6">
+                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-800"></div></div>
+                        <div class="relative flex justify-center text-xs uppercase"><span class="bg-black px-2 text-gray-500 font-bold">O continúa con</span></div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <button onclick="window.authLogic.loginGoogle()" class="bg-white hover:bg-gray-100 text-[#333] w-full font-bold p-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
+                            <span class="text-sm">Google</span>
+                        </button>
+                        <button onclick="window.authLogic.loginGuest()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 w-full font-bold p-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
+                            <i class="ph-bold ph-user-circle text-lg"></i>
+                            <span class="text-sm">Invitado</span>
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <button onclick="window.authLogic.toggleMode()" class="text-xs text-gray-400 hover:text-brand transition-colors font-semibold">
+                            <span id="toggle-text">¿No tienes cuenta? Regístrate aquí</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="dashboard-info-card" class="card-auth rounded-2xl p-8 w-full max-w-sm hidden">
+                     <div class="text-center mb-6">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-brand/10 border border-brand/30 mb-4">
+                            <i class="ph-fill ph-check-circle text-2xl text-brand"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">¡Sesión Iniciada!</h3>
+                        <p id="auth-card-user-name" class="text-gray-400 mt-1">Bienvenido de vuelta.</p>
+                     </div>
+                     <p class="text-gray-300 mb-4">Ahora puedes acceder a las funcionalidades completas de GodsPlan. Tu estado se mantendrá activo al navegar.</p>
+                     <button onclick="window.location.href = 'dashboard.godsplan.site.html'" class="btn-primary w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase">
+                        Ir al Dashboard
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <!-- FOOTER -->
+    <footer class="p-4 text-center border-t border-gray-900 mt-auto">
+        <p class="text-gray-600 text-[10px] font-mono">
+            SISTEMA SEGURO BLQA LEGACY © 2025
+        </p>
+    </footer>
+
+    <!-- LÓGICA DE FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        // --- Configuración de Entorno ---
-        // Usamos el nombre del archivo para la navegación dentro del entorno Canvas,
-        // simulando el flujo de subdominios godsplan.site -> login/dashboard.godsplan.site
-        const LOGIN_URL = "login.godsplan.site.html"; 
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, updateProfile, signInWithCustomToken, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // --- CONFIGURACIÓN DE ENTORNO ---
         const DASHBOARD_URL = "dashboard.godsplan.site.html"; 
-
-        // Configuración de Firebase (Se usa la configuración de Canvas si está disponible)
+        
         const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
         let firebaseConfig = fallbackConfig;
         
@@ -53,14 +242,112 @@
                 if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; 
             } 
         } catch(e) { console.error("Error cargando config:", e); }
-
+        
         // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        
+        // Elementos de la UI
+        const authCard = document.getElementById('auth-card');
+        const dashboardInfoCard = document.getElementById('dashboard-info-card');
+        const showLoginBtn = document.getElementById('show-login-btn');
+        const userDisplay = document.getElementById('user-display');
+        const userInitialsEl = document.getElementById('user-initials');
+        const userNameEl = document.getElementById('user-name');
+        const authCardUserNameEl = document.getElementById('auth-card-user-name');
 
-        // Intentar autenticación con token inicial si existe
-        async function authenticate() {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+
+        window.authLogic = {
+            mode: 'login',
+            
+            toggleMode: function() {
+                this.mode = this.mode === 'login' ? 'register' : 'login';
+                const isReg = this.mode === 'register';
+                
+                document.getElementById('form-title').textContent = isReg ? 'Crear Cuenta' : 'Bienvenido';
+                document.getElementById('submit-button').textContent = isReg ? 'REGISTRARME' : 'ACCEDER';
+                document.getElementById('toggle-text').textContent = isReg ? '¿Ya tienes cuenta? Inicia Sesión' : '¿No tienes cuenta? Regístrate aquí';
+                document.getElementById('name-field').classList.toggle('hidden', !isReg);
+                document.getElementById('error-message').classList.add('hidden');
+            },
+
+            showError: function(msg) {
+                const errEl = document.getElementById('error-message');
+                errEl.textContent = msg;
+                errEl.classList.remove('hidden');
+                document.getElementById('submit-button').disabled = false;
+                document.getElementById('submit-button').innerHTML = this.mode === 'login' ? 'ACCEDER' : 'REGISTRARME';
+            },
+
+            // Login con Email/ID
+            processEmailAuth: async function() {
+                const btn = document.getElementById('submit-button');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> PROCESANDO...';
+                document.getElementById('error-message').classList.add('hidden');
+
+                let inputVal = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                // Si no incluye '@', asume que es un ID de empleado y añade el dominio.
+                if (!inputVal.includes('@')) {
+                    inputVal = `${inputVal}@godsplan.site`;
+                }
+
+                try {
+                    if (this.mode === 'login') {
+                        await signInWithEmailAndPassword(auth, inputVal, password);
+                    } else {
+                        const name = document.getElementById('reg-name').value;
+                        const userCredential = await createUserWithEmailAndPassword(auth, inputVal, password);
+                        if (name) await updateProfile(userCredential.user, { displayName: name });
+                    }
+                } catch (error) {
+                    console.error("Auth Error:", error);
+                    let msg = "Error desconocido.";
+                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') msg = "Credenciales incorrectas.";
+                    if (error.code === 'auth/email-already-in-use') msg = "Este ID/Email ya está registrado.";
+                    if (error.code === 'auth/weak-password') msg = "La contraseña es muy débil (mín. 6 caracteres).";
+                    if (error.code === 'auth/invalid-email') msg = "Formato de ID/Email inválido.";
+                    this.showError(msg);
+                }
+            },
+
+            // Login con Google
+            loginGoogle: async function() {
+                try {
+                    const provider = new GoogleAuthProvider();
+                    await signInWithPopup(auth, provider);
+                } catch (error) {
+                    console.error("Error con Google:", error);
+                    this.showError("Error con Google: " + (error.message || "Fallo en la ventana emergente."));
+                }
+            },
+
+            // Login Invitado
+            loginGuest: async function() {
+                try {
+                    await signInAnonymously(auth);
+                } catch (error) {
+                    console.error("Error invitado:", error);
+                    this.showError("Error invitado: " + error.message);
+                }
+            },
+
+            // Logout
+            logout: async function() {
+                 try {
+                    await signOut(auth);
+                    console.log("Sesión cerrada.");
+                } catch (error) {
+                    console.error("Error al cerrar sesión:", error);
+                }
+            }
+        };
+
+        // Autenticación inicial (para manejo de token de Canvas)
+        async function handleInitialAuth() {
+            if (typeof __initial_auth_token !== 'undefined') {
                 try {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } catch (error) {
@@ -71,27 +358,43 @@
                 await signInAnonymously(auth);
             }
         }
+        handleInitialAuth();
+        
+        document.getElementById('logout-button').onclick = window.authLogic.logout;
+        document.getElementById('show-login-btn').onclick = () => {
+             authCard.classList.remove('hidden');
+             dashboardInfoCard.classList.add('hidden');
+             window.location.hash = '#login-section'; // Navegar a la sección de login
+        };
 
-        authenticate();
-
-        // Listener de Estado de Autenticación
+        // Listener de Estado: Actualiza la UI
         onAuthStateChanged(auth, (user) => {
-            const currentPath = window.location.pathname;
-            
             if (user && !user.isAnonymous) {
-                console.log("Usuario autenticado. Redirigiendo a Dashboard.");
-                // Evita el bucle de redirección si ya estamos en el Dashboard
-                if (!currentPath.includes('dashboard.godsplan.site.html')) {
-                    // Retraso para ver el mensaje de carga
-                    setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1000); 
-                }
+                // Usuario autenticado (Email/Google)
+                const displayName = user.displayName || user.email?.split('@')[0] || 'Usuario';
+                const initial = displayName.charAt(0).toUpperCase();
+
+                // 1. Header UI
+                showLoginBtn.classList.add('hidden');
+                userDisplay.classList.remove('hidden');
+                userInitialsEl.textContent = initial;
+                userNameEl.textContent = displayName;
+
+                // 2. Auth Card UI
+                authCard.classList.add('hidden');
+                dashboardInfoCard.classList.remove('hidden');
+                authCardUserNameEl.textContent = `Bienvenido de vuelta, ${displayName}.`;
             } else {
-                console.log("Usuario no autenticado (o es Anónimo). Redirigiendo a Login.");
-                 // Evita el bucle de redirección si ya estamos en el Login
-                 if (!currentPath.includes('login.godsplan.site.html')) {
-                    // Retraso para ver el mensaje de carga
-                    setTimeout(() => { window.location.href = LOGIN_URL; }, 1000);
-                }
+                // Usuario no autenticado (o Anónimo)
+                
+                // 1. Header UI
+                showLoginBtn.classList.remove('hidden');
+                userDisplay.classList.add('hidden');
+                
+                // 2. Auth Card UI
+                // Si el usuario es anónimo y navega, le mostramos la opción de Login/Registro
+                authCard.classList.remove('hidden');
+                dashboardInfoCard.classList.add('hidden');
             }
         });
     </script>
