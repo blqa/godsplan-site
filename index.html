@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +18,7 @@
                     colors: {
                         brand: '#E70000', // Rojo Vivo GodsPlan
                         dark: '#050505',
-                        glass: 'rgba(255, 255, 2FF5, 0.05)'
+                        glass: 'rgba(255, 255, 255, 0.05)'
                     }
                 }
             }
@@ -32,6 +32,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden; /* Prevenir scroll horizontal por las orbes */
         } 
 
         /* Fondo Animado */
@@ -41,8 +42,8 @@
         }
         .bg-orb {
             position: absolute; 
-            width: 250vmax; 
-            height: 250vmax; 
+            width: 150vmax; /* Reducido un poco para mejor performance */
+            height: 150vmax; 
             background: radial-gradient(circle, rgba(231, 0, 0, 0.15) 0%, rgba(0,0,0,0) 70%);
             border-radius: 50%; pointer-events: none;
             animation: float 10s infinite ease-in-out;
@@ -50,13 +51,26 @@
         }
         @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -30px); } }
 
-        /* Tarjeta de Acceso */
+        /* Tarjeta de Acceso (Login) */
         .card-auth {
             background: rgba(10, 10, 10, 0.6);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(231, 0, 0, 0.3);
             box-shadow: 0 0 50px rgba(231, 0, 0, 0.15);
             transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        /* Paneles de Características (Nuevo) */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .glass-panel:hover {
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
         }
 
         /* Inputs */
@@ -106,12 +120,12 @@
 <body>
 
     <div class="bg-gradient">
-        <div class="bg-orb" style="top: -75vmax; left: -75vmax;"></div>
-        <div class="bg-orb" style="bottom: -75vmax; right: -75vmax; animation-delay: 5s;"></div>
+        <div class="bg-orb" style="top: -50vmax; left: -50vmax;"></div>
+        <div class="bg-orb" style="bottom: -50vmax; right: -50vmax; animation-delay: 5s;"></div>
     </div>
 
     <!-- NAVEGACIÓN GLOBAL UNIFICADA -->
-    <header class="h-14 bg-black border-b border-white/10 backdrop-blur-sm sticky top-0 z-50 flex items-center justify-between px-5">
+    <header class="h-14 bg-black/80 border-b border-white/10 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-5">
         <div class="flex items-center gap-8">
             <a href="/" class="flex items-center gap-2 font-black tracking-wider text-white group decoration-0">
                 <i class="ph-bold ph-circles-three-plus text-lg text-white group-hover:text-red-500 transition-colors"></i> 
@@ -145,111 +159,172 @@
         </div>
     </header>
 
-    <!-- CONTENIDO PRINCIPAL / LANDING -->
-    <main class="flex-grow flex items-center justify-center p-4">
-        <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 py-16 w-full">
-            
-            <!-- SECCIÓN DE BIENVENIDA -->
-            <section class="flex flex-col justify-center text-center md:text-left">
-                <p class="text-sm font-bold tracking-[0.2em] uppercase text-brand mb-2">Ecosistema Empresarial</p>
-                <h1 class="text-5xl lg:text-6xl font-black tracking-tighter mb-4 leading-tight">
-                    God's <span class="text-gradient">Plan</span><br>CorpoDatos
-                </h1>
-                <p class="text-gray-400 text-lg mb-8 max-w-md mx-auto md:mx-0">
-                    La plataforma unificada para administrar tus procesos clave: finanzas, operaciones y comunicación segura.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                    <a href="#login-section" class="btn-primary text-white font-bold py-3 px-6 rounded-xl text-lg shadow-lg text-center">
-                        Inciar Sesión
-                    </a>
-                </div>
-            </section>
-            
-            <!-- SECCIÓN DE ACCESO / DASHBOARD -->
-            <section id="login-section" class="flex items-center justify-center p-4">
-                
-                <!-- 1. FORMULARIO DE LOGIN (Visible si no hay sesión) -->
-                <div id="auth-card" class="card-auth rounded-2xl p-8 w-full max-w-sm">
-                    <h2 id="form-title" class="text-2xl font-bold text-white mb-6 text-center">Bienvenido</h2>
+    <!-- CONTENIDO PRINCIPAL -->
+    <!-- Cambiado flex-grow items-center a flex-col para permitir scroll y nuevas secciones -->
+    <main class="flex-grow flex flex-col items-center w-full">
         
-                    <form id="auth-form" onsubmit="event.preventDefault(); window.authLogic.processEmailAuth();">
-                        <div id="name-field" class="input-group mb-4 hidden">
-                            <input type="text" id="reg-name" class="input-style w-full p-3 rounded-lg" placeholder="Nombre Completo">
-                        </div>
-                        <div class="input-group mb-4">
-                            <input type="text" id="email" required class="input-style w-full p-3 rounded-lg" placeholder="ID de Empleado o Email">
-                        </div>
-                        <div class="input-group mb-6">
-                            <input type="password" id="password" required class="input-style w-full p-3 rounded-lg" placeholder="Contraseña">
-                        </div>
-                        <div id="error-message" class="text-sm text-red-500 bg-red-900/20 p-3 rounded-lg mb-4 hidden border border-red-500/20 text-center font-bold"></div>
-                        <button type="submit" id="submit-button" class="btn-primary w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase">
-                            ACCEDER
-                        </button>
-                    </form>
+        <!-- SECCIÓN HERO + LOGIN -->
+        <div class="w-full min-h-[90vh] flex items-center justify-center p-4 relative z-10">
+            <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 w-full">
+                
+                <!-- SECCIÓN DE BIENVENIDA -->
+                <section class="flex flex-col justify-center text-center md:text-left animate-fade-in-up">
+                    <p class="text-sm font-bold tracking-[0.2em] uppercase text-brand mb-2">Ecosistema Empresarial</p>
+                    <h1 class="text-5xl lg:text-7xl font-black tracking-tighter mb-4 leading-tight">
+                        God's <span class="text-gradient">Plan</span><br>CorpoDatos
+                    </h1>
+                    <p class="text-gray-400 text-lg mb-8 max-w-md mx-auto md:mx-0">
+                        La plataforma unificada para administrar tus procesos clave: finanzas, operaciones y comunicación segura.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                        <a href="#features-section" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold py-3 px-6 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
+                            <span>Ver Características</span>
+                            <i class="ph-bold ph-arrow-down"></i>
+                        </a>
+                    </div>
+                </section>
+                
+                <!-- SECCIÓN DE ACCESO / DASHBOARD -->
+                <section id="login-section" class="flex items-center justify-center p-4">
+                    
+                    <!-- 1. FORMULARIO DE LOGIN (Visible si no hay sesión) -->
+                    <div id="auth-card" class="card-auth rounded-2xl p-8 w-full max-w-sm">
+                        <h2 id="form-title" class="text-2xl font-bold text-white mb-6 text-center">Bienvenido</h2>
+            
+                        <form id="auth-form" onsubmit="event.preventDefault(); window.authLogic.processEmailAuth();">
+                            <div id="name-field" class="input-group mb-4 hidden">
+                                <input type="text" id="reg-name" class="input-style w-full p-3 rounded-lg" placeholder="Nombre Completo">
+                            </div>
+                            <div class="input-group mb-4">
+                                <input type="text" id="email" required class="input-style w-full p-3 rounded-lg" placeholder="ID de Empleado o Email">
+                            </div>
+                            <div class="input-group mb-6">
+                                <input type="password" id="password" required class="input-style w-full p-3 rounded-lg" placeholder="Contraseña">
+                            </div>
+                            <div id="error-message" class="text-sm text-red-500 bg-red-900/20 p-3 rounded-lg mb-4 hidden border border-red-500/20 text-center font-bold"></div>
+                            <button type="submit" id="submit-button" class="btn-primary w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase">
+                                ACCEDER
+                            </button>
+                        </form>
 
-                    <div class="relative my-6">
-                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-800"></div></div>
-                        <div class="relative flex justify-center text-xs uppercase"><span class="bg-black px-2 text-gray-500 font-bold">O continúa con</span></div>
+                        <div class="relative my-6">
+                            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-800"></div></div>
+                            <div class="relative flex justify-center text-xs uppercase"><span class="bg-black px-2 text-gray-500 font-bold">O continúa con</span></div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 mb-6">
+                            <button onclick="window.authLogic.loginGoogle()" class="bg-white hover:bg-gray-100 text-[#333] w-full font-bold p-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
+                                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
+                                <span class="text-sm">Google</span>
+                            </button>
+                            <button onclick="window.authLogic.loginGuest()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 w-full font-bold p-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
+                                <i class="ph-bold ph-user-circle text-lg"></i>
+                                <span class="text-sm">Invitado</span>
+                            </button>
+                        </div>
+
+                        <div class="text-center">
+                            <button onclick="window.authLogic.toggleMode()" class="text-xs text-gray-400 hover:text-brand transition-colors font-semibold">
+                                <span id="toggle-text">¿No tienes cuenta? Regístrate aquí</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 mb-6">
-                        <button onclick="window.authLogic.loginGoogle()" class="bg-white hover:bg-gray-100 text-[#333] w-full font-bold p-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
-                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
-                            <span class="text-sm">Google</span>
-                        </button>
-                        <button onclick="window.authLogic.loginGuest()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 w-full font-bold p-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
-                            <i class="ph-bold ph-user-circle text-lg"></i>
-                            <span class="text-sm">Invitado</span>
-                        </button>
+                    <!-- 2. DASHBOARD DE ACCESO RÁPIDO (Visible si hay sesión) -->
+                    <div id="dashboard-info-card" class="card-auth rounded-2xl p-8 w-full max-w-md hidden">
+                          <div class="text-center mb-6 border-b border-white/10 pb-6">
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand/10 border border-brand/30 mb-4 animate-pulse">
+                                <i class="ph-fill ph-check-circle text-3xl text-brand"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white">Sesión Activa</h3>
+                            <p id="auth-card-user-name" class="text-gray-400 mt-1">Bienvenido al sistema.</p>
+                          </div>
+                          
+                          <div class="grid grid-cols-2 gap-3">
+                              <!-- Botones de Acceso a Apps -->
+                              <button onclick="window.location.href='/adherencia.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
+                                  <i class="ph-bold ph-clock text-2xl text-zinc-500 group-hover:text-brand"></i>
+                                  <span class="text-xs font-bold uppercase tracking-wider">Adherencia</span>
+                              </button>
+                              
+                              <button onclick="window.location.href='/chat.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
+                                  <i class="ph-bold ph-chat-circle-text text-2xl text-zinc-500 group-hover:text-brand"></i>
+                                  <span class="text-xs font-bold uppercase tracking-wider">Chat</span>
+                              </button>
+
+                              <button onclick="window.location.href='/finanzas.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
+                                  <i class="ph-bold ph-currency-dollar text-2xl text-zinc-500 group-hover:text-brand"></i>
+                                  <span class="text-xs font-bold uppercase tracking-wider">Finanzas</span>
+                              </button>
+
+                              <button onclick="window.location.href='/cuenta.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
+                                  <i class="ph-bold ph-user-gear text-2xl text-zinc-500 group-hover:text-brand"></i>
+                                  <span class="text-xs font-bold uppercase tracking-wider">Mi Cuenta</span>
+                              </button>
+                          </div>
                     </div>
-
-                    <div class="text-center">
-                        <button onclick="window.authLogic.toggleMode()" class="text-xs text-gray-400 hover:text-brand transition-colors font-semibold">
-                            <span id="toggle-text">¿No tienes cuenta? Regístrate aquí</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 2. DASHBOARD DE ACCESO RÁPIDO (Visible si hay sesión) -->
-                <div id="dashboard-info-card" class="card-auth rounded-2xl p-8 w-full max-w-md hidden">
-                     <div class="text-center mb-6 border-b border-white/10 pb-6">
-                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand/10 border border-brand/30 mb-4 animate-pulse">
-                            <i class="ph-fill ph-check-circle text-3xl text-brand"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold text-white">Sesión Activa</h3>
-                        <p id="auth-card-user-name" class="text-gray-400 mt-1">Bienvenido al sistema.</p>
-                     </div>
-                     
-                     <div class="grid grid-cols-2 gap-3">
-                         <!-- Botones de Acceso a Apps -->
-                         <button onclick="window.location.href='/adherencia.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
-                             <i class="ph-bold ph-clock text-2xl text-zinc-500 group-hover:text-brand"></i>
-                             <span class="text-xs font-bold uppercase tracking-wider">Adherencia</span>
-                         </button>
-                         
-                         <button onclick="window.location.href='/chat.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
-                             <i class="ph-bold ph-chat-circle-text text-2xl text-zinc-500 group-hover:text-brand"></i>
-                             <span class="text-xs font-bold uppercase tracking-wider">Chat</span>
-                         </button>
-
-                         <button onclick="window.location.href='/finanzas.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
-                             <i class="ph-bold ph-currency-dollar text-2xl text-zinc-500 group-hover:text-brand"></i>
-                             <span class="text-xs font-bold uppercase tracking-wider">Finanzas</span>
-                         </button>
-
-                         <button onclick="window.location.href='/cuenta.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
-                             <i class="ph-bold ph-user-gear text-2xl text-zinc-500 group-hover:text-brand"></i>
-                             <span class="text-xs font-bold uppercase tracking-wider">Mi Cuenta</span>
-                         </button>
-                     </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </div>
+
+        <!-- SECCIÓN 2: COMPONENTES CLAVE (AGREGADA) -->
+        <section id="features-section" class="w-full max-w-7xl mx-auto px-4 pb-24 pt-10">
+            <h2 class="text-3xl font-bold text-white mb-12 flex items-center justify-center md:justify-start gap-3">
+                <i class="ph-fill ph-check-square text-brand"></i>
+                Componentes Clave
+            </h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Feature Card 1: Finanzas -->
+                <div class="glass-panel p-8 rounded-2xl hover:border-brand/30 transition-colors group cursor-default h-full">
+                    <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center mb-6 group-hover:bg-brand/10 transition-colors">
+                        <i class="ph-bold ph-currency-circle-dollar text-2xl text-zinc-400 group-hover:text-brand"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-3">Inteligencia Financiera</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Control total sobre la gestión de nómina, gastos operativos y análisis de flujo de caja en tiempo real.
+                    </p>
+                </div>
+
+                <!-- Feature Card 2: Seguridad -->
+                <div class="glass-panel p-8 rounded-2xl hover:border-brand/30 transition-colors group cursor-default h-full">
+                    <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center mb-6 group-hover:bg-brand/10 transition-colors">
+                        <i class="ph-bold ph-shield-star text-2xl text-zinc-400 group-hover:text-brand"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-3">Seguridad Proactiva</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Protección de datos y comunicaciones mediante protocolos de encriptación avanzados y gestión de accesos.
+                    </p>
+                </div>
+
+                <!-- Feature Card 3: Adherencia/Tiempos -->
+                <div class="glass-panel p-8 rounded-2xl hover:border-brand/30 transition-colors group cursor-default h-full">
+                    <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center mb-6 group-hover:bg-brand/10 transition-colors">
+                        <i class="ph-bold ph-clock text-2xl text-zinc-400 group-hover:text-brand"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-3">Gestión de Tiempos</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Control de asistencia, horarios y adhesión a la jornada laboral de manera precisa y centralizada.
+                    </p>
+                </div>
+
+                <!-- Feature Card 4: Perfil/Cuenta -->
+                <div class="glass-panel p-8 rounded-2xl hover:border-brand/30 transition-colors group cursor-default h-full">
+                    <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center mb-6 group-hover:bg-brand/10 transition-colors">
+                        <i class="ph-bold ph-user-gear text-2xl text-zinc-400 group-hover:text-brand"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-3">Administración de Perfil</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Accede y administra tus datos personales, permisos de usuario y configuración de notificaciones.
+                    </p>
+                </div>
+            </div>
+        </section>
+
     </main>
     
     <!-- FOOTER -->
-    <footer class="p-6 text-center border-t border-gray-900 mt-auto bg-black">
+    <footer class="p-6 text-center border-t border-gray-900 mt-auto bg-black z-20">
         <p class="text-zinc-600 text-[10px] font-mono tracking-widest">
             // Compromiso con la excelencia operativa. God's Plan SYSTEM © 2025 
         </p>
@@ -428,5 +503,3 @@
     </script>
 </body>
 </html>
-
-
