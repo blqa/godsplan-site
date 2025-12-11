@@ -432,8 +432,10 @@
         try { if (typeof __firebase_config !== 'undefined' && __firebase_config) { const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; } } catch(e) { console.error("Error config", e); }
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         
-        const PRIVATE_DATA_PATH = (uid) => `godsPlanData/${uid}`;
-        const LOGS_COLLECTION = (uid) => `${PRIVATE_DATA_PATH(uid)}/logs`;
+        // --- CORRECCIÓN DE RUTAS DE FIREBASE ---
+        // Para que guarde correctamente en este entorno, debemos usar la ruta artifacts/{appId}/users/{uid}
+        const getUserDocRef = (uid) => doc(db, 'artifacts', APP_ID, 'users', uid, 'data', 'financials');
+        const getLogsCollectionRef = (uid) => collection(db, 'artifacts', APP_ID, 'users', uid, 'transactions');
 
         let fbApp, auth, db;
         try {
@@ -569,8 +571,10 @@
             setupRealtimeListeners() {
                 if(!this.user || !db) return;
                 const uid = this.user.uid;
-                const userDocRef = doc(db, 'godsPlanData', uid);
-                const logsCollectionRef = collection(db, 'godsPlanData', uid, 'logs');
+                
+                // USAR HELPERS DE RUTA CORRECTA
+                const userDocRef = getUserDocRef(uid);
+                const logsCollectionRef = getLogsCollectionRef(uid);
 
                 onSnapshot(userDocRef, (docSnap) => {
                     const syncEl = document.getElementById('syncStatus');
@@ -582,8 +586,8 @@
                     } else { setDoc(userDocRef, { income: 0, fixed: [], loans: [] }, { merge: true }); }
                 }, err => console.error("Error config:", err));
 
-                // No orderBy to avoid index error in this environment
-                onSnapshot(logsCollectionRef, (snapshot) => {
+                const q = query(logsCollectionRef, limit(200));
+                onSnapshot(q, (snapshot) => {
                     let tempLogs = snapshot.docs.map(d => ({id: d.id, ...d.data(), date: d.data().date instanceof Date ? d.data().date.toISOString() : d.data().date}));
                     tempLogs.sort((a,b) => new Date(b.date) - new Date(a.date)); // Sort client-side
                     this.logs = tempLogs;
@@ -860,39 +864,55 @@
                 let cat = 'Otro'; const activeChip = document.querySelector('.chip.active'); if(activeChip) cat = activeChip.innerText.trim();
                 const payload = { amount: amt, desc: desc, category: cat, type: this.mode === 'extra' ? 'income' : 'expense', date: this.editId ? this.logs.find(l=>l.id===this.editId).date : new Date().toISOString() };
                 try {
-                    const logRef = collection(db, LOGS_COLLECTION(this.user.uid));
+                    const logRef = getLogsCollectionRef(this.user.uid);
                     if(this.editId) { await updateDoc(doc(logRef, this.editId), payload); UI.toast('Actualizado', 'success'); }
                     else { await addDoc(logRef, payload); UI.toast('Guardado', 'success'); }
                     this.closeModal();
-                } catch(e) { UI.toast('Error al guardar', 'error'); }
+                } catch(e) { UI.toast('Error al guardar', 'error'); console.error(e); }
             },
-            async deleteTxConfirm() { if (await UI.confirm('Eliminar', '¿Borrar transacción?')) { try { await deleteDoc(doc(db, LOGS_COLLECTION(this.user.uid), this.editId)); UI.toast('Eliminado', 'info'); this.closeModal(); } catch(e) { UI.toast('Error', 'error'); } } },
-            async saveConfig() { if(!this.user) return; const inc = parseFloat(document.getElementById('inpIncome').value); try { await setDoc(doc(db, PRIVATE_DATA_PATH(this.user.uid)), { income: isNaN(inc) ? 0 : inc }, { merge: true }); UI.toast('Ingreso guardado', 'success'); } catch(e) {} },
+            async deleteTxConfirm() { if (await UI.confirm('Eliminar', '¿Borrar transacción?')) { try { await deleteDoc(doc(getLogsCollectionRef(this.user.uid), this.editId)); UI.toast('Eliminado', 'info'); this.closeModal(); } catch(e) { UI.toast('Error', 'error'); } } },
+            
+            async saveConfig() { 
+                if(!this.user) return; 
+                const inc = parseFloat(document.getElementById('inpIncome').value); 
+                try { 
+                    await setDoc(getUserDocRef(this.user.uid), { income: isNaN(inc) ? 0 : inc }, { merge: true }); 
+                    UI.toast('Ingreso guardado', 'success'); 
+                } catch(e) { console.error(e); } 
+            },
+            
             async saveFixed() {
                 if(!this.user) return; const name = document.getElementById('fixName').value.trim(); const amt = parseFloat(document.getElementById('fixAmount').value); const day = parseInt(document.getElementById('fixDay').value);
                 if(!name || !amt || isNaN(day)) return UI.toast('Datos inválidos', 'error');
                 const newFixed = [...this.data.fixed]; if(this.editId !== null) newFixed[this.editId] = { name, amount: amt, day }; else newFixed.push({ name, amount: amt, day });
-                try { await setDoc(doc(db, PRIVATE_DATA_PATH(this.user.uid)), { fixed: newFixed }, { merge: true }); UI.toast('Fijo guardado', 'success'); this.closeModal(); } catch(e) { UI.toast('Error', 'error'); }
+                try { await setDoc(getUserDocRef(this.user.uid), { fixed: newFixed }, { merge: true }); UI.toast('Fijo guardado', 'success'); this.closeModal(); } catch(e) { UI.toast('Error', 'error'); console.error(e); }
             },
-            async deleteFixedConfirm() { if (await UI.confirm('Eliminar', '¿Borrar gasto fijo?')) { const newFixed = this.data.fixed.filter((_, i) => i !== this.editId); await setDoc(doc(db, PRIVATE_DATA_PATH(this.user.uid)), { fixed: newFixed }, { merge: true }); UI.toast('Eliminado', 'info'); this.closeModal(); } },
+            
+            async deleteFixedConfirm() { if (await UI.confirm('Eliminar', '¿Borrar gasto fijo?')) { const newFixed = this.data.fixed.filter((_, i) => i !== this.editId); await setDoc(getUserDocRef(this.user.uid), { fixed: newFixed }, { merge: true }); UI.toast('Eliminado', 'info'); this.closeModal(); } },
+            
             async saveLoan() {
                  if(!this.user) return; const name = document.getElementById('loanName').value.trim(); const amount = parseFloat(document.getElementById('loanAmount').value); const dueDate = document.getElementById('loanDueDate').value;
                  if(!name || !amount) return UI.toast('Datos incompletos', 'error');
-                 const batch = writeBatch(db); const userDocRef = doc(db, PRIVATE_DATA_PATH(this.user.uid)); const logRef = collection(db, LOGS_COLLECTION(this.user.uid));
+                 const batch = writeBatch(db); 
+                 const userDocRef = getUserDocRef(this.user.uid); 
+                 const logRef = getLogsCollectionRef(this.user.uid);
+                 
                  const newLoans = [...this.data.loans];
                  if(this.editId !== null) { newLoans[this.editId] = { name, amount, dueDate }; UI.toast('Deuda actualizada', 'info'); }
                  else { newLoans.push({ name, amount, dueDate }); const newLogDoc = doc(logRef); batch.set(newLogDoc, { amount, desc: `Préstamo recibido: ${name}`, category: 'Deuda/Reembolso', type: 'income', date: new Date().toISOString() }); UI.toast('Préstamo registrado', 'success'); }
                  batch.set(userDocRef, { loans: newLoans }, { merge: true }); await batch.commit(); this.closeModal();
             },
+            
             async deleteLoanConfirm(idx) {
                  const loan = this.data.loans[idx]; if (await UI.confirm('Pagar Deuda', `Liquidar deuda de ${UI.fmtMoney(loan.amount)}? Se creará un gasto.`)) {
                      const newLoans = this.data.loans.filter((_, i) => i !== idx); const batch = writeBatch(db);
-                     batch.set(doc(db, PRIVATE_DATA_PATH(this.user.uid)), { loans: newLoans }, { merge: true });
-                     batch.set(doc(collection(db, LOGS_COLLECTION(this.user.uid))), { amount: loan.amount, desc: `Pago Deuda: ${loan.name}`, category: 'Deuda/Reembolso', type: 'expense', date: new Date().toISOString() });
+                     batch.set(getUserDocRef(this.user.uid), { loans: newLoans }, { merge: true });
+                     batch.set(doc(getLogsCollectionRef(this.user.uid)), { amount: loan.amount, desc: `Pago Deuda: ${loan.name}`, category: 'Deuda/Reembolso', type: 'expense', date: new Date().toISOString() });
                      await batch.commit(); UI.toast('Deuda liquidada', 'success');
                  }
             },
-            async resetData() { if (await UI.confirm('RESET', '¿Borrar TODOS los datos financieros?')) { try { await setDoc(doc(db, PRIVATE_DATA_PATH(this.user.uid)), { income: 0, fixed: [], loans: [] }); const q = query(collection(db, LOGS_COLLECTION(this.user.uid)), limit(500)); const snap = await getDocs(q); const batch = writeBatch(db); snap.forEach(d => batch.delete(d.ref)); await batch.commit(); location.reload(); } catch(e) { UI.toast('Error al borrar', 'error'); } } },
+            
+            async resetData() { if (await UI.confirm('RESET', '¿Borrar TODOS los datos financieros?')) { try { await setDoc(getUserDocRef(this.user.uid), { income: 0, fixed: [], loans: [] }); const q = query(getLogsCollectionRef(this.user.uid), limit(500)); const snap = await getDocs(q); const batch = writeBatch(db); snap.forEach(d => batch.delete(d.ref)); await batch.commit(); location.reload(); } catch(e) { UI.toast('Error al borrar', 'error'); } } },
         };
 
         document.addEventListener('DOMContentLoaded', () => window.app.init());
