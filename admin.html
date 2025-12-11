@@ -34,16 +34,6 @@
         /* Animación de carga */
         .loader { border: 2px solid rgba(231,0,0,0.1); border-left-color: #E70000; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Input autofill fix for dark mode */
-        input:-webkit-autofill,
-        input:-webkit-autofill:hover, 
-        input:-webkit-autofill:focus, 
-        input:-webkit-autofill:active{
-            -webkit-box-shadow: 0 0 0 30px #121212 inset !important;
-            -webkit-text-fill-color: white !important;
-            transition: background-color 5000s ease-in-out 0s;
-        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -54,46 +44,32 @@
             <!-- Decoración de fondo -->
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand to-transparent"></div>
             
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand/10 mb-4">
-                    <i class="ph-fill ph-shield-check text-3xl text-brand"></i>
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-brand/5 border border-brand/20 mb-6 shadow-[0_0_30px_rgba(231,0,0,0.1)]">
+                    <i class="ph-fill ph-lock-key text-3xl text-brand"></i>
                 </div>
-                <h1 class="text-2xl font-black text-white tracking-tight">ACCESO ADMINISTRATIVO</h1>
-                <p class="text-zinc-500 text-sm mt-2">Introduce tus credenciales maestras.</p>
+                <h1 class="text-2xl font-black text-white tracking-tight">AREA RESTRINGIDA</h1>
+                <p class="text-zinc-500 text-sm mt-3 leading-relaxed">
+                    Panel de Control Maestro.<br>
+                    Acceso exclusivo para <span class="text-white font-mono bg-white/10 px-1 rounded">tizorplayer@gmail.com</span>
+                </p>
             </div>
 
-            <form id="admin-login-form" onsubmit="event.preventDefault(); adminAuth.login();" class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-zinc-500 uppercase ml-1">Usuario Autorizado</label>
-                    <div class="relative mt-1">
-                        <i class="ph-bold ph-user absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600"></i>
-                        <input type="email" id="admin-email" value="tizorplayer@gmail.com" readonly 
-                            class="w-full bg-surface border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-zinc-400 focus:border-brand focus:outline-none cursor-not-allowed opacity-70">
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="text-xs font-bold text-zinc-500 uppercase ml-1">Contraseña</label>
-                    <div class="relative mt-1">
-                        <i class="ph-bold ph-lock-key absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
-                        <input type="password" id="admin-password" placeholder="••••••••" required 
-                            class="w-full bg-surface border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:border-brand focus:outline-none transition-all focus:bg-white/5">
-                    </div>
+            <div class="space-y-4">
+                <div id="login-error" class="text-red-400 text-xs font-bold text-center hidden bg-red-950/30 p-3 rounded-xl border border-red-500/20 flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-warning-circle text-lg"></i>
+                    <span id="login-error-text">Error de autenticación.</span>
                 </div>
 
-                <div id="login-error" class="text-red-500 text-xs font-bold text-center hidden bg-red-900/10 p-2 rounded-lg border border-red-500/20">
-                    Error de autenticación.
-                </div>
-
-                <button type="submit" id="login-btn" class="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-zinc-200 transition transform active:scale-95 flex items-center justify-center gap-2 mt-2">
-                    <i class="ph-bold ph-sign-in"></i>
-                    INGRESAR AL SISTEMA
+                <button onclick="adminAuth.login()" id="login-btn" class="w-full bg-white hover:bg-zinc-200 text-black font-bold py-4 rounded-xl transition transform active:scale-95 flex items-center justify-center gap-3 shadow-lg group">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6 group-hover:scale-110 transition-transform" alt="Google">
+                    <span>ACCEDER CON GOOGLE</span>
                 </button>
-            </form>
+            </div>
             
-            <div class="mt-6 text-center">
-                <a href="/" class="text-xs text-zinc-600 hover:text-white transition flex items-center justify-center gap-1">
-                    <i class="ph-bold ph-arrow-left"></i> Volver al Portal Público
+            <div class="mt-8 text-center border-t border-white/5 pt-6">
+                <a href="/" class="text-xs text-zinc-600 hover:text-white transition flex items-center justify-center gap-1.5 group">
+                    <i class="ph-bold ph-arrow-left group-hover:-translate-x-1 transition-transform"></i> Volver al Portal Público
                 </a>
             </div>
         </div>
@@ -110,7 +86,7 @@
             </div>
         </div>
         <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 px-3 py-1.5 bg-brand/10 border border-brand/20 rounded-full">
+            <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-brand/10 border border-brand/20 rounded-full">
                 <div class="w-2 h-2 rounded-full bg-brand animate-pulse"></div>
                 <span class="text-xs font-mono text-brand font-bold">tizorplayer@gmail.com</span>
             </div>
@@ -299,7 +275,7 @@
     <!-- LOGICA FIREBASE & APP -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // CONFIGURACIÓN
@@ -317,54 +293,82 @@
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        // --- AUTH AISLADA ---
+        // --- AUTH AISLADA (GOOGLE ONLY) ---
         const AUTH_EMAIL = "tizorplayer@gmail.com";
         const loginOverlay = document.getElementById('admin-login-overlay');
         
         window.adminAuth = {
             init: async function() {
+                // Verificar si ya hay usuario y si es el correcto
                 const user = auth.currentUser;
-                if (user && user.email === AUTH_EMAIL) {
-                    this.showDashboard();
+                if (user) {
+                    if (user.email === AUTH_EMAIL) {
+                        this.showDashboard();
+                    } else {
+                        // Usuario equivocado logueado -> Logout forzado
+                        await signOut(auth);
+                        this.showLogin();
+                    }
                 } else {
-                    if (user) await signOut(auth);
                     this.showLogin();
                 }
             },
+            
             login: async function() {
                 const btn = document.getElementById('login-btn');
                 const err = document.getElementById('login-error');
-                const pass = document.getElementById('admin-password').value;
-                const email = document.getElementById('admin-email').value;
+                const errText = document.getElementById('login-error-text');
 
-                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Verificando...';
+                // UI Loading
+                const originalContent = btn.innerHTML;
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> Verificando...';
                 btn.disabled = true;
                 err.classList.add('hidden');
 
                 try {
-                    await signInWithEmailAndPassword(auth, email, pass);
-                    this.showDashboard();
+                    const provider = new GoogleAuthProvider();
+                    const result = await signInWithPopup(auth, provider);
+                    const user = result.user;
+
+                    if (user.email === AUTH_EMAIL) {
+                        // ÉXITO: Usuario correcto
+                        this.showDashboard();
+                    } else {
+                        // FALLO: Usuario incorrecto
+                        await signOut(auth); // Cerrar sesión inmediatamente
+                        throw new Error(`El correo ${user.email} no tiene permisos de administrador.`);
+                    }
+
                 } catch (error) {
-                    err.textContent = "Contraseña incorrecta o error de conexión.";
+                    console.error("Login Error:", error);
+                    errText.textContent = error.message || "Error de conexión con Google.";
+                    if (error.code === 'auth/popup-closed-by-user') errText.textContent = "Ventana cerrada por el usuario.";
+                    
                     err.classList.remove('hidden');
-                    btn.innerHTML = '<i class="ph-bold ph-sign-in"></i> INGRESAR AL SISTEMA';
+                    
+                    // Reset UI
+                    btn.innerHTML = originalContent;
                     btn.disabled = false;
                 }
             },
+            
             logout: async function() {
                 await signOut(auth);
                 window.location.reload();
             },
+            
             showDashboard: function() {
                 loginOverlay.classList.add('opacity-0', 'pointer-events-none');
                 setTimeout(() => loginOverlay.style.display = 'none', 500);
             },
+            
             showLogin: function() {
                 loginOverlay.style.display = 'flex';
                 loginOverlay.classList.remove('opacity-0', 'pointer-events-none');
             }
         };
 
+        // Delay inicial para permitir que Firebase Auth cargue el estado de la sesión
         setTimeout(() => adminAuth.init(), 1000);
 
         // --- LÓGICA DEL PANEL DE ADMINISTRACIÓN ---
