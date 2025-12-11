@@ -1336,6 +1336,38 @@
                 const customColors = JSON.parse(localStorage.getItem('gp_custom_colors'));
                 if (customColors) this.applyCustomColors(customColors);
 
+                // --- INTEGRACIÓN EXTENSIÓN CHROME ---
+                // Escuchamos mensajes de la extensión para sincronizar con TouchPoint
+                window.addEventListener('message', (event) => {
+                    // Validamos que sea un mensaje de nuestra extensión (puedes añadir más validación de origen si quieres)
+                    if (event.data && event.data.type === 'GODSPLAN_COMMAND') {
+                        console.log("Comando recibido de TouchPoint:", event.data.action);
+                        
+                        switch(event.data.action) {
+                            case 'START_SHIFT':
+                                if (!this.data.activeShift) this.clockIn();
+                                break;
+                            case 'START_BREAK_FOOD':
+                                // Solo si no está ya en comida
+                                if (this.data.activeShift?.breakType !== 'food') this.toggleBreak('food');
+                                break;
+                            case 'START_BREAK_BATH':
+                                // Solo si no está ya en baño
+                                if (this.data.activeShift?.breakType !== 'bathroom') this.toggleBreak('bathroom');
+                                break;
+                            case 'RESUME_WORK':
+                                // Si hay un descanso activo, lo detenemos
+                                if (this.data.activeShift?.breakStart) this.stopBreak();
+                                break;
+                            case 'END_SHIFT':
+                                // Abre el modal de terminar turno
+                                if (this.data.activeShift) this.confirmClockOut();
+                                break;
+                        }
+                    }
+                });
+                // -------------------------------------
+
                 if (!auth) return this.goOffline();
 
                 onAuthStateChanged(auth, async u => {
