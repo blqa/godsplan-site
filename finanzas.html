@@ -605,7 +605,7 @@
     </div>
     
     <!-- CONFIRMATION DIALOG -->
-    <div id="confirmDialog" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] hidden flex items-center justify-center opacity-0 transition-opacity p-5">
+    <div id="confirmDialog" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[1200] hidden flex items-center justify-center opacity-0 transition-opacity p-5">
         <div class="custom-dialog rounded-3xl p-6 bg-[#121212] border border-zinc-800 transform scale-95 transition-transform duration-200 w-full max-w-xs" id="confirmBox">
             <h4 id="confirmTitle" class="text-lg font-bold text-white mb-2">Confirmar</h4>
             <p id="confirmMessage" class="text-zinc-400 text-sm mb-8 leading-relaxed">¿Estás seguro?</p>
@@ -710,7 +710,7 @@
                     } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
                 });
 
-                const q = query(logsRef, limit(400));
+                const q = query(logsRef, orderBy('date', 'desc'), limit(400));
                 onSnapshot(q, (snap) => {
                     this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
                     this.renderTransactions(); this.calcBalance(); this.renderCharts(); this.renderAnalysisMetrics();
@@ -1045,7 +1045,13 @@
                     
                     // Preselect category or default to first if new
                     if(log) { 
-                        setTimeout(()=> { Array.from(chips.children).find(c=>c.innerText.trim()===log.category)?.classList.add('active') }, 50); 
+                        // Fix: robust selection
+                        setTimeout(()=> { 
+                            Array.from(chips.children).find(c => {
+                                const span = c.querySelector('span');
+                                return span && span.textContent.trim() === log.category;
+                            })?.classList.add('active');
+                        }, 50); 
                     } else if (type === 'expense') {
                          setTimeout(()=> { chips.children[0]?.classList.add('active') }, 50);
                     }
