@@ -93,6 +93,14 @@
             padding-bottom: var(--sab);
         }
 
+        /* Nav Global Links CSS */
+        .g-links { display: flex; align-items: center; gap: 20px; overflow-x: auto; }
+        .g-link { 
+            font-size: 10px; font-weight: 800; letter-spacing: 0.05em; color: #71717a; 
+            transition: color 0.2s; text-decoration: none; white-space: nowrap; 
+        }
+        .g-link:hover, .g-link.active { color: white; }
+
         /* Inputs Modernos */
         .input-modern {
             background: #09090b; border: 1px solid #27272a; color: white; border-radius: 16px;
@@ -110,8 +118,8 @@
         .toast { background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; border: 1px solid #333; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 10px; animation: fadeIn 0.3s forwards; pointer-events: auto; }
         
         /* Layout */
-        #global-nav { z-index: 1000; box-sizing: border-box; position: sticky; top: 0; height: calc(60px + var(--sat)); padding-top: var(--sat); }
-        .g-logo { color: #fff; font-weight: 800; text-decoration: none; font-size: 1.2rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; position: relative; z-index: 1001; cursor: pointer; white-space: nowrap; }
+        #global-nav { position: sticky; top: 0; z-index: 1000; }
+        .g-logo { color: #fff; font-weight: 800; text-decoration: none; font-size: 1.1rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; position: relative; z-index: 1001; cursor: pointer; white-space: nowrap; }
         
         /* Modals - Adaptive Logic */
         .custom-dialog { background-color: #121212; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 340px; width: 90%; }
@@ -162,7 +170,7 @@
 
         /* Desktop Nav Link Styles */
         .nav-link-desk {
-            color: #71717a; padding: 6px 16px; border-radius: 99px; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;
+            color: #71717a; padding: 6px 16px; border-radius: 99px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s;
         }
         .nav-link-desk:hover { color: white; background: rgba(255,255,255,0.05); }
         .nav-link-desk.active { color: white; background: #27272a; }
@@ -185,22 +193,15 @@
 </head>
 <body class="flex flex-col overflow-hidden text-sm sm:text-base bg-[#050505] text-[#e5e5e5]">
 
-    <!-- NAV SUPERIOR (RESPONSIVE) -->
-    <nav id="global-nav" class="bg-black/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 shrink-0 z-50">
-        <div class="flex items-center gap-6">
-            <a href="/" class="g-logo"><i class="ph-bold ph-circles-three-plus text-xl text-red-500"></i> God's Plan</a>
-            
-            <!-- Desktop Links (Hidden on Mobile) -->
-            <div class="hidden md:flex items-center gap-1">
-                <button onclick="app.switchView('balance')" class="nav-link-desk active" data-view="balance">Billetera</button>
-                <button onclick="app.switchView('analysis')" class="nav-link-desk" data-view="analysis">Análisis</button>
-                <button onclick="app.switchView('plan')" class="nav-link-desk" data-view="plan">Planificación</button>
-            </div>
-        </div>
-
-        <div class="g-links no-scrollbar flex items-center gap-4">
-            <div class="hidden md:block text-xs text-zinc-500 font-mono" id="desktopDate"></div>
-            <div id="syncStatus" class="w-2.5 h-2.5 rounded-full bg-zinc-800 ml-1 flex-shrink-0 transition-all duration-500 shadow-lg shadow-emerald-500/0" title="Estado"></div>
+    <!-- NAV SUPERIOR (Global) -->
+    <nav id="global-nav" class="h-14 bg-black border-b border-white/5 flex items-center justify-between px-5 shrink-0 z-50">
+        <a href="/" class="g-logo"><i class="ph-bold ph-circles-three-plus text-lg text-red-500"></i> God's Plan</a>
+        <div class="g-links no-scrollbar">
+            <a href="/adherencia.html" class="g-link">ADHERENCIA</a>
+            <a href="/chat.html" class="g-link">CHAT</a>
+            <a href="#" class="g-link active">FINANZAS</a>
+            <a href="/cuenta.html" class="g-link">CUENTA</a>
+            <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-zinc-800 ml-1 flex-shrink-0 transition-all duration-500" title="Estado"></div>
         </div>
     </nav>
 
@@ -209,6 +210,15 @@
     <main id="app-content" class="flex-1 overflow-y-auto pb-36 relative scroll-smooth overflow-x-hidden md:px-6">
         
         <div class="w-full max-w-lg md:max-w-6xl mx-auto h-full pt-4 md:pt-8">
+
+            <!-- SUB-NAV DESKTOP (Nuevo: Para no perder la navegación interna en PC) -->
+            <div class="hidden md:flex justify-center mb-8 fade-in">
+                <div class="bg-zinc-900/80 border border-white/10 p-1.5 rounded-full flex items-center gap-1 shadow-lg backdrop-blur-sm">
+                    <button onclick="app.switchView('balance')" class="nav-link-desk active px-6" data-view="balance">Billetera</button>
+                    <button onclick="app.switchView('analysis')" class="nav-link-desk px-6" data-view="analysis">Análisis</button>
+                    <button onclick="app.switchView('plan')" class="nav-link-desk px-6" data-view="plan">Planificación</button>
+                </div>
+            </div>
 
             <!-- VISTA: BILLETERA (Dashboard Layout en PC) -->
             <section id="view-balance" class="p-4 sm:p-0 fade-in">
