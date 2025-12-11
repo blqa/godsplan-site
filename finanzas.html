@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#050505">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>God's Plan | Finanzas</title>
+    <title>God's Plan | Finanzas Ultimate</title>
     
     <!-- LIBRERIAS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -184,25 +184,38 @@
            IMPRESIÓN / REPORTE PREMIUM DARK MODE
            ========================================= */
         @media print {
-            @page { margin: 0; size: auto; }
+            @page { 
+                margin: 10mm; /* Margen para que no salga pegado al borde */
+                size: auto; 
+            }
             body { 
                 background-color: #050505 !important; 
                 color: #e5e5e5 !important; 
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact;
                 font-family: 'Plus Jakarta Sans', sans-serif;
+                overflow: visible !important; /* Importante para multipágina */
+                height: auto !important;
             }
             /* Ocultar UI de la App */
             #global-nav, #fabContainer, .glass-nav, #app-content, #toast-container, #modalOverlay, #confirmDialog, #authModal { display: none !important; }
             
-            /* Mostrar Área de Impresión */
+            /* Mostrar Área de Impresión correctamente */
             #print-area { 
                 display: block !important; 
-                position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; 
+                position: static !important; /* Static permite que fluya en varias páginas */
+                width: 100%; 
+                height: auto !important; 
                 background-color: #050505; 
-                padding: 40px; 
+                padding: 0; 
                 box-sizing: border-box;
+                overflow: visible !important;
             }
+
+            /* Evitar cortes feos */
+            .print-card, .print-chart-box { page-break-inside: avoid; }
+            .print-table tr { page-break-inside: avoid; page-break-after: auto; }
+            .print-header { page-break-after: avoid; }
 
             /* Estilos Internos del Reporte */
             .print-header { 
@@ -1268,16 +1281,22 @@
                 // Construir HTML del Reporte
                 const printArea = document.getElementById('print-area');
                 
-                // 1. Hacer visible el área de impresión para que Chart.js pueda renderizar (Overlay temporal)
+                // --- FIX PRINCIPAL PARA IMPRESIÓN MULTIPÁGINA ---
+                // 1. Desbloquear el scroll del body temporalmente
+                document.body.style.overflow = 'visible';
+                document.body.style.height = 'auto';
+
+                // 2. Usar position: absolute en lugar de fixed para que fluya con el scroll
                 printArea.style.display = 'block';
-                printArea.style.position = 'fixed';
+                printArea.style.position = 'absolute'; 
                 printArea.style.top = '0';
                 printArea.style.left = '0';
                 printArea.style.width = '100%';
-                printArea.style.height = '100%';
+                printArea.style.minHeight = '100vh';
+                printArea.style.height = 'auto';
                 printArea.style.zIndex = '9999';
-                printArea.style.backgroundColor = '#050505'; // Fondo negro para evitar flash blanco
-                printArea.style.overflowY = 'auto';
+                printArea.style.backgroundColor = '#050505';
+                printArea.style.overflowY = 'visible';
 
                 printArea.innerHTML = `
                 <div class="print-header">
@@ -1332,20 +1351,21 @@
                 </table>
                 <div class="print-footer">God's Plan - Sistema Financiero Personal - Documento generado automáticamente.</div>
                 
-                <!-- Botón Cerrar (Solo visible en pantalla por si cancelan impresión) -->
-                <button onclick="document.getElementById('print-area').style.display='none'" style="position:fixed;bottom:20px;right:20px;background:#333;color:white;padding:10px 20px;border-radius:30px;border:none;cursor:pointer;font-weight:bold;box-shadow:0 10px 30px rgba(0,0,0,0.5);" class="no-print">CERRAR VISTA PREVIA</button>
+                <button onclick="app.closePrintPreview()" style="position:fixed;bottom:20px;right:20px;background:#333;color:white;padding:12px 24px;border-radius:30px;border:1px solid #555;cursor:pointer;font-weight:bold;box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:10000;" class="no-print hover:bg-zinc-700 transition-colors">CERRAR VISTA PREVIA</button>
                 <style>@media print { .no-print { display: none !important; } }</style>
                 `;
 
-                // Renderizar gráficos y esperar a que se conviertan en imágenes
                 this.renderPrintCharts(logs).then(() => {
-                    // Esperar un poco para asegurar renderizado visual
-                    setTimeout(() => {
-                        window.print();
-                        // Ocultar después de imprimir (el usuario verá la app de nuevo)
-                        // printArea.style.display = 'none'; // Opcional: Dejar visible para que lo cierren manualmente si prefieren
-                    }, 500);
+                    setTimeout(() => window.print(), 800);
                 });
+            },
+
+            closePrintPreview() {
+                const printArea = document.getElementById('print-area');
+                printArea.style.display = 'none';
+                // Restaurar estilos del body para la App SPA
+                document.body.style.overflow = '';
+                document.body.style.height = '';
             },
 
             renderPrintCharts(logs) {
