@@ -161,6 +161,15 @@
             }
             /* Hide Bottom Nav spacer on Desktop */
             main { padding-bottom: 20px !important; }
+            
+            /* FIX: Only apply flex when NOT hidden to allow clicks on content */
+            #modalOverlay:not(.hidden) {
+                display: flex;
+            }
+            /* Override the default ID rule if it's hidden */
+            #modalOverlay.hidden {
+                display: none;
+            }
         }
 
         /* Utilities */
@@ -492,7 +501,7 @@
     </div>
 
     <!-- MODAL (ADAPTATIVO: SHEET EN MÓVIL, DIALOG EN PC) -->
-    <div id="modalOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] hidden flex-col justify-end opacity-0 transition-opacity" onclick="if(event.target === this) app.closeModal()">
+    <div id="modalOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[1100] hidden flex-col justify-end opacity-0 transition-opacity" onclick="if(event.target === this) app.closeModal()">
         <div id="modalSheet" class="bg-[#121212] w-full mx-auto rounded-t-[32px] border-t border-zinc-800 p-6 translate-y-full transition-transform duration-300 max-h-[90vh] overflow-y-auto shadow-2xl relative md:border md:bg-[#18181b]">
             <!-- Handle solo para móvil -->
             <div class="md:hidden w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0"></div>
