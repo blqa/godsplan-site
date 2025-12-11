@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#050505">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>God's Plan | Finanzas Ultimate</title>
+    <title>God's Plan | Finanzas</title>
     
     <!-- LIBRERIAS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1267,6 +1267,18 @@
                 
                 // Construir HTML del Reporte
                 const printArea = document.getElementById('print-area');
+                
+                // 1. Hacer visible el área de impresión para que Chart.js pueda renderizar (Overlay temporal)
+                printArea.style.display = 'block';
+                printArea.style.position = 'fixed';
+                printArea.style.top = '0';
+                printArea.style.left = '0';
+                printArea.style.width = '100%';
+                printArea.style.height = '100%';
+                printArea.style.zIndex = '9999';
+                printArea.style.backgroundColor = '#050505'; // Fondo negro para evitar flash blanco
+                printArea.style.overflowY = 'auto';
+
                 printArea.innerHTML = `
                 <div class="print-header">
                     <div class="print-logo"><i class="ph-bold ph-circles-three-plus text-red-500"></i> God's Plan <span style="font-weight:300;opacity:0.6;font-size:14px;">| Estado de Cuenta</span></div>
@@ -1298,11 +1310,11 @@
                 <div class="print-charts-row">
                     <div class="print-chart-box">
                          <div class="print-label" style="text-align:center;margin-bottom:10px;">FLUJO DE EFECTIVO (DÍA A DÍA)</div>
-                         <div style="height:200px;width:100%"><canvas id="printTrendChart"></canvas></div>
+                         <div style="height:200px;width:100%" id="containerTrend"><canvas id="printTrendChart"></canvas></div>
                     </div>
                     <div class="print-chart-box">
                         <div class="print-label" style="text-align:center;margin-bottom:10px;">DISTRIBUCIÓN DE GASTOS</div>
-                        <div style="height:200px;width:100%"><canvas id="printCatChart"></canvas></div>
+                        <div style="height:200px;width:100%" id="containerCat"><canvas id="printCatChart"></canvas></div>
                     </div>
                 </div>
 
@@ -1319,51 +1331,94 @@
                     </tbody>
                 </table>
                 <div class="print-footer">God's Plan - Sistema Financiero Personal - Documento generado automáticamente.</div>
+                
+                <!-- Botón Cerrar (Solo visible en pantalla por si cancelan impresión) -->
+                <button onclick="document.getElementById('print-area').style.display='none'" style="position:fixed;bottom:20px;right:20px;background:#333;color:white;padding:10px 20px;border-radius:30px;border:none;cursor:pointer;font-weight:bold;box-shadow:0 10px 30px rgba(0,0,0,0.5);" class="no-print">CERRAR VISTA PREVIA</button>
+                <style>@media print { .no-print { display: none !important; } }</style>
                 `;
 
-                // Renderizar gráficos específicos para impresión (Colores oscuros/sistema)
-                this.renderPrintCharts(logs);
-
-                // Esperar a que se rendericen los canvas antes de imprimir
-                setTimeout(() => window.print(), 800);
+                // Renderizar gráficos y esperar a que se conviertan en imágenes
+                this.renderPrintCharts(logs).then(() => {
+                    // Esperar un poco para asegurar renderizado visual
+                    setTimeout(() => {
+                        window.print();
+                        // Ocultar después de imprimir (el usuario verá la app de nuevo)
+                        // printArea.style.display = 'none'; // Opcional: Dejar visible para que lo cierren manualmente si prefieren
+                    }, 500);
+                });
             },
 
             renderPrintCharts(logs) {
-                 // 1. Tendencia
-                 const days = []; const dailySpending = {};
-                 let current = new Date(this.currentPeriod.start);
-                 while(current <= this.currentPeriod.end) {
-                     const k = current.getDate()+'/'+(current.getMonth()+1);
-                     days.push(k); dailySpending[k] = 0;
-                     current.setDate(current.getDate()+1);
-                 }
-                 logs.filter(l=>l.type==='expense').forEach(l=>{
-                     const d=new Date(l.date); const k=d.getDate()+'/'+(d.getMonth()+1);
-                     if(dailySpending[k]!==undefined) dailySpending[k]+=l.amount;
-                 });
-                 const dataPoints = []; let accum=0;
-                 days.forEach(d=>{ accum+=dailySpending[d]; dataPoints.push(accum); });
+                 return new Promise((resolveAll) => {
+                     // Datos Tendencia
+                     const days = []; const dailySpending = {};
+                     let current = new Date(this.currentPeriod.start);
+                     while(current <= this.currentPeriod.end) {
+                         const k = current.getDate()+'/'+(current.getMonth()+1);
+                         days.push(k); dailySpending[k] = 0;
+                         current.setDate(current.getDate()+1);
+                     }
+                     logs.filter(l=>l.type==='expense').forEach(l=>{
+                         const d=new Date(l.date); const k=d.getDate()+'/'+(d.getMonth()+1);
+                         if(dailySpending[k]!==undefined) dailySpending[k]+=l.amount;
+                     });
+                     const dataPoints = []; let accum=0;
+                     days.forEach(d=>{ accum+=dailySpending[d]; dataPoints.push(accum); });
 
-                 new Chart(document.getElementById('printTrendChart'), {
-                     type: 'line',
-                     data: {
-                         labels: days.filter((_,i)=>i%3===0), // Menos etiquetas para print
-                         datasets: [{ label: 'Gasto', data: dataPoints, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.2)', fill: true, pointRadius: 0, borderWidth: 2 }]
-                     },
-                     options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#71717a'}}, y:{display:false}} }
-                 });
+                     // Promesas individuales para cada gráfico
+                     const p1 = new Promise(resolve => {
+                         new Chart(document.getElementById('printTrendChart'), {
+                             type: 'line',
+                             data: {
+                                 labels: days.filter((_,i)=>i%3===0),
+                                 datasets: [{ label: 'Gasto', data: dataPoints, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.2)', fill: true, pointRadius: 0, borderWidth: 2 }]
+                             },
+                             options: { 
+                                 responsive:true, 
+                                 maintainAspectRatio:false, 
+                                 plugins:{legend:{display:false}}, 
+                                 scales:{x:{ticks:{color:'#71717a'}}, y:{display:false}},
+                                 animation: {
+                                     onComplete: function() {
+                                         const img = this.toBase64Image();
+                                         const container = document.getElementById('containerTrend');
+                                         if(container) container.innerHTML = `<img src="${img}" style="width:100%;height:100%;object-fit:contain;">`;
+                                         resolve();
+                                     }
+                                 }
+                             }
+                         });
+                     });
 
-                 // 2. Categorías
-                 const cats = {};
-                 logs.filter(l=>l.type==='expense').forEach(l=>{ cats[l.category]=(cats[l.category]||0)+l.amount; });
-                 
-                 new Chart(document.getElementById('printCatChart'), {
-                     type: 'doughnut',
-                     data: {
-                        labels: Object.keys(cats),
-                        datasets: [{ data: Object.values(cats), backgroundColor: ['#fb923c','#60a5fa','#c084fc','#facc15','#ec4899','#f87171','#34d399','#818cf8','#9ca3af'], borderWidth:0 }]
-                     },
-                     options: { responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{ legend:{position:'right',labels:{color:'#a1a1aa',font:{size:9},boxWidth:8}} } }
+                     // Datos Categorías
+                     const cats = {};
+                     logs.filter(l=>l.type==='expense').forEach(l=>{ cats[l.category]=(cats[l.category]||0)+l.amount; });
+                     
+                     const p2 = new Promise(resolve => {
+                         new Chart(document.getElementById('printCatChart'), {
+                             type: 'doughnut',
+                             data: {
+                                labels: Object.keys(cats),
+                                datasets: [{ data: Object.values(cats), backgroundColor: ['#fb923c','#60a5fa','#c084fc','#facc15','#ec4899','#f87171','#34d399','#818cf8','#9ca3af'], borderWidth:0 }]
+                             },
+                             options: { 
+                                 responsive:true, 
+                                 maintainAspectRatio:false, 
+                                 cutout:'60%', 
+                                 plugins:{ legend:{position:'right',labels:{color:'#a1a1aa',font:{size:9},boxWidth:8}} },
+                                 animation: {
+                                     onComplete: function() {
+                                         const img = this.toBase64Image();
+                                         const container = document.getElementById('containerCat');
+                                         if(container) container.innerHTML = `<img src="${img}" style="width:100%;height:100%;object-fit:contain;">`;
+                                         resolve();
+                                     }
+                                 }
+                             }
+                         });
+                     });
+
+                     Promise.all([p1, p2]).then(resolveAll);
                  });
             },
 
