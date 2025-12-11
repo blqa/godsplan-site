@@ -98,6 +98,7 @@
         .full-btn:active { transform: scale(0.98); }
 
         /* --- ESTILOS DE IMPRESIÓN (ESTADO DE CUENTA) --- */
+        /* INTEGRACIÓN DE ESTILOS DEL CÓDIGO A */
         @media print {
             @page { margin: 10mm; size: auto; }
             body { 
@@ -120,6 +121,7 @@
                 background: white;
                 padding: 20px;
             }
+            /* Estilos específicos de la tabla del Código A */
             .print-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
             .print-table th, .print-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
             .print-table th { background-color: #f2f2f2; font-weight: bold; }
@@ -286,7 +288,6 @@
                     </div>
                     <!-- Si no hay sesión, se muestra el botón para redirigir -->
                     <button id="btnLogin" onclick="app.redirectToAuth()" class="text-xs bg-blue-600/20 text-blue-400 px-3 py-1.5 rounded-lg font-bold border border-blue-600/30">ENTRAR</button>
-                    <!-- FIX: Botón de logout oculto por defecto -->
                     <button id="btnLogout" onclick="app.logout()" class="hidden text-xs text-zinc-500 hover:text-white p-2" title="Cerrar Sesión">
                          <i class="ph-bold ph-sign-out text-lg"></i>
                     </button>
@@ -517,7 +518,7 @@
                          this.setupRealtimeListeners();
                     } else {
                          if (!u && initialAuthToken) {
-                            try { await signInWithCustomToken(auth, initialAuthToken); return; } catch(e){}
+                           try { await signInWithCustomToken(auth, initialAuthToken); return; } catch(e){}
                          }
                          if (!u) {
                              await signInAnonymously(auth); // Intentar anónimo para evitar errores de null, pero bloquear UI
@@ -673,18 +674,131 @@
                 this.chartInstance = new Chart(ctx.getContext('2d'), { type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { color: '#999', font: { size: 10, family: 'Plus Jakarta Sans' }, boxWidth: 10 } } } } });
             },
 
+            // --- REPORTE (ESTADO DE CUENTA - INTEGRADO DEL CÓDIGO A) ---
             generateReport() {
                 if (!this.currentPeriod) return UI.toast('Cargando periodo...', 'error');
-                const pStart = this.currentPeriod.start; const pEnd = this.currentPeriod.end;
-                const periodLogs = this.logs.filter(l => { const d = new Date(l.date).getTime(); return d >= pStart.getTime() && d <= pEnd.getTime(); }).sort((a,b) => new Date(b.date) - new Date(a.date));
-                const totalIncomeExtra = periodLogs.filter(l => l.type === 'income').reduce((acc, l) => acc + l.amount, 0);
-                const totalExpenseVar = periodLogs.filter(l => l.type === 'expense').reduce((acc, l) => acc + l.amount, 0);
-                let fixedTotal = 0; let fixedDetails = []; const pStartDay = pStart.getDate(); const isFirstQ = pStartDay === 5;
-                (this.data.fixed || []).forEach(f => { const d = parseInt(f.day); let applies = false; if (isFirstQ) { if (d >= 5 && d <= 19) applies = true; } else { if (d >= 20 || d <= 4) applies = true; } if(applies) { fixedTotal += parseFloat(f.amount) || 0; fixedDetails.push(f); } });
-                const baseIncome = parseFloat(this.data.income) || 0; const totalIngresos = baseIncome + totalIncomeExtra; const totalEgresos = fixedTotal + totalExpenseVar; const saldoFinal = totalIngresos - totalEgresos;
-                let html = `<div class="print-header"><h1 style="font-size: 24px; font-weight: 800; margin: 0;">ESTADO DE CUENTA</h1><p style="margin: 5px 0 0 0; color: #666;">God's Plan Finanzas</p><p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Periodo:</strong> ${pStart.toLocaleDateString('es-ES')} al ${pEnd.toLocaleDateString('es-ES')}</p></div><div class="print-section"><div class="print-title">RESUMEN</div><div class="print-summary-grid"><div class="print-summary-item"><div style="font-size: 10px; color: #666; text-transform: uppercase;">Total Ingresos</div><div style="font-size: 18px; font-weight: bold; color: #059669;">${UI.fmtMoney(totalIngresos)}</div></div><div class="print-summary-item"><div style="font-size: 10px; color: #666; text-transform: uppercase;">Total Egresos</div><div style="font-size: 18px; font-weight: bold; color: #dc2626;">${UI.fmtMoney(totalEgresos)}</div></div></div><div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; text-align: center; border-radius: 8px;"><span style="display: block; font-size: 12px; text-transform: uppercase;">Saldo Disponible</span><span style="display: block; font-size: 28px; font-weight: 900;">${UI.fmtMoney(saldoFinal)}</span></div></div>`;
-                // Add tables... (simplified for brevity, logic remains from previous)
-                const printArea = document.getElementById('print-area'); if (printArea) { printArea.innerHTML = html; window.print(); }
+                
+                // 1. Recopilar datos
+                const pStart = this.currentPeriod.start;
+                const pEnd = this.currentPeriod.end;
+                const pStartStr = pStart.toLocaleDateString('es-ES');
+                const pEndStr = pEnd.toLocaleDateString('es-ES');
+                
+                // Transacciones del periodo
+                const periodLogs = this.logs.filter(l => {
+                    const d = new Date(l.date).getTime();
+                    return d >= pStart.getTime() && d <= pEnd.getTime();
+                }).sort((a,b) => new Date(b.date) - new Date(a.date));
+
+                // Totales
+                const incomeLogs = periodLogs.filter(l => l.type === 'income');
+                const expenseLogs = periodLogs.filter(l => l.type === 'expense');
+                
+                const totalIncomeExtra = incomeLogs.reduce((acc, l) => acc + l.amount, 0);
+                const totalExpenseVar = expenseLogs.reduce((acc, l) => acc + l.amount, 0);
+                
+                // Fijos aplicados
+                let fixedTotal = 0;
+                let fixedDetails = [];
+                const pStartDay = pStart.getDate();
+                const isFirstQ = pStartDay === 5;
+                
+                (this.data.fixed || []).forEach(f => {
+                    const d = parseInt(f.day);
+                    let applies = false;
+                    if (isFirstQ) { if (d >= 5 && d <= 19) applies = true; }
+                    else { if (d >= 20 || d <= 4) applies = true; }
+                    
+                    if(applies) {
+                        fixedTotal += parseFloat(f.amount) || 0;
+                        fixedDetails.push(f);
+                    }
+                });
+
+                const baseIncome = parseFloat(this.data.income) || 0;
+                
+                const totalIngresos = baseIncome + totalIncomeExtra;
+                const totalEgresos = fixedTotal + totalExpenseVar;
+                const saldoFinal = totalIngresos - totalEgresos;
+
+                // 2. Construir HTML (Diseño "A")
+                let html = `
+                    <div class="print-header">
+                        <h1 style="font-size: 24px; font-weight: 800; margin: 0;">ESTADO DE CUENTA</h1>
+                        <p style="margin: 5px 0 0 0; color: #666;">God's Plan Finanzas</p>
+                        <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Periodo:</strong> ${pStartStr} al ${pEndStr}</p>
+                        <p style="margin: 0; font-size: 12px; color: #999;">Generado el: ${new Date().toLocaleString()}</p>
+                    </div>
+
+                    <div class="print-section">
+                        <div class="print-title">RESUMEN FINANCIERO</div>
+                        <div class="print-summary-grid">
+                            <div class="print-summary-item">
+                                <div style="font-size: 10px; color: #666; text-transform: uppercase;">Total Ingresos</div>
+                                <div style="font-size: 18px; font-weight: bold; color: #059669;">${UI.fmtMoney(totalIngresos)}</div>
+                                <div style="font-size: 10px; color: #888;">Base: ${UI.fmtMoney(baseIncome)} + Extra: ${UI.fmtMoney(totalIncomeExtra)}</div>
+                            </div>
+                            <div class="print-summary-item">
+                                <div style="font-size: 10px; color: #666; text-transform: uppercase;">Total Egresos</div>
+                                <div style="font-size: 18px; font-weight: bold; color: #dc2626;">${UI.fmtMoney(totalEgresos)}</div>
+                                <div style="font-size: 10px; color: #888;">Fijos: ${UI.fmtMoney(fixedTotal)} + Var: ${UI.fmtMoney(totalExpenseVar)}</div>
+                            </div>
+                        </div>
+                        <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; text-align: center; border-radius: 8px;">
+                            <span style="display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Saldo Disponible / Ahorro</span>
+                            <span style="display: block; font-size: 28px; font-weight: 900;">${UI.fmtMoney(saldoFinal)}</span>
+                        </div>
+                    </div>
+
+                    <div class="print-section">
+                        <div class="print-title">GASTOS FIJOS DEL PERIODO</div>
+                        ${fixedDetails.length > 0 ? `
+                        <table class="print-table">
+                            <thead><tr><th>Día Pago</th><th>Concepto</th><th style="text-align: right;">Monto</th></tr></thead>
+                            <tbody>
+                                ${fixedDetails.map(f => `<tr><td>${f.day}</td><td>${f.name}</td><td style="text-align: right;">${UI.fmtMoney(f.amount)}</td></tr>`).join('')}
+                            </tbody>
+                        </table>` : '<p style="font-size: 12px; font-style: italic;">Sin gastos fijos este periodo.</p>'}
+                    </div>
+
+                    <div class="print-section">
+                        <div class="print-title">DEUDAS CORTAS PENDIENTES</div>
+                        ${(this.data.loans && this.data.loans.length > 0) ? `
+                        <table class="print-table">
+                            <thead><tr><th>Vence</th><th>Concepto</th><th style="text-align: right;">Monto</th></tr></thead>
+                            <tbody>
+                                ${this.data.loans.map(l => `<tr><td>${l.dueDate}</td><td>${l.name}</td><td style="text-align: right; color: #d97706;">${UI.fmtMoney(l.amount)}</td></tr>`).join('')}
+                            </tbody>
+                        </table>` : '<p style="font-size: 12px; font-style: italic;">No hay deudas registradas.</p>'}
+                    </div>
+
+                    <div class="print-section">
+                        <div class="print-title">DETALLE DE MOVIMIENTOS</div>
+                        ${periodLogs.length > 0 ? `
+                        <table class="print-table">
+                            <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th style="text-align: right;">Monto</th></tr></thead>
+                            <tbody>
+                                ${periodLogs.map(l => {
+                                    const date = new Date(l.date).toLocaleDateString() + ' ' + new Date(l.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                                    const color = l.type === 'income' ? '#059669' : '#000';
+                                    const sign = l.type === 'income' ? '+' : '-';
+                                    return `<tr>
+                                        <td>${date}</td>
+                                        <td>${l.category || '-'}</td>
+                                        <td>${l.desc || ''}</td>
+                                        <td style="text-align: right; color: ${color}; font-weight: 500;">${sign}${UI.fmtMoney(l.amount)}</td>
+                                    </tr>`;
+                                }).join('')}
+                            </tbody>
+                        </table>` : '<p style="font-size: 12px; font-style: italic;">Sin movimientos registrados.</p>'}
+                    </div>
+                `;
+
+                const printArea = document.getElementById('print-area');
+                if (printArea) {
+                    printArea.innerHTML = html;
+                    window.print();
+                }
             },
 
             switchView(viewName) {
@@ -779,26 +893,6 @@
                  }
             },
             async resetData() { if (await UI.confirm('RESET', '¿Borrar TODOS los datos financieros?')) { try { await setDoc(doc(db, PRIVATE_DATA_PATH(this.user.uid)), { income: 0, fixed: [], loans: [] }); const q = query(collection(db, LOGS_COLLECTION(this.user.uid)), limit(500)); const snap = await getDocs(q); const batch = writeBatch(db); snap.forEach(d => batch.delete(d.ref)); await batch.commit(); location.reload(); } catch(e) { UI.toast('Error al borrar', 'error'); } } },
-
-            redirectToAuth() { window.location.href = '/'; },
-            logout() { signOut(auth).then(() => window.location.href = '/'); },
-            updateUserUI() { 
-                const u = this.user; if(!u) return; 
-                
-                const userNameEl = document.getElementById('userName');
-                const userStatusTextEl = document.getElementById('userStatusText');
-                const btnLoginEl = document.getElementById('btnLogin');
-                const btnLogoutEl = document.getElementById('btnLogout');
-
-                if (userNameEl) userNameEl.textContent = u.displayName || u.email.split('@')[0];
-                if (userStatusTextEl) {
-                    userStatusTextEl.textContent = 'Conectado';
-                    userStatusTextEl.className = 'text-[10px] text-emerald-500 font-bold';
-                }
-                
-                if (btnLoginEl) btnLoginEl.classList.add('hidden');
-                if (btnLogoutEl) btnLogoutEl.classList.remove('hidden');
-            }
         };
 
         document.addEventListener('DOMContentLoaded', () => window.app.init());
