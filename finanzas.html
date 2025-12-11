@@ -181,26 +181,23 @@
         .modal-auth.active { display: flex; }
 
 /* =========================================
-           IMPRESIÓN / REPORTE PREMIUM DARK MODE (RED EDITION)
-           MODIFICADO: 3 CARDS + 1 GRÁFICO GIGANTE
+           IMPRESIÓN / REPORTE PREMIUM DARK MODE (SIMPLIFICADO)
+           SIN GRAFICOS - SOLO DATOS
            ========================================= */
         @media print {
-            /* 1. ELIMINAR BORDES BLANCOS DEL NAVEGADOR */
+            /* 1. ELIMINAR BORDES BLANCOS */
             @page { 
                 margin: 0 !important; 
                 size: auto; 
             }
 
-            /* 2. FORZAR FONDO NEGRO Y AJUSTES GLOBALES */
+            /* 2. FORZAR FONDO NEGRO */
             html, body {
-                width: 100%;
-                height: 100%;
-                margin: 0 !important;
-                padding: 0 !important;
+                width: 100%; height: 100%; margin: 0 !important; padding: 0 !important;
                 background-color: #000000 !important; /* Negro Puro */
                 -webkit-print-color-adjust: exact !important; 
                 print-color-adjust: exact !important;
-                font-family: sans-serif; /* Asegura fuente limpia */
+                font-family: sans-serif;
             }
 
             /* 3. OCULTAR UI DE LA APP */
@@ -219,150 +216,61 @@
                 box-sizing: border-box;
             }
 
-            /* =========================================
-               ESTILOS ESPECÍFICOS: NEGRO & ROJO
-               ========================================= */
-            
             /* Header */
             .print-header { 
-                display: flex; 
-                justify-content: space-between; 
-                align-items: center; 
-                border-bottom: 3px solid #ef4444 !important; /* Borde más grueso */
-                padding-bottom: 20px; 
-                margin-bottom: 30px; 
+                display: flex; justify-content: space-between; align-items: center; 
+                border-bottom: 3px solid #ef4444 !important; 
+                padding-bottom: 20px; margin-bottom: 30px; 
             }
             .print-logo { 
-                color: #ffffff !important; 
-                font-size: 32px; /* Logo más grande */
-                font-weight: 900; 
-                display: flex; 
-                align-items: center; 
-                gap: 10px; 
-                letter-spacing: -1px;
+                color: #ffffff !important; font-size: 32px; font-weight: 900; 
+                display: flex; align-items: center; gap: 10px; letter-spacing: -1px;
             }
             .logo-accent { color: #ef4444 !important; }
-            
-            .print-meta { 
-                text-align: right; 
-                color: #a1a1aa !important; 
-                font-size: 14px; /* Meta datos un poco más legibles */
-            }
+            .print-meta { text-align: right; color: #a1a1aa !important; font-size: 14px; }
 
-            /* Grid y Cards (KPIs) 
-               CAMBIO: Ahora son 3 columnas para Ingresos, Gastos y Saldo Final
-            */
+            /* Grid de KPIs (Simple) */
             .print-grid { 
-                display: grid; 
-                grid-template-columns: repeat(3, 1fr); /* 3 COLUMNAS SOLAMENTE */
-                gap: 20px; 
-                margin-bottom: 40px; 
+                display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px; 
             }
             .print-card { 
                 background-color: #050505 !important; 
-                border: 2px solid #7f1d1d !important; /* Borde más notorio */
-                border-radius: 12px; 
-                padding: 20px; 
-                display: flex; 
-                flex-direction: column; 
-                justify-content: center;
-                box-shadow: none !important;
+                border: 2px solid #7f1d1d !important; 
+                border-radius: 12px; padding: 20px; 
+                display: flex; flex-direction: column; justify-content: center;
             }
             .print-label { 
-                font-size: 14px; /* Etiqueta más grande */
-                text-transform: uppercase; 
-                color: #ef4444 !important; 
-                font-weight: 800; 
-                margin-bottom: 10px; 
-                letter-spacing: 1px;
+                font-size: 12px; text-transform: uppercase; color: #ef4444 !important; 
+                font-weight: 800; margin-bottom: 5px; letter-spacing: 1px;
             }
             .print-val { 
-                font-size: 32px; /* Números gigantes */
-                font-weight: 900; 
-                color: #ffffff !important; 
+                font-size: 24px; font-weight: 900; color: #ffffff !important; 
             }
 
-            /* Gráficos (Distribución Gigante) */
-            .print-charts-row { 
-                display: block; /* Ya no es grid, es bloque completo */
-                width: 100%;
-                margin-bottom: 40px; 
-                height: 550px; /* ALTURA AUMENTADA CONSIDERABLEMENTE */
-            }
-            
-            .print-chart-box { 
-                background-color: #050505 !important; 
-                border: 2px solid #450a0a !important; 
-                border-radius: 16px; 
-                padding: 20px; 
-                position: relative; 
-                height: 100%; /* Ocupa los 550px definidos arriba */
-                width: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                overflow: visible; /* Permitir que las etiquetas salgan si es necesario */
-            }
-
-            /* ESTILOS PARA AGRANDAR LAS LETRAS DE GUÍA (LEYENDA) 
-               Nota: Esto intenta afectar a elementos comunes de librerías de gráficos.
-            */
-            .print-chart-box text, 
-            .print-chart-box span, 
-            .print-chart-box div,
-            .print-chart-box li, /* Si es una lista ul/li */
-            .print-chart-box tspan {
-                font-size: 18px !important; /* Letras de guía GRANDES */
-                font-weight: 600 !important;
-                fill: #e5e5e5 !important; /* Color de texto claro */
-                color: #e5e5e5 !important;
-            }
-
-            /* Si hay una leyenda explicita */
-            .chart-legend {
-                transform: scale(1.5); /* Truco para agrandar toda la leyenda */
-                transform-origin: center;
-            }
-            
-            /* Tablas */
+            /* Tabla Limpia */
             .print-table { 
-                width: 100%; 
-                border-collapse: collapse; 
-                font-size: 12px; /* Fuente de tabla un poco más grande */
-                margin-top: 20px;
+                width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 20px;
             }
             .print-table th { 
-                text-align: left; 
-                color: #ef4444 !important; 
-                text-transform: uppercase; 
-                font-weight: 900; 
-                padding: 15px 12px; 
-                border-bottom: 3px solid #7f1d1d !important; 
-                font-size: 14px;
+                text-align: left; color: #ef4444 !important; text-transform: uppercase; 
+                font-weight: 900; padding: 10px; 
+                border-bottom: 2px solid #7f1d1d !important; font-size: 12px;
             }
             .print-table td { 
-                padding: 12px; 
-                border-bottom: 1px solid #280505 !important; 
-                color: #d4d4d8 !important; 
-                font-size: 13px;
+                padding: 10px; border-bottom: 1px solid #280505 !important; 
+                color: #d4d4d8 !important; font-size: 12px;
             }
-            .print-table tr:nth-child(even) td { 
-                background-color: #0f0202 !important; 
-            }
+            .print-table tr:nth-child(even) td { background-color: #0f0202 !important; }
             
             /* Footer */
             .print-footer { 
-                margin-top: 50px; 
-                border-top: 2px solid #450a0a !important; 
-                padding-top: 20px; 
-                text-align: center; 
-                color: #71717a !important; 
-                font-size: 12px; 
-                font-weight: bold;
+                margin-top: 50px; border-top: 1px solid #450a0a !important; 
+                padding-top: 20px; text-align: center; color: #52525b !important; 
+                font-size: 10px; font-weight: bold;
             }
             
             /* Evitar cortes */
-            .print-card, .print-chart-box, tr { page-break-inside: avoid; }
+            .print-card, tr { page-break-inside: avoid; }
         }
 
         /* Ocultar área de impresión en pantalla normal */
@@ -1377,7 +1285,7 @@
             scrollToChart() { document.getElementById('chartSection').classList.remove('hidden'); document.getElementById('chartSection').scrollIntoView({behavior:'smooth'}); },
             filterTransactions() { this.searchQuery = document.getElementById('searchTx').value; this.renderTransactions(); },
             
-            // --- NUEVO REPORTE Y CSV IMPORT/EXPORT ---
+            // --- NUEVO REPORTE SIMPLIFICADO ---
             generateReport() {
                 if(!this.currentPeriod) return UI.toast('Espera un momento...','error');
                 
@@ -1389,7 +1297,7 @@
                 const balance = totalIncome - exp;
                 const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
                 
-                // Construir HTML del Reporte (PREMIUM DARK MODE - RED EDITION)
+                // Construir HTML del Reporte (PREMIUM DARK MODE - RED EDITION - SIN GRAFICOS)
                 const printArea = document.getElementById('print-area');
                 
                 // 1. Desbloquear el scroll del body temporalmente para multipágina
@@ -1414,7 +1322,7 @@
                         GOD'S <span class="logo-accent">PLAN</span>
                     </div>
                     <div class="print-meta">
-                        <p>REPORTE FINANCIERO MENSUAL</p>
+                        <p>ESTADO DE CUENTA MENSUAL</p>
                         <p>ID: #GP-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000 + 1000)}</p>
                         <p>FECHA: ${new Date().toLocaleDateString('es-MX', {day: '2-digit', month:'short', year:'numeric'}).toUpperCase()}</p>
                     </div>
@@ -1439,17 +1347,6 @@
                     </div>
                 </div>
 
-                <div class="print-charts-row">
-                    <div class="print-chart-box">
-                         <div style="position:absolute;top:10px;left:10px;font-size:10px;color:#ef4444;font-weight:bold;">TENDENCIA DE FLUJO</div>
-                         <div style="height:100%;width:100%" id="containerTrend"><canvas id="printTrendChart"></canvas></div>
-                    </div>
-                    <div class="print-chart-box">
-                        <div style="position:absolute;top:10px;left:10px;font-size:10px;color:#ef4444;font-weight:bold;">DISTRIBUCIÓN</div>
-                        <div style="height:100%;width:100%" id="containerCat"><canvas id="printCatChart"></canvas></div>
-                    </div>
-                </div>
-
                 <table class="print-table">
                     <thead>
                         <tr>
@@ -1460,7 +1357,7 @@
                             <th style="text-align: right;">Monto</th>
                         </tr>
                     </thead>
-                    <tbody>${logs.slice(0, 40).map(l=>`
+                    <tbody>${logs.slice(0, 100).map(l=>`
                         <tr>
                             <td>${l.desc||'Sin descripción'}</td>
                             <td>${l.category}</td>
@@ -1473,16 +1370,14 @@
 
                 <div class="print-footer">
                     <p>CONFIDENCIAL - GENERADO POR SISTEMA GOD'S PLAN</p>
-                    <p>Página 1 de 1</p>
+                    <p>Fin del reporte</p>
                 </div>
                 
                 <button onclick="app.closePrintPreview()" style="position:fixed;bottom:20px;right:20px;background:#ef4444;color:white;padding:12px 24px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:10000;" class="no-print hover:bg-red-600 transition-colors">CERRAR VISTA PREVIA</button>
                 <style>@media print { .no-print { display: none !important; } }</style>
                 `;
 
-                this.renderPrintCharts(logs).then(() => {
-                    setTimeout(() => window.print(), 800);
-                });
+                setTimeout(() => window.print(), 500);
             },
 
             closePrintPreview() {
@@ -1491,85 +1386,6 @@
                 // Restaurar estilos del body para la App SPA
                 document.body.style.overflow = '';
                 document.body.style.height = '';
-            },
-
-            renderPrintCharts(logs) {
-                 return new Promise((resolveAll) => {
-                     // Datos Tendencia
-                     const days = []; const dailySpending = {};
-                     let current = new Date(this.currentPeriod.start);
-                     while(current <= this.currentPeriod.end) {
-                         const k = current.getDate()+'/'+(current.getMonth()+1);
-                         days.push(k); dailySpending[k] = 0;
-                         current.setDate(current.getDate()+1);
-                     }
-                     logs.filter(l=>l.type==='expense').forEach(l=>{
-                         const d=new Date(l.date); const k=d.getDate()+'/'+(d.getMonth()+1);
-                         if(dailySpending[k]!==undefined) dailySpending[k]+=l.amount;
-                     });
-                     const dataPoints = []; let accum=0;
-                     days.forEach(d=>{ accum+=dailySpending[d]; dataPoints.push(accum); });
-
-                     // Promesas individuales para cada gráfico con colores ROJO/NEGRO
-                     const p1 = new Promise(resolve => {
-                         new Chart(document.getElementById('printTrendChart'), {
-                             type: 'line',
-                             data: {
-                                 labels: days.filter((_,i)=>i%3===0),
-                                 datasets: [{ label: 'Gasto', data: dataPoints, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.2)', fill: true, pointRadius: 2, borderWidth: 2 }]
-                             },
-                             options: { 
-                                 responsive:true, 
-                                 maintainAspectRatio:false, 
-                                 plugins:{legend:{display:false}}, 
-                                 scales:{x:{ticks:{color:'#7f1d1d'}, grid:{color:'#220505'}}, y:{display:false}},
-                                 animation: {
-                                     onComplete: function() {
-                                         const img = this.toBase64Image();
-                                         const container = document.getElementById('containerTrend');
-                                         if(container) container.innerHTML = `<img src="${img}" style="width:100%;height:100%;object-fit:contain;">`;
-                                         resolve();
-                                     }
-                                 }
-                             }
-                         });
-                     });
-
-                     // Datos Categorías
-                     const cats = {};
-                     logs.filter(l=>l.type==='expense').forEach(l=>{ cats[l.category]=(cats[l.category]||0)+l.amount; });
-                     
-                     const p2 = new Promise(resolve => {
-                         new Chart(document.getElementById('printCatChart'), {
-                             type: 'doughnut',
-                             data: {
-                                labels: Object.keys(cats),
-                                datasets: [{ 
-                                    data: Object.values(cats), 
-                                    backgroundColor: ['#ef4444','#b91c1c','#991b1b','#7f1d1d','#450a0a','#f87171','#fca5a5','#fecaca', '#ffffff'], 
-                                    borderWidth:1,
-                                    borderColor: '#000000'
-                                }]
-                             },
-                             options: { 
-                                 responsive:true, 
-                                 maintainAspectRatio:false, 
-                                 cutout:'60%', 
-                                 plugins:{ legend:{position:'right',labels:{color:'#a1a1aa',font:{size:9},boxWidth:8}} },
-                                 animation: {
-                                     onComplete: function() {
-                                         const img = this.toBase64Image();
-                                         const container = document.getElementById('containerCat');
-                                         if(container) container.innerHTML = `<img src="${img}" style="width:100%;height:100%;object-fit:contain;">`;
-                                         resolve();
-                                     }
-                                 }
-                             }
-                         });
-                     });
-
-                     Promise.all([p1, p2]).then(resolveAll);
-                 });
             },
 
             exportCSV() {
