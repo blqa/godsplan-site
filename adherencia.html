@@ -997,6 +997,7 @@
     <header>
         <div class="header-title"><i class="ph-fill ph-check-circle" style="color:var(--brand)"></i> Adherencia</div>
         <div class="nav-group">
+            <button class="btn-reset" onclick="window.app.openExtensionModal()" title="Instalar Extensión"><i class="ph-bold ph-puzzle-piece"></i></button>
             <button class="btn-reset" onclick="window.app.loadTeamStatsModal()" title="Equipo"><i
                     class="ph-bold ph-users"></i></button>
             <button class="btn-reset" onclick="window.app.syncData()" title="Sincronizar"><i
@@ -1255,6 +1256,30 @@
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn-primary" onclick="window.app.saveTimerEdit()">Actualizar</button>
                 <button class="btn-secondary" onclick="document.getElementById('timerEditModal').classList.remove('active')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NUEVO MODAL DE EXTENSIÓN -->
+    <div class="modal" id="extensionModal">
+        <div class="modal-content" style="max-width: 400px; text-align: left;">
+            <h3 style="color: var(--money); margin-bottom: 10px;">✅ Aviso de Seguridad (Ultra-Breve)</h3>
+            <p style="font-weight: 700; margin-bottom: 5px;">Integridad de TouchPoint Confirmada.</p>
+            <p style="color: var(--text-mute); font-size: 0.9rem; margin-bottom: 15px;">Esta es una extensión de Solo Lectura (Read-Only) 🔒.</p>
+
+            <div style="background: var(--bg); padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border); font-size: 0.85rem;">
+                <p style="margin-bottom: 8px;"><strong>👀 Función:</strong> Solo "mira" el estado de tu pantalla (DOM) para medir tu tiempo personal.</p>
+                <p><strong>🚫 Seguridad:</strong> Nunca modifica TouchPoint ni extrae datos sensibles.</p>
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-direction: column;">
+                <a href="https://drive.usercontent.google.com/download?id=1TFqG9DAag7bVGEvt3J9ApXmmLtXNAsWh&export=download&authuser=0&confirm=t&uuid=d30b9e7f-cba4-4fab-b446-f2b8742d671e&at=ALWLOp6ky2w0gxN8yuHKk6f-jMCx:1765495468040" 
+                   class="btn-primary" 
+                   style="text-decoration: none; text-align: center; display: block; background: var(--brand); color: white;" 
+                   download>
+                   <i class="ph-bold ph-download-simple"></i> Agregar Extensión
+                </a>
+                <button class="btn-secondary" onclick="document.getElementById('extensionModal').classList.remove('active')">Cerrar</button>
             </div>
         </div>
     </div>
@@ -1521,6 +1546,11 @@
                 }
             },
             syncData() { this.load(); this.showSuccess("Sincronizado"); },
+
+            // --- EXTENSION MODAL LOGIC ---
+            openExtensionModal() {
+                document.getElementById('extensionModal').classList.add('active');
+            },
 
             // --- TEAM STATS LOGIC (MODULAR) ---
             loadTeamStatsModal() {
