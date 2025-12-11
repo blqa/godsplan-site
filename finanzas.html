@@ -14,7 +14,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- FIREBASE MODULAR (v9+) -->
+    <!-- FIREBASE MODULAR -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -38,11 +38,7 @@
                         dark: { 900: '#050505', 800: '#0a0a0a', 700: '#121212', card: '#18181b' },
                         brand: { 500: '#ef4444', 600: '#dc2626' }
                     },
-                    screens: {
-                        'xs': '375px',
-                        'md': '768px',
-                        'lg': '1024px'
-                    },
+                    screens: { 'xs': '375px', 'md': '768px', 'lg': '1024px' },
                     animation: {
                         'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                         'fade-in': 'fadeIn 0.3s ease-out'
@@ -121,68 +117,91 @@
         #global-nav { position: sticky; top: 0; z-index: 1000; }
         .g-logo { color: #fff; font-weight: 800; text-decoration: none; font-size: 1.1rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; position: relative; z-index: 1001; cursor: pointer; white-space: nowrap; }
         
-        /* Modals - Adaptive Logic */
-        .custom-dialog { background-color: #121212; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 340px; width: 90%; }
-        .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal.active { display: flex; }
-        
-        /* Sheet logic for Mobile, Dialog logic for Desktop */
+        /* =========================================
+           SISTEMA DE MODALES (CORREGIDO PC/MÓVIL)
+           ========================================= */
         #modalOverlay {
+            position: fixed; inset: 0; 
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+            z-index: 1100;
+            opacity: 0; pointer-events: none;
             transition: opacity 0.3s ease;
+            display: flex;
+            /* Por defecto Mobile: alineado abajo */
+            align-items: flex-end; 
+            justify-content: center;
         }
+
+        #modalOverlay.is-open {
+            opacity: 1; pointer-events: auto;
+        }
+
         #modalSheet {
+            background: #121212;
+            width: 100%;
+            max-height: 90vh;
+            border-top-left-radius: 32px; border-top-right-radius: 32px;
+            border-top: 1px solid #27272a;
+            padding: 24px;
+            overflow-y: auto;
+            /* Mobile Anim: Slide Up */
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             padding-bottom: calc(40px + var(--sab));
         }
 
+        /* Cuando el modal está abierto en móvil */
+        #modalOverlay.is-open #modalSheet {
+            transform: translateY(0);
+        }
+
+        /* Lógica para PC (Desktop) */
         @media (min-width: 768px) {
             #modalOverlay {
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                align-items: center; /* Centrado vertical */
                 padding: 20px;
             }
+            
             #modalSheet {
                 width: 100%;
-                max-width: 500px;
-                border-radius: 24px;
+                max-width: 480px; /* Ancho fijo bonito */
+                border-radius: 24px; /* Bordes redondeados completos */
+                border: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                max-height: 85vh;
+                padding-bottom: 24px; /* Reset padding móvil */
+                
+                /* Desktop Anim: Fade & Scale */
                 transform: scale(0.95);
                 opacity: 0;
-                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-                max-height: 85vh;
-                margin: auto;
-                padding-bottom: 24px; /* Reset mobile padding */
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-                border: 1px solid rgba(255,255,255,0.1);
+                transition: all 0.2s ease-out;
             }
-            /* Override slide up for scale in on desktop */
-            #modalSheet.desktop-active {
-                transform: scale(1) translateY(0) !important;
+
+            /* Cuando está abierto en PC */
+            #modalOverlay.is-open #modalSheet {
+                transform: scale(1);
                 opacity: 1;
             }
-            /* Hide Bottom Nav spacer on Desktop */
+
+            /* Ocultar barra navegación inferior */
             main { padding-bottom: 20px !important; }
-            
-            /* FIX: Only apply flex when NOT hidden to allow clicks on content */
-            #modalOverlay:not(.hidden) {
-                display: flex;
-            }
-            /* Override the default ID rule if it's hidden */
-            #modalOverlay.hidden {
-                display: none;
-            }
         }
 
         /* Utilities */
         .text-xxs { font-size: 10px; }
         .chart-container { position: relative; width: 100%; height: 200px; }
-        @media (max-width: 380px) { .chart-container { height: 180px; } }
-
+        
         /* Desktop Nav Link Styles */
         .nav-link-desk {
             color: #71717a; padding: 6px 16px; border-radius: 99px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s;
         }
         .nav-link-desk:hover { color: white; background: rgba(255,255,255,0.05); }
         .nav-link-desk.active { color: white; background: #27272a; }
+
+        /* Dialogs */
+        .custom-dialog { background-color: #121212; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 340px; width: 90%; }
+        .modal-auth { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-auth.active { display: flex; }
 
         /* Print Styles */
         @media print {
@@ -217,12 +236,11 @@
     </nav>
 
     <!-- CONTENEDOR PRINCIPAL -->
-    <!-- max-w-lg en móvil, max-w-5xl en desktop para aprovechar el ancho -->
     <main id="app-content" class="flex-1 overflow-y-auto pb-36 relative scroll-smooth overflow-x-hidden md:px-6">
         
         <div class="w-full max-w-lg md:max-w-6xl mx-auto h-full pt-4 md:pt-8">
 
-            <!-- SUB-NAV DESKTOP (Nuevo: Para no perder la navegación interna en PC) -->
+            <!-- SUB-NAV DESKTOP -->
             <div class="hidden md:flex justify-center mb-8 fade-in">
                 <div class="bg-zinc-900/80 border border-white/10 p-1.5 rounded-full flex items-center gap-1 shadow-lg backdrop-blur-sm">
                     <button onclick="app.switchView('balance')" class="nav-link-desk active px-6" data-view="balance">Billetera</button>
@@ -231,7 +249,7 @@
                 </div>
             </div>
 
-            <!-- VISTA: BILLETERA (Dashboard Layout en PC) -->
+            <!-- VISTA: BILLETERA -->
             <section id="view-balance" class="p-4 sm:p-0 fade-in">
                 
                 <!-- Layout Grid para Desktop -->
@@ -261,7 +279,7 @@
                                        <i id="eyeIcon" class="ph ph-eye text-lg"></i>
                                     </button>
                                 </div>
-                                <!-- Valor principal con animación de conteo -->
+                                <!-- Valor principal -->
                                 <div class="text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter mb-8 break-all relative leading-none" id="dailyFreeContainer">
                                     <span id="dailyFree">---</span>
                                     <div id="dailyFreeBlur" class="hidden absolute inset-0 bg-zinc-900/50 backdrop-blur-md rounded-lg z-20 flex items-center justify-center">
@@ -280,7 +298,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Barra de progreso del periodo -->
+                            <!-- Barra de progreso -->
                             <div class="absolute bottom-0 left-0 h-1.5 bg-zinc-800 w-full">
                                 <div id="periodProgress" class="h-full bg-gradient-to-r from-red-600 to-orange-600 shadow-[0_0_10px_rgba(239,68,68,0.5)] w-0 transition-all duration-1000 ease-out"></div>
                             </div>
@@ -428,7 +446,7 @@
                     </div>
                 </div>
                 
-                <!-- METAS DE AHORRO (NUEVO) -->
+                <!-- METAS DE AHORRO -->
                  <div class="mb-8">
                     <div class="flex justify-between items-center mb-4 px-1 border-b border-white/5 pb-2">
                         <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2"><i class="ph-fill ph-piggy-bank text-pink-500 text-base"></i> Metas Ahorro</span>
@@ -502,13 +520,13 @@
         </button>
     </div>
 
-    <!-- MODAL (ADAPTATIVO: SHEET EN MÓVIL, DIALOG EN PC) -->
-    <div id="modalOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[1100] hidden flex-col justify-end opacity-0 transition-opacity" onclick="if(event.target === this) app.closeModal()">
-        <div id="modalSheet" class="bg-[#121212] w-full mx-auto rounded-t-[32px] border-t border-zinc-800 p-6 translate-y-full transition-transform duration-300 max-h-[90vh] overflow-y-auto shadow-2xl relative md:border md:bg-[#18181b]">
+    <!-- MODAL (ADAPTATIVO) -->
+    <div id="modalOverlay" onclick="if(event.target === this) app.closeModal()">
+        <div id="modalSheet">
             <!-- Handle solo para móvil -->
             <div class="md:hidden w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0"></div>
             
-            <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#121212] md:bg-[#18181b] z-10 pb-2 border-b border-transparent">
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#121212] z-10 pb-2 border-b border-transparent">
                 <h3 class="text-xl font-bold text-white" id="modalTitle">Nuevo</h3>
                 <button onclick="app.closeModal()" class="w-10 h-10 rounded-full bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 transition-colors active:scale-90"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
@@ -593,7 +611,7 @@
     </div>
     
     <!-- AUTH BLOCKER -->
-    <div class="modal" id="authModal">
+    <div class="modal-auth" id="authModal">
         <div class="custom-dialog rounded-2xl p-8 text-center bg-[#121212] border border-zinc-800">
             <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="ph-fill ph-lock-key text-red-500 text-2xl"></i>
@@ -1013,10 +1031,12 @@
             // --- ACTIONS ---
             openModal(type, id=null) {
                 this.modalType = type; this.editId = id;
+                
+                // Hide all forms first
                 document.querySelectorAll('#modalSheet > div[id^="form"]').forEach(d => d.classList.add('hidden'));
-                document.getElementById('modalOverlay').classList.remove('hidden'); 
-                document.getElementById('modalSheet').classList.remove('translate-y-full');
-                setTimeout(()=>document.getElementById('modalOverlay').classList.remove('opacity-0'),10);
+                
+                // Show Overlay (CSS handles transition based on 'is-open' class)
+                document.getElementById('modalOverlay').classList.add('is-open');
 
                 const title = document.getElementById('modalTitle');
                 
@@ -1083,9 +1103,7 @@
             },
             
             closeModal() {
-                document.getElementById('modalOverlay').classList.add('opacity-0');
-                document.getElementById('modalSheet').classList.add('translate-y-full');
-                setTimeout(()=>document.getElementById('modalOverlay').classList.add('hidden'),300);
+                document.getElementById('modalOverlay').classList.remove('is-open');
             },
             
             selCat(el) { document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); },
@@ -1210,7 +1228,14 @@
                 
                 document.getElementById('view-'+v).classList.remove('hidden');
                 document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-                event.currentTarget.classList.add('active');
+                
+                // Actualizar botones nav móvil si existe (event podría ser null si se llama programáticamente)
+                if(event && event.currentTarget) event.currentTarget.classList.add('active');
+                
+                // Actualizar botones nav desktop
+                document.querySelectorAll('.nav-link-desk').forEach(b => {
+                    b.classList.toggle('active', b.dataset.view === v);
+                });
                 
                 document.getElementById('fabContainer').classList.toggle('scale-0', v !== 'balance');
                 
