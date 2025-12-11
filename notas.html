@@ -9,6 +9,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Marked para procesar Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <!-- FIREBASE MODULAR (v9+) -->
     <script type="module">
@@ -29,11 +31,12 @@
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: {
                         dark: { 900: '#050505', 800: '#0a0a0a', 700: '#121212', card: '#18181b' },
-                        brand: { 500: '#ef4444', 600: '#dc2626' } // Rojo consistente con la app
+                        brand: { 500: '#ef4444', 600: '#dc2626' }
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-out',
-                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
@@ -97,7 +100,6 @@
             <a href="/adherencia.html" class="text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">ADHERENCIA</a>
             <a href="/finanzas.html" class="text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">FINANZAS</a>
             <a href="#" class="text-white text-[10px] font-bold uppercase tracking-wider whitespace-nowrap border-b-2 border-white pb-0.5">NOTAS</a>
-            <!-- CUENTA REMOVIDA -->
             <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-zinc-800 ml-1 flex-shrink-0" title="Estado"></div>
         </div>
     </nav>
@@ -119,7 +121,7 @@
         <!-- GRID DE NOTAS -->
         <div id="notesGrid" class="columns-2 gap-4 max-w-2xl mx-auto pb-10 space-y-4">
             <!-- Las notas se inyectan aquí -->
-            <div class="text-center text-zinc-600 col-span-full py-10 text-xs mt-10">Cargando tus pensamientos...</div>
+            <div class="text-center text-zinc-600 col-span-full py-10 text-xs mt-10">Conectando...</div>
         </div>
 
     </main>
@@ -138,11 +140,17 @@
             <button onclick="app.closeEditor()" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white bg-zinc-900 rounded-full">
                 <i class="ph-bold ph-arrow-left"></i>
             </button>
-            <div class="flex gap-3">
+            <div class="flex items-center gap-2">
+                <!-- Botón Pin -->
+                <button id="btnPin" onclick="app.togglePin()" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:bg-zinc-800 rounded-full transition-all">
+                    <i id="iconPin" class="ph-bold ph-push-pin text-lg"></i>
+                </button>
+                
                 <button id="btnDeleteNote" onclick="app.deleteNote()" class="w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-500/10 rounded-full hidden">
                     <i class="ph-bold ph-trash"></i>
                 </button>
-                <button onclick="app.saveNote()" class="text-xs bg-white text-black px-4 py-2 rounded-full font-bold hover:bg-zinc-200 transition-colors">
+                
+                <button onclick="app.saveNote()" class="text-xs bg-white text-black px-4 py-2 rounded-full font-bold hover:bg-zinc-200 transition-colors ml-2">
                     GUARDAR
                 </button>
             </div>
@@ -151,8 +159,9 @@
         <!-- Área de Edición -->
         <div class="flex-1 overflow-y-auto p-5 max-w-2xl mx-auto w-full">
             <input type="text" id="noteTitle" placeholder="Título" class="input-clean text-3xl font-black mb-4 placeholder-zinc-700">
-            <textarea id="noteBody" placeholder="Escribe algo brillante..." class="input-clean text-base text-zinc-300 leading-relaxed placeholder-zinc-800 w-full h-full bg-transparent"></textarea>
-            <div class="text-[10px] text-zinc-600 mt-10 font-mono" id="lastEdited"></div>
+            <textarea id="noteBody" placeholder="Escribe algo brillante..." class="input-clean text-base text-zinc-300 leading-relaxed placeholder-zinc-800 w-full h-full bg-transparent font-sans"></textarea>
+            <!-- Estado de guardado -->
+            <div class="text-[10px] text-zinc-600 mt-10 font-mono flex items-center gap-2" id="lastEdited"></div>
         </div>
     </div>
 
@@ -212,6 +221,8 @@
             user: null,
             notes: [],
             currentNoteId: null,
+            currentNoteIsPinned: false,
+            saveTimeout: null, // Timer para el auto-save
 
             async init() {
                 if (!auth) return;
@@ -221,12 +232,10 @@
                         document.getElementById('authModal').classList.add('hidden');
                         this.setupListeners();
                     } else {
-                        // Intentar login con token si existe
                         if (!u && initialAuthToken) {
                             try { await signInWithCustomToken(auth, initialAuthToken); return; } catch(e){}
                         }
                         if (!u) await signInAnonymously(auth);
-                        // Si sigue anónimo o null, bloquear UI (Notas son privadas)
                         document.getElementById('authModal').classList.remove('hidden');
                     }
                 });
@@ -235,18 +244,27 @@
             setupListeners() {
                 if (!this.user) return;
                 const notesRef = collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'notes');
+                // Traemos por fecha, ordenaremos en cliente por Pin + Fecha
                 const q = query(notesRef, orderBy('updatedAt', 'desc'), limit(100));
 
                 onSnapshot(q, (snapshot) => {
-                    document.getElementById('syncStatus').classList.remove('bg-zinc-800');
-                    document.getElementById('syncStatus').classList.add('bg-emerald-500');
+                    document.getElementById('syncStatus').classList.remove('bg-zinc-800', 'bg-red-500');
+                    document.getElementById('syncStatus').classList.add('bg-emerald-500', 'animate-pulse-slow');
                     
                     this.notes = snapshot.docs.map(d => ({
                         id: d.id,
                         ...d.data(),
-                        // Manejo seguro de fechas
-                        updatedAt: d.data().updatedAt ? d.data().updatedAt.toDate() : new Date()
+                        updatedAt: d.data().updatedAt ? d.data().updatedAt.toDate() : new Date(),
+                        isPinned: d.data().isPinned || false // Default false
                     }));
+
+                    // Ordenamiento Cliente: Pinned primero, luego fecha
+                    this.notes.sort((a, b) => {
+                        if (a.isPinned && !b.isPinned) return -1;
+                        if (!a.isPinned && b.isPinned) return 1;
+                        return b.updatedAt - a.updatedAt;
+                    });
+
                     this.renderNotes();
                 }, (error) => {
                     console.error("Error fetching notes:", error);
@@ -281,15 +299,29 @@
                 }
 
                 filtered.forEach(note => {
-                    // Truncar cuerpo para vista previa
-                    const preview = note.body ? (note.body.length > 100 ? note.body.substring(0, 100) + '...' : note.body) : 'Sin contenido';
+                    // Lógica de Markdown limpia para Preview
+                    let preview = 'Sin contenido';
+                    if (note.body) {
+                        try {
+                            const rawHtml = marked.parse(note.body);
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = rawHtml;
+                            const plainText = tempDiv.textContent || tempDiv.innerText || '';
+                            preview = plainText.length > 100 ? plainText.substring(0, 100) + '...' : plainText;
+                        } catch (e) {
+                            preview = note.body;
+                        }
+                    }
+                    
                     const dateStr = note.updatedAt.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+                    const pinnedIcon = note.isPinned ? `<i class="ph-fill ph-push-pin text-yellow-500 text-xs absolute top-5 right-5"></i>` : '';
                     
                     const el = document.createElement('div');
-                    el.className = 'note-card glass-card rounded-2xl p-5 cursor-pointer hover:bg-zinc-800/50';
+                    el.className = 'note-card glass-card rounded-2xl p-5 cursor-pointer hover:bg-zinc-800/50 relative group';
                     el.onclick = () => this.openEditor(note.id);
                     el.innerHTML = `
-                        <h3 class="font-bold text-white text-base mb-2 leading-tight">${note.title || 'Sin Título'}</h3>
+                        ${pinnedIcon}
+                        <h3 class="font-bold text-white text-base mb-2 leading-tight pr-4">${note.title || 'Sin Título'}</h3>
                         <p class="text-zinc-400 text-xs leading-relaxed mb-3 font-light">${preview}</p>
                         <div class="text-[10px] text-zinc-600 font-bold uppercase tracking-wider">${dateStr}</div>
                     `;
@@ -310,43 +342,64 @@
                 const bodyInput = document.getElementById('noteBody');
                 const lastEdited = document.getElementById('lastEdited');
 
+                // Bind auto-save listeners
+                titleInput.oninput = () => this.autoSaveTrigger();
+                bodyInput.oninput = () => this.autoSaveTrigger();
+
                 if (id) {
                     const note = this.notes.find(n => n.id === id);
                     if (note) {
                         titleInput.value = note.title || '';
                         bodyInput.value = note.body || '';
+                        this.currentNoteIsPinned = note.isPinned;
                         lastEdited.textContent = `Editado el ${note.updatedAt.toLocaleString()}`;
                         btnDelete.classList.remove('hidden');
                     }
                 } else {
                     titleInput.value = '';
                     bodyInput.value = '';
+                    this.currentNoteIsPinned = false;
                     lastEdited.textContent = 'Nueva Nota';
                     btnDelete.classList.add('hidden');
                 }
-
+                
+                this.updatePinUI();
                 modal.classList.add('active');
             },
 
             closeEditor() {
+                if(this.saveTimeout) clearTimeout(this.saveTimeout);
                 document.getElementById('editorModal').classList.remove('active');
                 setTimeout(() => {
                     this.currentNoteId = null;
-                }, 300); // Wait for transition
+                }, 300);
             },
 
-            async saveNote() {
+            // --- AUTO SAVE LOGIC ---
+            autoSaveTrigger() {
+                const statusEl = document.getElementById('lastEdited');
+                statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse inline-block"></span> Guardando...`;
+                
+                if (this.saveTimeout) clearTimeout(this.saveTimeout);
+                
+                this.saveTimeout = setTimeout(() => {
+                    this.saveNote(true); // Silent save
+                }, 1500);
+            },
+
+            async saveNote(silent = false) {
                 const title = document.getElementById('noteTitle').value.trim();
                 const body = document.getElementById('noteBody').value.trim();
 
-                if (!title && !body) {
-                    this.closeEditor();
+                if (!title && !body && !this.currentNoteId) {
+                    if (!silent) this.closeEditor();
                     return;
                 }
 
                 const payload = {
                     title,
                     body,
+                    isPinned: this.currentNoteIsPinned,
                     updatedAt: serverTimestamp()
                 };
 
@@ -355,15 +408,47 @@
                     
                     if (this.currentNoteId) {
                         await updateDoc(doc(notesRef, this.currentNoteId), payload);
-                        this.showToast('Nota actualizada', 'success');
+                        if(!silent) this.showToast('Nota actualizada', 'success');
                     } else {
-                        await addDoc(notesRef, { ...payload, createdAt: serverTimestamp() });
-                        this.showToast('Nota creada', 'success');
+                        // Para nuevas notas, obtenemos la referencia para el ID
+                        const docRef = await addDoc(notesRef, { ...payload, createdAt: serverTimestamp() });
+                        this.currentNoteId = docRef.id; // Set ID so subsequent autosaves update this doc
+                        if(!silent) this.showToast('Nota creada', 'success');
+                        
+                        // Show delete button now that it exists
+                        document.getElementById('btnDeleteNote').classList.remove('hidden');
                     }
-                    this.closeEditor();
+
+                    if (silent) {
+                        const statusEl = document.getElementById('lastEdited');
+                        statusEl.innerHTML = `<span class="text-emerald-500">Guardado</span>`;
+                    } else {
+                        this.closeEditor();
+                    }
                 } catch (e) {
                     console.error(e);
-                    this.showToast('Error al guardar', 'error');
+                    if(!silent) this.showToast('Error al guardar', 'error');
+                }
+            },
+
+            togglePin() {
+                this.currentNoteIsPinned = !this.currentNoteIsPinned;
+                this.updatePinUI();
+                this.saveNote(true); // Save state immediately silently
+            },
+
+            updatePinUI() {
+                const icon = document.getElementById('iconPin');
+                const btn = document.getElementById('btnPin');
+                
+                if (this.currentNoteIsPinned) {
+                    icon.classList.remove('ph-bold');
+                    icon.classList.add('ph-fill', 'text-yellow-400');
+                    btn.classList.add('bg-zinc-800');
+                } else {
+                    icon.classList.add('ph-bold');
+                    icon.classList.remove('ph-fill', 'text-yellow-400');
+                    btn.classList.remove('bg-zinc-800');
                 }
             },
 
@@ -407,8 +492,6 @@
                     const btnYes = document.getElementById('confirmAction');
                     const btnNo = document.getElementById('confirmCancel');
                     
-                    // Update text if needed (optional implementation)
-                    
                     const close = (res) => {
                         dialog.classList.add('opacity-0');
                         setTimeout(() => {
@@ -421,7 +504,6 @@
                     btnNo.onclick = () => close(false);
 
                     dialog.classList.remove('hidden');
-                    // Force reflow
                     void dialog.offsetWidth;
                     dialog.classList.remove('opacity-0');
                 });
