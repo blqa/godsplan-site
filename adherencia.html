@@ -350,7 +350,7 @@
         }
 
         .clock-timer {
-            font-size: 4rem;
+            font-size: 4rem; /* Aumentado de 2.2rem a 4rem */
             font-weight: 800;
             color: var(--text);
             font-variant-numeric: tabular-nums;
@@ -1247,9 +1247,11 @@
         <div class="modal-content">
             <h3 style="margin-bottom:15px;">Ajustar Tiempo</h3>
             <p style="font-size:0.9rem; margin-bottom:10px; color:var(--text-mute);">
-                Ingresa el total acumulado de minutos para <strong id="timerEditTitle" style="color:var(--text);">--</strong>.
+                Ingresa el tiempo acumulado para <strong id="timerEditTitle" style="color:var(--text);">--</strong>.
+                <br><span style="font-size:0.75rem;">(Formatos aceptados: "15", "3.5" o "3:14")</span>
             </p>
-            <input type="number" id="inpTimerEdit" placeholder="Minutos totales" style="font-size:1.1rem;">
+            <!-- CAMBIO: type="text" para permitir dos puntos ":" -->
+            <input type="text" id="inpTimerEdit" placeholder="Ej. 3:14" style="font-size:1.1rem; text-align:center;">
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="btn-primary" onclick="window.app.saveTimerEdit()">Actualizar</button>
                 <button class="btn-secondary" onclick="document.getElementById('timerEditModal').classList.remove('active')">Cancelar</button>
@@ -1635,20 +1637,40 @@
                 }
                 
                 document.getElementById('timerEditTitle').textContent = type === 'bathroom' ? 'Baño' : 'Comida';
-                document.getElementById('inpTimerEdit').value = Math.floor(currentTotal); // Mostramos entero para facilitar
+                
+                // CAMBIO: Formatear a MM:SS para mostrar en el input
+                const m = Math.floor(currentTotal);
+                const s = Math.floor((currentTotal % 1) * 60);
+                const formatted = `${m}:${s.toString().padStart(2, '0')}`;
+                
+                document.getElementById('inpTimerEdit').value = formatted; 
                 
                 // FORCE OPEN
                 const modal = document.getElementById('timerEditModal');
                 if(modal) modal.classList.add('active');
+                
+                // Auto-focus para escribir rápido
+                setTimeout(() => document.getElementById('inpTimerEdit').focus(), 100);
             },
 
             // NUEVA FUNCIÓN: Guardar edición de timer
             saveTimerEdit() {
                 if (!this.editingTimerType || !this.data.activeShift) return;
-                const newVal = parseFloat(document.getElementById('inpTimerEdit').value);
+                const valStr = document.getElementById('inpTimerEdit').value.trim();
+                let newVal = 0;
+
+                // CAMBIO: Lógica para detectar MM:SS
+                if (valStr.includes(':')) {
+                    const parts = valStr.split(':');
+                    const m = parseInt(parts[0]) || 0;
+                    const s = parseInt(parts[1]) || 0;
+                    newVal = m + (s / 60);
+                } else {
+                    newVal = parseFloat(valStr);
+                }
                 
                 if (isNaN(newVal) || newVal < 0) {
-                    this.showMessage("Por favor ingresa un número válido de minutos.");
+                    this.showMessage("Por favor ingresa un tiempo válido (ej. 3:14).");
                     return;
                 }
 
@@ -1658,8 +1680,6 @@
                     // 1. Actualizamos el acumulado base al nuevo valor ingresado por el usuario.
                     this.data.activeShift.breaks[this.editingTimerType] = newVal;
                     // 2. Reseteamos el "inicio" del intervalo a AHORA MISMO.
-                    // Esto hace que el cálculo visual sea: Base (Nuevo Valor) + (Ahora - Ahora) = Nuevo Valor.
-                    // Efectivamente "consolida" todo el tiempo pasado en el nuevo valor base y sigue contando desde ahí.
                     this.data.activeShift.breakStart = Date.now();
                 } else {
                     // Si no está corriendo, simplemente actualizamos el acumulado
@@ -1952,4 +1972,3 @@
 </body>
 
 </html>
-
