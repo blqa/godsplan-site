@@ -130,13 +130,18 @@
                 <select id="collection-selector" class="w-full bg-surface border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand focus:outline-none transition shadow-inner">
                     <option value="" disabled selected>Seleccionar Colección...</option>
                     
+                    <optgroup label="🧬 Rutas Profundas (System)">
+                        <!-- Estas rutas se construyen dinámicamente con el App ID -->
+                        <option value="DEEP:public_data">🗂️ Public Data (artifacts/...)</option>
+                        <option value="DEEP:chat_corpo">💬 Chat Corpo (Interno)</option>
+                    </optgroup>
+
                     <optgroup label="📂 Raíz de Base de Datos">
-                        <option value="ROOT:artifacts">📦 artifacts (Sistema)</option>
-                        <option value="ROOT:chat_corpo">💬 chat_corpo</option>
+                        <option value="ROOT:artifacts">📦 artifacts (Root)</option>
                         <option value="ROOT:godsPlanData">🗄️ godsPlanData</option>
                     </optgroup>
 
-                    <optgroup label="📱 Datos de Aplicación (Acceso Rápido)">
+                    <optgroup label="📱 Datos de Aplicación (Alias)">
                         <option value="anuncios">📢 Anuncios</option>
                         <option value="finanzas_global">💰 Finanzas Globales</option>
                         <option value="usuarios_registrados">👥 Lista Usuarios</option>
@@ -186,16 +191,51 @@
         <!-- AREA PRINCIPAL (Tabla de Datos) -->
         <main class="flex-1 bg-dark flex flex-col relative overflow-hidden">
             <!-- Barra de Herramientas -->
-            <div class="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-surface/30 backdrop-blur-sm">
+            <div class="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-surface/30 backdrop-blur-sm relative z-20">
                 <div class="flex items-center gap-3 text-sm text-zinc-300">
                     <div class="p-1.5 bg-white/5 rounded-md"><i class="ph-bold ph-database"></i></div>
                     <span id="view-title" class="font-medium">Panel Listo</span>
                 </div>
-                <!-- Filtro -->
-                <div class="relative group">
-                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
-                    <input type="text" id="search-filter" placeholder="Buscar ID..." class="bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs text-white focus:border-brand w-64 focus:outline-none focus:w-80 transition-all">
+                
+                <!-- Toolbar Derecha -->
+                <div class="flex items-center gap-3">
+                    <!-- Toggle de Filtros Avanzados -->
+                    <button onclick="adminApp.toggleFilters()" id="filter-toggle-btn" class="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-xs font-bold text-zinc-400 transition">
+                        <i class="ph-bold ph-faders"></i> Filtros
+                    </button>
+
+                    <!-- Filtro Simple -->
+                    <div class="relative group">
+                        <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                        <input type="text" id="search-filter" placeholder="Buscar ID..." class="bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs text-white focus:border-brand w-48 focus:outline-none focus:w-64 transition-all">
+                    </div>
                 </div>
+
+                <!-- Panel de Filtros Avanzados (Dropdown) -->
+                <div id="advanced-filters-panel" class="absolute top-16 right-6 bg-[#151515] border border-white/10 rounded-xl p-4 shadow-2xl w-72 hidden transform origin-top-right transition-all">
+                    <h4 class="text-xs font-bold text-zinc-500 uppercase mb-3 border-b border-white/5 pb-2">Opciones de Filtrado</h4>
+                    
+                    <div class="space-y-4">
+                        <!-- Modo de Búsqueda -->
+                        <div>
+                            <label class="text-[10px] text-zinc-400 mb-1 block">Buscar en:</label>
+                            <div class="flex bg-black/50 rounded-lg p-1 border border-white/5">
+                                <button onclick="adminApp.setSearchMode('id')" id="btn-mode-id" class="flex-1 py-1.5 text-xs rounded text-white bg-brand font-bold transition">ID</button>
+                                <button onclick="adminApp.setSearchMode('content')" id="btn-mode-content" class="flex-1 py-1.5 text-xs rounded text-zinc-500 hover:text-white transition">Contenido (JSON)</button>
+                            </div>
+                        </div>
+
+                        <!-- Ordenamiento -->
+                        <div>
+                            <label class="text-[10px] text-zinc-400 mb-1 block">Ordenar por ID:</label>
+                            <div class="flex bg-black/50 rounded-lg p-1 border border-white/5">
+                                <button onclick="adminApp.setSortOrder('asc')" id="btn-sort-asc" class="flex-1 py-1.5 text-xs rounded text-white bg-white/10 font-bold transition">A-Z</button>
+                                <button onclick="adminApp.setSortOrder('desc')" id="btn-sort-desc" class="flex-1 py-1.5 text-xs rounded text-zinc-500 hover:text-white transition">Z-A</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Contenedor de la Tabla -->
@@ -262,7 +302,7 @@
         import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN (Misma que index.html)
+        // CONFIGURACIÓN
         const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
         let firebaseConfig = fallbackConfig;
         try { 
@@ -283,17 +323,14 @@
         
         window.adminAuth = {
             init: async function() {
-                // Check if already signed in correctly on load
                 const user = auth.currentUser;
                 if (user && user.email === AUTH_EMAIL) {
                     this.showDashboard();
                 } else {
-                    // Si hay otro usuario o nadie, forzamos logout y mostramos login
                     if (user) await signOut(auth);
                     this.showLogin();
                 }
             },
-
             login: async function() {
                 const btn = document.getElementById('login-btn');
                 const err = document.getElementById('login-error');
@@ -306,55 +343,79 @@
 
                 try {
                     await signInWithEmailAndPassword(auth, email, pass);
-                    // Éxito
                     this.showDashboard();
                 } catch (error) {
-                    console.error("Login fail:", error);
                     err.textContent = "Contraseña incorrecta o error de conexión.";
                     err.classList.remove('hidden');
                     btn.innerHTML = '<i class="ph-bold ph-sign-in"></i> INGRESAR AL SISTEMA';
                     btn.disabled = false;
                 }
             },
-
             logout: async function() {
                 await signOut(auth);
                 window.location.reload();
             },
-
             showDashboard: function() {
                 loginOverlay.classList.add('opacity-0', 'pointer-events-none');
                 setTimeout(() => loginOverlay.style.display = 'none', 500);
             },
-
             showLogin: function() {
                 loginOverlay.style.display = 'flex';
                 loginOverlay.classList.remove('opacity-0', 'pointer-events-none');
             }
         };
 
-        // Iniciar chequeo de auth al cargar
-        // Usamos un pequeño delay para asegurar que Firebase cargó el estado inicial
         setTimeout(() => adminAuth.init(), 1000);
-
 
         // --- LÓGICA DEL PANEL DE ADMINISTRACIÓN ---
         let currentCollectionPath = "";
         let currentDocs = [];
+        
+        // Estado de Filtros
+        let filterState = {
+            searchMode: 'id', // 'id' o 'content'
+            sortOrder: 'asc'  // 'asc' o 'desc'
+        };
 
         window.adminApp = {
             
+            // --- GESTIÓN DE FILTROS ---
+            toggleFilters: function() {
+                document.getElementById('advanced-filters-panel').classList.toggle('hidden');
+                document.getElementById('filter-toggle-btn').classList.toggle('bg-brand');
+                document.getElementById('filter-toggle-btn').classList.toggle('text-white');
+            },
+
+            setSearchMode: function(mode) {
+                filterState.searchMode = mode;
+                // UI Update
+                document.getElementById('btn-mode-id').className = mode === 'id' ? 'flex-1 py-1.5 text-xs rounded text-white bg-brand font-bold transition' : 'flex-1 py-1.5 text-xs rounded text-zinc-500 hover:text-white transition';
+                document.getElementById('btn-mode-content').className = mode === 'content' ? 'flex-1 py-1.5 text-xs rounded text-white bg-brand font-bold transition' : 'flex-1 py-1.5 text-xs rounded text-zinc-500 hover:text-white transition';
+                
+                // Update placeholder
+                document.getElementById('search-filter').placeholder = mode === 'id' ? 'Buscar por ID...' : 'Buscar texto en JSON...';
+                this.renderTable();
+            },
+
+            setSortOrder: function(order) {
+                filterState.sortOrder = order;
+                // UI Update
+                document.getElementById('btn-sort-asc').className = order === 'asc' ? 'flex-1 py-1.5 text-xs rounded text-white bg-white/10 font-bold transition' : 'flex-1 py-1.5 text-xs rounded text-zinc-500 hover:text-white transition';
+                document.getElementById('btn-sort-desc').className = order === 'desc' ? 'flex-1 py-1.5 text-xs rounded text-white bg-white/10 font-bold transition' : 'flex-1 py-1.5 text-xs rounded text-zinc-500 hover:text-white transition';
+                this.renderTable();
+            },
+
+            // --- CARGA DE DATOS ---
             loadCollection: async function(pathOrType) {
                 const dataContainer = document.getElementById('data-container');
                 dataContainer.innerHTML = '<div class="flex justify-center mt-32"><div class="loader"></div></div>';
                 
                 let fullPath = "";
                 
-                // MODO CUSTOM VS MENU
                 if (pathOrType === undefined && document.getElementById('collection-selector').value === 'custom') {
                     const customInput = document.getElementById('custom-path-input').value.trim();
                     if(!customInput) {
-                        dataContainer.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-zinc-500"><i class="ph-bold ph-warning text-4xl mb-2 text-yellow-500"></i><p>Escribe una ruta válida (ej: artifacts/mi_id/data)</p></div>';
+                        dataContainer.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-zinc-500"><i class="ph-bold ph-warning text-4xl mb-2 text-yellow-500"></i><p>Escribe una ruta válida</p></div>';
                         return;
                     }
                     fullPath = customInput;
@@ -362,13 +423,25 @@
                     const selectedValue = pathOrType || document.getElementById('collection-selector').value;
                     
                     if (selectedValue === 'custom') {
-                         dataContainer.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-zinc-600"><i class="ph-bold ph-keyboard text-4xl mb-4 opacity-50"></i><p>Usa el campo "Ruta" en la barra lateral para navegar manualmente.</p></div>';
+                         dataContainer.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-zinc-600"><i class="ph-bold ph-keyboard text-4xl mb-4 opacity-50"></i><p>Usa el campo "Ruta" en la barra lateral.</p></div>';
                          return;
                     }
 
-                    if (selectedValue.startsWith('ROOT:')) {
+                    // --- LÓGICA DE RUTAS PROFUNDAS ---
+                    if (selectedValue.startsWith('DEEP:')) {
+                        const type = selectedValue.split(':')[1];
+                        if (type === 'public_data') {
+                            fullPath = `artifacts/${appId}/public/data`;
+                        } else if (type === 'chat_corpo') {
+                            fullPath = `artifacts/${appId}/public/data/chat_corpo`;
+                        }
+                    } 
+                    // --- RUTAS RAÍZ ---
+                    else if (selectedValue.startsWith('ROOT:')) {
                         fullPath = selectedValue.replace('ROOT:', '');
-                    } else {
+                    } 
+                    // --- RUTAS ALIAS ESTÁNDAR ---
+                    else {
                         fullPath = `artifacts/${appId}/public/data/${selectedValue}`;
                     }
                 }
@@ -389,16 +462,11 @@
                     
                 } catch (error) {
                     console.error(error);
-                    // Manejo de Errores Comunes
-                    let errorMsg = error.message;
-                    let tip = "Verifica tus permisos de administrador.";
-                    
                     dataContainer.innerHTML = `
                         <div class="flex flex-col items-center justify-center h-full max-w-lg mx-auto text-center">
                             <div class="bg-red-500/10 p-4 rounded-full mb-4 border border-red-500/20"><i class="ph-bold ph-warning-octagon text-3xl text-red-500"></i></div>
-                            <h3 class="text-white font-bold text-lg mb-2">No se pudieron cargar los datos</h3>
-                            <p class="text-zinc-500 text-sm font-mono bg-black p-2 rounded mb-4">${errorMsg}</p>
-                            <p class="text-zinc-400 text-xs">${tip}</p>
+                            <h3 class="text-white font-bold text-lg mb-2">Error de Carga</h3>
+                            <p class="text-zinc-500 text-sm font-mono bg-black p-2 rounded mb-4">${error.message}</p>
                         </div>
                     `;
                 }
@@ -406,46 +474,55 @@
 
             renderTable: function() {
                 const container = document.getElementById('data-container');
-                const filter = document.getElementById('search-filter').value.toLowerCase();
+                const filterText = document.getElementById('search-filter').value.toLowerCase();
                 
-                const filteredDocs = currentDocs.filter(d => d.id.toLowerCase().includes(filter));
+                // 1. Filtrado
+                let filteredDocs = currentDocs.filter(d => {
+                    if (filterState.searchMode === 'id') {
+                        return d.id.toLowerCase().includes(filterText);
+                    } else {
+                        // Búsqueda profunda en contenido JSON
+                        return JSON.stringify(d).toLowerCase().includes(filterText);
+                    }
+                });
 
-                // CASO 1: CARPETA VACÍA O FANTASMA
+                // 2. Ordenamiento
+                filteredDocs.sort((a, b) => {
+                    const idA = a.id.toLowerCase();
+                    const idB = b.id.toLowerCase();
+                    if (filterState.sortOrder === 'asc') return idA < idB ? -1 : 1;
+                    else return idA > idB ? -1 : 1;
+                });
+
+                // Render
                 if (filteredDocs.length === 0) {
                     let emptyHtml = `
                         <div class="flex flex-col items-center justify-center h-full text-zinc-500">
                             <i class="ph-bold ph-folder-dashed text-5xl mb-4 opacity-30"></i>
-                            <h3 class="text-lg font-bold text-zinc-400">Colección Vacía o "Fantasma"</h3>
+                            <h3 class="text-lg font-bold text-zinc-400">Sin Resultados Visibles</h3>
                             <p class="text-sm max-w-md text-center mt-2 leading-relaxed">
-                                No se encontraron documentos <b>directos</b> en <code>${currentCollectionPath}</code>.
+                                No se encontraron documentos en <code>${currentCollectionPath}</code> con los filtros actuales.
                             </p>
                     `;
-
-                    // Si estamos en 'artifacts', damos el tip específico
                     if (currentCollectionPath === 'artifacts') {
                         emptyHtml += `
                             <div class="mt-6 bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl max-w-md text-left">
-                                <h4 class="text-blue-400 font-bold text-xs uppercase mb-2 flex items-center gap-2"><i class="ph-bold ph-lightbulb"></i> ¿Por qué pasa esto?</h4>
-                                <p class="text-xs text-blue-200 mb-2">Firestore no lista carpetas que solo contienen otras carpetas. Probablemente aquí dentro hay una carpeta con el ID de tu App.</p>
-                                <p class="text-xs text-blue-200">Prueba buscar la ruta: <code>artifacts/${appId}</code> en el modo manual.</p>
+                                <h4 class="text-blue-400 font-bold text-xs uppercase mb-2 flex items-center gap-2"><i class="ph-bold ph-lightbulb"></i> Tip Pro</h4>
+                                <p class="text-xs text-blue-200 mb-2">Firestore oculta carpetas intermedias. Intenta usar las <b>Rutas Profundas</b> del menú.</p>
                             </div>
                         `;
                     }
-                    
                     emptyHtml += `</div>`;
                     container.innerHTML = emptyHtml;
                     return;
                 }
 
-                // CASO 2: HAY DATOS
                 let html = `
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pb-20">
                         ${filteredDocs.map(doc => {
                             const jsonPreview = JSON.stringify(doc, null, 2).slice(0, 150) + '...';
                             return `
                                 <div class="glass rounded-2xl p-5 flex flex-col group hover:border-brand/50 hover:bg-white/5 transition duration-300 relative overflow-hidden">
-                                    
-                                    <!-- Header Card -->
                                     <div class="flex justify-between items-start mb-4 relative z-10">
                                         <div class="flex items-center gap-3 overflow-hidden">
                                             <div class="p-2 bg-brand/10 rounded-lg text-brand">
@@ -457,23 +534,15 @@
                                             </div>
                                         </div>
                                     </div>
-
-                                    <!-- Body Card -->
                                     <div class="flex-1 bg-black/40 rounded-xl p-3 mb-4 overflow-hidden border border-white/5 relative group-hover:border-white/10 transition">
                                         <pre class="text-[10px] text-zinc-500 font-mono leading-relaxed h-24 overflow-hidden">${jsonPreview}</pre>
                                         <div class="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-black to-transparent"></div>
                                     </div>
-
-                                    <!-- Actions Footer -->
                                     <div class="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
-                                        <span class="text-[10px] text-zinc-600 font-mono">JSON OBJ</span>
+                                        <span class="text-[10px] text-zinc-600 font-mono">JSON</span>
                                         <div class="flex gap-2">
-                                            <button onclick="adminApp.openEditor('${doc.id}')" class="p-2 bg-white/5 hover:bg-white text-zinc-400 hover:text-black rounded-lg transition" title="Editar Contenido">
-                                                <i class="ph-bold ph-pencil-simple"></i>
-                                            </button>
-                                            <button onclick="adminApp.deleteDocument('${doc.id}')" class="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition" title="Eliminar Definitivamente">
-                                                <i class="ph-bold ph-trash"></i>
-                                            </button>
+                                            <button onclick="adminApp.openEditor('${doc.id}')" class="p-2 bg-white/5 hover:bg-white text-zinc-400 hover:text-black rounded-lg transition" title="Editar"><i class="ph-bold ph-pencil-simple"></i></button>
+                                            <button onclick="adminApp.deleteDocument('${doc.id}')" class="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition" title="Eliminar"><i class="ph-bold ph-trash"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -485,16 +554,13 @@
             },
 
             deleteDocument: async function(id) {
-                if (!confirm(`⚠️ PELIGRO:\n\nVas a eliminar permanentemente el documento "${id}".\nEsta acción no se puede deshacer.\n\n¿Confirmar eliminación?`)) return;
-                
+                if (!confirm(`⚠️ ¿Eliminar permanentemente "${id}"?`)) return;
                 try {
                     await deleteDoc(doc(db, currentCollectionPath, id));
                     currentDocs = currentDocs.filter(d => d.id !== id);
                     this.renderTable();
                     document.getElementById('doc-count').textContent = currentDocs.length;
-                } catch (e) {
-                    alert("Error: " + e.message);
-                }
+                } catch (e) { alert("Error: " + e.message); }
             },
 
             openEditor: function(id = null) {
@@ -502,25 +568,17 @@
                 const title = document.getElementById('modal-title');
                 const idInput = document.getElementById('doc-id-input');
                 const jsonEditor = document.getElementById('json-editor');
-                
                 modal.classList.remove('hidden');
                 
                 if (id) {
-                    // MODO EDITAR
                     title.innerHTML = `<span class="p-1.5 bg-brand/20 rounded text-brand"><i class="ph-bold ph-pencil-simple"></i></span> Editando: <span class="font-mono ml-2 text-sm opacity-70">${id}</span>`;
-                    idInput.value = id;
-                    idInput.disabled = true;
-                    idInput.classList.add('opacity-50', 'cursor-not-allowed');
-                    
+                    idInput.value = id; idInput.disabled = true; idInput.classList.add('opacity-50', 'cursor-not-allowed');
                     const docData = currentDocs.find(d => d.id === id);
                     const { id: _, ...cleanData } = docData; 
                     jsonEditor.value = JSON.stringify(cleanData, null, 4);
                 } else {
-                    // MODO CREAR
                     title.innerHTML = `<span class="p-1.5 bg-green-500/20 rounded text-green-500"><i class="ph-bold ph-plus"></i></span> Nuevo Documento`;
-                    idInput.value = "";
-                    idInput.disabled = false;
-                    idInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                    idInput.value = ""; idInput.disabled = false; idInput.classList.remove('opacity-50', 'cursor-not-allowed');
                     jsonEditor.value = "{\n    \"campo\": \"valor\"\n}";
                 }
             },
@@ -546,35 +604,22 @@
             saveDocument: async function() {
                 const idInput = document.getElementById('doc-id-input');
                 const jsonEditor = document.getElementById('json-editor');
-                const err = document.getElementById('json-error');
                 
-                if (!currentCollectionPath) {
-                    alert("Selecciona una colección primero.");
-                    return;
-                }
-
+                if (!currentCollectionPath) { alert("Selecciona una colección primero."); return; }
                 try {
                     const data = JSON.parse(jsonEditor.value);
                     let docId = idInput.value.trim();
-                    
-                    const docRef = docId 
-                        ? doc(db, currentCollectionPath, docId)
-                        : doc(collection(db, currentCollectionPath));
-
+                    const docRef = docId ? doc(db, currentCollectionPath, docId) : doc(collection(db, currentCollectionPath));
                     await setDoc(docRef, data, { merge: true });
-                    
                     this.closeEditor();
                     
-                    // Reload data
+                    // Reload
                     const querySnapshot = await getDocs(collection(db, currentCollectionPath));
                     currentDocs = [];
                     querySnapshot.forEach((doc) => currentDocs.push({ id: doc.id, ...doc.data() }));
                     this.renderTable();
                     document.getElementById('doc-count').textContent = currentDocs.length;
-
-                } catch (e) {
-                    alert("Error al guardar: " + e.message);
-                }
+                } catch (e) { alert("Error al guardar: " + e.message); }
             }
         };
 
@@ -589,18 +634,9 @@
             }
         });
 
-        document.getElementById('load-custom-btn').addEventListener('click', () => {
-            adminApp.loadCollection('custom');
-        });
-
-        document.getElementById('regen-id-btn').addEventListener('click', () => {
-            const inp = document.getElementById('doc-id-input');
-            if(!inp.disabled) inp.value = "";
-        });
-
-        document.getElementById('search-filter').addEventListener('input', () => {
-            adminApp.renderTable();
-        });
+        document.getElementById('load-custom-btn').addEventListener('click', () => { adminApp.loadCollection('custom'); });
+        document.getElementById('regen-id-btn').addEventListener('click', () => { const inp = document.getElementById('doc-id-input'); if(!inp.disabled) inp.value = ""; });
+        document.getElementById('search-filter').addEventListener('input', () => { adminApp.renderTable(); });
 
     </script>
 </body>
