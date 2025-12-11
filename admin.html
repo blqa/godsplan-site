@@ -34,15 +34,69 @@
         /* Animación de carga */
         .loader { border: 2px solid rgba(231,0,0,0.1); border-left-color: #E70000; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Input autofill fix for dark mode */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px #121212 inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
-    <!-- PROTECCIÓN DE INTERFAZ (Overlay mientras se verifica auth) -->
-    <div id="auth-guard" class="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center text-center p-4">
-        <div class="loader w-12 h-12 mb-4 border-4"></div>
-        <h2 class="text-xl font-bold text-white tracking-wider animate-pulse">VERIFICANDO CREDENCIALES DE ADMINISTRADOR...</h2>
-        <p class="text-zinc-500 text-sm mt-2 font-mono">Acceso restringido a nivel de sistema</p>
+    <!-- LOGIN AISLADO (Overlay Bloqueante) -->
+    <div id="admin-login-overlay" class="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4">
+        <div class="w-full max-w-md bg-[#0A0A0A] border border-white/10 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+            <!-- Decoración de fondo -->
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand to-transparent"></div>
+            
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand/10 mb-4">
+                    <i class="ph-fill ph-shield-check text-3xl text-brand"></i>
+                </div>
+                <h1 class="text-2xl font-black text-white tracking-tight">ACCESO ADMINISTRATIVO</h1>
+                <p class="text-zinc-500 text-sm mt-2">Introduce tus credenciales maestras.</p>
+            </div>
+
+            <form id="admin-login-form" onsubmit="event.preventDefault(); adminAuth.login();" class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-zinc-500 uppercase ml-1">Usuario Autorizado</label>
+                    <div class="relative mt-1">
+                        <i class="ph-bold ph-user absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600"></i>
+                        <input type="email" id="admin-email" value="tizorplayer@gmail.com" readonly 
+                            class="w-full bg-surface border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-zinc-400 focus:border-brand focus:outline-none cursor-not-allowed opacity-70">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="text-xs font-bold text-zinc-500 uppercase ml-1">Contraseña</label>
+                    <div class="relative mt-1">
+                        <i class="ph-bold ph-lock-key absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                        <input type="password" id="admin-password" placeholder="••••••••" required 
+                            class="w-full bg-surface border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:border-brand focus:outline-none transition-all focus:bg-white/5">
+                    </div>
+                </div>
+
+                <div id="login-error" class="text-red-500 text-xs font-bold text-center hidden bg-red-900/10 p-2 rounded-lg border border-red-500/20">
+                    Error de autenticación.
+                </div>
+
+                <button type="submit" id="login-btn" class="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-zinc-200 transition transform active:scale-95 flex items-center justify-center gap-2 mt-2">
+                    <i class="ph-bold ph-sign-in"></i>
+                    INGRESAR AL SISTEMA
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <a href="/" class="text-xs text-zinc-600 hover:text-white transition flex items-center justify-center gap-1">
+                    <i class="ph-bold ph-arrow-left"></i> Volver al Portal Público
+                </a>
+            </div>
+        </div>
     </div>
 
     <!-- NAVBAR -->
@@ -56,9 +110,12 @@
             </div>
         </div>
         <div class="flex items-center gap-4">
-            <span class="text-xs font-mono text-zinc-500 bg-zinc-900 px-2 py-1 rounded border border-white/5">tizorplayer@gmail.com</span>
-            <button onclick="window.location.reload()" class="p-2 hover:bg-white/5 rounded-lg text-zinc-400 hover:text-white transition" title="Recargar Datos">
-                <i class="ph-bold ph-arrows-clockwise text-lg"></i>
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-brand/10 border border-brand/20 rounded-full">
+                <div class="w-2 h-2 rounded-full bg-brand animate-pulse"></div>
+                <span class="text-xs font-mono text-brand font-bold">tizorplayer@gmail.com</span>
+            </div>
+            <button onclick="adminAuth.logout()" class="p-2 hover:bg-white/5 rounded-lg text-zinc-400 hover:text-white transition" title="Cerrar Sesión Segura">
+                <i class="ph-bold ph-sign-out text-lg"></i>
             </button>
         </div>
     </header>
@@ -67,56 +124,61 @@
     <div class="flex-1 flex overflow-hidden">
         
         <!-- SIDEBAR (Navegación de Colecciones) -->
-        <aside class="w-64 bg-panel border-r border-white/5 flex flex-col">
-            <div class="p-4 border-b border-white/5">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Explorador de Datos</label>
-                <select id="collection-selector" class="w-full bg-surface border border-white/10 rounded-lg p-2 text-sm text-white focus:border-brand focus:outline-none transition">
-                    <option value="" disabled selected>Seleccionar Colección</option>
+        <aside class="w-72 bg-panel border-r border-white/5 flex flex-col z-30 shadow-xl">
+            <div class="p-5 border-b border-white/5">
+                <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 block">Explorador de Datos</label>
+                <select id="collection-selector" class="w-full bg-surface border border-white/10 rounded-xl p-3 text-sm text-white focus:border-brand focus:outline-none transition shadow-inner">
+                    <option value="" disabled selected>Seleccionar Colección...</option>
                     
-                    <optgroup label="📂 Colecciones Principales (Root)">
+                    <optgroup label="📂 Raíz de Base de Datos">
+                        <option value="ROOT:artifacts">📦 artifacts (Sistema)</option>
                         <option value="ROOT:chat_corpo">💬 chat_corpo</option>
                         <option value="ROOT:godsPlanData">🗄️ godsPlanData</option>
-                        <option value="ROOT:artifacts">📦 artifacts (Sistema)</option>
                     </optgroup>
 
-                    <optgroup label="📱 Datos de Aplicación (Internos)">
+                    <optgroup label="📱 Datos de Aplicación (Acceso Rápido)">
                         <option value="anuncios">📢 Anuncios</option>
                         <option value="finanzas_global">💰 Finanzas Globales</option>
                         <option value="usuarios_registrados">👥 Lista Usuarios</option>
                     </optgroup>
 
-                    <option value="custom">⚡ Ruta Personalizada (Manual)</option>
+                    <option value="custom">⚡ Ruta Manual (Avanzado)</option>
                 </select>
             </div>
 
-            <!-- Entrada manual de ruta (visible si selecciona custom) -->
-            <div id="custom-path-container" class="px-4 pb-4 hidden">
-                <div class="bg-yellow-500/10 border border-yellow-500/20 p-2 rounded mb-2">
-                    <p class="text-[10px] text-yellow-200">
-                        <i class="ph-bold ph-warning"></i> <b>Modo Libre:</b> Escribe la ruta exacta.
+            <!-- Entrada manual de ruta -->
+            <div id="custom-path-container" class="px-5 pb-5 hidden">
+                <div class="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg mb-3">
+                    <p class="text-[10px] text-blue-200 leading-tight">
+                        <i class="ph-bold ph-info text-blue-400 mr-1"></i> 
+                        <b>Navegación Profunda:</b> Usa <code>/</code> para entrar en subcarpetas (ej: <code>artifacts/ID_APP/data</code>).
                     </p>
                 </div>
-                <input type="text" id="custom-path-input" placeholder="Ej: chat_corpo/mensaje1" class="w-full bg-surface border border-white/10 rounded-lg p-2 text-xs text-white font-mono focus:border-brand focus:outline-none">
-                <button id="load-custom-btn" class="w-full mt-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-1 rounded border border-white/5">CARGAR RUTA</button>
+                <div class="flex gap-2">
+                    <input type="text" id="custom-path-input" placeholder="Ruta (ej: users)" class="w-full bg-surface border border-white/10 rounded-lg p-2 text-xs text-white font-mono focus:border-brand focus:outline-none">
+                    <button id="load-custom-btn" class="bg-white/10 hover:bg-brand hover:text-white text-zinc-300 rounded-lg px-3 transition">
+                        <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-4">
-                <div class="text-xs text-zinc-600 mb-2 font-bold">ESTADÍSTICAS RÁPIDAS</div>
-                <div id="stats-panel" class="space-y-2">
-                    <div class="glass p-3 rounded-lg">
-                        <span class="block text-zinc-400 text-[10px] uppercase">Documentos</span>
-                        <span id="doc-count" class="text-xl font-mono font-bold text-white">-</span>
+            <div class="flex-1 overflow-y-auto p-5">
+                <div class="text-[10px] text-zinc-600 mb-3 font-bold tracking-widest uppercase">Info. Contextual</div>
+                <div id="stats-panel" class="space-y-3">
+                    <div class="glass p-4 rounded-xl border-l-2 border-brand">
+                        <span class="block text-zinc-500 text-[10px] uppercase mb-1">Ruta Actual</span>
+                        <span id="current-path-display" class="text-xs font-mono text-white break-all leading-tight block">...</span>
                     </div>
-                    <div class="glass p-3 rounded-lg">
-                        <span class="block text-zinc-400 text-[10px] uppercase">Ruta Actual</span>
-                        <span id="current-path-display" class="text-[10px] font-mono text-brand break-all">...</span>
+                    <div class="flex justify-between items-center glass p-3 rounded-xl">
+                        <span class="text-zinc-500 text-[10px] uppercase">Documentos</span>
+                        <span id="doc-count" class="text-lg font-mono font-bold text-white">-</span>
                     </div>
                 </div>
             </div>
 
-            <div class="p-4 border-t border-white/5">
-                <button onclick="adminApp.openEditor()" class="w-full bg-brand hover:bg-red-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-brand/20">
-                    <i class="ph-bold ph-plus"></i> Nuevo Documento
+            <div class="p-5 border-t border-white/5 bg-panel">
+                <button onclick="adminApp.openEditor()" class="w-full bg-white hover:bg-zinc-200 text-black font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition shadow-lg transform active:scale-95">
+                    <i class="ph-bold ph-plus-circle text-lg"></i> Nuevo Documento
                 </button>
             </div>
         </aside>
@@ -124,60 +186,70 @@
         <!-- AREA PRINCIPAL (Tabla de Datos) -->
         <main class="flex-1 bg-dark flex flex-col relative overflow-hidden">
             <!-- Barra de Herramientas -->
-            <div class="h-12 border-b border-white/5 flex items-center justify-between px-4 bg-surface/50">
-                <div class="flex items-center gap-2 text-sm text-zinc-400">
-                    <i class="ph-bold ph-database"></i>
-                    <span id="view-title">Selecciona una colección para comenzar</span>
+            <div class="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-surface/30 backdrop-blur-sm">
+                <div class="flex items-center gap-3 text-sm text-zinc-300">
+                    <div class="p-1.5 bg-white/5 rounded-md"><i class="ph-bold ph-database"></i></div>
+                    <span id="view-title" class="font-medium">Panel Listo</span>
                 </div>
-                <!-- Filtro simple -->
-                <div class="relative">
-                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
-                    <input type="text" id="search-filter" placeholder="Filtrar por ID..." class="bg-black/20 border border-white/10 rounded-full pl-9 pr-4 py-1 text-xs text-white focus:border-brand w-64 focus:outline-none">
+                <!-- Filtro -->
+                <div class="relative group">
+                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                    <input type="text" id="search-filter" placeholder="Buscar ID..." class="bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs text-white focus:border-brand w-64 focus:outline-none focus:w-80 transition-all">
                 </div>
             </div>
 
             <!-- Contenedor de la Tabla -->
-            <div class="flex-1 overflow-auto p-6" id="data-container">
-                <div class="flex flex-col items-center justify-center h-full text-zinc-600">
-                    <i class="ph-duotone ph-circles-three-plus text-6xl mb-4 opacity-20"></i>
-                    <p>Esperando selección de datos...</p>
+            <div class="flex-1 overflow-auto p-8 relative" id="data-container">
+                <!-- Estado Inicial -->
+                <div class="flex flex-col items-center justify-center h-full text-zinc-700 select-none">
+                    <div class="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
+                        <i class="ph-duotone ph-circles-three-plus text-5xl opacity-50"></i>
+                    </div>
+                    <h3 class="text-zinc-500 font-bold text-lg">Esperando comandos</h3>
+                    <p class="text-zinc-600 text-sm mt-2 max-w-xs text-center">Selecciona una colección del menú lateral para cargar y administrar datos.</p>
                 </div>
             </div>
         </main>
     </div>
 
     <!-- MODAL EDITOR (Create/Edit) -->
-    <div id="editor-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-[#111] border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl transform transition-all scale-100 flex flex-col max-h-[90vh]">
+    <div id="editor-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-[#0f0f0f] border border-white/10 rounded-2xl w-full max-w-3xl shadow-2xl transform transition-all scale-100 flex flex-col max-h-[90vh]">
             
-            <div class="flex items-center justify-between p-4 border-b border-white/10">
-                <h3 id="modal-title" class="text-lg font-bold text-white flex items-center gap-2">
-                    <i class="ph-bold ph-pencil-simple text-brand"></i> Editar Documento
+            <div class="flex items-center justify-between p-5 border-b border-white/10 bg-surface">
+                <h3 id="modal-title" class="text-lg font-bold text-white flex items-center gap-3">
+                    <span class="p-1.5 bg-brand/20 rounded text-brand"><i class="ph-bold ph-pencil-simple"></i></span>
+                    Editar Documento
                 </h3>
-                <button onclick="adminApp.closeEditor()" class="text-zinc-500 hover:text-white transition"><i class="ph-bold ph-x text-xl"></i></button>
+                <button onclick="adminApp.closeEditor()" class="text-zinc-500 hover:text-white transition p-2 hover:bg-white/10 rounded-lg"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
 
-            <div class="p-6 flex-1 overflow-y-auto">
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-1">ID del Documento</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="doc-id-input" placeholder="(Auto-generado si se deja vacío)" class="flex-1 bg-black border border-white/10 rounded-lg p-3 text-sm font-mono text-white focus:border-brand focus:outline-none">
-                        <button id="regen-id-btn" class="px-3 bg-white/5 hover:bg-white/10 rounded-lg border border-white/5 text-zinc-400" title="Limpiar ID"><i class="ph-bold ph-eraser"></i></button>
+            <div class="p-8 flex-1 overflow-y-auto">
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-2 tracking-wider">Identificador del Documento (ID)</label>
+                    <div class="flex gap-3">
+                        <input type="text" id="doc-id-input" placeholder="(Auto-generado si se deja vacío)" class="flex-1 bg-black border border-white/10 rounded-xl p-4 text-sm font-mono text-white focus:border-brand focus:outline-none transition-colors placeholder:text-zinc-700">
+                        <button id="regen-id-btn" class="px-4 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 text-zinc-400 hover:text-white transition" title="Limpiar ID"><i class="ph-bold ph-eraser text-lg"></i></button>
                     </div>
-                    <p class="text-[10px] text-zinc-600 mt-1">Deja vacío para crear un nuevo ID automáticamente.</p>
                 </div>
 
                 <div class="mb-2 flex justify-between items-end">
-                    <label class="block text-xs font-bold text-zinc-500 uppercase">Datos (JSON)</label>
-                    <button onclick="adminApp.formatJson()" class="text-[10px] text-brand hover:underline font-mono cursor-pointer">Formatear JSON</button>
+                    <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wider">Estructura JSON</label>
+                    <button onclick="adminApp.formatJson()" class="text-[10px] text-brand hover:text-red-400 font-mono cursor-pointer flex items-center gap-1 bg-brand/10 px-2 py-1 rounded">
+                        <i class="ph-bold ph-code"></i> Prettify
+                    </button>
                 </div>
-                <textarea id="json-editor" class="w-full h-80 bg-black border border-white/10 rounded-lg p-4 text-sm font-mono text-green-500 focus:border-brand focus:outline-none resize-none" spellcheck="false"></textarea>
-                <div id="json-error" class="text-red-500 text-xs mt-2 font-mono hidden">Error de sintaxis JSON</div>
+                <div class="relative">
+                    <textarea id="json-editor" class="w-full h-96 bg-black border border-white/10 rounded-xl p-5 text-sm font-mono text-green-400 focus:border-brand focus:outline-none resize-none leading-relaxed" spellcheck="false"></textarea>
+                    <div id="json-error" class="absolute bottom-4 right-4 bg-red-900/90 text-red-200 text-xs px-3 py-2 rounded-lg border border-red-500/50 hidden backdrop-blur">
+                        <i class="ph-bold ph-warning-circle"></i> Error de sintaxis
+                    </div>
+                </div>
             </div>
 
-            <div class="p-4 border-t border-white/10 bg-surface/50 rounded-b-2xl flex justify-end gap-3">
-                <button onclick="adminApp.closeEditor()" class="px-4 py-2 text-sm font-bold text-zinc-400 hover:text-white transition">Cancelar</button>
-                <button onclick="adminApp.saveDocument()" class="bg-brand hover:bg-red-600 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-lg shadow-brand/20 transition flex items-center gap-2">
+            <div class="p-5 border-t border-white/10 bg-surface rounded-b-2xl flex justify-end gap-3">
+                <button onclick="adminApp.closeEditor()" class="px-6 py-2.5 text-sm font-bold text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl transition">Cancelar</button>
+                <button onclick="adminApp.saveDocument()" class="bg-brand hover:bg-red-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-brand/20 transition flex items-center gap-2 transform active:scale-95">
                     <i class="ph-bold ph-floppy-disk"></i> Guardar Cambios
                 </button>
             </div>
@@ -187,7 +259,7 @@
     <!-- LOGICA FIREBASE & APP -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // CONFIGURACIÓN (Misma que index.html)
@@ -205,72 +277,98 @@
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        // --- VARIABLES DE ESTADO ---
-        let currentCollectionPath = "";
-        let currentDocs = [];
-        const AUTHORIZED_EMAIL = "tizorplayer@gmail.com";
+        // --- AUTH AISLADA ---
+        const AUTH_EMAIL = "tizorplayer@gmail.com";
+        const loginOverlay = document.getElementById('admin-login-overlay');
+        
+        window.adminAuth = {
+            init: async function() {
+                // Check if already signed in correctly on load
+                const user = auth.currentUser;
+                if (user && user.email === AUTH_EMAIL) {
+                    this.showDashboard();
+                } else {
+                    // Si hay otro usuario o nadie, forzamos logout y mostramos login
+                    if (user) await signOut(auth);
+                    this.showLogin();
+                }
+            },
 
-        // --- AUTH GUARD (Seguridad Frontend) ---
-        const authGuardEl = document.getElementById('auth-guard');
+            login: async function() {
+                const btn = document.getElementById('login-btn');
+                const err = document.getElementById('login-error');
+                const pass = document.getElementById('admin-password').value;
+                const email = document.getElementById('admin-email').value;
 
-        async function initAuth() {
-            const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            if (initialToken) await signInWithCustomToken(auth, initialToken);
-            else if (!auth.currentUser) await signInAnonymously(auth); // Fallback temporal para chequear
-        }
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Verificando...';
+                btn.disabled = true;
+                err.classList.add('hidden');
 
-        initAuth();
+                try {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    // Éxito
+                    this.showDashboard();
+                } catch (error) {
+                    console.error("Login fail:", error);
+                    err.textContent = "Contraseña incorrecta o error de conexión.";
+                    err.classList.remove('hidden');
+                    btn.innerHTML = '<i class="ph-bold ph-sign-in"></i> INGRESAR AL SISTEMA';
+                    btn.disabled = false;
+                }
+            },
 
-        onAuthStateChanged(auth, (user) => {
-            if (user && user.email === AUTHORIZED_EMAIL) {
-                // ACCESO CONCEDIDO
-                setTimeout(() => {
-                    authGuardEl.classList.add('opacity-0', 'pointer-events-none');
-                }, 800);
-            } else {
-                // ACCESO DENEGADO
-                authGuardEl.innerHTML = `
-                    <div class="text-red-500 text-6xl mb-4"><i class="ph-bold ph-prohibit"></i></div>
-                    <h1 class="text-3xl font-black text-white mb-2">ACCESO DENEGADO</h1>
-                    <p class="text-zinc-400 mb-6 max-w-md">Esta área está estrictamente restringida al administrador del sistema. Tu cuenta (${user?.email || 'Invitado'}) no tiene permisos.</p>
-                    <a href="/" class="bg-white text-black font-bold py-3 px-8 rounded-full hover:scale-105 transition">Volver al Portal</a>
-                `;
+            logout: async function() {
+                await signOut(auth);
+                window.location.reload();
+            },
+
+            showDashboard: function() {
+                loginOverlay.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => loginOverlay.style.display = 'none', 500);
+            },
+
+            showLogin: function() {
+                loginOverlay.style.display = 'flex';
+                loginOverlay.classList.remove('opacity-0', 'pointer-events-none');
             }
-        });
+        };
+
+        // Iniciar chequeo de auth al cargar
+        // Usamos un pequeño delay para asegurar que Firebase cargó el estado inicial
+        setTimeout(() => adminAuth.init(), 1000);
+
 
         // --- LÓGICA DEL PANEL DE ADMINISTRACIÓN ---
+        let currentCollectionPath = "";
+        let currentDocs = [];
+
         window.adminApp = {
             
-            // Cargar datos de una colección
             loadCollection: async function(pathOrType) {
                 const dataContainer = document.getElementById('data-container');
-                dataContainer.innerHTML = '<div class="flex justify-center mt-20"><div class="loader"></div></div>';
+                dataContainer.innerHTML = '<div class="flex justify-center mt-32"><div class="loader"></div></div>';
                 
                 let fullPath = "";
                 
-                // Si viene del botón "CARGAR RUTA", es custom
+                // MODO CUSTOM VS MENU
                 if (pathOrType === undefined && document.getElementById('collection-selector').value === 'custom') {
                     const customInput = document.getElementById('custom-path-input').value.trim();
                     if(!customInput) {
-                        dataContainer.innerHTML = '<p class="text-center text-yellow-500 mt-10">⚠️ Debes escribir una ruta válida.</p>';
+                        dataContainer.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-zinc-500"><i class="ph-bold ph-warning text-4xl mb-2 text-yellow-500"></i><p>Escribe una ruta válida (ej: artifacts/mi_id/data)</p></div>';
                         return;
                     }
                     fullPath = customInput;
                 } else {
-                    // Si viene del SELECT o es llamada directa
                     const selectedValue = pathOrType || document.getElementById('collection-selector').value;
                     
                     if (selectedValue === 'custom') {
-                         dataContainer.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-zinc-600"><i class="ph-bold ph-keyboard text-4xl mb-4"></i><p>Escribe la ruta manual en el panel izquierdo.</p></div>';
-                         return; // Esperamos input manual
+                         dataContainer.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-zinc-600"><i class="ph-bold ph-keyboard text-4xl mb-4 opacity-50"></i><p>Usa el campo "Ruta" en la barra lateral para navegar manualmente.</p></div>';
+                         return;
                     }
 
-                    // LÓGICA DE PREFIJOS
                     if (selectedValue.startsWith('ROOT:')) {
-                        // Rutas raíz exactas (ej: chat_corpo)
                         fullPath = selectedValue.replace('ROOT:', '');
                     } else {
-                        // Rutas internas de App (ej: anuncios)
                         fullPath = `artifacts/${appId}/public/data/${selectedValue}`;
                     }
                 }
@@ -286,53 +384,97 @@
                         currentDocs.push({ id: doc.id, ...doc.data() });
                     });
 
-                    this.renderTable();
                     document.getElementById('doc-count').textContent = currentDocs.length;
+                    this.renderTable();
+                    
                 } catch (error) {
                     console.error(error);
+                    // Manejo de Errores Comunes
+                    let errorMsg = error.message;
+                    let tip = "Verifica tus permisos de administrador.";
+                    
                     dataContainer.innerHTML = `
-                        <div class="bg-red-900/20 border border-red-500/20 p-6 rounded-xl text-center">
-                            <h3 class="text-red-500 font-bold text-lg mb-2">Error de Acceso</h3>
-                            <p class="text-zinc-400 text-sm font-mono">${error.message}</p>
-                            <p class="text-zinc-500 text-xs mt-4">Posibles causas: La colección no existe, está vacía o faltan permisos.</p>
+                        <div class="flex flex-col items-center justify-center h-full max-w-lg mx-auto text-center">
+                            <div class="bg-red-500/10 p-4 rounded-full mb-4 border border-red-500/20"><i class="ph-bold ph-warning-octagon text-3xl text-red-500"></i></div>
+                            <h3 class="text-white font-bold text-lg mb-2">No se pudieron cargar los datos</h3>
+                            <p class="text-zinc-500 text-sm font-mono bg-black p-2 rounded mb-4">${errorMsg}</p>
+                            <p class="text-zinc-400 text-xs">${tip}</p>
                         </div>
                     `;
                 }
             },
 
-            // Renderizar tabla
             renderTable: function() {
                 const container = document.getElementById('data-container');
                 const filter = document.getElementById('search-filter').value.toLowerCase();
                 
                 const filteredDocs = currentDocs.filter(d => d.id.toLowerCase().includes(filter));
 
+                // CASO 1: CARPETA VACÍA O FANTASMA
                 if (filteredDocs.length === 0) {
-                    container.innerHTML = '<p class="text-center text-zinc-500 mt-10">No se encontraron documentos en esta ruta.</p>';
+                    let emptyHtml = `
+                        <div class="flex flex-col items-center justify-center h-full text-zinc-500">
+                            <i class="ph-bold ph-folder-dashed text-5xl mb-4 opacity-30"></i>
+                            <h3 class="text-lg font-bold text-zinc-400">Colección Vacía o "Fantasma"</h3>
+                            <p class="text-sm max-w-md text-center mt-2 leading-relaxed">
+                                No se encontraron documentos <b>directos</b> en <code>${currentCollectionPath}</code>.
+                            </p>
+                    `;
+
+                    // Si estamos en 'artifacts', damos el tip específico
+                    if (currentCollectionPath === 'artifacts') {
+                        emptyHtml += `
+                            <div class="mt-6 bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl max-w-md text-left">
+                                <h4 class="text-blue-400 font-bold text-xs uppercase mb-2 flex items-center gap-2"><i class="ph-bold ph-lightbulb"></i> ¿Por qué pasa esto?</h4>
+                                <p class="text-xs text-blue-200 mb-2">Firestore no lista carpetas que solo contienen otras carpetas. Probablemente aquí dentro hay una carpeta con el ID de tu App.</p>
+                                <p class="text-xs text-blue-200">Prueba buscar la ruta: <code>artifacts/${appId}</code> en el modo manual.</p>
+                            </div>
+                        `;
+                    }
+                    
+                    emptyHtml += `</div>`;
+                    container.innerHTML = emptyHtml;
                     return;
                 }
 
+                // CASO 2: HAY DATOS
                 let html = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pb-20">
                         ${filteredDocs.map(doc => {
                             const jsonPreview = JSON.stringify(doc, null, 2).slice(0, 150) + '...';
                             return `
-                                <div class="glass rounded-xl p-4 flex flex-col group hover:border-brand/50 transition">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <i class="ph-bold ph-file-text text-brand"></i>
-                                            <span class="font-mono text-xs font-bold text-white truncate w-32" title="${doc.id}">${doc.id}</span>
-                                        </div>
-                                        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                                            <button onclick="adminApp.openEditor('${doc.id}')" class="p-1.5 bg-white/10 hover:bg-white/20 rounded text-white" title="Editar"><i class="ph-bold ph-pencil-simple"></i></button>
-                                            <button onclick="adminApp.deleteDocument('${doc.id}')" class="p-1.5 bg-red-500/10 hover:bg-red-500 rounded text-red-500 hover:text-white transition" title="Eliminar"><i class="ph-bold ph-trash"></i></button>
+                                <div class="glass rounded-2xl p-5 flex flex-col group hover:border-brand/50 hover:bg-white/5 transition duration-300 relative overflow-hidden">
+                                    
+                                    <!-- Header Card -->
+                                    <div class="flex justify-between items-start mb-4 relative z-10">
+                                        <div class="flex items-center gap-3 overflow-hidden">
+                                            <div class="p-2 bg-brand/10 rounded-lg text-brand">
+                                                <i class="ph-bold ph-file-text"></i>
+                                            </div>
+                                            <div class="flex flex-col">
+                                                <span class="font-mono text-xs font-bold text-white truncate w-32" title="${doc.id}">${doc.id}</span>
+                                                <span class="text-[10px] text-zinc-500">Documento</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="flex-1 bg-black/50 rounded p-2 mb-3 overflow-hidden">
-                                        <pre class="text-[10px] text-zinc-500 font-mono leading-relaxed">${jsonPreview}</pre>
+
+                                    <!-- Body Card -->
+                                    <div class="flex-1 bg-black/40 rounded-xl p-3 mb-4 overflow-hidden border border-white/5 relative group-hover:border-white/10 transition">
+                                        <pre class="text-[10px] text-zinc-500 font-mono leading-relaxed h-24 overflow-hidden">${jsonPreview}</pre>
+                                        <div class="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-black to-transparent"></div>
                                     </div>
-                                    <div class="text-[10px] text-zinc-600 font-mono text-right">
-                                        JSON Object
+
+                                    <!-- Actions Footer -->
+                                    <div class="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
+                                        <span class="text-[10px] text-zinc-600 font-mono">JSON OBJ</span>
+                                        <div class="flex gap-2">
+                                            <button onclick="adminApp.openEditor('${doc.id}')" class="p-2 bg-white/5 hover:bg-white text-zinc-400 hover:text-black rounded-lg transition" title="Editar Contenido">
+                                                <i class="ph-bold ph-pencil-simple"></i>
+                                            </button>
+                                            <button onclick="adminApp.deleteDocument('${doc.id}')" class="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition" title="Eliminar Definitivamente">
+                                                <i class="ph-bold ph-trash"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             `;
@@ -342,22 +484,19 @@
                 container.innerHTML = html;
             },
 
-            // Eliminar
             deleteDocument: async function(id) {
-                if (!confirm(`¿ESTÁS SEGURO? Vas a eliminar permanentemente el documento: ${id}`)) return;
+                if (!confirm(`⚠️ PELIGRO:\n\nVas a eliminar permanentemente el documento "${id}".\nEsta acción no se puede deshacer.\n\n¿Confirmar eliminación?`)) return;
                 
                 try {
                     await deleteDoc(doc(db, currentCollectionPath, id));
-                    // Recargar localmente
                     currentDocs = currentDocs.filter(d => d.id !== id);
                     this.renderTable();
                     document.getElementById('doc-count').textContent = currentDocs.length;
                 } catch (e) {
-                    alert("Error al eliminar: " + e.message);
+                    alert("Error: " + e.message);
                 }
             },
 
-            // Abrir Editor (Crear o Editar)
             openEditor: function(id = null) {
                 const modal = document.getElementById('editor-modal');
                 const title = document.getElementById('modal-title');
@@ -367,22 +506,21 @@
                 modal.classList.remove('hidden');
                 
                 if (id) {
-                    // MODO EDICIÓN
-                    title.innerHTML = `<i class="ph-bold ph-pencil-simple text-brand"></i> Editando: <span class="font-mono ml-2 text-sm opacity-70">${id}</span>`;
+                    // MODO EDITAR
+                    title.innerHTML = `<span class="p-1.5 bg-brand/20 rounded text-brand"><i class="ph-bold ph-pencil-simple"></i></span> Editando: <span class="font-mono ml-2 text-sm opacity-70">${id}</span>`;
                     idInput.value = id;
-                    idInput.disabled = true; // No se puede cambiar ID al editar
-                    idInput.classList.add('opacity-50');
+                    idInput.disabled = true;
+                    idInput.classList.add('opacity-50', 'cursor-not-allowed');
                     
                     const docData = currentDocs.find(d => d.id === id);
-                    // Quitamos el ID del objeto JSON para no duplicarlo en la data
                     const { id: _, ...cleanData } = docData; 
                     jsonEditor.value = JSON.stringify(cleanData, null, 4);
                 } else {
-                    // MODO CREACIÓN
-                    title.innerHTML = `<i class="ph-bold ph-plus text-brand"></i> Nuevo Documento`;
+                    // MODO CREAR
+                    title.innerHTML = `<span class="p-1.5 bg-green-500/20 rounded text-green-500"><i class="ph-bold ph-plus"></i></span> Nuevo Documento`;
                     idInput.value = "";
                     idInput.disabled = false;
-                    idInput.classList.remove('opacity-50');
+                    idInput.classList.remove('opacity-50', 'cursor-not-allowed');
                     jsonEditor.value = "{\n    \"campo\": \"valor\"\n}";
                 }
             },
@@ -400,8 +538,8 @@
                     editor.value = JSON.stringify(val, null, 4);
                     err.classList.add('hidden');
                 } catch (e) {
-                    err.textContent = "JSON Inválido: " + e.message;
                     err.classList.remove('hidden');
+                    setTimeout(() => err.classList.add('hidden'), 3000);
                 }
             },
 
@@ -411,7 +549,7 @@
                 const err = document.getElementById('json-error');
                 
                 if (!currentCollectionPath) {
-                    alert("No hay colección seleccionada.");
+                    alert("Selecciona una colección primero.");
                     return;
                 }
 
@@ -421,14 +559,13 @@
                     
                     const docRef = docId 
                         ? doc(db, currentCollectionPath, docId)
-                        : doc(collection(db, currentCollectionPath)); // Auto-ID
+                        : doc(collection(db, currentCollectionPath));
 
                     await setDoc(docRef, data, { merge: true });
                     
-                    // Cerrar y recargar
                     this.closeEditor();
                     
-                    // Recargar datos
+                    // Reload data
                     const querySnapshot = await getDocs(collection(db, currentCollectionPath));
                     currentDocs = [];
                     querySnapshot.forEach((doc) => currentDocs.push({ id: doc.id, ...doc.data() }));
@@ -436,8 +573,7 @@
                     document.getElementById('doc-count').textContent = currentDocs.length;
 
                 } catch (e) {
-                    err.textContent = "Error al guardar: " + e.message;
-                    err.classList.remove('hidden');
+                    alert("Error al guardar: " + e.message);
                 }
             }
         };
@@ -447,7 +583,6 @@
             const val = e.target.value;
             if (val === 'custom') {
                 document.getElementById('custom-path-container').classList.remove('hidden');
-                adminApp.loadCollection('custom'); // Mostrar mensaje de espera
             } else {
                 document.getElementById('custom-path-container').classList.add('hidden');
                 adminApp.loadCollection(val);
@@ -455,7 +590,7 @@
         });
 
         document.getElementById('load-custom-btn').addEventListener('click', () => {
-            adminApp.loadCollection();
+            adminApp.loadCollection('custom');
         });
 
         document.getElementById('regen-id-btn').addEventListener('click', () => {
