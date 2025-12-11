@@ -229,7 +229,7 @@
             .logo-accent { color: #ef4444 !important; }
             .print-meta { text-align: right; color: #a1a1aa !important; font-size: 14px; }
 
-            /* Grid de KPIs (Simple) */
+            /* Grid de KPIs (Simple - 3 COLUMNAS) */
             .print-grid { 
                 display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; 
             }
@@ -1285,7 +1285,7 @@
             scrollToChart() { document.getElementById('chartSection').classList.remove('hidden'); document.getElementById('chartSection').scrollIntoView({behavior:'smooth'}); },
             filterTransactions() { this.searchQuery = document.getElementById('searchTx').value; this.renderTransactions(); },
             
-            // --- NUEVO REPORTE SIMPLIFICADO ---
+            // --- NUEVO REPORTE SIMPLIFICADO (SIN UI GLITCH) ---
             generateReport() {
                 if(!this.currentPeriod) return UI.toast('Espera un momento...','error');
                 
@@ -1295,26 +1295,12 @@
                 const exp = logs.filter(l=>l.type==='expense').reduce((a,b)=>a+b.amount,0);
                 const totalIncome = this.data.income + inc;
                 const balance = totalIncome - exp;
-                const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
                 
-                // Construir HTML del Reporte (PREMIUM DARK MODE - RED EDITION - SIN GRAFICOS)
+                // Construir HTML en #print-area (Hidden on screen, Visible on Print)
                 const printArea = document.getElementById('print-area');
                 
-                // 1. Desbloquear el scroll del body temporalmente para multipágina
-                document.body.style.overflow = 'visible';
-                document.body.style.height = 'auto';
-
-                // 2. Usar position: absolute para fluir con el scroll
-                printArea.style.display = 'block';
-                printArea.style.position = 'absolute'; 
-                printArea.style.top = '0';
-                printArea.style.left = '0';
-                printArea.style.width = '100%';
-                printArea.style.minHeight = '100vh';
-                printArea.style.height = 'auto';
-                printArea.style.zIndex = '9999';
-                printArea.style.backgroundColor = '#000000';
-                printArea.style.overflowY = 'visible';
+                // NOTA IMPORTANTE: Ya NO modificamos el body.style.overflow ni la visualización del printArea con JS
+                // Dejamos que el CSS @media print haga todo el trabajo.
 
                 printArea.innerHTML = `
                 <div class="print-header">
@@ -1368,26 +1354,16 @@
                     <p>CONFIDENCIAL - GENERADO POR SISTEMA GOD'S PLAN</p>
                     <p>Fin del reporte</p>
                 </div>
-                
-                <style>@media print { .no-print { display: none !important; } }</style>
                 `;
 
-                setTimeout(() => window.print(), 500);
-            },
-
-            closePrintPreview() {
-                const printArea = document.getElementById('print-area');
-                printArea.style.display = 'none';
-                // Restaurar estilos del body para la App SPA
-                document.body.style.overflow = '';
-                document.body.style.height = '';
+                // Pequeño timeout para asegurar que el DOM se actualice antes de imprimir
+                setTimeout(() => window.print(), 100);
             },
 
             exportCSV() {
                 if(!this.logs.length) return UI.toast('Sin datos para exportar', 'error');
                 let csv = 'Fecha,Tipo,Categoria,Descripcion,Monto\n';
                 this.logs.forEach(l => {
-                    // Usar ISO string para fecha para asegurar compatibilidad al importar
                     const dateStr = new Date(l.date).toISOString().split('T')[0]; 
                     csv += `${dateStr},${l.type},${l.category},"${l.desc||''}",${l.amount}\n`;
                 });
@@ -1417,13 +1393,9 @@
                     const batch = writeBatch(db);
                     let count = 0;
                     
-                    // Saltar cabecera (index 1)
                     for(let i=1; i<rows.length; i++) {
                         const row = rows[i].trim();
                         if(!row) continue;
-                        
-                        // Parse simple CSV (asume formato del export: Date,Type,Cat,Desc,Amount)
-                        // Maneja comillas simples en descripción si existen
                         const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || row.split(',');
                         
                         if(cols.length >= 5) {
@@ -1434,14 +1406,11 @@
                             const amount = parseFloat(cols[4]);
                             
                             if(amount && type) {
-                                // Intentar parsear fecha
                                 let finalDate = new Date();
                                 if(dateStr.includes('-')) {
-                                    // Formato ISO YYYY-MM-DD
                                     const [y,m,d] = dateStr.split('-').map(Number);
                                     finalDate = new Date(y, m-1, d, 12, 0, 0);
                                 } else if (dateStr.includes('/')) {
-                                    // Formato Locale DD/MM/YYYY
                                     const [d,m,y] = dateStr.split('/').map(Number);
                                     finalDate = new Date(y, m-1, d, 12, 0, 0);
                                 }
@@ -1466,7 +1435,7 @@
                     } else {
                         UI.toast('No se pudieron leer registros', 'error');
                     }
-                    input.value = ''; // Reset input
+                    input.value = ''; 
                 };
                 reader.readAsText(file);
             }
