@@ -127,7 +127,6 @@
             opacity: 0; pointer-events: none;
             transition: opacity 0.3s ease;
             display: flex;
-            /* Por defecto Mobile: alineado abajo */
             align-items: flex-end; 
             justify-content: center;
         }
@@ -144,46 +143,26 @@
             border-top: 1px solid #27272a;
             padding: 24px;
             overflow-y: auto;
-            /* Mobile Anim: Slide Up */
             transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             padding-bottom: calc(40px + var(--sab));
         }
 
-        /* Cuando el modal está abierto en móvil */
         #modalOverlay.is-open #modalSheet {
             transform: translateY(0);
         }
 
-        /* Lógica para PC (Desktop) */
         @media (min-width: 768px) {
-            #modalOverlay {
-                align-items: center; /* Centrado vertical */
-                padding: 20px;
-            }
-            
+            #modalOverlay { align-items: center; padding: 20px; }
             #modalSheet {
-                width: 100%;
-                max-width: 480px; /* Ancho fijo bonito */
-                border-radius: 24px; /* Bordes redondeados completos */
+                width: 100%; max-width: 480px; border-radius: 24px;
                 border: 1px solid rgba(255,255,255,0.1);
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-                max-height: 85vh;
-                padding-bottom: 24px; /* Reset padding móvil */
-                
-                /* Desktop Anim: Fade & Scale */
-                transform: scale(0.95);
-                opacity: 0;
+                max-height: 85vh; padding-bottom: 24px;
+                transform: scale(0.95); opacity: 0;
                 transition: all 0.2s ease-out;
             }
-
-            /* Cuando está abierto en PC */
-            #modalOverlay.is-open #modalSheet {
-                transform: scale(1);
-                opacity: 1;
-            }
-
-            /* Ocultar barra navegación inferior */
+            #modalOverlay.is-open #modalSheet { transform: scale(1); opacity: 1; }
             main { padding-bottom: 20px !important; }
         }
 
@@ -191,32 +170,77 @@
         .text-xxs { font-size: 10px; }
         .chart-container { position: relative; width: 100%; height: 200px; }
         
-        /* Desktop Nav Link Styles */
         .nav-link-desk {
             color: #71717a; padding: 6px 16px; border-radius: 99px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s;
         }
         .nav-link-desk:hover { color: white; background: rgba(255,255,255,0.05); }
         .nav-link-desk.active { color: white; background: #27272a; }
 
-        /* Dialogs */
         .custom-dialog { background-color: #121212; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 340px; width: 90%; }
         .modal-auth { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-auth.active { display: flex; }
 
-        /* Print Styles */
+        /* =========================================
+           IMPRESIÓN / REPORTE PREMIUM DARK MODE
+           ========================================= */
         @media print {
-            @page { margin: 10mm; size: auto; }
-            body { background-color: white !important; color: black !important; overflow: visible !important; font-family: sans-serif; height: auto; }
+            @page { margin: 0; size: auto; }
+            body { 
+                background-color: #050505 !important; 
+                color: #e5e5e5 !important; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+            }
+            /* Ocultar UI de la App */
             #global-nav, #fabContainer, .glass-nav, #app-content, #toast-container, #modalOverlay, #confirmDialog, #authModal { display: none !important; }
-            #print-area { display: block !important; position: absolute; top: 0; left: 0; width: 100%; height: auto; z-index: 9999; background: white; padding: 20px; }
-            .print-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-            .print-table th, .print-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            .print-table th { background-color: #f2f2f2; font-weight: bold; }
-            .print-header { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
-            .print-section { margin-bottom: 25px; }
-            .print-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
-            .print-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-            .print-summary-item { border: 1px solid #eee; padding: 10px; border-radius: 4px; }
+            
+            /* Mostrar Área de Impresión */
+            #print-area { 
+                display: block !important; 
+                position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; 
+                background-color: #050505; 
+                padding: 40px; 
+                box-sizing: border-box;
+            }
+
+            /* Estilos Internos del Reporte */
+            .print-header { 
+                display: flex; justify-content: space-between; align-items: center; 
+                border-bottom: 2px solid #27272a; padding-bottom: 20px; margin-bottom: 30px; 
+            }
+            .print-logo { color: white; font-size: 24px; font-weight: 900; display: flex; align-items: center; gap: 10px; }
+            .print-meta { text-align: right; color: #71717a; font-size: 12px; }
+
+            .print-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+            .print-card { 
+                background: #09090b; border: 1px solid #27272a; border-radius: 12px; padding: 15px; 
+                display: flex; flex-direction: column; justify-content: center;
+            }
+            .print-label { font-size: 10px; text-transform: uppercase; color: #71717a; font-weight: 700; margin-bottom: 4px; }
+            .print-val { font-size: 18px; font-weight: 800; color: white; }
+
+            .print-charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; height: 250px; }
+            .print-chart-box { 
+                background: #09090b; border: 1px solid #27272a; border-radius: 16px; padding: 15px; 
+                position: relative; height: 100%;
+            }
+
+            .print-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+            .print-table th { 
+                text-align: left; color: #71717a; text-transform: uppercase; font-weight: 700; 
+                padding: 10px; border-bottom: 1px solid #27272a; 
+            }
+            .print-table td { 
+                padding: 10px; border-bottom: 1px solid #18181b; color: #d4d4d8; 
+            }
+            .print-table tr:nth-child(even) { background-color: #0a0a0a; }
+            .print-table tr:nth-child(odd) { background-color: #050505; }
+            
+            .print-footer { 
+                margin-top: 40px; border-top: 1px solid #27272a; padding-top: 20px; 
+                text-align: center; color: #52525b; font-size: 10px; 
+            }
         }
         #print-area { display: none; }
     </style>
@@ -349,8 +373,17 @@
                          <p class="text-zinc-500 text-xs">Desglose detallado del ciclo actual.</p>
                      </div>
                      <div class="flex gap-2 mt-4 md:mt-0">
-                         <button onclick="app.generateReport()" class="text-zinc-400 hover:text-white text-xs px-4 py-2 font-bold flex items-center gap-2 border border-zinc-800 rounded-lg hover:bg-zinc-800 transition-colors"><i class="ph-bold ph-file-pdf"></i> PDF</button>
-                         <button onclick="app.exportCSV()" class="text-emerald-500 hover:text-emerald-400 text-xs px-4 py-2 font-bold flex items-center gap-2 border border-emerald-900/30 bg-emerald-900/10 rounded-lg hover:bg-emerald-900/20 transition-colors"><i class="ph-bold ph-file-csv"></i> CSV</button>
+                         <button onclick="app.generateReport()" class="text-zinc-400 hover:text-white text-xs px-4 py-2 font-bold flex items-center gap-2 border border-zinc-800 rounded-lg hover:bg-zinc-800 transition-colors group">
+                            <i class="ph-bold ph-file-pdf group-hover:text-red-500"></i> PDF
+                         </button>
+                         <button onclick="app.exportCSV()" class="text-emerald-500 hover:text-emerald-400 text-xs px-4 py-2 font-bold flex items-center gap-2 border border-emerald-900/30 bg-emerald-900/10 rounded-lg hover:bg-emerald-900/20 transition-colors">
+                            <i class="ph-bold ph-export"></i> Exp
+                         </button>
+                         <!-- Nuevo Botón Importar -->
+                         <button onclick="app.importCSV()" class="text-blue-500 hover:text-blue-400 text-xs px-4 py-2 font-bold flex items-center gap-2 border border-blue-900/30 bg-blue-900/10 rounded-lg hover:bg-blue-900/20 transition-colors">
+                            <i class="ph-bold ph-download"></i> Imp
+                         </button>
+                         <input type="file" id="csvInput" accept=".csv" class="hidden" onchange="app.processCSV(this)">
                      </div>
                  </div>
 
@@ -484,7 +517,7 @@
 
     </main>
     
-    <!-- ÁREA DE IMPRESIÓN -->
+    <!-- ÁREA DE IMPRESIÓN (OCULTO EN PANTALLA, VISIBLE EN PRINT) -->
     <div id="print-area"></div>
     
     <!-- FAB (NUEVO GASTO) - SOLO MÓVIL (En Desktop está arriba) -->
@@ -690,6 +723,7 @@
             privacyMode: false,
             searchQuery: '',
             charts: {},
+            printCharts: {},
 
             async init() {
                 if(!auth) return;
@@ -790,7 +824,6 @@
                 });
 
                 // 3. Calcular "Smart Reserve" para Gastos Fijos
-                // Si ya pagaste un gasto fijo en este periodo, NO lo restamos de nuevo (deduplicación)
                 let fixedReserve = 0;
                 
                 (this.data.fixed || []).forEach(f => {
@@ -807,16 +840,12 @@
                     if (datePrevMonth >= pStart && datePrevMonth <= pEnd) triggers = true;
 
                     if (triggers) {
-                        // El gasto toca en este periodo. ¿Ya se pagó?
-                        // Buscamos un gasto en el historial del periodo con nombre similar
                         const isPaid = periodLogs.some(l => 
                             l.type === 'expense' && 
                             (l.desc || '').toLowerCase().includes(f.name.toLowerCase()) &&
                             l.amount > 0 
                         );
 
-                        // Si NO está pagado, reservamos el dinero.
-                        // Si SÍ está pagado, el dinero ya se restó en la variable 'spent', así que no lo reservamos.
                         if (!isPaid) {
                             fixedReserve += (parseFloat(f.amount) || 0);
                         }
@@ -824,16 +853,10 @@
                 });
 
                 const baseInc = parseFloat(this.data.income) || 0;
-                
-                // Ingreso Liquido Total (Base + Extras)
                 const liquidIncome = (baseInc + extraInc);
-                
-                // Restante = Ingreso Liquido - Reserva de Fijos Pendientes - Todo lo gastado (variables + fijos pagados)
                 const remainingTotal = liquidIncome - fixedReserve - spent;
-                
                 const daily = remainingTotal / Math.max(1, this.currentPeriod.daysLeft);
 
-                // UI Updates
                 const dailyEl = document.getElementById('dailyFree');
                 dailyEl.textContent = UI.fmtMoney(daily);
                 dailyEl.className = daily < 0 ? 'text-red-500' : 'text-white';
@@ -845,7 +868,6 @@
                 const todaySpent = this.logs.filter(l => l.type === 'expense' && new Date(l.date).toDateString() === todayStr).reduce((a,b)=>a+b.amount,0);
                 document.getElementById('todayTotal').textContent = `-${UI.fmtMoney(todaySpent)}`;
                 
-                // En el resumen mostramos la reserva PENDIENTE, para que sepas qué falta pagar
                 document.getElementById('summaryFixed').textContent = UI.fmtMoney(fixedReserve);
                 const loanSum = (this.data.loans||[]).reduce((a,b)=>a+(b.amount||0),0);
                 document.getElementById('summaryShortLoans').textContent = UI.fmtMoney(loanSum);
@@ -864,7 +886,6 @@
                 const list = document.getElementById('transactionsList');
                 list.innerHTML = '';
                 
-                // Usamos this.logs que ya está ordenado cronológicamente por setupListeners
                 let visibleLogs = this.logs;
                 
                 if(this.searchQuery) {
@@ -1031,20 +1052,13 @@
             // --- ACTIONS ---
             openModal(type, id=null) {
                 this.modalType = type; this.editId = id;
-                
-                // Hide all forms first
                 document.querySelectorAll('#modalSheet > div[id^="form"]').forEach(d => d.classList.add('hidden'));
-                
-                // Show Overlay (CSS handles transition based on 'is-open' class)
                 document.getElementById('modalOverlay').classList.add('is-open');
-
                 const title = document.getElementById('modalTitle');
                 
                 if(type === 'expense' || type === 'extra') {
                     document.getElementById('formTransaction').classList.remove('hidden');
                     title.textContent = type === 'expense' ? 'Registrar Gasto' : 'Ingreso Extra';
-                    
-                    // Render Default Chips
                     const chips = document.getElementById('categoryChips');
                     chips.innerHTML = DefaultCategories.map(c => `
                         <div onclick="app.selCat(this)" class="chip bg-zinc-900 px-5 py-3 rounded-full text-xs font-bold text-zinc-400 cursor-pointer border border-zinc-800 hover:border-zinc-600 flex items-center gap-2 transition-all">
@@ -1052,20 +1066,14 @@
                             <span>${c.id}</span>
                         </div>
                     `).join('');
-                    
                     const log = id ? this.logs.find(l=>l.id===id) : null;
                     document.getElementById('txAmount').value = log ? log.amount : '';
                     document.getElementById('txDesc').value = log ? log.desc : '';
-                    
-                    // Date handling
                     const today = new Date().toISOString().split('T')[0];
                     document.getElementById('txDate').value = log ? new Date(log.date).toISOString().split('T')[0] : today;
-
                     document.getElementById('btnDeleteTx').classList.toggle('hidden', !log);
                     
-                    // Preselect category or default to first if new
                     if(log) { 
-                        // Fix: robust selection
                         setTimeout(()=> { 
                             Array.from(chips.children).find(c => {
                                 const span = c.querySelector('span');
@@ -1118,7 +1126,6 @@
                 if(!amt) return UI.toast('Ingresa un monto','error');
                 if(!dateVal) return UI.toast('Fecha requerida','error');
 
-                // Construct date properly maintaining local day
                 const [y, m, d] = dateVal.split('-').map(Number);
                 const finalDate = new Date(y, m-1, d, new Date().getHours(), new Date().getMinutes());
 
@@ -1178,7 +1185,6 @@
                 UI.toast('Ingreso actualizado','success');
             },
             
-            // --- CYCLE CONFIG ---
             setCycleMode(mode) {
                 this.tempCycle = mode;
                 document.getElementById('btnCycleBi').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 flex flex-col items-center justify-center active:scale-95 ${mode==='biweekly' ? 'border-emerald-500 bg-emerald-500/10' : 'border-zinc-700'}`;
@@ -1229,17 +1235,14 @@
                 document.getElementById('view-'+v).classList.remove('hidden');
                 document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
                 
-                // Actualizar botones nav móvil si existe (event podría ser null si se llama programáticamente)
                 if(event && event.currentTarget) event.currentTarget.classList.add('active');
                 
-                // Actualizar botones nav desktop
                 document.querySelectorAll('.nav-link-desk').forEach(b => {
                     b.classList.toggle('active', b.dataset.view === v);
                 });
                 
                 document.getElementById('fabContainer').classList.toggle('scale-0', v !== 'balance');
                 
-                // Trigger resize for charts if switching to analysis
                 if(v === 'analysis' && this.charts.donut) {
                     setTimeout(() => {
                         this.charts.donut.resize();
@@ -1250,34 +1253,127 @@
             scrollToChart() { document.getElementById('chartSection').classList.remove('hidden'); document.getElementById('chartSection').scrollIntoView({behavior:'smooth'}); },
             filterTransactions() { this.searchQuery = document.getElementById('searchTx').value; this.renderTransactions(); },
             
-            // --- REPORT GENERATION ---
+            // --- NUEVO REPORTE Y CSV IMPORT/EXPORT ---
             generateReport() {
                 if(!this.currentPeriod) return UI.toast('Espera un momento...','error');
+                
+                // Filtrar datos
                 const logs = this.logs.filter(l => { const t = new Date(l.date).getTime(); return t >= this.currentPeriod.start.getTime() && t <= this.currentPeriod.end.getTime(); });
                 const inc = logs.filter(l=>l.type==='income').reduce((a,b)=>a+b.amount,0);
                 const exp = logs.filter(l=>l.type==='expense').reduce((a,b)=>a+b.amount,0);
-                const balance = (this.data.income + inc) - exp;
+                const totalIncome = this.data.income + inc;
+                const balance = totalIncome - exp;
+                const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
                 
-                document.getElementById('print-area').innerHTML = `
-                <div class="print-header"><h1>ESTADO DE CUENTA</h1><p>${this.currentPeriod.start.toLocaleDateString()} - ${this.currentPeriod.end.toLocaleDateString()}</p></div>
-                <div class="print-summary-grid">
-                    <div class="print-summary-item"><h3>Ingresos</h3><p>${UI.fmtMoney(this.data.income + inc)}</p></div>
-                    <div class="print-summary-item"><h3>Gastos</h3><p>${UI.fmtMoney(exp)}</p></div>
-                    <div class="print-summary-item" style="border-color:#000"><h3>Balance</h3><p>${UI.fmtMoney(balance)}</p></div>
+                // Construir HTML del Reporte
+                const printArea = document.getElementById('print-area');
+                printArea.innerHTML = `
+                <div class="print-header">
+                    <div class="print-logo"><i class="ph-bold ph-circles-three-plus text-red-500"></i> God's Plan <span style="font-weight:300;opacity:0.6;font-size:14px;">| Estado de Cuenta</span></div>
+                    <div class="print-meta">
+                        <div><b>PERIODO:</b> ${this.currentPeriod.start.toLocaleDateString()} - ${this.currentPeriod.end.toLocaleDateString()}</div>
+                        <div><b>GENERADO:</b> ${new Date().toLocaleString()}</div>
+                    </div>
                 </div>
+
+                <div class="print-grid">
+                    <div class="print-card">
+                        <div class="print-label">Total Ingresos</div>
+                        <div class="print-val text-emerald-500">${UI.fmtMoney(totalIncome)}</div>
+                    </div>
+                    <div class="print-card">
+                        <div class="print-label">Total Gastos</div>
+                        <div class="print-val text-red-500">${UI.fmtMoney(exp)}</div>
+                    </div>
+                    <div class="print-card">
+                        <div class="print-label">Ahorro Neto</div>
+                        <div class="print-val text-white">${UI.fmtMoney(balance)}</div>
+                    </div>
+                    <div class="print-card">
+                        <div class="print-label">Tasa de Ahorro</div>
+                        <div class="print-val text-blue-400">${savingsRate}%</div>
+                    </div>
+                </div>
+
+                <div class="print-charts-row">
+                    <div class="print-chart-box">
+                         <div class="print-label" style="text-align:center;margin-bottom:10px;">FLUJO DE EFECTIVO (DÍA A DÍA)</div>
+                         <div style="height:200px;width:100%"><canvas id="printTrendChart"></canvas></div>
+                    </div>
+                    <div class="print-chart-box">
+                        <div class="print-label" style="text-align:center;margin-bottom:10px;">DISTRIBUCIÓN DE GASTOS</div>
+                        <div style="height:200px;width:100%"><canvas id="printCatChart"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="print-label" style="font-size:12px;margin-bottom:10px;">DETALLE DE MOVIMIENTOS</div>
                 <table class="print-table">
-                    <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th></tr></thead>
-                    <tbody>${logs.map(l=>`<tr><td>${new Date(l.date).toLocaleDateString()}</td><td>${l.desc||l.category}</td><td style="color:${l.type==='income'?'green':'red'}">${UI.fmtMoney(l.amount)}</td></tr>`).join('')}</tbody>
+                    <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th style="text-align:right">Monto</th></tr></thead>
+                    <tbody>${logs.map(l=>`
+                        <tr>
+                            <td>${new Date(l.date).toLocaleDateString()}</td>
+                            <td>${l.category}</td>
+                            <td>${l.desc||'-'}</td>
+                            <td style="text-align:right;color:${l.type==='income'?'#34d399':'#f87171'}">${l.type==='income'?'+':'-'} ${UI.fmtMoney(l.amount)}</td>
+                        </tr>`).join('')}
+                    </tbody>
                 </table>
+                <div class="print-footer">God's Plan - Sistema Financiero Personal - Documento generado automáticamente.</div>
                 `;
-                window.print();
+
+                // Renderizar gráficos específicos para impresión (Colores oscuros/sistema)
+                this.renderPrintCharts(logs);
+
+                // Esperar a que se rendericen los canvas antes de imprimir
+                setTimeout(() => window.print(), 800);
+            },
+
+            renderPrintCharts(logs) {
+                 // 1. Tendencia
+                 const days = []; const dailySpending = {};
+                 let current = new Date(this.currentPeriod.start);
+                 while(current <= this.currentPeriod.end) {
+                     const k = current.getDate()+'/'+(current.getMonth()+1);
+                     days.push(k); dailySpending[k] = 0;
+                     current.setDate(current.getDate()+1);
+                 }
+                 logs.filter(l=>l.type==='expense').forEach(l=>{
+                     const d=new Date(l.date); const k=d.getDate()+'/'+(d.getMonth()+1);
+                     if(dailySpending[k]!==undefined) dailySpending[k]+=l.amount;
+                 });
+                 const dataPoints = []; let accum=0;
+                 days.forEach(d=>{ accum+=dailySpending[d]; dataPoints.push(accum); });
+
+                 new Chart(document.getElementById('printTrendChart'), {
+                     type: 'line',
+                     data: {
+                         labels: days.filter((_,i)=>i%3===0), // Menos etiquetas para print
+                         datasets: [{ label: 'Gasto', data: dataPoints, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.2)', fill: true, pointRadius: 0, borderWidth: 2 }]
+                     },
+                     options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#71717a'}}, y:{display:false}} }
+                 });
+
+                 // 2. Categorías
+                 const cats = {};
+                 logs.filter(l=>l.type==='expense').forEach(l=>{ cats[l.category]=(cats[l.category]||0)+l.amount; });
+                 
+                 new Chart(document.getElementById('printCatChart'), {
+                     type: 'doughnut',
+                     data: {
+                        labels: Object.keys(cats),
+                        datasets: [{ data: Object.values(cats), backgroundColor: ['#fb923c','#60a5fa','#c084fc','#facc15','#ec4899','#f87171','#34d399','#818cf8','#9ca3af'], borderWidth:0 }]
+                     },
+                     options: { responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{ legend:{position:'right',labels:{color:'#a1a1aa',font:{size:9},boxWidth:8}} } }
+                 });
             },
 
             exportCSV() {
                 if(!this.logs.length) return UI.toast('Sin datos para exportar', 'error');
                 let csv = 'Fecha,Tipo,Categoria,Descripcion,Monto\n';
                 this.logs.forEach(l => {
-                    csv += `${new Date(l.date).toLocaleDateString()},${l.type},${l.category},"${l.desc||''}",${l.amount}\n`;
+                    // Usar ISO string para fecha para asegurar compatibilidad al importar
+                    const dateStr = new Date(l.date).toISOString().split('T')[0]; 
+                    csv += `${dateStr},${l.type},${l.category},"${l.desc||''}",${l.amount}\n`;
                 });
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
@@ -1288,6 +1384,75 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+            },
+            
+            importCSV() {
+                document.getElementById('csvInput').click();
+            },
+            
+            async processCSV(input) {
+                const file = input.files[0];
+                if(!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const text = e.target.result;
+                    const rows = text.split('\n');
+                    const batch = writeBatch(db);
+                    let count = 0;
+                    
+                    // Saltar cabecera (index 1)
+                    for(let i=1; i<rows.length; i++) {
+                        const row = rows[i].trim();
+                        if(!row) continue;
+                        
+                        // Parse simple CSV (asume formato del export: Date,Type,Cat,Desc,Amount)
+                        // Maneja comillas simples en descripción si existen
+                        const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || row.split(',');
+                        
+                        if(cols.length >= 5) {
+                            let dateStr = cols[0].replace(/"/g, '');
+                            const type = cols[1].replace(/"/g, '');
+                            const category = cols[2].replace(/"/g, '');
+                            const desc = cols[3].replace(/"/g, '');
+                            const amount = parseFloat(cols[4]);
+                            
+                            if(amount && type) {
+                                // Intentar parsear fecha
+                                let finalDate = new Date();
+                                if(dateStr.includes('-')) {
+                                    // Formato ISO YYYY-MM-DD
+                                    const [y,m,d] = dateStr.split('-').map(Number);
+                                    finalDate = new Date(y, m-1, d, 12, 0, 0);
+                                } else if (dateStr.includes('/')) {
+                                    // Formato Locale DD/MM/YYYY
+                                    const [d,m,y] = dateStr.split('/').map(Number);
+                                    finalDate = new Date(y, m-1, d, 12, 0, 0);
+                                }
+
+                                const ref = doc(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions'));
+                                batch.set(ref, {
+                                    amount: Math.abs(amount),
+                                    desc: desc,
+                                    category: category || 'Importado',
+                                    type: type.toLowerCase().includes('income') || type.toLowerCase().includes('ingreso') ? 'income' : 'expense',
+                                    date: finalDate.toISOString()
+                                });
+                                count++;
+                            }
+                        }
+                    }
+                    
+                    if(count > 0) {
+                        await batch.commit();
+                        UI.toast(`${count} registros importados`, 'success');
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        UI.toast('No se pudieron leer registros', 'error');
+                    }
+                    input.value = ''; // Reset input
+                };
+                reader.readAsText(file);
             }
         };
 
