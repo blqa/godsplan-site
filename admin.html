@@ -72,18 +72,31 @@
                 <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Explorador de Datos</label>
                 <select id="collection-selector" class="w-full bg-surface border border-white/10 rounded-lg p-2 text-sm text-white focus:border-brand focus:outline-none transition">
                     <option value="" disabled selected>Seleccionar Colección</option>
-                    <option value="anuncios">📢 Anuncios (Public)</option>
-                    <option value="finanzas_global">💰 Finanzas Globales</option>
-                    <option value="configuracion">⚙️ Configuración App</option>
-                    <option value="usuarios_registrados">👥 Lista Usuarios (Manual)</option>
-                    <option value="logs_sistema">📝 Logs del Sistema</option>
-                    <option value="custom">⚡ Ruta Personalizada...</option>
+                    
+                    <optgroup label="📂 Colecciones Principales (Root)">
+                        <option value="ROOT:chat_corpo">💬 chat_corpo</option>
+                        <option value="ROOT:godsPlanData">🗄️ godsPlanData</option>
+                        <option value="ROOT:artifacts">📦 artifacts (Sistema)</option>
+                    </optgroup>
+
+                    <optgroup label="📱 Datos de Aplicación (Internos)">
+                        <option value="anuncios">📢 Anuncios</option>
+                        <option value="finanzas_global">💰 Finanzas Globales</option>
+                        <option value="usuarios_registrados">👥 Lista Usuarios</option>
+                    </optgroup>
+
+                    <option value="custom">⚡ Ruta Personalizada (Manual)</option>
                 </select>
             </div>
 
             <!-- Entrada manual de ruta (visible si selecciona custom) -->
             <div id="custom-path-container" class="px-4 pb-4 hidden">
-                <input type="text" id="custom-path-input" placeholder="Ej: users/UID123/gastos" class="w-full bg-surface border border-white/10 rounded-lg p-2 text-xs text-white font-mono focus:border-brand focus:outline-none">
+                <div class="bg-yellow-500/10 border border-yellow-500/20 p-2 rounded mb-2">
+                    <p class="text-[10px] text-yellow-200">
+                        <i class="ph-bold ph-warning"></i> <b>Modo Libre:</b> Escribe la ruta exacta.
+                    </p>
+                </div>
+                <input type="text" id="custom-path-input" placeholder="Ej: chat_corpo/mensaje1" class="w-full bg-surface border border-white/10 rounded-lg p-2 text-xs text-white font-mono focus:border-brand focus:outline-none">
                 <button id="load-custom-btn" class="w-full mt-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold py-1 rounded border border-white/5">CARGAR RUTA</button>
             </div>
 
@@ -213,7 +226,6 @@
                 // ACCESO CONCEDIDO
                 setTimeout(() => {
                     authGuardEl.classList.add('opacity-0', 'pointer-events-none');
-                    // Cargar vista inicial si se desea
                 }, 800);
             } else {
                 // ACCESO DENEGADO
@@ -230,35 +242,42 @@
         window.adminApp = {
             
             // Cargar datos de una colección
-            loadCollection: async function(pathSuffix) {
+            loadCollection: async function(pathOrType) {
                 const dataContainer = document.getElementById('data-container');
                 dataContainer.innerHTML = '<div class="flex justify-center mt-20"><div class="loader"></div></div>';
                 
-                // Construir ruta completa. Regla 1: /artifacts/{appId}/public/data/
-                // Nota: Para permitir flexibilidad, si el usuario pone una ruta custom, intentamos usarla tal cual si empieza con artifacts, sino la prefijamos.
-                // Para simplificar al usuario admin: asumimos que las "colecciones" estándar viven en public/data.
+                let fullPath = "";
                 
-                let fullPath = `artifacts/${appId}/public/data/${pathSuffix}`;
-                
-                // Si es ruta custom y el usuario sabe lo que hace (empieza con users/ etc)
-                if (pathSuffix.includes('/')) {
-                     // Lógica para permitir rutas como "users/UID/collection"
-                     // La estructura base obligatoria es artifacts/appId/...
-                     if (!pathSuffix.startsWith('artifacts')) {
-                         // Asumimos que quiere entrar a public/data por defecto a menos que especifique "users"
-                         if(pathSuffix.startsWith('users')) {
-                             fullPath = `artifacts/${appId}/${pathSuffix}`;
-                         } else {
-                             fullPath = `artifacts/${appId}/public/data/${pathSuffix}`;
-                         }
-                     } else {
-                         fullPath = pathSuffix;
-                     }
+                // Si viene del botón "CARGAR RUTA", es custom
+                if (pathOrType === undefined && document.getElementById('collection-selector').value === 'custom') {
+                    const customInput = document.getElementById('custom-path-input').value.trim();
+                    if(!customInput) {
+                        dataContainer.innerHTML = '<p class="text-center text-yellow-500 mt-10">⚠️ Debes escribir una ruta válida.</p>';
+                        return;
+                    }
+                    fullPath = customInput;
+                } else {
+                    // Si viene del SELECT o es llamada directa
+                    const selectedValue = pathOrType || document.getElementById('collection-selector').value;
+                    
+                    if (selectedValue === 'custom') {
+                         dataContainer.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-zinc-600"><i class="ph-bold ph-keyboard text-4xl mb-4"></i><p>Escribe la ruta manual en el panel izquierdo.</p></div>';
+                         return; // Esperamos input manual
+                    }
+
+                    // LÓGICA DE PREFIJOS
+                    if (selectedValue.startsWith('ROOT:')) {
+                        // Rutas raíz exactas (ej: chat_corpo)
+                        fullPath = selectedValue.replace('ROOT:', '');
+                    } else {
+                        // Rutas internas de App (ej: anuncios)
+                        fullPath = `artifacts/${appId}/public/data/${selectedValue}`;
+                    }
                 }
 
                 currentCollectionPath = fullPath;
                 document.getElementById('current-path-display').textContent = fullPath;
-                document.getElementById('view-title').textContent = `Explorando: ${pathSuffix}`;
+                document.getElementById('view-title').textContent = `Explorando: ${fullPath}`;
 
                 try {
                     const querySnapshot = await getDocs(collection(db, fullPath));
@@ -275,7 +294,7 @@
                         <div class="bg-red-900/20 border border-red-500/20 p-6 rounded-xl text-center">
                             <h3 class="text-red-500 font-bold text-lg mb-2">Error de Acceso</h3>
                             <p class="text-zinc-400 text-sm font-mono">${error.message}</p>
-                            <p class="text-zinc-500 text-xs mt-4">Verifica que la colección existe y tienes permisos en Firestore Rules.</p>
+                            <p class="text-zinc-500 text-xs mt-4">Posibles causas: La colección no existe, está vacía o faltan permisos.</p>
                         </div>
                     `;
                 }
@@ -289,7 +308,7 @@
                 const filteredDocs = currentDocs.filter(d => d.id.toLowerCase().includes(filter));
 
                 if (filteredDocs.length === 0) {
-                    container.innerHTML = '<p class="text-center text-zinc-500 mt-10">No se encontraron documentos.</p>';
+                    container.innerHTML = '<p class="text-center text-zinc-500 mt-10">No se encontraron documentos en esta ruta.</p>';
                     return;
                 }
 
@@ -408,12 +427,8 @@
                     
                     // Cerrar y recargar
                     this.closeEditor();
-                    // Hack rápido: recargar toda la colección para ver cambios
-                    const pathParts = currentCollectionPath.split('public/data/');
-                    const suffix = pathParts.length > 1 ? pathParts[1] : currentCollectionPath; // Fallback logic
                     
-                    // Si usamos la ruta completa para recargar, necesitamos extraer el sufijo o simplemente re-llamar al fetch
-                    // Simplificación: re-fetchear usando la ruta global actual guardada
+                    // Recargar datos
                     const querySnapshot = await getDocs(collection(db, currentCollectionPath));
                     currentDocs = [];
                     querySnapshot.forEach((doc) => currentDocs.push({ id: doc.id, ...doc.data() }));
@@ -432,6 +447,7 @@
             const val = e.target.value;
             if (val === 'custom') {
                 document.getElementById('custom-path-container').classList.remove('hidden');
+                adminApp.loadCollection('custom'); // Mostrar mensaje de espera
             } else {
                 document.getElementById('custom-path-container').classList.add('hidden');
                 adminApp.loadCollection(val);
@@ -439,8 +455,7 @@
         });
 
         document.getElementById('load-custom-btn').addEventListener('click', () => {
-            const val = document.getElementById('custom-path-input').value.trim();
-            if(val) adminApp.loadCollection(val);
+            adminApp.loadCollection();
         });
 
         document.getElementById('regen-id-btn').addEventListener('click', () => {
