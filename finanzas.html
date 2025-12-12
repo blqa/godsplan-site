@@ -111,6 +111,15 @@
         }
         .input-modern:focus { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); outline: none; background: #18181b; }
         
+        /* Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #10b981;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #10b981;
+        }
+        
         /* Chips */
         .chip { transition: all 0.2s; user-select: none; white-space: nowrap; }
         .chip.active { background: #ef4444; color: white; transform: scale(1.02); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); border-color: #ef4444; }
@@ -305,8 +314,18 @@
                             </div>
                         </div>
 
-                        <!-- WIDGET HORAS EXTRAS (NUEVO) -->
+                        <!-- WIDGET HORAS EXTRAS (NUEVO & MODIFICADO) -->
                         <div id="adherenceCard" class="hidden mb-6 relative overflow-hidden rounded-[2rem] border border-emerald-900/30 bg-emerald-950/10 p-5 group transition-all">
+                             
+                             <!-- Switch Simulación -->
+                             <div class="absolute top-4 right-4 z-20 flex items-center gap-2">
+                                <span class="text-[9px] font-bold text-emerald-500/50 uppercase tracking-widest">Simular</span>
+                                <div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
+                                    <input type="checkbox" name="toggle" id="simToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer border-emerald-900/50 transition-all duration-300" onclick="app.toggleSimulation()"/>
+                                    <label for="simToggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-emerald-900/30 cursor-pointer"></label>
+                                </div>
+                             </div>
+
                              <div class="flex justify-between items-start mb-3 relative z-10">
                                  <div>
                                     <div class="text-[10px] text-emerald-400 font-black uppercase tracking-widest mb-1 flex items-center gap-1">
@@ -315,9 +334,10 @@
                                     <div class="text-white font-bold text-2xl tracking-tight" id="extraPayValue">Calculando...</div>
                                     <div class="text-[10px] text-emerald-500/70 mt-1 font-mono" id="extraPayHours">0h 00m acumulados</div>
                                  </div>
-                                 <div class="text-right">
+                                 <div class="text-right mt-7">
                                      <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">COBRO</div>
-                                     <div class="text-white font-bold text-sm bg-emerald-900/30 px-2 py-1 rounded-md border border-emerald-500/20" id="nextTuesdayLabel">Martes --</div>
+                                     <!-- Input de fecha editable -->
+                                     <input type="date" id="extraPayDateInput" onchange="app.saveExtraPayDate(this.value)" class="bg-emerald-900/30 text-white font-bold text-sm px-2 py-1 rounded-md border border-emerald-500/20 text-center w-28 focus:outline-none focus:border-emerald-500 cursor-pointer">
                                      <div class="text-[10px] text-zinc-500 mt-1" id="daysToTuesday">-- días</div>
                                  </div>
                              </div>
@@ -638,6 +658,18 @@
                     <p class="text-[10px] text-zinc-600 mt-2 text-center">Si eliges 10, tus cortes serán 10 y 25.</p>
                 </div>
                 
+                <!-- Toggle Adherencia -->
+                <div class="mt-6 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                    <div>
+                        <div class="text-sm font-bold text-white">Módulo Adherencia</div>
+                        <div class="text-[10px] text-zinc-500">Mostrar panel de horas extras</div>
+                    </div>
+                    <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggleAdh" id="adhToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300" onclick="app.toggleAdherenceModule()"/>
+                        <label for="adhToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-800 cursor-pointer"></label>
+                    </div>
+                </div>
+                
                 <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 rounded-2xl font-black mt-6 h-16 hover:bg-zinc-200">APLICAR CONFIGURACIÓN</button>
             </div>
 
@@ -718,7 +750,7 @@
         // --- APP LOGIC ---
         const app = window.app = {
             user: null, 
-            data: { income: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1 }, 
+            data: { income: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true }, 
             logs: [], adhData: null,
             currentPeriod: null, 
             privacyMode: false,
@@ -726,6 +758,7 @@
             charts: {},
             printCharts: {},
             pendingExtraPay: 0, // Almacena el valor calculado
+            isSimulating: false, // Nueva bandera de estado
 
             async init() {
                 if(!auth) return;
@@ -759,10 +792,15 @@
                 
                 onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
-                        this.data = { income: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, ...snap.data() };
+                        this.data = { income: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, ...snap.data() };
                         document.getElementById('inpIncome').value = this.data.income || '';
+                        document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
+                        
                         this.renderFixed(); this.renderLoans(); this.renderGoals();
-                        this.calcPeriod(); 
+                        this.calcPeriod();
+                        
+                        // Re-trigger adherence calculation in case enabling logic changed
+                        if (this.adhData) this.calcAdherencePay();
                     } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
                 });
 
@@ -784,17 +822,25 @@
 
             // --- LÓGICA DE ADHERENCIA ---
             calcAdherencePay() {
+                const card = document.getElementById('adherenceCard');
+                
+                // 1. Verificar si el módulo está habilitado
+                if (this.data.enableAdherence === false) {
+                    card.classList.add('hidden');
+                    return;
+                }
+
                 if (!this.adhData || !this.adhData.logs) return;
                 
-                // 1. Obtener semana actual
+                // 2. Obtener semana actual
                 const d = new Date();
                 const currentWeek = this.getWeek(d);
                 const currentYear = d.getFullYear();
 
-                // 2. Filtrar logs de esta semana
+                // 3. Filtrar logs de esta semana
                 const wLogs = this.adhData.logs.filter(l => this.getWeek(new Date(l.date + 'T00:00')) === currentWeek && new Date(l.date).getFullYear() === currentYear);
 
-                // 3. Calcular horas netas (copiado de lógica Adherencia)
+                // 4. Calcular horas netas (copiado de lógica Adherencia)
                 let t = 0, w = 0; 
                 wLogs.forEach(l => { 
                     t += (l.type === 'Laboral' || l.type === 'Falta') ? 480 : 0; 
@@ -802,15 +848,14 @@
                 }); 
                 const bal = w - t;
 
-                // 4. Calcular dinero
+                // 5. Calcular dinero
                 const config = this.adhData.config || {}; 
                 let pay = 0, he = Math.floor(bal / 60); 
                 if (bal > 0) pay = (he <= 12) ? he * (config.rate1 || 50) : (12 * (config.rate1 || 50)) + ((he - 12) * (config.rate1 || 50));
                 
                 this.pendingExtraPay = Math.round(pay);
 
-                // 5. Actualizar UI Widget
-                const card = document.getElementById('adherenceCard');
+                // 6. Actualizar UI Widget
                 if (this.pendingExtraPay > 0) {
                     card.classList.remove('hidden');
                     document.getElementById('extraPayValue').textContent = UI.fmtMoney(this.pendingExtraPay);
@@ -821,25 +866,49 @@
                     card.classList.add('hidden');
                 }
 
-                // 6. Calcular próximo Martes
-                this.calcNextTuesday();
+                // 7. Calcular fecha de cobro
+                this.resolvePayDate();
             },
 
-            calcNextTuesday() {
-                const now = new Date();
-                const resultDate = new Date();
-                // 2 = Martes. Si hoy es Martes (2), sumar 7 dias para el prox. Si no, calcular diff.
-                const diff = 2 - now.getDay() + 7; 
-                resultDate.setDate(now.getDate() + (diff % 7 === 0 ? 0 : (2 - now.getDay() + 7) % 7));
-                
-                // Si hoy es martes, mostrar "HOY" o próximo martes? Asumamos proximo corte si ya paso el día? 
-                // Simple: Próximo martes siempre.
-                if (resultDate <= now) resultDate.setDate(resultDate.getDate() + 7);
-                
-                const daysDiff = Math.ceil((resultDate - now) / (1000 * 60 * 60 * 24));
-                
-                document.getElementById('nextTuesdayLabel').textContent = `Martes ${resultDate.getDate()}`;
-                document.getElementById('daysToTuesday').textContent = daysDiff === 0 ? '¡Es Hoy!' : `Faltan ${daysDiff} días`;
+            resolvePayDate() {
+                // Si el usuario guardó una fecha manual, usarla
+                if (this.data.nextExtraPayDate) {
+                    const savedDate = new Date(this.data.nextExtraPayDate + 'T12:00:00'); // T12 to avoid timezone shifts
+                    const now = new Date();
+                    const daysDiff = Math.ceil((savedDate - now) / (1000 * 60 * 60 * 24));
+                    
+                    document.getElementById('extraPayDateInput').value = this.data.nextExtraPayDate;
+                    document.getElementById('daysToTuesday').textContent = daysDiff === 0 ? '¡Es Hoy!' : (daysDiff < 0 ? 'Pasado' : `Faltan ${daysDiff} días`);
+                } else {
+                    // Lógica por defecto (Próximo Martes)
+                    const now = new Date();
+                    const resultDate = new Date();
+                    const diff = 2 - now.getDay() + 7; 
+                    resultDate.setDate(now.getDate() + (diff % 7 === 0 ? 0 : (2 - now.getDay() + 7) % 7));
+                    if (resultDate <= now) resultDate.setDate(resultDate.getDate() + 7);
+                    
+                    const dateStr = resultDate.toISOString().split('T')[0];
+                    document.getElementById('extraPayDateInput').value = dateStr;
+                    
+                    const daysDiff = Math.ceil((resultDate - now) / (1000 * 60 * 60 * 24));
+                    document.getElementById('daysToTuesday').textContent = `Faltan ${daysDiff} días`;
+                }
+            },
+
+            async saveExtraPayDate(val) {
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { nextExtraPayDate: val });
+                this.resolvePayDate(); // Refresh UI
+            },
+
+            toggleAdherenceModule() {
+                const isEnabled = document.getElementById('adhToggle').checked;
+                updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { enableAdherence: isEnabled });
+                // UI will update via snapshot listener
+            },
+
+            toggleSimulation() {
+                this.isSimulating = document.getElementById('simToggle').checked;
+                this.calcBalance(); // Recalculate main numbers
             },
 
             async importExtraMoney() {
@@ -855,7 +924,6 @@
                     });
                     
                     UI.toast('Dinero sumado a billetera', 'success');
-                    // Opcional: Podrías marcar en adherencia que ya se pagó, pero por seguridad de solo lectura, lo dejamos local aquí.
                 }
             },
 
@@ -899,7 +967,7 @@
                 this.calcBalance();
             },
 
-            // --- CORE FINANCIAL MATH (CORREGIDO PARA GASTO DE HOY) ---
+            // --- CORE FINANCIAL MATH (CORREGIDO PARA GASTO DE HOY & SIMULACIÓN) ---
             calcBalance() {
                 if(!this.currentPeriod) return;
                 
@@ -926,6 +994,11 @@
                     if(l.type === 'income') extraInc += l.amount; 
                     else totalSpentInCycle += l.amount;
                 });
+
+                // --- LÓGICA DE SIMULACIÓN ---
+                if (this.isSimulating && this.pendingExtraPay > 0) {
+                    extraInc += this.pendingExtraPay;
+                }
 
                 // Calcular Reserva para Gastos Fijos (Smart Reserve)
                 let fixedReserve = 0;
@@ -957,9 +1030,6 @@
                 const remainingTotal = liquidIncome - fixedReserve - totalSpentInCycle;
                 
                 // --- LÓGICA CRÍTICA: PRESUPUESTO DE HOY ---
-                // Para saber si te pasaste HOY, necesitamos saber cuál era tu presupuesto AL INICIO del día.
-                // Formula: (Dinero restante actual + Lo que gastaste hoy) / Días que quedan (incluyendo hoy)
-                
                 const daysLeft = this.currentPeriod.daysLeft; // Asegurado que es min 1
                 
                 // Dinero que "tenías" hoy antes de gastar nada
@@ -977,22 +1047,36 @@
                 const cardBg = document.getElementById('mainCardBg');
                 
                 // Formatear valor principal
-                if (balanceToday < 0) {
-                    // TE PASASTE
+                if (this.isSimulating) {
+                    // MODO SIMULACIÓN (Verde/Emerald)
                     dailyEl.textContent = UI.fmtMoney(balanceToday);
-                    dailyEl.className = 'text-red-500 animate-pulse font-black'; // Texto Rojo
+                    dailyEl.className = 'text-emerald-400 font-black animate-pulse'; 
+                    labelState.textContent = 'SIMULACIÓN ACTIVADA';
+                    labelState.className = 'text-xs font-black text-emerald-500 uppercase tracking-widest';
+                    cardBg.classList.replace('bg-red-600/50', 'bg-emerald-600/20');
+                    cardBg.classList.replace('bg-red-600/20', 'bg-emerald-600/20');
+                    cardBg.classList.remove('animate-pulse-red');
+                    cardBg.classList.add('animate-pulse-green');
+                } else if (balanceToday < 0) {
+                    // TE PASASTE (Rojo)
+                    dailyEl.textContent = UI.fmtMoney(balanceToday);
+                    dailyEl.className = 'text-red-500 animate-pulse font-black'; 
                     labelState.textContent = 'EXCEDIDO HOY';
                     labelState.className = 'text-xs font-black text-red-500 uppercase tracking-widest';
-                    cardBg.classList.replace('bg-red-600/20', 'bg-red-600/50'); // Fondo más intenso
+                    cardBg.classList.replace('bg-red-600/20', 'bg-red-600/50');
+                    cardBg.classList.replace('bg-emerald-600/20', 'bg-red-600/50');
+                    cardBg.classList.remove('animate-pulse-green');
                     cardBg.classList.add('animate-pulse-red');
                 } else {
-                    // TODO BIEN
+                    // TODO BIEN (Normal)
                     dailyEl.textContent = UI.fmtMoney(balanceToday);
                     dailyEl.className = 'text-white';
                     labelState.textContent = 'DISPONIBLE HOY';
                     labelState.className = 'text-xs font-bold text-zinc-400 uppercase tracking-widest';
                     cardBg.classList.replace('bg-red-600/50', 'bg-red-600/20');
+                    cardBg.classList.replace('bg-emerald-600/20', 'bg-red-600/20');
                     cardBg.classList.remove('animate-pulse-red');
+                    cardBg.classList.remove('animate-pulse-green');
                 }
 
                 // Actualizar desglose
