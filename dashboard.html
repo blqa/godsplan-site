@@ -58,6 +58,10 @@
         /* Loader */
         .loader { border: 3px solid rgba(255,255,255,0.1); border-left-color: #ef4444; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Inputs invisibles */
+        .bare-input { background: transparent; border: none; outline: none; text-align: right; width: 100%; font-weight: bold; color: inherit; border-bottom: 1px dashed rgba(255,255,255,0.2); transition: border-color 0.2s; }
+        .bare-input:focus { border-bottom-color: #ef4444; }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
@@ -172,28 +176,43 @@
                         </div>
                         <p class="text-xs text-zinc-600 mb-4 leading-relaxed">Tiempo antes de la quiebra si los ingresos se detienen hoy.</p>
                         
-                        <!-- Input Manual para Ahorros Líquidos (Ya que Finanzas calcula flujos, aquí definimos el stock) -->
+                        <!-- Input Manual para Ahorros Líquidos -->
                         <div class="bg-black/50 p-3 rounded-xl border border-zinc-800">
                             <label class="text-[9px] text-red-500 font-bold uppercase block mb-1">Ahorro Líquido Total</label>
                             <div class="flex items-center gap-2">
                                 <span class="text-zinc-600 text-lg font-light">$</span>
-                                <input type="number" id="inpLiquidAssets" class="bg-transparent w-full text-white font-bold outline-none text-right placeholder-zinc-700" placeholder="0" onblur="dash.saveAssets()">
+                                <input type="number" id="inpLiquidAssets" class="bg-transparent w-full text-white font-bold outline-none text-right placeholder-zinc-700" placeholder="0" onblur="dash.saveConfig()">
                             </div>
                         </div>
                     </div>
 
-                    <!-- RESUMEN MENSUAL -->
+                    <!-- RESUMEN MENSUAL (EDITABLE) -->
                     <div class="glass-card rounded-2xl p-5 border border-zinc-800 space-y-3">
-                        <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Resumen Mes</h3>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Resumen Mes (Manual/Auto)</h3>
+                            <i class="ph-bold ph-pencil-simple text-zinc-600 text-xs"></i>
+                        </div>
+                        
+                        <!-- Ingresos -->
                         <div class="flex justify-between items-center text-sm">
                             <span class="text-zinc-400">Ingresos Totales</span>
-                            <span class="text-emerald-500 font-bold" id="summaryInc">$0</span>
+                            <div class="flex items-center gap-1 w-24">
+                                <span class="text-emerald-500 font-bold text-xs">$</span>
+                                <input type="number" id="inpIncome" class="bare-input text-emerald-500" placeholder="0" onblur="dash.saveConfig()">
+                            </div>
                         </div>
+
+                        <!-- Gastos -->
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-zinc-400">Gastos Totales</span>
-                            <span class="text-red-500 font-bold" id="summaryExp">$0</span>
+                            <span class="text-zinc-400">Gastos Estimados</span>
+                            <div class="flex items-center gap-1 w-24">
+                                <span class="text-red-500 font-bold text-xs">$</span>
+                                <input type="number" id="inpExpenses" class="bare-input text-red-500" placeholder="0" onblur="dash.saveConfig()">
+                            </div>
                         </div>
+
                         <div class="border-t border-white/5 my-2"></div>
+                        
                         <div class="flex justify-between items-center text-sm">
                             <span class="text-zinc-400">Horas Trabajadas</span>
                             <span class="text-white font-bold" id="summaryHours">0h</span>
@@ -229,7 +248,7 @@
             data: {
                 workLogs: [],
                 financeLogs: [],
-                financeConfig: { income: 0, liquidAssets: 0 },
+                financeConfig: { income: 0, liquidAssets: 0, estimatedExpenses: 0 },
                 workConfig: {}
             },
             userId: null,
@@ -272,16 +291,19 @@
                         const d = snap.data();
                         this.data.financeConfig.income = d.income || 0;
                         this.data.financeConfig.liquidAssets = d.liquidAssets || 0;
-                        document.getElementById('inpLiquidAssets').value = this.data.financeConfig.liquidAssets;
+                        this.data.financeConfig.estimatedExpenses = d.estimatedExpenses || 0; // Nuevo campo manual
+                        
+                        // Populate inputs if not focused
+                        if(document.activeElement.id !== 'inpLiquidAssets') document.getElementById('inpLiquidAssets').value = this.data.financeConfig.liquidAssets;
+                        if(document.activeElement.id !== 'inpIncome') document.getElementById('inpIncome').value = this.data.financeConfig.income;
+                        if(document.activeElement.id !== 'inpExpenses') document.getElementById('inpExpenses').value = this.data.financeConfig.estimatedExpenses;
+                        
                         this.calcMetrics();
                     }
                 });
 
                 // 3. Escuchar FINANCE LOGS (artifacts/{APP_ID}/users/{uid}/transactions)
                 const txRef = collection(db, 'artifacts', APP_ID, 'users', this.userId, 'transactions');
-                const now = new Date();
-                // Traemos todo para simplificar y filtrar en memoria por ahora (dashboard ejecutivo)
-                // En producción idealmente filtrar por fecha en query
                 onSnapshot(query(txRef), (snap) => {
                     this.data.financeLogs = snap.docs.map(d => d.data());
                     this.calcMetrics();
@@ -294,7 +316,6 @@
                 const currentYear = now.getFullYear();
 
                 // --- 1. WORK METRICS ---
-                // Filtrar logs del mes actual
                 const mWorkLogs = this.data.workLogs.filter(l => {
                     const d = new Date(l.date + 'T00:00'); 
                     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
@@ -303,7 +324,6 @@
                 let totalMins = 0;
                 mWorkLogs.forEach(l => {
                     if (l.type === 'Laboral' || l.type === 'Descanso') {
-                        // Cálculo Neto (igual que Adherencia)
                         const gross = l.hours || 0;
                         const disc = l.disconnection || 0;
                         totalMins += Math.max(0, gross - disc);
@@ -311,18 +331,24 @@
                 });
                 const totalHours = totalMins / 60;
 
-                // --- 2. FINANCE METRICS ---
-                // Filtrar logs del mes actual
+                // --- 2. FINANCE METRICS (Hybrid Logic) ---
                 const mFinLogs = this.data.financeLogs.filter(l => {
                     const d = new Date(l.date);
                     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
                 });
 
                 const extraIncome = mFinLogs.filter(l => l.type === 'income').reduce((a, b) => a + (b.amount || 0), 0);
-                const totalExpenses = mFinLogs.filter(l => l.type === 'expense').reduce((a, b) => a + (b.amount || 0), 0);
+                const logExpenses = mFinLogs.filter(l => l.type === 'expense').reduce((a, b) => a + (b.amount || 0), 0);
                 
-                const baseIncome = this.data.financeConfig.income || 0;
-                const totalIncome = baseIncome + extraIncome; // Base + Extras
+                // Income: Base manual + Extras registrados
+                const baseIncome = parseFloat(this.data.financeConfig.income) || 0;
+                const totalIncome = baseIncome + extraIncome; 
+
+                // Expenses: Use Manual Estimate if Logs are empty or lower (Hybrid approach)
+                // This ensures if you log nothing, you can still put "20000" in estimate and see results.
+                const estimatedExp = parseFloat(this.data.financeConfig.estimatedExpenses) || 0;
+                const totalExpenses = Math.max(logExpenses, estimatedExp);
+
                 const netCashflow = totalIncome - totalExpenses;
 
                 // --- 3. DERIVED KPIs ---
@@ -331,40 +357,30 @@
                 const realRate = totalHours > 0 ? (totalIncome / totalHours) : 0;
 
                 // Life Cost Per Hour = (Gastos Totales / 720h mes natural)
-                // Esto te dice cuánto te cuesta respirar por hora
                 const lifeCostRate = totalExpenses / (30 * 24);
 
-                // Runway = (Activos Líquidos / Gastos Mensuales Promedio)
-                // Usamos el gasto de este mes como proxy del promedio por ahora
+                // Runway
                 const liquid = parseFloat(this.data.financeConfig.liquidAssets) || 0;
                 const runway = totalExpenses > 0 ? (liquid / totalExpenses) : (liquid > 0 ? 99 : 0);
 
                 // --- 4. UPDATE UI ---
-                
-                // KPI 1: Real Rate
                 document.getElementById('kpiRealRate').textContent = fmtMoney(realRate);
                 document.getElementById('kpiRealRate').className = `text-4xl font-black tracking-tighter mb-1 relative z-10 ${realRate > lifeCostRate ? 'text-white' : 'text-red-500'}`;
 
-                // KPI 2: Hours
                 document.getElementById('kpiHours').textContent = fmtNum(totalHours) + 'h';
                 const pct = Math.min(100, (totalHours / 160) * 100);
                 document.getElementById('barHours').style.width = `${pct}%`;
                 
-                // KPI 3: Life Cost
                 document.getElementById('kpiLifeCost').textContent = fmtMoney(lifeCostRate);
 
-                // KPI 4: Net
                 document.getElementById('kpiNet').textContent = (netCashflow > 0 ? '+' : '') + fmtMoney(netCashflow);
                 document.getElementById('kpiNet').className = `text-3xl font-bold mb-1 ${netCashflow >= 0 ? 'text-emerald-500' : 'text-red-500'}`;
+                
                 const margin = totalIncome > 0 ? ((netCashflow / totalIncome) * 100) : 0;
                 document.getElementById('kpiMargin').textContent = `Margen: ${margin.toFixed(0)}%`;
 
-                // Summary Panel
-                document.getElementById('summaryInc').textContent = fmtMoney(totalIncome);
-                document.getElementById('summaryExp').textContent = fmtMoney(totalExpenses);
                 document.getElementById('summaryHours').textContent = fmtNum(totalHours) + 'h';
 
-                // Runway Widget
                 const rwEl = document.getElementById('runwayMonths');
                 rwEl.textContent = runway > 50 ? '>50' : fmtNum(runway);
                 rwEl.className = `text-4xl font-black ${runway < 1 ? 'text-red-600 animate-pulse' : (runway < 3 ? 'text-orange-500' : 'text-emerald-500')}`;
@@ -372,10 +388,19 @@
                 this.renderChart(totalIncome, totalExpenses);
             },
 
-            saveAssets() {
-                const val = parseFloat(document.getElementById('inpLiquidAssets').value) || 0;
+            saveConfig() {
+                const liq = parseFloat(document.getElementById('inpLiquidAssets').value) || 0;
+                const inc = parseFloat(document.getElementById('inpIncome').value) || 0;
+                const exp = parseFloat(document.getElementById('inpExpenses').value) || 0;
+                
                 const ref = doc(db, 'artifacts', APP_ID, 'users', this.userId, 'data', 'financials');
-                updateDoc(ref, { liquidAssets: val });
+                // Use setDoc with merge to ensure doc exists
+                updateDoc(ref, { liquidAssets: liq, income: inc, estimatedExpenses: exp }).catch(() => {
+                    // Fallback create if not exists
+                    import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js').then(({setDoc}) => {
+                        setDoc(ref, { liquidAssets: liq, income: inc, estimatedExpenses: exp }, { merge: true });
+                    });
+                });
             },
 
             renderChart(inc, exp) {
