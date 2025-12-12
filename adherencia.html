@@ -1031,6 +1031,9 @@
                 <div class="main-clock">
                     <div class="clock-status" id="clockStatus">TURNO ACTIVO</div>
                     <div class="clock-timer" id="clockDisplay">00:00</div>
+                    <div id="networkTimeBadge" style="font-size: 0.65rem; color: var(--money); font-weight: 700; margin-top: 5px; opacity: 0;">
+                        <i class="ph-bold ph-globe"></i> Sync
+                    </div>
                 </div>
                 <button class="side-clock" id="clockFoodContainer" onclick="window.app.openTimerEdit('food')" type="button" title="Toca para ajustar">
                     <div class="side-label"><i class="ph-bold ph-hamburger"></i> Comida <i class="ph-bold ph-pencil-simple" style="font-size:0.9em; margin-left:3px; color:var(--brand);"></i></div>
@@ -1277,7 +1280,7 @@
                    class="btn-primary" 
                    style="text-decoration: none; text-align: center; display: block; background: var(--brand); color: white;" 
                    download>
-                   <i class="ph-bold ph-download-simple"></i> Agregar Extensión
+                    <i class="ph-bold ph-download-simple"></i> Agregar Extensión
                 </a>
                 <button class="btn-secondary" onclick="document.getElementById('extensionModal').classList.remove('active')">Cerrar</button>
             </div>
@@ -1350,9 +1353,13 @@
             data: { logs: [], config: { rate1: 50, rate2: 75, bathAllow: 15, foodAllow: 45, empId: "", empName: "" }, activeShift: null },
             userId: null, offline: false, editingId: null, date: new Date(), timer: null, processing: false, authMode: 'login',
             currentTheme: 'light',
-            editingTimerType: null, // NUEVO PARA EDICION DE TIEMPO
+            editingTimerType: null,
+            timeOffset: 0, // NUEVO: Desfase de tiempo con respecto al servidor
 
             init() {
+                // Sincronizar tiempo de red inmediatamente
+                this.syncNetworkTime();
+
                 document.getElementById('auth-status').style.display = 'flex';
 
                 // LOAD THEME
@@ -1362,9 +1369,7 @@
                 if (customColors) this.applyCustomColors(customColors);
 
                 // --- INTEGRACIÓN EXTENSIÓN CHROME ---
-                // Escuchamos mensajes de la extensión para sincronizar con TouchPoint
                 window.addEventListener('message', (event) => {
-                    // Validamos que sea un mensaje de nuestra extensión (puedes añadir más validación de origen si quieres)
                     if (event.data && event.data.type === 'GODSPLAN_COMMAND') {
                         console.log("Comando recibido de TouchPoint:", event.data.action);
                         
@@ -1373,19 +1378,15 @@
                                 if (!this.data.activeShift) this.clockIn();
                                 break;
                             case 'START_BREAK_FOOD':
-                                // Solo si no está ya en comida
                                 if (this.data.activeShift?.breakType !== 'food') this.toggleBreak('food');
                                 break;
                             case 'START_BREAK_BATH':
-                                // Solo si no está ya en baño
                                 if (this.data.activeShift?.breakType !== 'bathroom') this.toggleBreak('bathroom');
                                 break;
                             case 'RESUME_WORK':
-                                // Si hay un descanso activo, lo detenemos
                                 if (this.data.activeShift?.breakStart) this.stopBreak();
                                 break;
                             case 'END_SHIFT':
-                                // Abre el modal de terminar turno
                                 if (this.data.activeShift) this.confirmClockOut();
                                 break;
                         }
@@ -1396,38 +1397,71 @@
                 if (!auth) return this.goOffline();
 
                 onAuthStateChanged(auth, async u => {
-                    // FIX: Evitar que el código sobreescriba una sesión válida (o fallida) con una nueva anónima.
                     if (u && !u.isAnonymous) { 
-                        // SESIÓN ACTIVA REAL
                         this.userId = u.uid; 
                         this.offline = false; 
                         this.renderAuth(u); 
                         await this.load(); 
                     } else if (u && u.isAnonymous) { 
-                        // SESIÓN ANÓNIMA (Permite uso local, pero muestra la opción de Login)
                         this.userId = u.uid;
                         this.offline = false; 
                         this.renderAuth(u);
                         await this.load();
                     } else {
-                        // NO USER (u is null): Intentamos iniciar sesión anónimamente si aún no se ha hecho 
-                        // o si el token inicial existía, para que el usuario tenga un UID para guardar localmente.
                         if (initialAuthToken) {
                              try { 
-                                // Esto promoverá la sesión si el token es válido
                                 await signInWithCustomToken(auth, initialAuthToken); 
-                                return; // Esperar a que el listener se dispare de nuevo
+                                return; 
                             } catch(e) {
-                                // Si el token falla (ej. expirado), procedemos con el anónimo si es necesario
                                 await signInAnonymously(auth).catch(() => this.goOffline());
                             }
                         } else {
-                            // Sin token inicial, forzamos anónimo para obtener un UID
                             await signInAnonymously(auth).catch(() => this.goOffline());
                         }
                     }
-                    this.loadLocal(); // Cargar siempre local si hay un fallback
+                    this.loadLocal(); 
                 });
+            },
+
+            // --- NUEVO: SINCRONIZACIÓN DE TIEMPO REAL ---
+            async syncNetworkTime() {
+                try {
+                    const start = Date.now();
+                    // Usamos worldtimeapi.org que es un estándar abierto
+                    const response = await fetch('https://worldtimeapi.org/api/timezone/Etc/UTC');
+                    const data = await response.json();
+                    const end = Date.now();
+                    
+                    // Ajuste por latencia de red (aprox la mitad del tiempo de viaje)
+                    const latency = (end - start) / 2;
+                    const serverTime = new Date(data.datetime).getTime();
+                    
+                    // Calculamos el desfase: Si el server dice 10:05 y mi PC dice 10:00, offset es +5min
+                    this.timeOffset = (serverTime + latency) - end;
+                    
+                    console.log(`⏰ Sincronización exitosa. Desfase de PC: ${Math.round(this.timeOffset/1000)} segundos.`);
+                    
+                    const badge = document.getElementById('networkTimeBadge');
+                    if(badge) {
+                        badge.style.opacity = '1';
+                        badge.innerHTML = `<i class="ph-bold ph-globe"></i> Sync OK (${Math.round(this.timeOffset/1000)}s)`;
+                    }
+
+                } catch (e) {
+                    console.warn("⚠️ No se pudo sincronizar con WorldTimeAPI. Usando hora del sistema.", e);
+                    const badge = document.getElementById('networkTimeBadge');
+                    if(badge) {
+                        badge.style.opacity = '0.5';
+                        badge.innerHTML = `<i class="ph-bold ph-warning"></i> PC Time`;
+                    }
+                    this.timeOffset = 0;
+                }
+            },
+
+            // --- NUEVO: FUNCIÓN PARA OBTENER LA HORA CORREGIDA ---
+            getNow() {
+                // Devuelve la hora del sistema + el desfase calculado
+                return Date.now() + this.timeOffset;
             },
 
             // --- THEME LOGIC ---
@@ -1436,33 +1470,29 @@
                 document.documentElement.setAttribute('data-theme', t);
                 localStorage.setItem('gp_theme', t);
 
-                // UI Update
                 document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
                 const btn = document.getElementById(t === 'light' ? 'btnThemeLight' : t === 'dark' ? 'btnThemeDark' : t === 'red' ? 'btnThemeRed' : 'btnThemeCustom');
                 if (btn) btn.classList.add('active');
 
                 document.getElementById('customColorsPanel').style.display = t === 'custom' ? 'block' : 'none';
 
-                // Reset custom styles if not custom
                 if (t !== 'custom') {
                     document.documentElement.style.removeProperty('--bg');
                     document.documentElement.style.removeProperty('--card');
                     document.documentElement.style.removeProperty('--text');
                     document.documentElement.style.removeProperty('--brand');
                 } else {
-                    // Reapply custom if exists
                     const cc = JSON.parse(localStorage.getItem('gp_custom_colors'));
                     if (cc) this.applyCustomColors(cc);
                 }
 
-                // Rerender charts to update colors
                 if (this.data.logs.length > 0) this.renderCharts(this.data.logs.filter(l => new Date(l.date + 'T00:00').getMonth() === this.date.getMonth()));
             },
 
             toggleTheme() {
                 const order = ['light', 'dark', 'red'];
                 let idx = order.indexOf(this.currentTheme);
-                if (idx === -1) idx = 0; // if custom, go to light
+                if (idx === -1) idx = 0; 
                 this.setTheme(order[(idx + 1) % order.length]);
             },
 
@@ -1483,7 +1513,6 @@
                 r.setProperty('--card', c.card);
                 r.setProperty('--text', c.text);
                 r.setProperty('--brand', c.brand);
-                // Set picker values
                 document.getElementById('ccBg').value = c.bg;
                 document.getElementById('ccCard').value = c.card;
                 document.getElementById('ccText').value = c.text;
@@ -1494,7 +1523,6 @@
             renderAuth(u) {
                 const authenticatedView = document.getElementById('authenticatedView');
                 const unauthenticatedView = document.getElementById('unauthenticatedView');
-
                 const isRealUser = u && !u.isAnonymous;
 
                 if (isRealUser) {
@@ -1506,7 +1534,6 @@
                 }
 
                 let t = u ? (u.isAnonymous ? "ANÓNIMO (Ver perfil para Iniciar Sesión)" : (this.data.config.empName || u.displayName || "Usuario")) : "DESCONECTADO";
-                // Mostrar ID si es un login por ID
                 if (isRealUser && u.email && u.email.includes('@godsplan.site')) {
                     t = u.email.split('@')[0];
                 }
@@ -1516,18 +1543,15 @@
 
             loadLocal() { const d = localStorage.getItem('godsPlanData'); if (d) { try { this.data = JSON.parse(d); this.render(); this.uiClock(); } catch (e) { } } },
             
-            // MODULAR FIRESTORE LOAD
             async load() {
                 if (this.offline || !this.userId) return;
                 try {
-                    // Mantenemos la colección godsPlanData para compatibilidad
                     const docRef = doc(db, "godsPlanData", this.userId);
                     const snap = await getDoc(docRef);
                     
                     if (snap.exists()) { 
                         this.data = snap.data(); 
                         this.data.logs = this.data.logs || []; 
-                        // FIX: Inicializar config si es nulo
                         this.data.config = this.data.config || { rate1: 50, rate2: 75, bathAllow: 15, foodAllow: 45, empId: "", empName: "" };
                     } else if (auth.currentUser.isAnonymous) { 
                         const l = localStorage.getItem('godsPlanData'); 
@@ -1537,7 +1561,6 @@
                 } catch (e) { console.error(e); }
             },
             
-            // MODULAR FIRESTORE SAVE
             async save() {
                 localStorage.setItem('godsPlanData', JSON.stringify(this.data));
                 if (!this.offline && this.userId) {
@@ -1545,14 +1568,12 @@
                     await setDoc(docRef, this.data);
                 }
             },
-            syncData() { this.load(); this.showSuccess("Sincronizado"); },
+            syncData() { this.load(); this.showSuccess("Sincronizado"); this.syncNetworkTime(); },
 
-            // --- EXTENSION MODAL LOGIC ---
             openExtensionModal() {
                 document.getElementById('extensionModal').classList.add('active');
             },
 
-            // --- TEAM STATS LOGIC (MODULAR) ---
             loadTeamStatsModal() {
                 document.getElementById('teamModal').classList.add('active');
                 this.loadTeamStats();
@@ -1565,8 +1586,6 @@
                 list.innerHTML = '';
 
                 try {
-                    // Fetch all user data using Modular SDK
-                    // Utilizamos una consulta simple para evitar errores de índice en Firestore
                     const q = collection(db, "godsPlanData");
                     const snap = await getDocs(q);
                     
@@ -1598,10 +1617,8 @@
                         if (config.empName) {
                             name = config.empName;
                         } else if (docSnap.id.includes('@')) {
-                             // Si el ID del documento parece un email
-                             name = docSnap.id.split('@')[0];
+                            name = docSnap.id.split('@')[0];
                         } else {
-                            // Fallback
                             name = docSnap.id.slice(0, 8);
                         }
 
@@ -1636,7 +1653,6 @@
                 const off = document.getElementById('offlineDisplay');
                 const on = document.getElementById('timersDisplay');
 
-                // Asegurar que la config exista antes de leer sus propiedades
                 const config = this.data.config || {}; 
                 const bl = config.bathAllow || 15;
                 const fl = config.foodAllow || 45;
@@ -1662,7 +1678,9 @@
 
                     if (this.timer) clearInterval(this.timer);
                     this.timer = setInterval(() => {
-                        const now = Date.now();
+                        // USO DE TIEMPO CORREGIDO
+                        const now = this.getNow();
+                        
                         document.getElementById('clockDisplay').textContent = this.msToTime(now - s.start);
                         let b = s.breaks.bathroom || 0, f = s.breaks.food || 0;
                         if (s.breakStart) {
@@ -1683,45 +1701,37 @@
                 }
             },
             
-            // NUEVA FUNCIÓN: Abrir modal de edición de timer
             openTimerEdit(type) {
                 if (!this.data.activeShift) return;
                 
                 this.editingTimerType = type;
-                
-                // Calculamos el valor actual acumulado (base + tiempo transcurrido si está activo)
                 let currentTotal = this.data.activeShift.breaks[type] || 0;
                 
-                // Si este timer específico está corriendo AHORA, sumamos lo que lleva
+                // USO DE TIEMPO CORREGIDO
                 if (this.data.activeShift.breakStart && this.data.activeShift.breakType === type) {
-                    const elapsedMins = (Date.now() - this.data.activeShift.breakStart) / 60000;
+                    const elapsedMins = (this.getNow() - this.data.activeShift.breakStart) / 60000;
                     currentTotal += elapsedMins;
                 }
                 
                 document.getElementById('timerEditTitle').textContent = type === 'bathroom' ? 'Baño' : 'Comida';
                 
-                // CAMBIO: Formatear a MM:SS para mostrar en el input
                 const m = Math.floor(currentTotal);
                 const s = Math.floor((currentTotal % 1) * 60);
                 const formatted = `${m}:${s.toString().padStart(2, '0')}`;
                 
                 document.getElementById('inpTimerEdit').value = formatted; 
                 
-                // FORCE OPEN
                 const modal = document.getElementById('timerEditModal');
                 if(modal) modal.classList.add('active');
                 
-                // Auto-focus para escribir rápido
                 setTimeout(() => document.getElementById('inpTimerEdit').focus(), 100);
             },
 
-            // NUEVA FUNCIÓN: Guardar edición de timer
             saveTimerEdit() {
                 if (!this.editingTimerType || !this.data.activeShift) return;
                 const valStr = document.getElementById('inpTimerEdit').value.trim();
                 let newVal = 0;
 
-                // CAMBIO: Lógica para detectar MM:SS
                 if (valStr.includes(':')) {
                     const parts = valStr.split(':');
                     const m = parseInt(parts[0]) || 0;
@@ -1736,26 +1746,21 @@
                     return;
                 }
 
-                // LÓGICA DE ACTUALIZACIÓN INTELIGENTE
                 if (this.data.activeShift.breakStart && this.data.activeShift.breakType === this.editingTimerType) {
-                    // Si el timer está corriendo:
-                    // 1. Actualizamos el acumulado base al nuevo valor ingresado por el usuario.
                     this.data.activeShift.breaks[this.editingTimerType] = newVal;
-                    // 2. Reseteamos el "inicio" del intervalo a AHORA MISMO.
-                    this.data.activeShift.breakStart = Date.now();
+                    // USO DE TIEMPO CORREGIDO
+                    this.data.activeShift.breakStart = this.getNow();
                 } else {
-                    // Si no está corriendo, simplemente actualizamos el acumulado
                     this.data.activeShift.breaks[this.editingTimerType] = newVal;
                 }
                 
                 this.save();
-                this.uiClock(); // Refresca la UI inmediatamente
+                this.uiClock();
                 document.getElementById('timerEditModal').classList.remove('active');
                 this.showSuccess("Tiempo ajustado");
             },
 
             clockIn() {
-                // *** FIX: REDIRECCIONAR SI ES ANÓNIMO ***
                 if (auth.currentUser?.isAnonymous) {
                     this.showMessage("Debes iniciar sesión con tu cuenta de empleado para iniciar una jornada.");
                     this.redirectToAuth();
@@ -1763,8 +1768,9 @@
                 }
                 
                 if (this.processing) return; this.processing = true;
-                this.stopBreak(); // Asegurarse de que no hay un descanso activo
-                this.data.activeShift = { start: Date.now(), breaks: { bathroom: 0, food: 0 }, breakStart: null, breakType: null };
+                this.stopBreak();
+                // USO DE TIEMPO CORREGIDO
+                this.data.activeShift = { start: this.getNow(), breaks: { bathroom: 0, food: 0 }, breakStart: null, breakType: null };
                 this.save(); this.uiClock(); this.processing = false;
             },
             toggleBreak(type) {
@@ -1775,11 +1781,18 @@
                     if (prev !== type) setTimeout(() => this.startBreak(type), 50);
                 } else this.startBreak(type);
             },
-            startBreak(t) { this.data.activeShift.breakStart = Date.now(); this.data.activeShift.breakType = t; this.save(); this.uiClock(); },
+            startBreak(t) { 
+                // USO DE TIEMPO CORREGIDO
+                this.data.activeShift.breakStart = this.getNow(); 
+                this.data.activeShift.breakType = t; 
+                this.save(); 
+                this.uiClock(); 
+            },
             stopBreak() {
                 const s = this.data.activeShift;
                 if (s && s.breakStart) {
-                    s.breaks[s.breakType] += (Date.now() - s.breakStart) / 60000;
+                    // USO DE TIEMPO CORREGIDO
+                    s.breaks[s.breakType] += (this.getNow() - s.breakStart) / 60000;
                     s.breakStart = null; s.breakType = null;
                     this.save(); this.uiClock();
                 }
@@ -1791,15 +1804,20 @@
             finishShiftReal() {
                 const s = this.data.activeShift;
                 if (!s) return;
-                if (s.breakStart) this.stopBreak(); // Asegurar stop final
+                if (s.breakStart) this.stopBreak(); 
 
                 if (!s.breaks) s.breaks = { bathroom: 0, food: 0 };
-                const end = Date.now(), gross = (end - s.start) / 60000;
+                // USO DE TIEMPO CORREGIDO
+                const end = this.getNow();
+                const gross = (end - s.start) / 60000;
                 const b = s.breaks.bathroom || 0, f = s.breaks.food || 0;
-                const config = this.data.config || {}; // FIX: Check config again
+                const config = this.data.config || {}; 
                 const disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
+                
                 this.data.logs.push({
-                    id: Date.now(), date: new Date(s.start).toISOString().split('T')[0], type: 'Laboral',
+                    // USO DE TIEMPO CORREGIDO PARA EL ID
+                    id: this.getNow(), 
+                    date: new Date(s.start).toISOString().split('T')[0], type: 'Laboral',
                     in: new Date(s.start).toTimeString().slice(0, 5), out: new Date(end).toTimeString().slice(0, 5),
                     hours: gross, disconnection: disc, details: { bath: b, food: f }
                 });
@@ -1821,7 +1839,6 @@
                 document.getElementById('weekTarget').textContent = this.fmt(wRes.target);
                 document.getElementById('weekWorked').textContent = this.fmt(wRes.worked);
                 this.setBadge('weekBalance', wRes.bal);
-                // FIX: Check config again
                 const config = this.data.config || {}; 
                 let pay = 0, he = Math.floor(wRes.bal / 60);
                 if (wRes.bal > 0) pay = (he <= 12) ? he * (config.rate1 || 50) : (12 * (config.rate1 || 50)) + ((he - 12) * (config.rate1 || 50));
@@ -1844,7 +1861,6 @@
                     const bal = net - ((l.type === 'Laboral' || l.type === 'Falta') ? 480 : 0);
                     let chips = '';
                     if (l.details) {
-                         // FIX: Check config again
                         const config = this.data.config || {}; 
                         if (l.details.bath > 0) chips += `<span class="break-pill ${l.details.bath > (config.bathAllow || 15) ? 'excess' : ''}"><i class="ph-bold ph-toilet"></i> ${Math.round(l.details.bath)}m</span>`;
                         if (l.details.food > 0) chips += `<span class="break-pill ${l.details.food > (config.foodAllow || 45) ? 'excess' : ''}"><i class="ph-bold ph-hamburger"></i> ${Math.round(l.details.food)}m</span>`;
@@ -1891,7 +1907,6 @@
                 if (chartD) chartD.destroy();
                 if (chartT) chartT.destroy();
 
-                // Adapt chart colors to theme
                 const isRed = this.currentTheme === 'red';
                 const isDark = this.currentTheme === 'dark' || isRed;
                 const textColor = isDark ? '#94a3b8' : '#64748b';
@@ -1991,7 +2006,6 @@
             toggleTimeInputs() { document.getElementById('timeInputs').style.display = document.getElementById('inpType').value === 'Falta' || document.getElementById('inpType').value === 'Vacaciones' ? 'none' : 'block'; },
             calcPreview() { 
                 const i = document.getElementById('inpIn').value, o = document.getElementById('inpOut').value, b = parseFloat(document.getElementById('inpBathTime').value) || 0, f = parseFloat(document.getElementById('inpFoodTime').value) || 0; const g = this.calcHours(i, o);
-                // FIX: Check config again
                 const config = this.data.config || {};
                 const disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
                 document.getElementById('calcHoursDisplay').textContent = g === -1 ? 'Error' : this.fmt(g - disc);
@@ -2005,12 +2019,12 @@
                 if (t === 'Laboral' || t === 'Descanso') { 
                     h = this.calcHours(i, o); 
                     if (h <= 0) return this.showMessage("Horario inválido"); 
-                    // FIX: Check config again
                     const config = this.data.config || {};
                     disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
                 }
 
-                const log = { id: this.editingId || Date.now(), date: d, type: t, in: i, out: o, hours: h, disconnection: disc, details: { bath: b, food: f } };
+                // USO DE TIEMPO CORREGIDO PARA EL ID
+                const log = { id: this.editingId || this.getNow(), date: d, type: t, in: i, out: o, hours: h, disconnection: disc, details: { bath: b, food: f } };
                 if (this.editingId) this.data.logs[this.data.logs.findIndex(x => x.id === this.editingId)] = log; else this.data.logs.push(log);
                 this.save(); this.render(); document.getElementById('logModal').classList.remove('active');
             },
@@ -2034,5 +2048,3 @@
 </body>
 
 </html>
-
-
