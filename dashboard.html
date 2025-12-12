@@ -6,19 +6,19 @@
     <meta name="theme-color" content="#050505">
     <title>God's Plan | Master View</title>
     
-    <!-- LIBRERIAS (Iguales a Finanzas para consistencia visual) -->
+    <!-- LIBRERIAS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- FIREBASE -->
+    <!-- FIREBASE (Standardized Imports) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        window.firebaseImports = { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc };
+        window.firebaseImports = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc };
     </script>
     
     <script>
@@ -43,7 +43,7 @@
         /* Glassmorphism Red Core */
         .glass { background: rgba(18, 18, 18, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         .glass-card { background: linear-gradient(180deg, rgba(24, 24, 27, 0.6) 0%, rgba(18, 18, 18, 0.9) 100%); border: 1px solid rgba(255,255,255,0.05); }
-        .glass-red { background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(127, 29, 29, 0.05) 100%); border: 1px solid rgba(220, 38, 38, 0.2); }
+        .glass-red { background: linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(127, 29, 29, 0.05) 100%); border: 1px solid rgba(220, 38, 38, 0.2); }
         
         /* Scrollbar */
         ::-webkit-scrollbar { width: 4px; }
@@ -69,7 +69,7 @@
     <!-- NAV SUPERIOR -->
     <nav id="global-nav" class="h-14 bg-black border-b border-white/5 flex items-center justify-between px-5 shrink-0 z-50">
         <a href="/" class="flex items-center gap-2 text-white font-black text-lg tracking-tight decoration-none">
-            <i class="ph-bold ph-planet text-red-600"></i> God's Plan
+            <i class="ph-bold ph-circles-three-plus text-red-600"></i> God's Plan
         </a>
         <div class="g-links no-scrollbar">
             <a href="/adherencia.html" class="g-link">ADHERENCIA</a>
@@ -176,7 +176,7 @@
                         </div>
                         <p class="text-xs text-zinc-600 mb-4 leading-relaxed">Tiempo antes de la quiebra si los ingresos se detienen hoy.</p>
                         
-                        <!-- Input Manual para Ahorros Líquidos -->
+                        <!-- Input Manual para Ahorros Líquidos (Sincronizado) -->
                         <div class="bg-black/50 p-3 rounded-xl border border-zinc-800">
                             <label class="text-[9px] text-red-500 font-bold uppercase block mb-1">Ahorro Líquido Total</label>
                             <div class="flex items-center gap-2">
@@ -186,26 +186,26 @@
                         </div>
                     </div>
 
-                    <!-- RESUMEN MENSUAL (EDITABLE) -->
+                    <!-- RESUMEN MENSUAL (EDITABLE/LIVE) -->
                     <div class="glass-card rounded-2xl p-5 border border-zinc-800 space-y-3">
                         <div class="flex justify-between items-center mb-2">
-                            <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Resumen Mes (Manual/Auto)</h3>
-                            <i class="ph-bold ph-pencil-simple text-zinc-600 text-xs"></i>
+                            <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Configuración Base</h3>
+                            <i class="ph-bold ph-sliders text-zinc-600 text-xs"></i>
                         </div>
                         
-                        <!-- Ingresos -->
+                        <!-- Ingresos (Base Salary) -->
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-zinc-400">Ingresos Totales</span>
-                            <div class="flex items-center gap-1 w-24">
+                            <span class="text-zinc-400">Ingreso Base (Conf)</span>
+                            <div class="flex items-center gap-1 w-28">
                                 <span class="text-emerald-500 font-bold text-xs">$</span>
                                 <input type="number" id="inpIncome" class="bare-input text-emerald-500" placeholder="0" onblur="dash.saveConfig()">
                             </div>
                         </div>
 
-                        <!-- Gastos -->
+                        <!-- Gastos (Budget Limit) -->
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-zinc-400">Gastos Estimados</span>
-                            <div class="flex items-center gap-1 w-24">
+                            <span class="text-zinc-400">Límite Gasto (Conf)</span>
+                            <div class="flex items-center gap-1 w-28">
                                 <span class="text-red-500 font-bold text-xs">$</span>
                                 <input type="number" id="inpExpenses" class="bare-input text-red-500" placeholder="0" onblur="dash.saveConfig()">
                             </div>
@@ -227,14 +227,14 @@
 
     <!-- JS LOGIC -->
     <script type="module">
-        const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc } = window.firebaseImports;
+        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc } = window.firebaseImports;
 
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-ultimate-v3';
         
         // Configuración Fallback
         const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
         let firebaseConfig = fallbackConfig;
-        try { if (typeof __firebase_config !== 'undefined' && __firebase_config) firebaseConfig = JSON.parse(__firebase_config); } catch(e) {}
+        try { if (typeof __firebase_config !== 'undefined' && __firebase_config) { const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; } } catch(e) {}
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -248,61 +248,70 @@
             data: {
                 workLogs: [],
                 financeLogs: [],
-                financeConfig: { income: 0, liquidAssets: 0, estimatedExpenses: 0 },
-                workConfig: {}
+                financeConfig: { income: 0, liquidAssets: 0, monthlyBudget: 0 }, // Changed estimatedExpenses to monthlyBudget to match Finance app logic
+                adherenceConfig: {}
             },
             userId: null,
             chart: null,
 
             init() {
                 const now = new Date();
-                const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-                document.getElementById('currentDateDisplay').textContent = `${months[now.getMonth()].toUpperCase()} ${now.getFullYear()}`;
+                const months = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+                document.getElementById('currentDateDisplay').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
 
-                onAuthStateChanged(auth, (u) => {
+                onAuthStateChanged(auth, async (u) => {
                     if (u) {
                         this.userId = u.uid;
                         document.getElementById('authStatus').textContent = "SINCRONIZADO";
                         document.getElementById('authStatus').className = "text-xs font-bold text-emerald-600 uppercase tracking-widest";
                         this.startListeners();
                     } else {
-                        signInAnonymously(auth);
-                        document.getElementById('authStatus').textContent = "OFFLINE / ANÓNIMO";
+                        const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                        if(token) {
+                             await signInWithCustomToken(auth, token);
+                        } else {
+                             await signInAnonymously(auth);
+                             document.getElementById('authStatus').textContent = "ANÓNIMO";
+                        }
                     }
                 });
             },
 
             startListeners() {
-                // 1. Escuchar WORK DATA (godsPlanData/{uid}) -> Estructura de Adherencia
+                // 1. Escuchar WORK DATA (godsPlanData/{uid}) -> Logica de Adherencia
                 const workRef = doc(db, 'godsPlanData', this.userId);
                 onSnapshot(workRef, (snap) => {
                     if (snap.exists()) {
                         const d = snap.data();
                         this.data.workLogs = d.logs || [];
-                        this.data.workConfig = d.config || {};
+                        this.data.adherenceConfig = d.config || {};
                         this.calcMetrics();
                     }
                 });
 
-                // 2. Escuchar FINANCE CONFIG (artifacts/{APP_ID}/users/{uid}/data/financials)
+                // 2. Escuchar FINANCE CONFIG (artifacts/.../financials)
                 const finConfigRef = doc(db, 'artifacts', APP_ID, 'users', this.userId, 'data', 'financials');
                 onSnapshot(finConfigRef, (snap) => {
                     if (snap.exists()) {
                         const d = snap.data();
-                        this.data.financeConfig.income = d.income || 0;
-                        this.data.financeConfig.liquidAssets = d.liquidAssets || 0;
-                        this.data.financeConfig.estimatedExpenses = d.estimatedExpenses || 0; // Nuevo campo manual
+                        // Mapping Finance fields
+                        this.data.financeConfig.income = d.income || 0; // Base Income
+                        this.data.financeConfig.liquidAssets = d.liquidAssets || 0; // Assets for runway
+                        this.data.financeConfig.monthlyBudget = d.monthlyBudget || 0; // Planned Limit
                         
                         // Populate inputs if not focused
                         if(document.activeElement.id !== 'inpLiquidAssets') document.getElementById('inpLiquidAssets').value = this.data.financeConfig.liquidAssets;
                         if(document.activeElement.id !== 'inpIncome') document.getElementById('inpIncome').value = this.data.financeConfig.income;
-                        if(document.activeElement.id !== 'inpExpenses') document.getElementById('inpExpenses').value = this.data.financeConfig.estimatedExpenses;
+                        if(document.activeElement.id !== 'inpExpenses') document.getElementById('inpExpenses').value = this.data.financeConfig.monthlyBudget;
                         
                         this.calcMetrics();
+                    } else {
+                        // Create if missing
+                        setDoc(finConfigRef, { income: 0, liquidAssets: 0, monthlyBudget: 0 }, { merge: true });
                     }
                 });
 
-                // 3. Escuchar FINANCE LOGS (artifacts/{APP_ID}/users/{uid}/transactions)
+                // 3. Escuchar FINANCE LOGS (artifacts/.../transactions)
                 const txRef = collection(db, 'artifacts', APP_ID, 'users', this.userId, 'transactions');
                 onSnapshot(query(txRef), (snap) => {
                     this.data.financeLogs = snap.docs.map(d => d.data());
@@ -315,7 +324,7 @@
                 const currentMonth = now.getMonth();
                 const currentYear = now.getFullYear();
 
-                // --- 1. WORK METRICS ---
+                // --- 1. WORK METRICS (Calculated from Adherencia) ---
                 const mWorkLogs = this.data.workLogs.filter(l => {
                     const d = new Date(l.date + 'T00:00'); 
                     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
@@ -331,52 +340,60 @@
                 });
                 const totalHours = totalMins / 60;
 
-                // --- 2. FINANCE METRICS (Hybrid Logic) ---
+                // --- 2. FINANCE METRICS (Calculated from Finanzas) ---
                 const mFinLogs = this.data.financeLogs.filter(l => {
                     const d = new Date(l.date);
                     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
                 });
 
+                // Calculate Totals from Logs
                 const extraIncome = mFinLogs.filter(l => l.type === 'income').reduce((a, b) => a + (b.amount || 0), 0);
-                const logExpenses = mFinLogs.filter(l => l.type === 'expense').reduce((a, b) => a + (b.amount || 0), 0);
+                const actualExpenses = mFinLogs.filter(l => l.type === 'expense').reduce((a, b) => a + (b.amount || 0), 0);
                 
-                // Income: Base manual + Extras registrados
+                // Income Logic: Base (Config) + Extras (Logs)
                 const baseIncome = parseFloat(this.data.financeConfig.income) || 0;
-                const totalIncome = baseIncome + extraIncome; 
+                const totalRealIncome = baseIncome + extraIncome; 
 
-                // Expenses: Use Manual Estimate if Logs are empty or lower (Hybrid approach)
-                // This ensures if you log nothing, you can still put "20000" in estimate and see results.
-                const estimatedExp = parseFloat(this.data.financeConfig.estimatedExpenses) || 0;
-                const totalExpenses = Math.max(logExpenses, estimatedExp);
+                // Expenses Logic: Only Real Logs used for stats, but Budget used for comparison
+                const totalRealExpenses = actualExpenses;
 
-                const netCashflow = totalIncome - totalExpenses;
+                const netCashflow = totalRealIncome - totalRealExpenses;
 
                 // --- 3. DERIVED KPIs ---
                 
-                // Real Hourly Rate = (Ingreso Total Mes / Horas Reales Trabajadas)
-                const realRate = totalHours > 0 ? (totalIncome / totalHours) : 0;
+                // Real Hourly Rate = (Real Monthly Income / Real Monthly Hours)
+                // This is the "God Metric"
+                const realRate = totalHours > 0 ? (totalRealIncome / totalHours) : 0;
 
-                // Life Cost Per Hour = (Gastos Totales / 720h mes natural)
-                const lifeCostRate = totalExpenses / (30 * 24);
+                // Life Cost Per Hour = (Real Expenses / 720h hours in month)
+                // This shows how much money you burn just by existing per hour
+                const lifeCostRate = totalRealExpenses / (30 * 24);
 
                 // Runway
                 const liquid = parseFloat(this.data.financeConfig.liquidAssets) || 0;
-                const runway = totalExpenses > 0 ? (liquid / totalExpenses) : (liquid > 0 ? 99 : 0);
+                // Use a 3-month moving average estimate or just current budget if expenses are 0
+                const burnBasis = totalRealExpenses > 0 ? totalRealExpenses : (this.data.financeConfig.monthlyBudget || 1);
+                const runway = burnBasis > 0 ? (liquid / burnBasis) : 99;
 
                 // --- 4. UPDATE UI ---
+                
+                // KPI 1: Real Rate
                 document.getElementById('kpiRealRate').textContent = fmtMoney(realRate);
                 document.getElementById('kpiRealRate').className = `text-4xl font-black tracking-tighter mb-1 relative z-10 ${realRate > lifeCostRate ? 'text-white' : 'text-red-500'}`;
 
+                // KPI 2: Time Sold
                 document.getElementById('kpiHours').textContent = fmtNum(totalHours) + 'h';
                 const pct = Math.min(100, (totalHours / 160) * 100);
                 document.getElementById('barHours').style.width = `${pct}%`;
                 
+                // KPI 3: Burn Rate
                 document.getElementById('kpiLifeCost').textContent = fmtMoney(lifeCostRate);
 
+                // KPI 4: Net Cashflow
                 document.getElementById('kpiNet').textContent = (netCashflow > 0 ? '+' : '') + fmtMoney(netCashflow);
                 document.getElementById('kpiNet').className = `text-3xl font-bold mb-1 ${netCashflow >= 0 ? 'text-emerald-500' : 'text-red-500'}`;
                 
-                const margin = totalIncome > 0 ? ((netCashflow / totalIncome) * 100) : 0;
+                const margin = totalRealIncome > 0 ? ((netCashflow / totalRealIncome) * 100) : 0;
                 document.getElementById('kpiMargin').textContent = `Margen: ${margin.toFixed(0)}%`;
 
                 document.getElementById('summaryHours').textContent = fmtNum(totalHours) + 'h';
@@ -385,22 +402,16 @@
                 rwEl.textContent = runway > 50 ? '>50' : fmtNum(runway);
                 rwEl.className = `text-4xl font-black ${runway < 1 ? 'text-red-600 animate-pulse' : (runway < 3 ? 'text-orange-500' : 'text-emerald-500')}`;
 
-                this.renderChart(totalIncome, totalExpenses);
+                this.renderChart(totalRealIncome, totalRealExpenses);
             },
 
             saveConfig() {
                 const liq = parseFloat(document.getElementById('inpLiquidAssets').value) || 0;
                 const inc = parseFloat(document.getElementById('inpIncome').value) || 0;
-                const exp = parseFloat(document.getElementById('inpExpenses').value) || 0;
+                const budget = parseFloat(document.getElementById('inpExpenses').value) || 0;
                 
                 const ref = doc(db, 'artifacts', APP_ID, 'users', this.userId, 'data', 'financials');
-                // Use setDoc with merge to ensure doc exists
-                updateDoc(ref, { liquidAssets: liq, income: inc, estimatedExpenses: exp }).catch(() => {
-                    // Fallback create if not exists
-                    import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js').then(({setDoc}) => {
-                        setDoc(ref, { liquidAssets: liq, income: inc, estimatedExpenses: exp }, { merge: true });
-                    });
-                });
+                updateDoc(ref, { liquidAssets: liq, income: inc, monthlyBudget: budget }).catch(err => console.error("Error saving config", err));
             },
 
             renderChart(inc, exp) {
