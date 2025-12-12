@@ -18,13 +18,13 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         window.firebaseImports = {
             initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
             GoogleAuthProvider, 
             getFirestore, doc, onSnapshot, collection, query, orderBy, 
-            limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch
+            limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc
         };
     </script>
     
@@ -42,12 +42,14 @@
                     animation: {
                         'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                         'fade-in': 'fadeIn 0.3s ease-out',
-                        'pulse-red': 'pulseRed 2s infinite'
+                        'pulse-red': 'pulseRed 2s infinite',
+                        'pulse-green': 'pulseGreen 2s infinite'
                     },
                     keyframes: {
                         slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } },
                         fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-                        pulseRed: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.5' } }
+                        pulseRed: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.5' } },
+                        pulseGreen: { '0%, 100%': { boxShadow: '0 0 0 0 rgba(16, 185, 129, 0.7)' }, '70%': { boxShadow: '0 0 0 10px rgba(16, 185, 129, 0)' }, '100%': { boxShadow: '0 0 0 0 rgba(16, 185, 129, 0)' } }
                     }
                 }
             }
@@ -82,6 +84,7 @@
         .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
         .glass-highlight { background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.08); }
         .glass-alert { background: rgba(69, 10, 10, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(220, 38, 38, 0.3); }
+        .glass-success { background: rgba(6, 78, 59, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(16, 185, 129, 0.3); }
         
         /* Nav Mobile */
         .glass-nav { 
@@ -300,6 +303,31 @@
                             <div class="absolute bottom-0 left-0 h-1.5 bg-zinc-800 w-full">
                                 <div id="periodProgress" class="h-full bg-gradient-to-r from-red-600 to-orange-600 shadow-[0_0_10px_rgba(239,68,68,0.5)] w-0 transition-all duration-1000 ease-out"></div>
                             </div>
+                        </div>
+
+                        <!-- WIDGET HORAS EXTRAS (NUEVO) -->
+                        <div id="adherenceCard" class="hidden mb-6 relative overflow-hidden rounded-[2rem] border border-emerald-900/30 bg-emerald-950/10 p-5 group transition-all">
+                             <div class="flex justify-between items-start mb-3 relative z-10">
+                                 <div>
+                                    <div class="text-[10px] text-emerald-400 font-black uppercase tracking-widest mb-1 flex items-center gap-1">
+                                        <i class="ph-fill ph-clock-countdown"></i> NÓMINA EXTRA
+                                    </div>
+                                    <div class="text-white font-bold text-2xl tracking-tight" id="extraPayValue">Calculando...</div>
+                                    <div class="text-[10px] text-emerald-500/70 mt-1 font-mono" id="extraPayHours">0h 00m acumulados</div>
+                                 </div>
+                                 <div class="text-right">
+                                     <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">COBRO</div>
+                                     <div class="text-white font-bold text-sm bg-emerald-900/30 px-2 py-1 rounded-md border border-emerald-500/20" id="nextTuesdayLabel">Martes --</div>
+                                     <div class="text-[10px] text-zinc-500 mt-1" id="daysToTuesday">-- días</div>
+                                 </div>
+                             </div>
+                             
+                             <button id="btnImportExtras" onclick="app.importExtraMoney()" class="w-full bg-emerald-600/20 hover:bg-emerald-500 text-emerald-300 hover:text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider border border-emerald-500/30 transition-all flex items-center justify-center gap-2 relative z-10">
+                                 <i class="ph-bold ph-download-simple"></i> Sumar a Billetera
+                             </button>
+
+                             <!-- Fondo decorativo -->
+                             <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors"></div>
                         </div>
 
                         <!-- ACCIONES RÁPIDAS -->
@@ -645,7 +673,7 @@
 
     <!-- LOGIC -->
     <script type="module">
-        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch } = window.firebaseImports;
+        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } = window.firebaseImports;
         
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-ultimate-v3';
         const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
@@ -691,12 +719,13 @@
         const app = window.app = {
             user: null, 
             data: { income: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1 }, 
-            logs: [], 
+            logs: [], adhData: null,
             currentPeriod: null, 
             privacyMode: false,
             searchQuery: '',
             charts: {},
             printCharts: {},
+            pendingExtraPay: 0, // Almacena el valor calculado
 
             async init() {
                 if(!auth) return;
@@ -723,6 +752,8 @@
 
             setupListeners() {
                 const uid = this.user.uid;
+                
+                // Listener Finanzas (Usuario)
                 const userRef = doc(db, 'artifacts', APP_ID, 'users', uid, 'data', 'financials');
                 const logsRef = collection(db, 'artifacts', APP_ID, 'users', uid, 'transactions');
                 
@@ -740,7 +771,96 @@
                     this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
                     this.renderTransactions(); this.calcBalance(); this.renderCharts(); this.renderAnalysisMetrics();
                 });
+
+                // Listener ADHERENCIA (Nueva conexión)
+                const adhRef = doc(db, 'godsPlanData', uid);
+                onSnapshot(adhRef, (snap) => {
+                    if (snap.exists()) {
+                        this.adhData = snap.data();
+                        this.calcAdherencePay(); // Recalcular cuando cambie la adherencia
+                    }
+                });
             },
+
+            // --- LÓGICA DE ADHERENCIA ---
+            calcAdherencePay() {
+                if (!this.adhData || !this.adhData.logs) return;
+                
+                // 1. Obtener semana actual
+                const d = new Date();
+                const currentWeek = this.getWeek(d);
+                const currentYear = d.getFullYear();
+
+                // 2. Filtrar logs de esta semana
+                const wLogs = this.adhData.logs.filter(l => this.getWeek(new Date(l.date + 'T00:00')) === currentWeek && new Date(l.date).getFullYear() === currentYear);
+
+                // 3. Calcular horas netas (copiado de lógica Adherencia)
+                let t = 0, w = 0; 
+                wLogs.forEach(l => { 
+                    t += (l.type === 'Laboral' || l.type === 'Falta') ? 480 : 0; 
+                    w += (l.type === 'Laboral' || l.type === 'Descanso') ? (l.hours - (l.disconnection || 0)) : 0; 
+                }); 
+                const bal = w - t;
+
+                // 4. Calcular dinero
+                const config = this.adhData.config || {}; 
+                let pay = 0, he = Math.floor(bal / 60); 
+                if (bal > 0) pay = (he <= 12) ? he * (config.rate1 || 50) : (12 * (config.rate1 || 50)) + ((he - 12) * (config.rate1 || 50));
+                
+                this.pendingExtraPay = Math.round(pay);
+
+                // 5. Actualizar UI Widget
+                const card = document.getElementById('adherenceCard');
+                if (this.pendingExtraPay > 0) {
+                    card.classList.remove('hidden');
+                    document.getElementById('extraPayValue').textContent = UI.fmtMoney(this.pendingExtraPay);
+                    const hours = Math.floor(bal / 60);
+                    const mins = Math.floor(bal % 60);
+                    document.getElementById('extraPayHours').textContent = `${hours}h ${mins}m acumulados`;
+                } else {
+                    card.classList.add('hidden');
+                }
+
+                // 6. Calcular próximo Martes
+                this.calcNextTuesday();
+            },
+
+            calcNextTuesday() {
+                const now = new Date();
+                const resultDate = new Date();
+                // 2 = Martes. Si hoy es Martes (2), sumar 7 dias para el prox. Si no, calcular diff.
+                const diff = 2 - now.getDay() + 7; 
+                resultDate.setDate(now.getDate() + (diff % 7 === 0 ? 0 : (2 - now.getDay() + 7) % 7));
+                
+                // Si hoy es martes, mostrar "HOY" o próximo martes? Asumamos proximo corte si ya paso el día? 
+                // Simple: Próximo martes siempre.
+                if (resultDate <= now) resultDate.setDate(resultDate.getDate() + 7);
+                
+                const daysDiff = Math.ceil((resultDate - now) / (1000 * 60 * 60 * 24));
+                
+                document.getElementById('nextTuesdayLabel').textContent = `Martes ${resultDate.getDate()}`;
+                document.getElementById('daysToTuesday').textContent = daysDiff === 0 ? '¡Es Hoy!' : `Faltan ${daysDiff} días`;
+            },
+
+            async importExtraMoney() {
+                if (this.pendingExtraPay <= 0) return;
+                
+                if (await UI.confirm('Importar Dinero', `¿Registrar ingreso de ${UI.fmtMoney(this.pendingExtraPay)} por horas extras?`)) {
+                    await addDoc(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions'), {
+                        amount: this.pendingExtraPay, 
+                        desc: `Cobro Horas Extras (Semana ${this.getWeek(new Date())})`, 
+                        category: 'Otro', 
+                        type: 'income', 
+                        date: new Date().toISOString()
+                    });
+                    
+                    UI.toast('Dinero sumado a billetera', 'success');
+                    // Opcional: Podrías marcar en adherencia que ya se pagó, pero por seguridad de solo lectura, lo dejamos local aquí.
+                }
+            },
+
+            getWeek(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); var y = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); return Math.ceil((((d - y) / 86400000) + 1) / 7); },
+
 
             // --- DATE & PERIOD LOGIC ---
             calcPeriod() {
@@ -769,7 +889,11 @@
                 this.currentPeriod = { start, end, daysLeft: Math.max(1, daysLeft), progress }; // Use Max 1 to prevent division by zero or negative days if clocks are weird
                 
                 document.getElementById('periodDates').innerHTML = `<span class="text-zinc-400 text-sm font-normal">${start.getDate()} ${start.toLocaleString('es',{month:'short'})}</span> <i class="ph-bold ph-arrow-right text-zinc-600 text-xs"></i> <span class="text-white text-sm">${end.getDate()} ${end.toLocaleString('es',{month:'short'})}</span>`;
-                document.getElementById('daysLeftBadge').textContent = `${this.currentPeriod.daysLeft} días restantes`;
+                
+                // --- LÓGICA DE DÍA DE PAGO PRINCIPAL ---
+                const payDay = end.getDate() + 1; // Asumimos se paga al día siguiente del corte
+                document.getElementById('daysLeftBadge').textContent = `Faltan ${this.currentPeriod.daysLeft} días para la quincena`;
+                
                 document.getElementById('periodProgress').style.width = `${progress}%`;
                 
                 this.calcBalance();
