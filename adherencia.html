@@ -9,6 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- IMPORTANTE: TAILWIND CSS AGREGADO PARA QUE FUNCIONEN LAS CLASES DEL NAV -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- FIREBASE MODULAR (v9+) -->
     <script type="module">
@@ -86,14 +89,7 @@
 
         /* --- GLOBAL NAV (ESTILO ECOSISTEMA UNIFICADO) --- */
         #global-nav {
-            height: 56px; /* Altura estándar h-14 */
-            background: #000000;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            flex-shrink: 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            /* Height y background manejados por Tailwind en el HTML, pero aseguramos z-index */
             position: sticky;
             top: 0;
             z-index: 100;
@@ -108,14 +104,24 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            white-space: nowrap; /* Evita que el logo se rompa en dos líneas */
         }
         
         .g-logo:hover { color: #ef4444; transition: color 0.3s; }
 
+        /* ARREGLO RESPONSIVE NAV: Scroll horizontal en móviles */
         .g-links {
             display: flex;
             align-items: center;
             gap: 20px;
+            overflow-x: auto; /* Permite scroll si no cabe */
+            scrollbar-width: none; /* Firefox: oculta scrollbar */
+            -ms-overflow-style: none; /* IE/Edge: oculta scrollbar */
+            padding-right: 10px; /* Espacio extra para scroll */
+        }
+        
+        .g-links::-webkit-scrollbar {
+            display: none; /* Chrome/Safari: oculta scrollbar */
         }
 
         .g-link {
@@ -126,6 +132,7 @@
             text-transform: uppercase;
             letter-spacing: 0.05em; /* tracking-wider */
             transition: color 0.2s;
+            white-space: nowrap; /* Evita rotura de texto en nav */
         }
 
         .g-link:hover { color: #fff; }
@@ -149,7 +156,7 @@
         header {
             background: var(--card);
             border-bottom: 1px solid var(--border);
-            padding: 15px;
+            padding: 10px 15px; /* Reducido padding vertical para movil */
             position: sticky;
             top: 56px; /* Ajustado a la nueva altura del nav global */
             z-index: 50;
@@ -157,6 +164,8 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 15px -5px rgba(0, 0, 0, 0.05);
+            flex-wrap: wrap; /* Permite wrap en pantallas muy pequeñas */
+            gap: 10px;
         }
 
         .header-title {
@@ -169,10 +178,16 @@
             text-transform: uppercase;
         }
 
+        /* ARREGLO RESPONSIVE: Ocultar texto título en pantallas muy pequeñas si es necesario */
+        @media (max-width: 360px) {
+            .header-title span { display: none; } /* Ocultar texto, dejar icono */
+        }
+
         .nav-group {
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-shrink: 0; /* Evita que se aplasten los botones */
         }
 
         .month-nav {
@@ -228,6 +243,8 @@
             max-width: 900px;
             margin: 0 auto;
             padding: 15px;
+            width: 100%; /* Asegura que no desborde */
+            overflow-x: hidden; /* Evita scroll horizontal indeseado */
         }
 
         /* AUTH STATUS */
@@ -246,6 +263,7 @@
             justify-content: center;
             gap: 10px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+            max-width: 100%; /* Evita desborde */
         }
 
         /* RELOJ */
@@ -267,6 +285,14 @@
             align-items: center;
             gap: 5px;
             margin-bottom: 20px;
+        }
+
+        /* ARREGLO RESPONSIVE: Ajuste de layout de reloj en movil */
+        @media (max-width: 400px) {
+            .timer-grid {
+                /* Si la pantalla es muy pequeña, mantiene 3 columnas pero ajusta gaps */
+                gap: 2px;
+            }
         }
 
         .side-clock {
@@ -314,6 +340,7 @@
             align-items: center;
             justify-content: center;
             gap: 4px;
+            flex-wrap: wrap; /* Permite que el icono baje si es necesario */
         }
 
         .side-val {
@@ -350,7 +377,8 @@
         }
 
         .clock-timer {
-            font-size: 4rem; /* Aumentado de 2.2rem a 4rem */
+            /* ARREGLO RESPONSIVE: CLAMP PARA FUENTE */
+            font-size: clamp(2.5rem, 12vw, 4rem); /* Mínimo 2.5rem, preferido 12% del ancho, máximo 4rem */
             font-weight: 800;
             color: var(--text);
             font-variant-numeric: tabular-nums;
@@ -995,7 +1023,7 @@
     </nav>
 
     <header>
-        <div class="header-title"><i class="ph-fill ph-check-circle" style="color:var(--brand)"></i> Adherencia</div>
+        <div class="header-title"><i class="ph-fill ph-check-circle" style="color:var(--brand)"></i> <span>Adherencia</span></div>
         <div class="nav-group">
             <button class="btn-reset" onclick="window.app.openExtensionModal()" title="Instalar Extensión"><i class="ph-bold ph-puzzle-piece"></i></button>
             <button class="btn-reset" onclick="window.app.loadTeamStatsModal()" title="Equipo"><i
