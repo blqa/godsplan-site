@@ -1160,10 +1160,9 @@
                 this.syncNetworkTime();
                 
                 // ACTUALIZACIÓN AUTOMÁTICA
-                // 1. Re-Sincronizar cuando la pestaña vuelve a ser visible (si la PC se durmió)
+                // 1. Re-Sincronizar cuando la pestaña vuelve a ser visible
                 document.addEventListener("visibilitychange", () => {
                     if (document.visibilityState === 'visible') {
-                        // Forzar sync si ha pasado más de 1 minuto desde la última vez
                         if (Date.now() - this.lastSync > 60000) {
                             this.syncNetworkTime();
                         }
@@ -1223,11 +1222,16 @@
 
                 try {
                     const start = Date.now();
-                    const response = await fetch('https://worldtimeapi.org/api/timezone/Etc/UTC');
+                    // CAMBIO A API MÁS ESTABLE PARA EVITAR CONNECTION RESET
+                    const response = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=UTC');
+                    if (!response.ok) throw new Error("API Limit");
+                    
                     const data = await response.json();
                     const end = Date.now();
+                    
+                    // Ajuste de latencia simplificado
+                    const serverTime = new Date(data.dateTime).getTime(); 
                     const latency = (end - start) / 2;
-                    const serverTime = new Date(data.datetime).getTime();
                     this.timeOffset = (serverTime + latency) - end;
                     this.lastSync = Date.now();
                     
@@ -1239,12 +1243,13 @@
                         }, 5000);
                     }
                 } catch (e) {
-                    console.log("Error sync time, using local fallback");
+                    console.warn("Time sync failed, using local time fallback.");
+                    this.timeOffset = 0; // Fallback a hora local
                     if(badge) { 
-                        badge.style.opacity = '0.5'; 
-                        badge.innerHTML = `<i class="ph-bold ph-warning"></i> PC Time`; 
+                        badge.style.opacity = '1'; 
+                        badge.style.color = 'var(--text-mute)';
+                        badge.innerHTML = `<i class="ph-bold ph-desktop"></i> PC Time`; 
                     }
-                    // No reseteamos offset a 0 para no causar saltos bruscos si solo falló una petición
                 } finally {
                     this.isSyncing = false;
                 }
