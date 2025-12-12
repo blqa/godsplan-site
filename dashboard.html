@@ -12,13 +12,13 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- FIREBASE -->
+    <!-- FIREBASE (Actualizado para coincidir con Portal) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        window.firebaseImports = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc };
+        window.firebaseImports = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc };
     </script>
     
     <script>
@@ -96,26 +96,32 @@
                     </p>
                 </div>
                 <div class="text-right">
-                    <button onclick="dash.toggleDebug()" class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest hover:text-white transition-colors border border-zinc-800 rounded px-2 py-1">
-                        <i class="ph-bold ph-wifi-high"></i> Estado Conexión
+                    <button onclick="dash.toggleDebug()" class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest hover:text-white transition-colors border border-zinc-800 rounded px-2 py-1 flex items-center gap-2">
+                        <i class="ph-bold ph-plugs-connected"></i> <span id="connectionStatus">Conectando...</span>
                     </button>
                 </div>
             </div>
 
-            <!-- ALERT: NO DATA -->
-            <div id="noDataAlert" class="hidden mb-6 bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-start gap-3">
-                <i class="ph-fill ph-warning text-red-500 text-xl mt-0.5"></i>
-                <div>
-                    <h3 class="text-sm font-bold text-white">Sin datos detectados</h3>
-                    <p class="text-xs text-zinc-400 mt-1">No se encontraron registros de Adherencia o Finanzas. Asegúrate de estar usando el <strong>mismo usuario</strong> en todas las apps.</p>
-                    <button onclick="dash.login()" class="mt-2 text-xs bg-red-600 text-white px-3 py-1.5 rounded font-bold hover:bg-red-500">Iniciar Sesión Google</button>
+            <!-- ALERT: NO DATA (Inteligente) -->
+            <div id="noDataAlert" class="hidden mb-6 bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-start gap-3 animate-pulse-slow">
+                <i class="ph-fill ph-warning-octagon text-red-500 text-2xl mt-0.5"></i>
+                <div class="flex-1">
+                    <h3 class="text-sm font-bold text-white">Datos no sincronizados</h3>
+                    <p class="text-xs text-zinc-400 mt-1 leading-relaxed">
+                        No encuentro registros de Adherencia o Finanzas para el usuario actual (<span id="alertUid" class="font-mono text-red-300">...</span>).
+                        <br>Posible causa: Iniciaste sesión con cuentas diferentes en el Portal y aquí.
+                    </p>
+                    <div class="mt-3 flex gap-2">
+                        <button onclick="window.location.href='/'" class="text-xs bg-zinc-800 text-white px-3 py-1.5 rounded font-bold hover:bg-zinc-700 border border-zinc-700">Ir al Portal (Login)</button>
+                        <button onclick="dash.forceReload()" class="text-xs bg-red-600 text-white px-3 py-1.5 rounded font-bold hover:bg-red-500">Reintentar</button>
+                    </div>
                 </div>
             </div>
 
             <!-- KPI GRID -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 
-                <!-- CARD 1: VALOR HORA REAL (Métrica Reina) -->
+                <!-- CARD 1: VALOR HORA REAL -->
                 <div class="glass-red rounded-2xl p-5 relative overflow-hidden group">
                     <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-600/20 rounded-full blur-2xl group-hover:bg-red-600/30 transition-colors"></div>
                     <div class="flex justify-between items-start mb-2 relative z-10">
@@ -142,7 +148,7 @@
                     </div>
                 </div>
 
-                <!-- CARD 3: COSTO DE VIDA (Burn Rate) -->
+                <!-- CARD 3: COSTO DE VIDA -->
                 <div class="glass-card rounded-2xl p-5 relative group">
                     <div class="flex justify-between items-start mb-2">
                         <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Costo por Hora</span>
@@ -241,30 +247,38 @@
     </main>
 
     <!-- DEBUG PANEL (SLIDE UP) -->
-    <div id="debugPanel" class="fixed bottom-0 left-0 w-full bg-zinc-900 border-t border-zinc-700 p-4 z-[100] transform translate-y-full transition-transform duration-300">
+    <div id="debugPanel" class="fixed bottom-0 left-0 w-full bg-zinc-900 border-t border-zinc-700 p-4 z-[100] transform translate-y-full transition-transform duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                <i class="ph-bold ph-wrench text-zinc-500"></i> DIAGNÓSTICO
+                <i class="ph-bold ph-wrench text-zinc-500"></i> DIAGNÓSTICO DE CONEXIÓN
             </h3>
             <button onclick="dash.toggleDebug()" class="text-zinc-500 hover:text-white"><i class="ph-bold ph-x"></i></button>
         </div>
         <div class="grid grid-cols-2 gap-4 text-xs font-mono text-zinc-400">
             <div class="bg-black p-3 rounded border border-zinc-800">
-                <div class="text-zinc-600 uppercase text-[10px] font-bold mb-1">User ID Actual</div>
-                <div id="debugUid" class="text-emerald-500 truncate">...</div>
+                <div class="text-zinc-600 uppercase text-[10px] font-bold mb-1">User ID (Actual)</div>
+                <div id="debugUid" class="text-emerald-500 truncate font-bold">...</div>
             </div>
             <div class="bg-black p-3 rounded border border-zinc-800">
-                <div class="text-zinc-600 uppercase text-[10px] font-bold mb-1">Registros Encontrados</div>
-                <div>Adherencia: <span id="debugWorkCount" class="text-white">0</span></div>
-                <div>Finanzas: <span id="debugFinCount" class="text-white">0</span></div>
+                <div class="text-zinc-600 uppercase text-[10px] font-bold mb-1">Registros Detectados</div>
+                <div class="flex justify-between border-b border-zinc-800 pb-1 mb-1">
+                    <span>Adherencia:</span> <span id="debugWorkCount" class="text-white font-bold">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Finanzas:</span> <span id="debugFinCount" class="text-white font-bold">0</span>
+                </div>
             </div>
         </div>
-        <button onclick="dash.login()" class="mt-4 w-full bg-white text-black py-2 rounded font-bold text-xs">CAMBIAR CUENTA (GOOGLE)</button>
+        <div class="mt-4 flex gap-2">
+            <button onclick="dash.forceReload()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-2 rounded font-bold text-xs border border-zinc-700">RECARGAR DATOS</button>
+            <button onclick="window.location.href='/'" class="flex-1 bg-white hover:bg-zinc-200 text-black py-2 rounded font-bold text-xs">IR AL LOGIN</button>
+        </div>
     </div>
 
     <!-- JS LOGIC -->
     <script type="module">
-        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc } = window.firebaseImports;
+        // Importamos setPersistence y browserLocalPersistence para coincidir con el Portal
+        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc } = window.firebaseImports;
 
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-ultimate-v3';
         
@@ -290,7 +304,12 @@
             userId: null,
             chart: null,
 
-            init() {
+            async init() {
+                // Configurar persistencia IGUAL que en el Portal para compartir sesión
+                try {
+                    await setPersistence(auth, browserLocalPersistence);
+                } catch(e) { console.error("Error persistencia:", e); }
+
                 const now = new Date();
                 const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
                 document.getElementById('currentDateDisplay').textContent = `${months[now.getMonth()].toUpperCase()} ${now.getFullYear()}`;
@@ -301,36 +320,40 @@
                         this.updateAuthUI(u);
                         this.startListeners();
                     } else {
+                        // Intentar token inicial del entorno (Canvas)
                         const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
                         if(token) await signInWithCustomToken(auth, token);
-                        else await signInAnonymously(auth);
+                        else {
+                            // Si no hay token, intentar anónimo pero avisar
+                            await signInAnonymously(auth);
+                            this.updateAuthUI(auth.currentUser);
+                        }
                     }
                 });
             },
 
             updateAuthUI(u) {
-                const status = u.isAnonymous ? "ANÓNIMO (Datos temporales)" : "CONECTADO";
-                const color = u.isAnonymous ? "text-orange-500" : "text-emerald-600";
-                document.getElementById('authStatus').textContent = status;
-                document.getElementById('authStatus').className = `text-xs font-bold ${color} uppercase tracking-widest`;
-                document.getElementById('debugUid').textContent = u.uid;
+                const status = u.isAnonymous ? "ANÓNIMO" : "CONECTADO";
+                const color = u.isAnonymous ? "text-orange-500" : "text-emerald-500";
+                document.getElementById('connectionStatus').textContent = status;
+                document.getElementById('connectionStatus').className = color;
                 
-                // Alert for Anonymous users
-                if(u.isAnonymous) console.warn("Estás en modo anónimo. Los datos no se compartirán entre pestañas si no es la misma sesión.");
-            },
-
-            async login() {
-                try {
-                    const provider = new GoogleAuthProvider();
-                    await signInWithPopup(auth, provider);
-                    location.reload();
-                } catch (e) { alert("Error login: " + e.message); }
+                document.getElementById('debugUid').textContent = u.uid;
+                document.getElementById('alertUid').textContent = u.uid.substring(0, 8) + "...";
+                
+                if(u.isAnonymous) {
+                    console.warn("Modo anónimo: Los datos no se comparten con el Portal.");
+                }
             },
 
             toggleDebug() {
                 const p = document.getElementById('debugPanel');
                 if(p.classList.contains('translate-y-full')) p.classList.remove('translate-y-full');
                 else p.classList.add('translate-y-full');
+            },
+
+            forceReload() {
+                window.location.reload();
             },
 
             startListeners() {
@@ -342,14 +365,16 @@
                         this.data.workLogs = d.logs || [];
                         this.data.adherenceConfig = d.config || {};
                         document.getElementById('debugWorkCount').textContent = this.data.workLogs.length;
+                        document.getElementById('debugWorkCount').className = "text-emerald-400 font-bold";
                         this.calcMetrics();
                     } else {
-                        document.getElementById('debugWorkCount').textContent = "0 (Doc no existe)";
+                        document.getElementById('debugWorkCount').textContent = "0 (No existe)";
+                        document.getElementById('debugWorkCount').className = "text-red-500 font-bold";
                         this.checkEmptyState();
                     }
                 });
 
-                // 2. FINANZAS: Config
+                // 2. FINANZAS: Configuración
                 const finConfigRef = doc(db, 'artifacts', APP_ID, 'users', this.userId, 'data', 'financials');
                 onSnapshot(finConfigRef, (snap) => {
                     if (snap.exists()) {
@@ -358,7 +383,7 @@
                         this.data.financeConfig.liquidAssets = d.liquidAssets || 0;
                         this.data.financeConfig.monthlyBudget = d.monthlyBudget || 0;
                         
-                        // Sync inputs
+                        // Sync inputs (Evitar sobrescribir si el usuario está editando)
                         if(document.activeElement.id !== 'inpLiquidAssets') document.getElementById('inpLiquidAssets').value = this.data.financeConfig.liquidAssets;
                         if(document.activeElement.id !== 'inpIncome') document.getElementById('inpIncome').value = this.data.financeConfig.income;
                         if(document.activeElement.id !== 'inpExpenses') document.getElementById('inpExpenses').value = this.data.financeConfig.monthlyBudget;
@@ -367,11 +392,14 @@
                     }
                 });
 
-                // 3. FINANZAS: Logs
+                // 3. FINANZAS: Registros (Logs)
                 const txRef = collection(db, 'artifacts', APP_ID, 'users', this.userId, 'transactions');
                 onSnapshot(query(txRef), (snap) => {
                     this.data.financeLogs = snap.docs.map(d => d.data());
-                    document.getElementById('debugFinCount').textContent = this.data.financeLogs.length;
+                    const count = this.data.financeLogs.length;
+                    document.getElementById('debugFinCount').textContent = count;
+                    document.getElementById('debugFinCount').className = count > 0 ? "text-emerald-400 font-bold" : "text-zinc-500 font-bold";
+                    
                     this.calcMetrics();
                     this.checkEmptyState();
                 });
@@ -382,13 +410,13 @@
                 document.getElementById('noDataAlert').style.display = isEmpty ? 'flex' : 'none';
             },
 
-            // HELPERS PARA FECHAS (CRÍTICO PARA CONECTAR)
+            // PARSEADOR DE FECHAS ROBUSTO (Para arreglar el "no lo toma")
             parseDate(dateStr) {
                 if(!dateStr) return new Date();
-                // Si viene YYYY-MM-DD simple, forzamos interpretación local para que coincida con el día del usuario
-                if(dateStr.length === 10 && dateStr.includes('-')) {
+                // Si es formato YYYY-MM-DD (ISO simple), tratarlo como local para evitar desfase de zona horaria
+                if(typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
                     const [y, m, d] = dateStr.split('-').map(Number);
-                    return new Date(y, m - 1, d); 
+                    return new Date(y, m - 1, d, 12, 0, 0); // Mediodía para asegurar el día correcto
                 }
                 return new Date(dateStr);
             },
@@ -399,7 +427,6 @@
                 const currentYear = now.getFullYear();
 
                 // --- 1. WORK METRICS ---
-                // Filtrado robusto de fechas
                 const mWorkLogs = this.data.workLogs.filter(l => {
                     const d = this.parseDate(l.date); 
                     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
@@ -410,7 +437,6 @@
                     if (l.type === 'Laboral' || l.type === 'Descanso') {
                         const gross = l.hours || 0;
                         const disc = l.disconnection || 0;
-                        // Tomamos el tiempo neto (horas brutas - desconexiones)
                         totalMins += Math.max(0, gross - disc);
                     }
                 });
@@ -425,25 +451,21 @@
                 const extraIncome = mFinLogs.filter(l => l.type === 'income').reduce((a, b) => a + (b.amount || 0), 0);
                 const actualExpenses = mFinLogs.filter(l => l.type === 'expense').reduce((a, b) => a + (b.amount || 0), 0);
                 
-                // Income: Base (Config) + Extras (Logs)
+                // Income Logic
                 const baseIncome = parseFloat(this.data.financeConfig.income) || 0;
                 const totalRealIncome = baseIncome + extraIncome; 
 
-                // Expenses
+                // Expenses Logic
                 const totalRealExpenses = actualExpenses;
                 const netCashflow = totalRealIncome - totalRealExpenses;
 
                 // --- 3. DERIVED KPIs ---
-                
-                // Real Hourly Rate = (Ingreso Total Real / Horas Totales Reales)
                 const realRate = totalHours > 0 ? (totalRealIncome / totalHours) : 0;
+                const lifeCostRate = totalRealExpenses / (30 * 24); // 720h month
 
-                // Burn Rate (Costo por hora de vida - 720h/mes)
-                const lifeCostRate = totalRealExpenses / (30 * 24);
-
-                // Runway
+                // Runway Logic
                 const liquid = parseFloat(this.data.financeConfig.liquidAssets) || 0;
-                const burnBasis = totalRealExpenses > 0 ? totalRealExpenses : (this.data.financeConfig.monthlyBudget || 1); // Usar presupuesto si no hay gastos reales aun
+                const burnBasis = totalRealExpenses > 0 ? totalRealExpenses : (this.data.financeConfig.monthlyBudget || 1); 
                 const runway = burnBasis > 0 ? (liquid / burnBasis) : 99;
 
                 // --- 4. UPDATE UI ---
@@ -477,7 +499,6 @@
                 const budget = parseFloat(document.getElementById('inpExpenses').value) || 0;
                 
                 const ref = doc(db, 'artifacts', APP_ID, 'users', this.userId, 'data', 'financials');
-                // Use setDoc with merge to ensure document creation
                 setDoc(ref, { liquidAssets: liq, income: inc, monthlyBudget: budget }, { merge: true });
             },
 
