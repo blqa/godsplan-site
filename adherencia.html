@@ -8,7 +8,6 @@
     <!-- FUENTE UNIFICADA: PLUS JAKARTA SANS -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- IMPORTANTE: TAILWIND CSS AGREGADO PARA QUE FUNCIONEN LAS CLASES DEL NAV -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -513,29 +512,6 @@
         [data-theme="dark"] .pos, [data-theme="red"] .pos { background: #064e3b; color: #6ee7b7; }
         [data-theme="dark"] .neg, [data-theme="red"] .neg { background: #7f1d1d; color: #fca5a5; }
 
-        .chart-container {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-        
-        /* Ajuste para grids de graficas */
-        .chart-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-        @media (min-width: 768px) {
-            .chart-grid { grid-template-columns: 2fr 1fr; }
-        }
-
-        canvas {
-            width: 100% !important;
-            height: auto !important;
-        }
-
         /* LOGS */
         .log-section {
             background: var(--card);
@@ -940,26 +916,6 @@
             <div class="log-header"><span id="logListTitle">HISTORIAL</span><button onclick="window.app.openModal()" style="border:none; background:none; color:var(--brand); font-weight:800; cursor:pointer;">+ MANUAL</button></div>
             <div id="logList"></div>
         </div>
-
-        <!-- GRAFICOS CORREGIDOS -->
-        <div class="chart-container">
-            <h3 style="margin-bottom:15px; font-size:0.9rem; color:var(--text-mute); text-transform:uppercase; text-align:center; font-weight:800;">
-                Adherencia Mensual</h3>
-            
-            <div style="height:220px; margin-bottom: 25px;"><canvas id="chartDaily"></canvas></div>
-
-            <!-- NUEVA GRAFICA: TENDENCIA ACUMULADA -->
-            <h3 style="margin-bottom:15px; font-size:0.9rem; color:var(--text-mute); text-transform:uppercase; text-align:center; font-weight:800; border-top: 1px dashed var(--border); padding-top: 20px;">
-                Tendencia de Saldo Acumulado</h3>
-            <p style="text-align: center; font-size: 0.75rem; color: var(--text-mute); margin-bottom: 10px;">Muestra si estás ganando o perdiendo tiempo día a día.</p>
-            <div style="height:180px; margin-bottom: 25px;"><canvas id="chartTrend"></canvas></div>
-
-            <div style="border-top:1px dashed var(--border); padding-top:15px; display: flex; flex-direction: column; align-items: center;">
-                <h3 style="margin-bottom:15px; font-size:0.8rem; color:var(--text-mute); text-transform:uppercase; font-weight:800;">
-                    Distribución de Tiempos</h3>
-                <div style="height:200px; width: 100%; max-width: 300px;"><canvas id="chartTypes"></canvas></div>
-            </div>
-        </div>
     </div>
 
     <!-- MENU CONFIGURACION -->
@@ -1141,7 +1097,7 @@
         try { if (typeof __firebase_config !== 'undefined' && __firebase_config) { const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; } } catch(e) { console.error(e); }
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        let auth, db, chartD, chartT, chartTrend;
+        let auth, db;
         function showGlobalError(m) { const x = document.getElementById('msgModal'); if (x) { document.getElementById('msgText').textContent = m; document.getElementById('msgIcon').className = 'ph-fill ph-warning-circle'; document.getElementById('msgIcon').style.color = 'var(--alert)'; x.classList.add('active'); } else alert(m); }
         window.onerror = function (m) { if (!String(m).includes('popup')) showGlobalError(m); };
 
@@ -1233,7 +1189,6 @@
                     const cc = JSON.parse(localStorage.getItem('gp_custom_colors'));
                     if (cc) this.applyCustomColors(cc);
                 }
-                if (this.data.logs.length > 0) this.renderCharts(this.data.logs.filter(l => new Date(l.date + 'T00:00').getMonth() === this.date.getMonth()));
             },
 
             toggleTheme() {
@@ -1535,170 +1490,6 @@
                     <div class="log-balance ${bal >= 0 ? 'pos' : 'neg'}">${bal > 0 ? '+' : ''}${this.fmt(bal)}</div>`;
                     const div = document.createElement('div'); div.className = 'log-item'; div.onclick = () => window.app.openModal(l.id); div.innerHTML = html;
                     list.appendChild(div);
-                });
-                this.renderCharts(mLogs);
-            },
-
-            renderCharts(logs) {
-                // CORRECCION 1: Calcular días reales del mes
-                const daysInMonth = new Date(this.date.getFullYear(), this.date.getMonth() + 1, 0).getDate();
-                const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-
-                // CORRECCION 2: Sumar TODOS los logs del día, no solo el primero
-                const workedData = days.map(d => {
-                    const dailyLogs = logs.filter(l => new Date(l.date + 'T00:00').getDate() === d && (l.type === 'Laboral' || l.type === 'Descanso'));
-                    const dailySum = dailyLogs.reduce((acc, curr) => acc + Math.max(0, (curr.hours - (curr.disconnection || 0))), 0);
-                    return dailySum / 60; // Horas
-                });
-
-                const excessData = days.map(d => {
-                    const dailyLogs = logs.filter(l => new Date(l.date + 'T00:00').getDate() === d);
-                    const dailySum = dailyLogs.reduce((acc, curr) => acc + (curr.disconnection || 0), 0);
-                    return dailySum / 60; // Horas
-                });
-
-                // NUEVA GRAFICA: TENDENCIA ACUMULADA
-                let runningBalance = 0;
-                const trendData = days.map(d => {
-                    // Logs del día
-                    const dailyLogs = logs.filter(l => new Date(l.date + 'T00:00').getDate() === d);
-                    
-                    // Horas trabajadas (minutos)
-                    const dailyWorked = dailyLogs.reduce((acc, l) => {
-                         if (l.type === 'Laboral' || l.type === 'Descanso') return acc + (l.hours - (l.disconnection || 0));
-                         return acc;
-                    }, 0);
-
-                    // Target del día (minutos) - 8 horas si es Laboral o Falta
-                    const dailyTarget = dailyLogs.reduce((acc, l) => {
-                         if (l.type === 'Laboral' || l.type === 'Falta') return acc + 480;
-                         return acc;
-                    }, 0);
-                    
-                    // Si no hubo registro y ya pasó el día, no sumamos target (opcional, aqui asumimos que si no hay log no hay target, salvo Falta explicita)
-                    
-                    const dailyNet = dailyWorked - dailyTarget;
-                    runningBalance += dailyNet;
-                    return runningBalance / 60; // Convertir a horas
-                });
-
-
-                let totalWork = 0, totalBath = 0, totalFood = 0;
-                logs.forEach(l => {
-                    if (l.details) { totalBath += l.details.bath || 0; totalFood += l.details.food || 0; }
-                    if (l.type === 'Laboral' || l.type === 'Descanso') {
-                        const rawWork = l.hours - ((l.details?.bath || 0) + (l.details?.food || 0));
-                        totalWork += Math.max(0, rawWork);
-                    }
-                });
-
-                if (chartD) chartD.destroy();
-                if (chartT) chartT.destroy();
-                if (chartTrend) chartTrend.destroy();
-
-                const isRed = this.currentTheme === 'red';
-                const isDark = this.currentTheme === 'dark' || isRed;
-                const textColor = isDark ? '#94a3b8' : '#64748b';
-                const gridColor = isDark ? '#334155' : '#e2e8f0';
-
-                const workColor = isRed ? '#dc2626' : '#2563eb';
-                const excessColor = isRed ? '#7f1d1d' : '#dc2626';
-                const trendColor = '#10b981'; // Emerald para la tendencia
-
-                // GRAFICA DIARIA DE BARRAS
-                chartD = new Chart(document.getElementById('chartDaily'), {
-                    type: 'bar',
-                    data: {
-                        labels: days,
-                        datasets: [
-                            { label: 'Efectivo (h)', data: workedData, backgroundColor: workColor, borderRadius: 2, stack: 'Stack 0' },
-                            { label: 'Penalización (h)', data: excessData, backgroundColor: excessColor, borderRadius: 2, stack: 'Stack 0' }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { 
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) { label += ': '; }
-                                        const val = context.parsed.y;
-                                        const h = Math.floor(val);
-                                        const m = Math.round((val - h) * 60);
-                                        return label + h + "h " + m + "m";
-                                    }
-                                }
-                            },
-                            legend: { position: 'bottom', labels: { color: textColor, boxWidth: 10, font: { size: 10 } } } 
-                        },
-                        scales: {
-                            y: { beginAtZero: true, stacked: true, grid: { color: gridColor }, ticks: { color: textColor } },
-                            x: { stacked: true, grid: { display: false }, ticks: { color: textColor } }
-                        }
-                    }
-                });
-
-                // NUEVA GRAFICA: TENDENCIA LINEAL
-                chartTrend = new Chart(document.getElementById('chartTrend'), {
-                    type: 'line',
-                    data: {
-                        labels: days,
-                        datasets: [{
-                            label: 'Saldo Acumulado (h)',
-                            data: trendData,
-                            borderColor: trendColor,
-                            backgroundColor: (ctx) => {
-                                const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 200);
-                                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.5)');
-                                gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
-                                return gradient;
-                            },
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 2,
-                            pointHoverRadius: 5
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { 
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const val = context.parsed.y;
-                                        const absVal = Math.abs(val);
-                                        const h = Math.floor(absVal);
-                                        const m = Math.round((absVal - h) * 60);
-                                        const sign = val >= 0 ? '+' : '-';
-                                        return `Saldo: ${sign}${h}h ${m}m`;
-                                    }
-                                }
-                            },
-                            legend: { display: false } 
-                        },
-                        scales: {
-                            y: { grid: { color: gridColor }, ticks: { color: textColor } },
-                            x: { grid: { display: false }, ticks: { color: textColor } }
-                        }
-                    }
-                });
-
-                chartT = new Chart(document.getElementById('chartTypes'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Trabajo', 'Baño', 'Comida'],
-                        datasets: [{
-                            data: [totalWork, totalBath, totalFood],
-                            backgroundColor: [workColor, '#94a3b8', '#f59e0b'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { position: 'right', labels: { color: textColor, boxWidth: 10, font: { size: 11 } } } },
-                        cutout: '65%'
-                    }
                 });
             },
 
