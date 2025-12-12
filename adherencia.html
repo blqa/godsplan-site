@@ -370,6 +370,13 @@
             margin-bottom: 5px;
         }
 
+        .clock-status.paused {
+            color: var(--warn);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
         .clock-timer {
             font-size: clamp(2.5rem, 12vw, 4rem);
             font-weight: 800;
@@ -447,6 +454,26 @@
             color: var(--warn);
             border-color: var(--warn);
             box-shadow: inset 0 0 0 1px var(--warn);
+        }
+
+        /* ESTILOS PARA BOTON PAUSA */
+        .btn-pause {
+            background: var(--bg);
+            color: var(--text-mute);
+            border: 1px solid var(--border);
+        }
+
+        .btn-pause.active {
+            background: #fff7ed; /* orange-50 en light */
+            color: #f97316; /* orange-500 */
+            border-color: #f97316;
+            box-shadow: inset 0 0 0 1px #f97316;
+        }
+
+        [data-theme="dark"] .btn-pause.active, [data-theme="red"] .btn-pause.active {
+            background: #431407; /* orange-950 */
+            color: #fb923c; /* orange-400 */
+            border-color: #fb923c;
         }
 
         /* DASHBOARD & CHARTS */
@@ -1384,24 +1411,52 @@
                     off.style.display = 'block'; on.style.display = 'none';
                     area.innerHTML = `<button class="ctrl-btn btn-start full-btn" onclick="window.app.clockIn()"><i class="ph-bold ph-play"></i> INICIAR JORNADA</button>`;
                     if (this.timer) clearInterval(this.timer);
+                    document.getElementById('clockStatus').textContent = "FUERA DE TURNO";
+                    document.getElementById('clockStatus').classList.remove('paused');
                 } else {
-                    if (!s.breaks) { s.breaks = { bathroom: 0, food: 0 }; this.save(); }
+                    if (!s.breaks) { s.breaks = { bathroom: 0, food: 0, pause: 0 }; this.save(); }
+                    // Ensure pause exists for legacy data
+                    if (s.breaks.pause === undefined) s.breaks.pause = 0;
+
                     off.style.display = 'none'; on.style.display = 'grid';
                     document.getElementById('limBath').textContent = bl;
                     document.getElementById('limFood').textContent = fl;
                     const bathEl = document.getElementById('clockBathContainer');
                     const foodEl = document.getElementById('clockFoodContainer');
-
+                    
+                    // BOTONES: Añadido boton de Pausa
                     area.innerHTML = `
                         <button class="ctrl-btn btn-bath ${s.breakType === 'bathroom' ? 'active' : ''}" onclick="window.app.toggleBreak('bathroom')"><i class="ph-bold ph-toilet"></i> BAÑO</button>
                         <button class="ctrl-btn btn-food ${s.breakType === 'food' ? 'active' : ''}" onclick="window.app.toggleBreak('food')"><i class="ph-bold ph-hamburger"></i> COMIDA</button>
+                        <button class="ctrl-btn btn-pause full-btn ${s.breakType === 'pause' ? 'active' : ''}" onclick="window.app.toggleBreak('pause')"><i class="ph-bold ph-pause-circle"></i> ${s.breakType === 'pause' ? 'REANUDAR' : 'PAUSAR / DESCONEXIÓN'}</button>
                         <button class="ctrl-btn btn-stop full-btn" onclick="window.app.confirmClockOut()"><i class="ph-bold ph-stop"></i> TERMINAR JORNADA</button>
                     `;
 
                     if (this.timer) clearInterval(this.timer);
                     this.timer = setInterval(() => {
                         const now = this.getNow();
-                        document.getElementById('clockDisplay').textContent = this.msToTime(now - s.start);
+                        
+                        // Lógica de visualización del tiempo principal
+                        let totalPauseAccumulated = (s.breaks.pause || 0) * 60000;
+                        let currentPauseDuration = 0;
+
+                        if (s.breakType === 'pause') {
+                            // Si está pausado, el tiempo visual no avanza (se congela en el último momento trabajado)
+                            document.getElementById('clockStatus').textContent = "PAUSADO";
+                            document.getElementById('clockStatus').classList.add('paused');
+                            
+                            // Calculamos cuánto lleva esta pausa actual para restarlo de la vista
+                            currentPauseDuration = now - s.breakStart;
+                        } else {
+                            document.getElementById('clockStatus').textContent = "TURNO ACTIVO";
+                            document.getElementById('clockStatus').classList.remove('paused');
+                        }
+
+                        // Tiempo total transcurrido desde inicio - Pausas acumuladas - Pausa actual (si existe)
+                        // Esto hace que el reloj principal solo muestre tiempo "útil"
+                        let displayTime = (now - s.start) - totalPauseAccumulated - currentPauseDuration;
+                        document.getElementById('clockDisplay').textContent = this.msToTime(displayTime);
+
                         let b = s.breaks.bathroom || 0, f = s.breaks.food || 0;
                         if (s.breakStart) {
                             const d = (now - s.breakStart) / 60000;
@@ -1478,7 +1533,8 @@
                 }
                 if (this.processing) return; this.processing = true;
                 this.stopBreak();
-                this.data.activeShift = { start: this.getNow(), breaks: { bathroom: 0, food: 0 }, breakStart: null, breakType: null };
+                // Inicializamos pause en 0
+                this.data.activeShift = { start: this.getNow(), breaks: { bathroom: 0, food: 0, pause: 0 }, breakStart: null, breakType: null };
                 this.save(); this.uiClock(); this.processing = false;
             },
             toggleBreak(type) {
@@ -1486,6 +1542,7 @@
                 if (s.breakStart) {
                     const prev = s.breakType;
                     this.stopBreak();
+                    // Si clicamos el mismo, solo para (toggle). Si es diferente, inicia el otro inmediatamente.
                     if (prev !== type) setTimeout(() => this.startBreak(type), 50);
                 } else this.startBreak(type);
             },
@@ -1497,7 +1554,11 @@
             stopBreak() {
                 const s = this.data.activeShift;
                 if (s && s.breakStart) {
-                    s.breaks[s.breakType] += (this.getNow() - s.breakStart) / 60000;
+                    if (s.breakType) {
+                        // Asegurar que exista la propiedad en breaks
+                        if (s.breaks[s.breakType] === undefined) s.breaks[s.breakType] = 0;
+                        s.breaks[s.breakType] += (this.getNow() - s.breakStart) / 60000;
+                    }
                     s.breakStart = null; s.breakType = null;
                     this.save(); this.uiClock();
                 }
@@ -1510,17 +1571,28 @@
                 const s = this.data.activeShift;
                 if (!s) return;
                 if (s.breakStart) this.stopBreak(); 
-                if (!s.breaks) s.breaks = { bathroom: 0, food: 0 };
+                if (!s.breaks) s.breaks = { bathroom: 0, food: 0, pause: 0 };
+                
                 const end = this.getNow();
-                const gross = (end - s.start) / 60000;
+                
+                // Calculamos tiempo total (pared)
+                const totalWallTime = (end - s.start) / 60000;
+                
+                // Obtenemos tiempo de pausa
+                const pauseTime = s.breaks.pause || 0;
+                
+                // El bruto trabajado REAL es tiempo total menos pausas
+                const gross = totalWallTime - pauseTime;
+                
                 const b = s.breaks.bathroom || 0, f = s.breaks.food || 0;
                 const config = this.data.config || {}; 
                 const disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
+                
                 this.data.logs.push({
                     id: this.getNow(), 
                     date: new Date(s.start).toISOString().split('T')[0], type: 'Laboral',
                     in: new Date(s.start).toTimeString().slice(0, 5), out: new Date(end).toTimeString().slice(0, 5),
-                    hours: gross, disconnection: disc, details: { bath: b, food: f }
+                    hours: gross, disconnection: disc, details: { bath: b, food: f, pause: pauseTime }
                 });
                 this.data.activeShift = null;
                 this.save(); this.render(); this.uiClock();
@@ -1563,6 +1635,8 @@
                     if (l.details) {
                         if (l.details.bath > 0) chips += `<span class="break-pill ${l.details.bath > (config.bathAllow || 15) ? 'excess' : ''}"><i class="ph-bold ph-toilet"></i> ${Math.round(l.details.bath)}m</span>`;
                         if (l.details.food > 0) chips += `<span class="break-pill ${l.details.food > (config.foodAllow || 45) ? 'excess' : ''}"><i class="ph-bold ph-hamburger"></i> ${Math.round(l.details.food)}m</span>`;
+                        // Mostrar chip de Pausa si hubo
+                        if (l.details.pause > 0) chips += `<span class="break-pill" style="border-color:var(--warn); color:var(--warn);"><i class="ph-bold ph-pause-circle"></i> ${Math.round(l.details.pause)}m</span>`;
                     }
                     const html = `
                     <div class="log-date-box"><div class="log-day">${x.getDate()}</div><div class="log-dow">${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][x.getDay()]}</div></div>
@@ -1613,8 +1687,6 @@
                          if (l.type === 'Laboral' || l.type === 'Falta') return acc + 480;
                          return acc;
                     }, 0);
-                    
-                    // Si no hubo registro y ya pasó el día, no sumamos target (opcional, aqui asumimos que si no hay log no hay target, salvo Falta explicita)
                     
                     const dailyNet = dailyWorked - dailyTarget;
                     runningBalance += dailyNet;
@@ -1802,7 +1874,7 @@
                     const config = this.data.config || {};
                     disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
                 }
-                const log = { id: this.editingId || this.getNow(), date: d, type: t, in: i, out: o, hours: h, disconnection: disc, details: { bath: b, food: f } };
+                const log = { id: this.editingId || this.getNow(), date: d, type: t, in: i, out: o, hours: h, disconnection: disc, details: { bath: b, food: f, pause: 0 } };
                 if (this.editingId) this.data.logs[this.data.logs.findIndex(x => x.id === this.editingId)] = log; else this.data.logs.push(log);
                 this.save(); this.render(); document.getElementById('logModal').classList.remove('active');
             },
