@@ -12,13 +12,13 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- FIREBASE (Standardized Imports) -->
+    <!-- FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        window.firebaseImports = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc };
+        window.firebaseImports = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc };
     </script>
     
     <script>
@@ -30,6 +30,9 @@
                     colors: {
                         dark: { 900: '#050505', 800: '#0a0a0a', card: '#121212' },
                         brand: { 500: '#ef4444', 600: '#dc2626' } // Red Core
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     }
                 }
             }
@@ -55,16 +58,16 @@
         .g-link { font-size: 10px; font-weight: 800; letter-spacing: 0.05em; color: #71717a; transition: color 0.2s; text-decoration: none; white-space: nowrap; }
         .g-link:hover, .g-link.active { color: white; }
         
-        /* Loader */
-        .loader { border: 3px solid rgba(255,255,255,0.1); border-left-color: #ef4444; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         /* Inputs invisibles */
         .bare-input { background: transparent; border: none; outline: none; text-align: right; width: 100%; font-weight: bold; color: inherit; border-bottom: 1px dashed rgba(255,255,255,0.2); transition: border-color 0.2s; }
         .bare-input:focus { border-bottom-color: #ef4444; }
+
+        /* Debug Panel */
+        #debugPanel { transition: transform 0.3s ease-in-out; }
+        #debugPanel.hidden-panel { transform: translateY(100%); }
     </style>
 </head>
-<body class="flex flex-col h-screen overflow-hidden">
+<body class="flex flex-col h-screen overflow-hidden relative">
 
     <!-- NAV SUPERIOR -->
     <nav id="global-nav" class="h-14 bg-black border-b border-white/5 flex items-center justify-between px-5 shrink-0 z-50">
@@ -80,7 +83,7 @@
     </nav>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-32">
         <div class="max-w-6xl mx-auto">
             
             <!-- HEADER -->
@@ -93,7 +96,19 @@
                     </p>
                 </div>
                 <div class="text-right">
-                    <div id="authStatus" class="text-xs font-bold text-zinc-600 uppercase tracking-widest">Conectando...</div>
+                    <button onclick="dash.toggleDebug()" class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest hover:text-white transition-colors border border-zinc-800 rounded px-2 py-1">
+                        <i class="ph-bold ph-wifi-high"></i> Estado Conexión
+                    </button>
+                </div>
+            </div>
+
+            <!-- ALERT: NO DATA -->
+            <div id="noDataAlert" class="hidden mb-6 bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-start gap-3">
+                <i class="ph-fill ph-warning text-red-500 text-xl mt-0.5"></i>
+                <div>
+                    <h3 class="text-sm font-bold text-white">Sin datos detectados</h3>
+                    <p class="text-xs text-zinc-400 mt-1">No se encontraron registros de Adherencia o Finanzas. Asegúrate de estar usando el <strong>mismo usuario</strong> en todas las apps.</p>
+                    <button onclick="dash.login()" class="mt-2 text-xs bg-red-600 text-white px-3 py-1.5 rounded font-bold hover:bg-red-500">Iniciar Sesión Google</button>
                 </div>
             </div>
 
@@ -176,7 +191,7 @@
                         </div>
                         <p class="text-xs text-zinc-600 mb-4 leading-relaxed">Tiempo antes de la quiebra si los ingresos se detienen hoy.</p>
                         
-                        <!-- Input Manual para Ahorros Líquidos (Sincronizado) -->
+                        <!-- Input Manual para Ahorros Líquidos -->
                         <div class="bg-black/50 p-3 rounded-xl border border-zinc-800">
                             <label class="text-[9px] text-red-500 font-bold uppercase block mb-1">Ahorro Líquido Total</label>
                             <div class="flex items-center gap-2">
@@ -186,26 +201,26 @@
                         </div>
                     </div>
 
-                    <!-- RESUMEN MENSUAL (EDITABLE/LIVE) -->
+                    <!-- RESUMEN MENSUAL (EDITABLE) -->
                     <div class="glass-card rounded-2xl p-5 border border-zinc-800 space-y-3">
                         <div class="flex justify-between items-center mb-2">
-                            <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Configuración Base</h3>
-                            <i class="ph-bold ph-sliders text-zinc-600 text-xs"></i>
+                            <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Resumen Mes (Config)</h3>
+                            <i class="ph-bold ph-pencil-simple text-zinc-600 text-xs"></i>
                         </div>
                         
-                        <!-- Ingresos (Base Salary) -->
+                        <!-- Ingresos -->
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-zinc-400">Ingreso Base (Conf)</span>
-                            <div class="flex items-center gap-1 w-28">
+                            <span class="text-zinc-400">Ingreso Base</span>
+                            <div class="flex items-center gap-1 w-24">
                                 <span class="text-emerald-500 font-bold text-xs">$</span>
                                 <input type="number" id="inpIncome" class="bare-input text-emerald-500" placeholder="0" onblur="dash.saveConfig()">
                             </div>
                         </div>
 
-                        <!-- Gastos (Budget Limit) -->
+                        <!-- Gastos -->
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-zinc-400">Límite Gasto (Conf)</span>
-                            <div class="flex items-center gap-1 w-28">
+                            <span class="text-zinc-400">Presupuesto Mensual</span>
+                            <div class="flex items-center gap-1 w-24">
                                 <span class="text-red-500 font-bold text-xs">$</span>
                                 <input type="number" id="inpExpenses" class="bare-input text-red-500" placeholder="0" onblur="dash.saveConfig()">
                             </div>
@@ -225,13 +240,34 @@
         </div>
     </main>
 
+    <!-- DEBUG PANEL (SLIDE UP) -->
+    <div id="debugPanel" class="fixed bottom-0 left-0 w-full bg-zinc-900 border-t border-zinc-700 p-4 z-[100] transform translate-y-full transition-transform duration-300">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="ph-bold ph-wrench text-zinc-500"></i> DIAGNÓSTICO
+            </h3>
+            <button onclick="dash.toggleDebug()" class="text-zinc-500 hover:text-white"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div class="grid grid-cols-2 gap-4 text-xs font-mono text-zinc-400">
+            <div class="bg-black p-3 rounded border border-zinc-800">
+                <div class="text-zinc-600 uppercase text-[10px] font-bold mb-1">User ID Actual</div>
+                <div id="debugUid" class="text-emerald-500 truncate">...</div>
+            </div>
+            <div class="bg-black p-3 rounded border border-zinc-800">
+                <div class="text-zinc-600 uppercase text-[10px] font-bold mb-1">Registros Encontrados</div>
+                <div>Adherencia: <span id="debugWorkCount" class="text-white">0</span></div>
+                <div>Finanzas: <span id="debugFinCount" class="text-white">0</span></div>
+            </div>
+        </div>
+        <button onclick="dash.login()" class="mt-4 w-full bg-white text-black py-2 rounded font-bold text-xs">CAMBIAR CUENTA (GOOGLE)</button>
+    </div>
+
     <!-- JS LOGIC -->
     <script type="module">
-        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc } = window.firebaseImports;
+        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc, setDoc, getDoc } = window.firebaseImports;
 
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-ultimate-v3';
         
-        // Configuración Fallback
         const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
         let firebaseConfig = fallbackConfig;
         try { if (typeof __firebase_config !== 'undefined' && __firebase_config) { const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; } } catch(e) {}
@@ -248,7 +284,7 @@
             data: {
                 workLogs: [],
                 financeLogs: [],
-                financeConfig: { income: 0, liquidAssets: 0, monthlyBudget: 0 }, // Changed estimatedExpenses to monthlyBudget to match Finance app logic
+                financeConfig: { income: 0, liquidAssets: 0, monthlyBudget: 0 },
                 adherenceConfig: {}
             },
             userId: null,
@@ -256,67 +292,105 @@
 
             init() {
                 const now = new Date();
-                const months = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
-                document.getElementById('currentDateDisplay').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
+                const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                document.getElementById('currentDateDisplay').textContent = `${months[now.getMonth()].toUpperCase()} ${now.getFullYear()}`;
 
                 onAuthStateChanged(auth, async (u) => {
                     if (u) {
                         this.userId = u.uid;
-                        document.getElementById('authStatus').textContent = "SINCRONIZADO";
-                        document.getElementById('authStatus').className = "text-xs font-bold text-emerald-600 uppercase tracking-widest";
+                        this.updateAuthUI(u);
                         this.startListeners();
                     } else {
                         const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                        if(token) {
-                             await signInWithCustomToken(auth, token);
-                        } else {
-                             await signInAnonymously(auth);
-                             document.getElementById('authStatus').textContent = "ANÓNIMO";
-                        }
+                        if(token) await signInWithCustomToken(auth, token);
+                        else await signInAnonymously(auth);
                     }
                 });
             },
 
+            updateAuthUI(u) {
+                const status = u.isAnonymous ? "ANÓNIMO (Datos temporales)" : "CONECTADO";
+                const color = u.isAnonymous ? "text-orange-500" : "text-emerald-600";
+                document.getElementById('authStatus').textContent = status;
+                document.getElementById('authStatus').className = `text-xs font-bold ${color} uppercase tracking-widest`;
+                document.getElementById('debugUid').textContent = u.uid;
+                
+                // Alert for Anonymous users
+                if(u.isAnonymous) console.warn("Estás en modo anónimo. Los datos no se compartirán entre pestañas si no es la misma sesión.");
+            },
+
+            async login() {
+                try {
+                    const provider = new GoogleAuthProvider();
+                    await signInWithPopup(auth, provider);
+                    location.reload();
+                } catch (e) { alert("Error login: " + e.message); }
+            },
+
+            toggleDebug() {
+                const p = document.getElementById('debugPanel');
+                if(p.classList.contains('translate-y-full')) p.classList.remove('translate-y-full');
+                else p.classList.add('translate-y-full');
+            },
+
             startListeners() {
-                // 1. Escuchar WORK DATA (godsPlanData/{uid}) -> Logica de Adherencia
+                // 1. ADHERENCIA: Escuchar god's Plan Data
                 const workRef = doc(db, 'godsPlanData', this.userId);
                 onSnapshot(workRef, (snap) => {
                     if (snap.exists()) {
                         const d = snap.data();
                         this.data.workLogs = d.logs || [];
                         this.data.adherenceConfig = d.config || {};
+                        document.getElementById('debugWorkCount').textContent = this.data.workLogs.length;
                         this.calcMetrics();
+                    } else {
+                        document.getElementById('debugWorkCount').textContent = "0 (Doc no existe)";
+                        this.checkEmptyState();
                     }
                 });
 
-                // 2. Escuchar FINANCE CONFIG (artifacts/.../financials)
+                // 2. FINANZAS: Config
                 const finConfigRef = doc(db, 'artifacts', APP_ID, 'users', this.userId, 'data', 'financials');
                 onSnapshot(finConfigRef, (snap) => {
                     if (snap.exists()) {
                         const d = snap.data();
-                        // Mapping Finance fields
-                        this.data.financeConfig.income = d.income || 0; // Base Income
-                        this.data.financeConfig.liquidAssets = d.liquidAssets || 0; // Assets for runway
-                        this.data.financeConfig.monthlyBudget = d.monthlyBudget || 0; // Planned Limit
+                        this.data.financeConfig.income = d.income || 0;
+                        this.data.financeConfig.liquidAssets = d.liquidAssets || 0;
+                        this.data.financeConfig.monthlyBudget = d.monthlyBudget || 0;
                         
-                        // Populate inputs if not focused
+                        // Sync inputs
                         if(document.activeElement.id !== 'inpLiquidAssets') document.getElementById('inpLiquidAssets').value = this.data.financeConfig.liquidAssets;
                         if(document.activeElement.id !== 'inpIncome') document.getElementById('inpIncome').value = this.data.financeConfig.income;
                         if(document.activeElement.id !== 'inpExpenses') document.getElementById('inpExpenses').value = this.data.financeConfig.monthlyBudget;
                         
                         this.calcMetrics();
-                    } else {
-                        // Create if missing
-                        setDoc(finConfigRef, { income: 0, liquidAssets: 0, monthlyBudget: 0 }, { merge: true });
                     }
                 });
 
-                // 3. Escuchar FINANCE LOGS (artifacts/.../transactions)
+                // 3. FINANZAS: Logs
                 const txRef = collection(db, 'artifacts', APP_ID, 'users', this.userId, 'transactions');
                 onSnapshot(query(txRef), (snap) => {
                     this.data.financeLogs = snap.docs.map(d => d.data());
+                    document.getElementById('debugFinCount').textContent = this.data.financeLogs.length;
                     this.calcMetrics();
+                    this.checkEmptyState();
                 });
+            },
+
+            checkEmptyState() {
+                const isEmpty = this.data.workLogs.length === 0 && this.data.financeLogs.length === 0;
+                document.getElementById('noDataAlert').style.display = isEmpty ? 'flex' : 'none';
+            },
+
+            // HELPERS PARA FECHAS (CRÍTICO PARA CONECTAR)
+            parseDate(dateStr) {
+                if(!dateStr) return new Date();
+                // Si viene YYYY-MM-DD simple, forzamos interpretación local para que coincida con el día del usuario
+                if(dateStr.length === 10 && dateStr.includes('-')) {
+                    const [y, m, d] = dateStr.split('-').map(Number);
+                    return new Date(y, m - 1, d); 
+                }
+                return new Date(dateStr);
             },
 
             calcMetrics() {
@@ -324,9 +398,10 @@
                 const currentMonth = now.getMonth();
                 const currentYear = now.getFullYear();
 
-                // --- 1. WORK METRICS (Calculated from Adherencia) ---
+                // --- 1. WORK METRICS ---
+                // Filtrado robusto de fechas
                 const mWorkLogs = this.data.workLogs.filter(l => {
-                    const d = new Date(l.date + 'T00:00'); 
+                    const d = this.parseDate(l.date); 
                     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
                 });
 
@@ -335,61 +410,52 @@
                     if (l.type === 'Laboral' || l.type === 'Descanso') {
                         const gross = l.hours || 0;
                         const disc = l.disconnection || 0;
+                        // Tomamos el tiempo neto (horas brutas - desconexiones)
                         totalMins += Math.max(0, gross - disc);
                     }
                 });
                 const totalHours = totalMins / 60;
 
-                // --- 2. FINANCE METRICS (Calculated from Finanzas) ---
+                // --- 2. FINANCE METRICS ---
                 const mFinLogs = this.data.financeLogs.filter(l => {
-                    const d = new Date(l.date);
+                    const d = this.parseDate(l.date);
                     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
                 });
 
-                // Calculate Totals from Logs
                 const extraIncome = mFinLogs.filter(l => l.type === 'income').reduce((a, b) => a + (b.amount || 0), 0);
                 const actualExpenses = mFinLogs.filter(l => l.type === 'expense').reduce((a, b) => a + (b.amount || 0), 0);
                 
-                // Income Logic: Base (Config) + Extras (Logs)
+                // Income: Base (Config) + Extras (Logs)
                 const baseIncome = parseFloat(this.data.financeConfig.income) || 0;
                 const totalRealIncome = baseIncome + extraIncome; 
 
-                // Expenses Logic: Only Real Logs used for stats, but Budget used for comparison
+                // Expenses
                 const totalRealExpenses = actualExpenses;
-
                 const netCashflow = totalRealIncome - totalRealExpenses;
 
                 // --- 3. DERIVED KPIs ---
                 
-                // Real Hourly Rate = (Real Monthly Income / Real Monthly Hours)
-                // This is the "God Metric"
+                // Real Hourly Rate = (Ingreso Total Real / Horas Totales Reales)
                 const realRate = totalHours > 0 ? (totalRealIncome / totalHours) : 0;
 
-                // Life Cost Per Hour = (Real Expenses / 720h hours in month)
-                // This shows how much money you burn just by existing per hour
+                // Burn Rate (Costo por hora de vida - 720h/mes)
                 const lifeCostRate = totalRealExpenses / (30 * 24);
 
                 // Runway
                 const liquid = parseFloat(this.data.financeConfig.liquidAssets) || 0;
-                // Use a 3-month moving average estimate or just current budget if expenses are 0
-                const burnBasis = totalRealExpenses > 0 ? totalRealExpenses : (this.data.financeConfig.monthlyBudget || 1);
+                const burnBasis = totalRealExpenses > 0 ? totalRealExpenses : (this.data.financeConfig.monthlyBudget || 1); // Usar presupuesto si no hay gastos reales aun
                 const runway = burnBasis > 0 ? (liquid / burnBasis) : 99;
 
                 // --- 4. UPDATE UI ---
-                
-                // KPI 1: Real Rate
                 document.getElementById('kpiRealRate').textContent = fmtMoney(realRate);
                 document.getElementById('kpiRealRate').className = `text-4xl font-black tracking-tighter mb-1 relative z-10 ${realRate > lifeCostRate ? 'text-white' : 'text-red-500'}`;
 
-                // KPI 2: Time Sold
                 document.getElementById('kpiHours').textContent = fmtNum(totalHours) + 'h';
                 const pct = Math.min(100, (totalHours / 160) * 100);
                 document.getElementById('barHours').style.width = `${pct}%`;
                 
-                // KPI 3: Burn Rate
                 document.getElementById('kpiLifeCost').textContent = fmtMoney(lifeCostRate);
 
-                // KPI 4: Net Cashflow
                 document.getElementById('kpiNet').textContent = (netCashflow > 0 ? '+' : '') + fmtMoney(netCashflow);
                 document.getElementById('kpiNet').className = `text-3xl font-bold mb-1 ${netCashflow >= 0 ? 'text-emerald-500' : 'text-red-500'}`;
                 
@@ -411,7 +477,8 @@
                 const budget = parseFloat(document.getElementById('inpExpenses').value) || 0;
                 
                 const ref = doc(db, 'artifacts', APP_ID, 'users', this.userId, 'data', 'financials');
-                updateDoc(ref, { liquidAssets: liq, income: inc, monthlyBudget: budget }).catch(err => console.error("Error saving config", err));
+                // Use setDoc with merge to ensure document creation
+                setDoc(ref, { liquidAssets: liq, income: inc, monthlyBudget: budget }, { merge: true });
             },
 
             renderChart(inc, exp) {
