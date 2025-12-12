@@ -357,6 +357,18 @@
             margin-top: 2px;
         }
 
+        /* NUEVA CLASE PARA RESTANTE */
+        .side-remaining {
+            font-size: 0.7rem;
+            font-weight: 800;
+            margin-top: 3px;
+            color: var(--money); /* Verde por defecto */
+        }
+        
+        .side-remaining.neg {
+            color: var(--alert); /* Rojo si es negativo */
+        }
+
         .side-clock.danger .side-val {
             color: var(--alert);
         }
@@ -1051,11 +1063,14 @@
                 <div class="spinner"></div>
             </div>
             <div class="timer-grid" id="timersDisplay" style="display:none;">
+                <!-- MODIFICADO: Agregado elemento para restante -->
                 <button class="side-clock" id="clockBathContainer" onclick="window.app.openTimerEdit('bathroom')" type="button" title="Toca para ajustar">
                     <div class="side-label"><i class="ph-bold ph-toilet"></i> Baño <i class="ph-bold ph-pencil-simple" style="font-size:0.9em; margin-left:3px; color:var(--brand);"></i></div>
                     <div class="side-val" id="dispBath">00:00</div>
                     <div class="side-limit">/ <span id="limBath">15</span>m</div>
+                    <div id="remBath" class="side-remaining">Restan: --</div>
                 </button>
+                
                 <div class="main-clock">
                     <div class="clock-status" id="clockStatus">TURNO ACTIVO</div>
                     <div class="clock-timer" id="clockDisplay">00:00</div>
@@ -1063,10 +1078,13 @@
                         <i class="ph-bold ph-globe"></i> Sync
                     </div>
                 </div>
+
+                <!-- MODIFICADO: Agregado elemento para restante -->
                 <button class="side-clock" id="clockFoodContainer" onclick="window.app.openTimerEdit('food')" type="button" title="Toca para ajustar">
                     <div class="side-label"><i class="ph-bold ph-hamburger"></i> Comida <i class="ph-bold ph-pencil-simple" style="font-size:0.9em; margin-left:3px; color:var(--brand);"></i></div>
                     <div class="side-val" id="dispFood">00:00</div>
                     <div class="side-limit">/ <span id="limFood">45</span>m</div>
+                    <div id="remFood" class="side-remaining">Restan: --</div>
                 </button>
             </div>
             <div id="offlineDisplay" style="display:block;">
@@ -1718,10 +1736,39 @@
                         if (s.breakType === 'bathroom') bathEl.classList.add('active'); else bathEl.classList.remove('active');
                         if (b > bl) bathEl.classList.add('danger'); else bathEl.classList.remove('danger');
 
+                        // *** LÓGICA DE RESTANTE PARA BAÑO ***
+                        const bathLimit = config.bathAllow || 15;
+                        const bathRem = bathLimit - b;
+                        const elRemBath = document.getElementById('remBath');
+                        if (elRemBath) {
+                            if (bathRem >= 0) {
+                                elRemBath.textContent = `Restan: ${this.fmtBreak(bathRem)}`;
+                                elRemBath.classList.remove('neg');
+                            } else {
+                                elRemBath.textContent = `Exceso: ${this.fmtBreak(Math.abs(bathRem))}`;
+                                elRemBath.classList.add('neg');
+                            }
+                        }
+
                         // UPDATE FOOD
                         document.getElementById('dispFood').textContent = this.fmtBreak(f);
                         if (s.breakType === 'food') foodEl.classList.add('active'); else foodEl.classList.remove('active');
                         if (f > fl) foodEl.classList.add('danger'); else foodEl.classList.remove('danger');
+
+                        // *** LÓGICA DE RESTANTE PARA COMIDA ***
+                        const foodLimit = config.foodAllow || 45;
+                        const foodRem = foodLimit - f;
+                        const elRemFood = document.getElementById('remFood');
+                        if (elRemFood) {
+                            if (foodRem >= 0) {
+                                elRemFood.textContent = `Restan: ${this.fmtBreak(foodRem)}`;
+                                elRemFood.classList.remove('neg');
+                            } else {
+                                elRemFood.textContent = `Exceso: ${this.fmtBreak(Math.abs(foodRem))}`;
+                                elRemFood.classList.add('neg');
+                            }
+                        }
+
                     }, 1000);
                 }
             },
@@ -2073,4 +2120,3 @@
 </body>
 
 </html>
-
