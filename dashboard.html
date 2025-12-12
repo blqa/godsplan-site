@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#050505">
+    <title>God's Plan | Master View</title>
+    
+    <!-- LIBRERIAS (Iguales a Finanzas para consistencia visual) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        window.firebaseImports = { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc };
+    </script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        dark: { 900: '#050505', 800: '#0a0a0a', card: '#121212' },
+                        brand: { 500: '#ef4444', 600: '#dc2626' } // Red Core
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root { --nav-height: 65px; }
+        body { background-color: #050505; color: #e5e5e5; -webkit-tap-highlight-color: transparent; }
+        
+        /* Glassmorphism Red Core */
+        .glass { background: rgba(18, 18, 18, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .glass-card { background: linear-gradient(180deg, rgba(24, 24, 27, 0.6) 0%, rgba(18, 18, 18, 0.9) 100%); border: 1px solid rgba(255,255,255,0.05); }
+        .glass-red { background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(127, 29, 29, 0.05) 100%); border: 1px solid rgba(220, 38, 38, 0.2); }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* Nav Global */
+        .g-links { display: flex; align-items: center; gap: 20px; overflow-x: auto; }
+        .g-link { font-size: 10px; font-weight: 800; letter-spacing: 0.05em; color: #71717a; transition: color 0.2s; text-decoration: none; white-space: nowrap; }
+        .g-link:hover, .g-link.active { color: white; }
+        
+        /* Loader */
+        .loader { border: 3px solid rgba(255,255,255,0.1); border-left-color: #ef4444; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- NAV SUPERIOR -->
+    <nav id="global-nav" class="h-14 bg-black border-b border-white/5 flex items-center justify-between px-5 shrink-0 z-50">
+        <a href="/" class="flex items-center gap-2 text-white font-black text-lg tracking-tight decoration-none">
+            <i class="ph-bold ph-planet text-red-600"></i> God's Plan
+        </a>
+        <div class="g-links no-scrollbar">
+            <a href="/adherencia.html" class="g-link">ADHERENCIA</a>
+            <a href="/chat.html" class="g-link">CHAT</a>
+            <a href="/finanzas.html" class="g-link">FINANZAS</a>
+            <a href="#" class="g-link active text-red-500">MASTER VIEW</a>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+        <div class="max-w-6xl mx-auto">
+            
+            <!-- HEADER -->
+            <div class="flex justify-between items-end mb-8 border-b border-white/5 pb-4">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight mb-1">EXEC DASHBOARD</h1>
+                    <p class="text-zinc-500 text-xs md:text-sm font-medium flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                        TIEMPO REAL · <span id="currentDateDisplay">--</span>
+                    </p>
+                </div>
+                <div class="text-right">
+                    <div id="authStatus" class="text-xs font-bold text-zinc-600 uppercase tracking-widest">Conectando...</div>
+                </div>
+            </div>
+
+            <!-- KPI GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                
+                <!-- CARD 1: VALOR HORA REAL (Métrica Reina) -->
+                <div class="glass-red rounded-2xl p-5 relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-600/20 rounded-full blur-2xl group-hover:bg-red-600/30 transition-colors"></div>
+                    <div class="flex justify-between items-start mb-2 relative z-10">
+                        <span class="text-[10px] font-black text-red-400 uppercase tracking-widest">Valor Hora Real</span>
+                        <i class="ph-fill ph-crown text-red-500 text-lg"></i>
+                    </div>
+                    <div class="text-4xl font-black text-white tracking-tighter mb-1 relative z-10" id="kpiRealRate">--</div>
+                    <div class="text-xs text-red-200/50 font-mono relative z-10">Ingreso Neto / Horas Vida</div>
+                </div>
+
+                <!-- CARD 2: TIEMPO VENDIDO -->
+                <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tiempo Vendido</span>
+                        <i class="ph-fill ph-clock-user text-zinc-600 group-hover:text-white transition-colors"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-white mb-1" id="kpiHours">--</div>
+                    <div class="w-full bg-zinc-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                        <div id="barHours" class="h-full bg-white w-0 transition-all duration-1000"></div>
+                    </div>
+                    <div class="flex justify-between mt-1 text-[9px] text-zinc-500 font-bold uppercase">
+                        <span>Mes Actual</span>
+                        <span id="kpiHoursTarget">Meta: 160h</span>
+                    </div>
+                </div>
+
+                <!-- CARD 3: COSTO DE VIDA (Burn Rate) -->
+                <div class="glass-card rounded-2xl p-5 relative group">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Costo por Hora</span>
+                        <i class="ph-fill ph-fire text-orange-500/50 group-hover:text-orange-500 transition-colors"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-white mb-1" id="kpiLifeCost">--</div>
+                    <div class="text-xs text-zinc-600">Lo que te cuesta existir (720h)</div>
+                </div>
+
+                <!-- CARD 4: CASHFLOW NETO -->
+                <div class="glass-card rounded-2xl p-5 relative group">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Cashflow Neto</span>
+                        <i class="ph-fill ph-trend-up text-emerald-500/50 group-hover:text-emerald-500 transition-colors"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-white mb-1" id="kpiNet">--</div>
+                    <div class="text-xs text-zinc-600" id="kpiMargin">Margen: 0%</div>
+                </div>
+            </div>
+
+            <!-- MAIN SPLIT -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- COLUMNA IZQUIERDA: GRÁFICO DE RENDIMIENTO -->
+                <div class="lg:col-span-2 glass-card rounded-2xl p-6 border border-zinc-800">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Eficiencia Financiera</h3>
+                        <div class="flex gap-2">
+                            <span class="text-[10px] text-zinc-500 font-bold px-2 py-1 rounded bg-zinc-900 border border-zinc-800">INGRESOS vs GASTOS</span>
+                        </div>
+                    </div>
+                    <div class="relative w-full h-64">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- COLUMNA DERECHA: AJUSTES RÁPIDOS & RUNWAY -->
+                <div class="space-y-4">
+                    
+                    <!-- RUNWAY WIDGET -->
+                    <div class="glass-card rounded-2xl p-5 border border-zinc-800">
+                        <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Runway (Supervivencia)</h3>
+                        <div class="flex items-end gap-2 mb-2">
+                            <span class="text-4xl font-black text-white" id="runwayMonths">0.0</span>
+                            <span class="text-sm font-bold text-zinc-500 mb-1">Meses</span>
+                        </div>
+                        <p class="text-xs text-zinc-600 mb-4 leading-relaxed">Tiempo antes de la quiebra si los ingresos se detienen hoy.</p>
+                        
+                        <!-- Input Manual para Ahorros Líquidos (Ya que Finanzas calcula flujos, aquí definimos el stock) -->
+                        <div class="bg-black/50 p-3 rounded-xl border border-zinc-800">
+                            <label class="text-[9px] text-red-500 font-bold uppercase block mb-1">Ahorro Líquido Total</label>
+                            <div class="flex items-center gap-2">
+                                <span class="text-zinc-600 text-lg font-light">$</span>
+                                <input type="number" id="inpLiquidAssets" class="bg-transparent w-full text-white font-bold outline-none text-right placeholder-zinc-700" placeholder="0" onblur="dash.saveAssets()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RESUMEN MENSUAL -->
+                    <div class="glass-card rounded-2xl p-5 border border-zinc-800 space-y-3">
+                        <h3 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Resumen Mes</h3>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-zinc-400">Ingresos Totales</span>
+                            <span class="text-emerald-500 font-bold" id="summaryInc">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-zinc-400">Gastos Totales</span>
+                            <span class="text-red-500 font-bold" id="summaryExp">$0</span>
+                        </div>
+                        <div class="border-t border-white/5 my-2"></div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-zinc-400">Horas Trabajadas</span>
+                            <span class="text-white font-bold" id="summaryHours">0h</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- JS LOGIC -->
+    <script type="module">
+        const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, where, getDocs, updateDoc } = window.firebaseImports;
+
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-ultimate-v3';
+        
+        // Configuración Fallback
+        const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
+        let firebaseConfig = fallbackConfig;
+        try { if (typeof __firebase_config !== 'undefined' && __firebase_config) firebaseConfig = JSON.parse(__firebase_config); } catch(e) {}
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Utility formatting
+        const fmtMoney = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n || 0);
+        const fmtNum = (n) => new Intl.NumberFormat('es-MX', { maximumFractionDigits: 1 }).format(n || 0);
+
+        window.dash = {
+            data: {
+                workLogs: [],
+                financeLogs: [],
+                financeConfig: { income: 0, liquidAssets: 0 },
+                workConfig: {}
+            },
+            userId: null,
+            chart: null,
+
+            init() {
+                const now = new Date();
+                const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                document.getElementById('currentDateDisplay').textContent = `${months[now.getMonth()].toUpperCase()} ${now.getFullYear()}`;
+
+                onAuthStateChanged(auth, (u) => {
+                    if (u) {
+                        this.userId = u.uid;
+                        document.getElementById('authStatus').textContent = "SINCRONIZADO";
+                        document.getElementById('authStatus').className = "text-xs font-bold text-emerald-600 uppercase tracking-widest";
+                        this.startListeners();
+                    } else {
+                        signInAnonymously(auth);
+                        document.getElementById('authStatus').textContent = "OFFLINE / ANÓNIMO";
+                    }
+                });
+            },
+
+            startListeners() {
+                // 1. Escuchar WORK DATA (godsPlanData/{uid}) -> Estructura de Adherencia
+                const workRef = doc(db, 'godsPlanData', this.userId);
+                onSnapshot(workRef, (snap) => {
+                    if (snap.exists()) {
+                        const d = snap.data();
+                        this.data.workLogs = d.logs || [];
+                        this.data.workConfig = d.config || {};
+                        this.calcMetrics();
+                    }
+                });
+
+                // 2. Escuchar FINANCE CONFIG (artifacts/{APP_ID}/users/{uid}/data/financials)
+                const finConfigRef = doc(db, 'artifacts', APP_ID, 'users', this.userId, 'data', 'financials');
+                onSnapshot(finConfigRef, (snap) => {
+                    if (snap.exists()) {
+                        const d = snap.data();
+                        this.data.financeConfig.income = d.income || 0;
+                        this.data.financeConfig.liquidAssets = d.liquidAssets || 0;
+                        document.getElementById('inpLiquidAssets').value = this.data.financeConfig.liquidAssets;
+                        this.calcMetrics();
+                    }
+                });
+
+                // 3. Escuchar FINANCE LOGS (artifacts/{APP_ID}/users/{uid}/transactions)
+                const txRef = collection(db, 'artifacts', APP_ID, 'users', this.userId, 'transactions');
+                const now = new Date();
+                // Traemos todo para simplificar y filtrar en memoria por ahora (dashboard ejecutivo)
+                // En producción idealmente filtrar por fecha en query
+                onSnapshot(query(txRef), (snap) => {
+                    this.data.financeLogs = snap.docs.map(d => d.data());
+                    this.calcMetrics();
+                });
+            },
+
+            calcMetrics() {
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+
+                // --- 1. WORK METRICS ---
+                // Filtrar logs del mes actual
+                const mWorkLogs = this.data.workLogs.filter(l => {
+                    const d = new Date(l.date + 'T00:00'); 
+                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                });
+
+                let totalMins = 0;
+                mWorkLogs.forEach(l => {
+                    if (l.type === 'Laboral' || l.type === 'Descanso') {
+                        // Cálculo Neto (igual que Adherencia)
+                        const gross = l.hours || 0;
+                        const disc = l.disconnection || 0;
+                        totalMins += Math.max(0, gross - disc);
+                    }
+                });
+                const totalHours = totalMins / 60;
+
+                // --- 2. FINANCE METRICS ---
+                // Filtrar logs del mes actual
+                const mFinLogs = this.data.financeLogs.filter(l => {
+                    const d = new Date(l.date);
+                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                });
+
+                const extraIncome = mFinLogs.filter(l => l.type === 'income').reduce((a, b) => a + (b.amount || 0), 0);
+                const totalExpenses = mFinLogs.filter(l => l.type === 'expense').reduce((a, b) => a + (b.amount || 0), 0);
+                
+                const baseIncome = this.data.financeConfig.income || 0;
+                const totalIncome = baseIncome + extraIncome; // Base + Extras
+                const netCashflow = totalIncome - totalExpenses;
+
+                // --- 3. DERIVED KPIs ---
+                
+                // Real Hourly Rate = (Ingreso Total Mes / Horas Reales Trabajadas)
+                const realRate = totalHours > 0 ? (totalIncome / totalHours) : 0;
+
+                // Life Cost Per Hour = (Gastos Totales / 720h mes natural)
+                // Esto te dice cuánto te cuesta respirar por hora
+                const lifeCostRate = totalExpenses / (30 * 24);
+
+                // Runway = (Activos Líquidos / Gastos Mensuales Promedio)
+                // Usamos el gasto de este mes como proxy del promedio por ahora
+                const liquid = parseFloat(this.data.financeConfig.liquidAssets) || 0;
+                const runway = totalExpenses > 0 ? (liquid / totalExpenses) : (liquid > 0 ? 99 : 0);
+
+                // --- 4. UPDATE UI ---
+                
+                // KPI 1: Real Rate
+                document.getElementById('kpiRealRate').textContent = fmtMoney(realRate);
+                document.getElementById('kpiRealRate').className = `text-4xl font-black tracking-tighter mb-1 relative z-10 ${realRate > lifeCostRate ? 'text-white' : 'text-red-500'}`;
+
+                // KPI 2: Hours
+                document.getElementById('kpiHours').textContent = fmtNum(totalHours) + 'h';
+                const pct = Math.min(100, (totalHours / 160) * 100);
+                document.getElementById('barHours').style.width = `${pct}%`;
+                
+                // KPI 3: Life Cost
+                document.getElementById('kpiLifeCost').textContent = fmtMoney(lifeCostRate);
+
+                // KPI 4: Net
+                document.getElementById('kpiNet').textContent = (netCashflow > 0 ? '+' : '') + fmtMoney(netCashflow);
+                document.getElementById('kpiNet').className = `text-3xl font-bold mb-1 ${netCashflow >= 0 ? 'text-emerald-500' : 'text-red-500'}`;
+                const margin = totalIncome > 0 ? ((netCashflow / totalIncome) * 100) : 0;
+                document.getElementById('kpiMargin').textContent = `Margen: ${margin.toFixed(0)}%`;
+
+                // Summary Panel
+                document.getElementById('summaryInc').textContent = fmtMoney(totalIncome);
+                document.getElementById('summaryExp').textContent = fmtMoney(totalExpenses);
+                document.getElementById('summaryHours').textContent = fmtNum(totalHours) + 'h';
+
+                // Runway Widget
+                const rwEl = document.getElementById('runwayMonths');
+                rwEl.textContent = runway > 50 ? '>50' : fmtNum(runway);
+                rwEl.className = `text-4xl font-black ${runway < 1 ? 'text-red-600 animate-pulse' : (runway < 3 ? 'text-orange-500' : 'text-emerald-500')}`;
+
+                this.renderChart(totalIncome, totalExpenses);
+            },
+
+            saveAssets() {
+                const val = parseFloat(document.getElementById('inpLiquidAssets').value) || 0;
+                const ref = doc(db, 'artifacts', APP_ID, 'users', this.userId, 'data', 'financials');
+                updateDoc(ref, { liquidAssets: val });
+            },
+
+            renderChart(inc, exp) {
+                const ctx = document.getElementById('mainChart');
+                if (!ctx) return;
+
+                if (this.chart) this.chart.destroy();
+
+                this.chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Balance Actual'],
+                        datasets: [
+                            {
+                                label: 'Ingresos',
+                                data: [inc],
+                                backgroundColor: '#10b981',
+                                borderRadius: 8,
+                                barThickness: 40
+                            },
+                            {
+                                label: 'Gastos',
+                                data: [exp],
+                                backgroundColor: '#ef4444',
+                                borderRadius: 8,
+                                barThickness: 40
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { 
+                                grid: { color: '#27272a' }, 
+                                ticks: { color: '#71717a', font: { family: 'Plus Jakarta Sans' }, callback: (v) => '$' + v } 
+                            },
+                            x: { 
+                                grid: { display: false }, 
+                                ticks: { display: false } 
+                            }
+                        }
+                    }
+                });
+            }
+        };
+
+        window.onload = () => window.dash.init();
+    </script>
+</body>
+</html>
