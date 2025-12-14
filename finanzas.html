@@ -83,8 +83,7 @@
         /* Glassmorphism */
         .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
         .glass-highlight { background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.08); }
-        .glass-alert { background: rgba(69, 10, 10, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(220, 38, 38, 0.3); }
-        .glass-success { background: rgba(6, 78, 59, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .glass-purple { background: linear-gradient(145deg, rgba(147, 51, 234, 0.1) 0%, rgba(147, 51, 234, 0.02) 100%); border: 1px solid rgba(147, 51, 234, 0.2); }
         
         /* Nav Mobile */
         .glass-nav { 
@@ -217,6 +216,16 @@
             .print-card, tr { page-break-inside: avoid; }
         }
         #print-area { display: none; }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px; width: 16px; border-radius: 50%;
+            background: #ffffff; cursor: pointer; margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer;
+            background: #27272a; border-radius: 2px;
+        }
     </style>
 </head>
 <body class="flex flex-col overflow-hidden text-sm sm:text-base bg-[#050505] text-[#e5e5e5]">
@@ -241,10 +250,11 @@
             <!-- SUB-NAV DESKTOP -->
             <div class="hidden md:flex justify-center mb-8 fade-in">
                 <div class="bg-zinc-900/80 border border-white/10 p-1.5 rounded-full flex items-center gap-1 shadow-lg backdrop-blur-sm">
-                    <button onclick="app.switchView('balance')" class="nav-link-desk active px-6" data-view="balance">Billetera</button>
-                    <button onclick="app.switchView('analysis')" class="nav-link-desk px-6" data-view="analysis">Análisis</button>
-                    <button onclick="app.switchView('history')" class="nav-link-desk px-6" data-view="history">Historial</button>
-                    <button onclick="app.switchView('plan')" class="nav-link-desk px-6" data-view="plan">Planificación</button>
+                    <button onclick="app.switchView('balance')" class="nav-link-desk active px-5" data-view="balance">Billetera</button>
+                    <button onclick="app.switchView('analysis')" class="nav-link-desk px-5" data-view="analysis">Análisis</button>
+                    <button onclick="app.switchView('simulation')" class="nav-link-desk px-5" data-view="simulation">Simulación</button>
+                    <button onclick="app.switchView('history')" class="nav-link-desk px-5" data-view="history">Historial</button>
+                    <button onclick="app.switchView('plan')" class="nav-link-desk px-5" data-view="plan">Planificación</button>
                 </div>
             </div>
 
@@ -315,7 +325,7 @@
                             </div>
                         </div>
 
-                        <!-- WIDGET HORAS EXTRAS (NUEVO & MODIFICADO) -->
+                        <!-- WIDGET HORAS EXTRAS -->
                         <div id="adherenceCard" class="hidden mb-6 relative overflow-hidden rounded-[2rem] border border-emerald-900/30 bg-emerald-950/10 p-5 group transition-all">
                              
                              <!-- Switch Simulación -->
@@ -337,7 +347,6 @@
                                  </div>
                                  <div class="text-right mt-7">
                                      <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">COBRO</div>
-                                     <!-- Input de fecha editable -->
                                      <input type="date" id="extraPayDateInput" onchange="app.saveExtraPayDate(this.value)" class="bg-emerald-900/30 text-white font-bold text-sm px-2 py-1 rounded-md border border-emerald-500/20 text-center w-28 focus:outline-none focus:border-emerald-500 cursor-pointer">
                                      <div class="text-[10px] text-zinc-500 mt-1" id="daysToTuesday">-- días</div>
                                  </div>
@@ -347,7 +356,6 @@
                                  <i class="ph-bold ph-download-simple"></i> Sumar a Billetera
                              </button>
 
-                             <!-- Fondo decorativo -->
                              <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors"></div>
                         </div>
 
@@ -356,11 +364,9 @@
                             <button onclick="app.openModal('extra')" class="glass-highlight h-14 rounded-2xl text-emerald-500 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 md:hover:scale-105 hover:bg-emerald-500/10 border-transparent hover:border-emerald-500/30">
                                 <i class="ph-bold ph-arrow-down-left text-lg"></i> INGRESO
                             </button>
-                            <!-- Solo visible en móvil, en PC está en el header -->
                             <button onclick="app.switchView('analysis')" class="md:hidden glass-highlight h-14 rounded-2xl text-zinc-400 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-white/5 hover:text-white">
                                 <i class="ph-bold ph-chart-line-up text-lg"></i> ANÁLISIS
                             </button>
-                            <!-- Botón "Añadir Gasto" visible solo en Desktop aquí (FAB se oculta) -->
                             <button onclick="app.openModal('expense')" class="hidden md:flex glass-highlight h-14 rounded-2xl text-white font-bold text-xs items-center justify-center gap-2 transition-all hover:scale-105 hover:bg-red-600 hover:border-red-500 bg-red-600/10 border-red-600/30">
                                 <i class="ph-bold ph-minus text-lg"></i> GASTO
                             </button>
@@ -388,7 +394,7 @@
                 </div>
             </section>
 
-            <!-- VISTA: ANÁLISIS (HISTORIAL + GRAFICOS + METRICAS) -->
+            <!-- VISTA: ANÁLISIS -->
             <section id="view-analysis" class="p-4 sm:p-0 hidden fade-in max-w-4xl mx-auto">
                  <div class="md:flex md:justify-between md:items-end mb-6">
                      <div>
@@ -448,8 +454,62 @@
                     </div>
                 </div>
             </section>
+
+            <!-- VISTA: SIMULACIÓN (NUEVA) -->
+            <section id="view-simulation" class="p-4 sm:p-0 hidden fade-in max-w-4xl mx-auto pb-24">
+                <div class="md:flex md:justify-between md:items-end mb-6">
+                    <div>
+                        <h2 class="text-2xl font-black text-white mb-1 flex items-center gap-2"><i class="ph-duotone ph-crystal-ball text-purple-500"></i> Simulación Futura</h2>
+                        <p class="text-zinc-500 text-xs">Proyección estimada de tu economía a 6 meses.</p>
+                    </div>
+                </div>
+
+                <!-- CONTROLES -->
+                <div class="glass-purple p-6 rounded-3xl mb-6">
+                    <div class="flex flex-col md:flex-row gap-6 md:items-center justify-between">
+                        <div>
+                            <div class="text-xs font-bold text-purple-300 uppercase tracking-widest mb-1">Escenario de Ahorro</div>
+                            <div class="text-2xl font-bold text-white mb-1">Reducción Gasto Variable</div>
+                            <div class="text-[10px] text-zinc-400">Si gastaras un <span id="simSavingsPctDisplay" class="text-purple-400 font-bold">0%</span> menos en compras no fijas.</div>
+                        </div>
+                        <div class="flex-1 max-w-xs">
+                            <input type="range" id="simSavingsSlider" min="0" max="50" value="0" step="5" class="w-full" oninput="app.updateSimulation()">
+                            <div class="flex justify-between text-[10px] text-zinc-500 font-mono mt-2">
+                                <span>Realista (0%)</span>
+                                <span>Estricto (50%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- METRICAS PROYECTADAS -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="glass p-5 rounded-2xl border-l-4 border-l-purple-500">
+                        <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Flujo de Caja Libre (Mes)</div>
+                        <div class="text-2xl font-bold text-white" id="simMonthlyFree">---</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">Ingresos - (Fijos + Var. Promedio)</div>
+                    </div>
+                    <div class="glass p-5 rounded-2xl border-l-4 border-l-indigo-500">
+                        <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Proyección a 6 Meses</div>
+                        <div class="text-2xl font-bold text-indigo-400" id="simSixMonthTotal">---</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">Patrimonio acumulado estimado</div>
+                    </div>
+                    <div class="glass p-5 rounded-2xl border-l-4 border-l-pink-500">
+                        <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Deuda Liquidada</div>
+                        <div class="text-2xl font-bold text-pink-400" id="simDebtPaid">---</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">En el periodo proyectado</div>
+                    </div>
+                </div>
+
+                <!-- CHART SIMULACION -->
+                <div class="glass rounded-3xl p-5 relative">
+                    <div class="chart-container h-[250px]">
+                        <canvas id="simulationChart"></canvas>
+                    </div>
+                </div>
+            </section>
             
-            <!-- VISTA: HISTORIAL (NUEVA CON "ALMA") -->
+            <!-- VISTA: HISTORIAL -->
             <section id="view-history" class="p-4 sm:p-0 hidden fade-in max-w-2xl mx-auto">
                 <div class="mb-8 text-center">
                     <div class="inline-block px-4 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-400 mb-2">
@@ -460,7 +520,6 @@
                 
                 <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 px-1">Línea de Tiempo (Quincenas)</h3>
                 <div id="historyList" class="space-y-4 pb-20">
-                     <!-- Aquí se inyectan las tarjetas de historial -->
                      <div class="text-center py-10 text-zinc-600 italic text-xs">Procesando historial...</div>
                 </div>
             </section>
@@ -559,7 +618,7 @@
     <!-- ÁREA DE IMPRESIÓN (OCULTO EN PANTALLA, VISIBLE EN PRINT) -->
     <div id="print-area"></div>
     
-    <!-- FAB (NUEVO GASTO) - SOLO MÓVIL (En Desktop está arriba) -->
+    <!-- FAB (NUEVO GASTO) - SOLO MÓVIL -->
     <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40">
         <button onclick="app.openModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
             <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
@@ -567,8 +626,8 @@
         </button>
     </div>
 
-    <!-- NAV INFERIOR - SOLO MÓVIL (MODIFICADO GRID DE 4) -->
-    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-4 z-50">
+    <!-- NAV INFERIOR - MÓVIL (GRID DE 5) -->
+    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-5 z-50">
         <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance')">
             <div class="relative p-1">
                 <i class="ph-fill ph-wallet text-xl group-[.active]:text-white transition-colors duration-300"></i>
@@ -581,7 +640,13 @@
             </div>
             <span class="text-[9px] font-bold group-[.active]:text-white transition-colors">Análisis</span>
         </button>
-        <!-- NUEVO BOTÓN HISTORIAL -->
+         <!-- NUEVO BOTÓN SIMULACIÓN -->
+         <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('simulation')">
+            <div class="relative p-1">
+                <i class="ph-fill ph-crystal-ball text-xl group-[.active]:text-purple-400 transition-colors duration-300"></i>
+            </div>
+            <span class="text-[9px] font-bold group-[.active]:text-purple-400 transition-colors">Simular</span>
+        </button>
         <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('history')">
             <div class="relative p-1">
                 <i class="ph-fill ph-scroll text-xl group-[.active]:text-white transition-colors duration-300"></i>
@@ -1498,6 +1563,75 @@
                 document.getElementById('statTotalInc').textContent = UI.fmtMoney(totalInc);
                 document.getElementById('statTotalExp').textContent = UI.fmtMoney(totalSpent);
             },
+            
+            // --- NUEVA LÓGICA DE SIMULACIÓN ---
+            updateSimulation() {
+                const pct = document.getElementById('simSavingsSlider').value;
+                document.getElementById('simSavingsPctDisplay').textContent = pct + '%';
+                
+                const months = ['Mes 1', 'Mes 2', 'Mes 3', 'Mes 4', 'Mes 5', 'Mes 6'];
+                const income = parseFloat(this.data.income) || 0;
+                const fixed = (this.data.fixed || []).reduce((a,b)=>a+b.amount,0);
+                
+                // Calcular gasto variable promedio real (últimos 60 días)
+                const now = new Date();
+                const past = new Date(); past.setDate(past.getDate() - 60);
+                const recentLogs = this.logs.filter(l => l.type === 'expense' && new Date(l.date) >= past);
+                const totalRecentVar = recentLogs.reduce((a,b) => {
+                    // Excluir pagos de fijos (aproximado por descripción)
+                    const isFixed = (this.data.fixed||[]).some(f => l.desc.toLowerCase().includes(f.name.toLowerCase()));
+                    return isFixed ? a : a + l.amount;
+                }, 0);
+                
+                // Si no hay datos, asumir 50% del ingreso
+                let monthlyVarAvg = recentLogs.length > 0 ? (totalRecentVar / 2) : (income * 0.5); 
+                
+                // Aplicar reducción del slider
+                const adjustedVar = monthlyVarAvg * (1 - (pct / 100));
+                
+                const monthlyFree = income - fixed - adjustedVar;
+                document.getElementById('simMonthlyFree').textContent = UI.fmtMoney(monthlyFree);
+                document.getElementById('simSixMonthTotal').textContent = UI.fmtMoney(monthlyFree * 6);
+                
+                // Simular deuda
+                const debt = (this.data.loans || []).reduce((a,b)=>a+b.amount,0);
+                const debtCanPay = Math.min(debt, Math.max(0, monthlyFree * 6));
+                document.getElementById('simDebtPaid').textContent = UI.fmtMoney(debtCanPay);
+                
+                // Generar datos para chart
+                let currentBal = 0; // Iniciar en 0 para mostrar crecimiento neto
+                const projData = [];
+                for(let i=0; i<6; i++) {
+                    currentBal += monthlyFree;
+                    projData.push(currentBal);
+                }
+                
+                if(this.charts.simulation) this.charts.simulation.destroy();
+                this.charts.simulation = new Chart(document.getElementById('simulationChart'), {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'Crecimiento de Patrimonio',
+                            data: projData,
+                            borderColor: '#a855f7', // Purple
+                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { 
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a' } }, 
+                            x: { grid: { display: false }, ticks: { color: '#71717a' } } 
+                        }
+                    }
+                });
+            },
 
             // --- ACTIONS ---
             openModal(type, id=null) {
@@ -1688,6 +1822,7 @@
                 document.getElementById('view-analysis').classList.add('hidden');
                 document.getElementById('view-history').classList.add('hidden');
                 document.getElementById('view-plan').classList.add('hidden');
+                document.getElementById('view-simulation').classList.add('hidden');
                 
                 document.getElementById('view-'+v).classList.remove('hidden');
                 document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
@@ -1705,6 +1840,11 @@
                         this.charts.donut.resize();
                         this.charts.line.resize();
                     }, 100);
+                }
+                
+                if(v === 'simulation') {
+                    this.updateSimulation();
+                    setTimeout(() => this.charts.simulation.resize(), 100);
                 }
             },
             scrollToChart() { document.getElementById('chartSection').classList.remove('hidden'); document.getElementById('chartSection').scrollIntoView({behavior:'smooth'}); },
