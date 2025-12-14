@@ -676,13 +676,16 @@
         }
 
         .log-balance {
-            text-align: right;
+            text-align: center;
             font-weight: 800;
-            font-size: 1rem;
+            font-size: 0.8rem; /* IGUALADO AL BADGE */
+            padding: 4px 8px;   /* IGUALADO AL BADGE */
+            border-radius: 6px; /* IGUALADO AL BADGE */
+            justify-self: end;  /* ALINEACION EN GRID */
+            min-width: 60px;
         }
 
-        .log-balance.pos { color: var(--money); }
-        .log-balance.neg { color: var(--alert); }
+        /* SE ELIMINARON LAS CLASES .log-balance.pos Y .log-balance.neg PARA QUE HEREDE LOS ESTILOS GLOBALES (CON FONDO) */
 
         .log-breaks {
             display: flex;
@@ -1609,8 +1612,8 @@
                     id: this.getNow(), 
                     date: logDate, 
                     type: 'Laboral',
-                    in: logIn,    
-                    out: logOut,   
+                    in: logIn,     
+                    out: logOut,    
                     hours: gross, 
                     disconnection: disc, 
                     details: { bath: b, food: f, pause: pauseTime }
@@ -1919,8 +1922,8 @@
                 }
 
                 if (t === 'Laboral' || (t === 'Descanso' && h > 0)) {
-                     const config = this.data.config || {};
-                     disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
+                      const config = this.data.config || {};
+                      disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
                 }
 
                 const log = { id: this.editingId || this.getNow(), date: d, type: t, in: i || '', out: o || '', hours: h, disconnection: disc, details: { bath: b, food: f, pause: p } };
