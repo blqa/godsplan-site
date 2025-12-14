@@ -8,7 +8,6 @@
     <!-- FUENTE UNIFICADA: PLUS JAKARTA SANS -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- TAILWIND CSS & CONFIGURACIÓN DE TEMA -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -265,20 +264,7 @@
             <div id="logList"></div>
         </div>
 
-        <!-- GRÁFICOS -->
-        <div class="bg-card border border-border rounded-xl p-4 mt-5">
-            <h3 class="mb-4 text-[0.9rem] text-text-mute uppercase text-center font-extrabold">Adherencia Mensual</h3>
-            <div class="h-[220px] mb-6 w-full"><canvas id="chartDaily"></canvas></div>
-
-            <h3 class="mb-4 text-[0.9rem] text-text-mute uppercase text-center font-extrabold border-t border-dashed border-border pt-5">Tendencia de Saldo</h3>
-            <p class="text-center text-xs text-text-mute mb-2.5">Muestra si estás ganando o perdiendo tiempo día a día.</p>
-            <div class="h-[180px] mb-6 w-full"><canvas id="chartTrend"></canvas></div>
-
-            <div class="border-t border-dashed border-border pt-4 flex flex-col items-center">
-                <h3 class="mb-4 text-[0.8rem] text-text-mute uppercase font-extrabold">Distribución de Tiempos</h3>
-                <div class="h-[200px] w-full max-w-[300px]"><canvas id="chartTypes"></canvas></div>
-            </div>
-        </div>
+        <!-- GRÁFICOS ELIMINADOS -->
     </div>
 
     <!-- MODALES (Usando clases Tailwind para estructura, CSS para funcionalidad display) -->
@@ -340,12 +326,6 @@
                     <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Base</label><input type="number" id="cfgRate1" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
                     <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Excedente</label><input type="number" id="cfgRate2" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
                 </div>
-                <p class="text-[0.7rem] font-bold text-blue-700 my-2.5 mb-1.5">ID EMPLEADO</p>
-                <div class="flex gap-1.5">
-                    <input type="text" id="cfgEmpId" placeholder="Ej. 17620" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text m-0">
-                    <button class="bg-text text-bg w-auto m-0 p-2.5 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.lookupEmployee()"><i class="ph-bold ph-check"></i></button>
-                </div>
-                <div id="employeeNameDisplay" class="text-[0.8rem] font-bold text-money mt-1.5"></div>
             </div>
 
             <!-- TAB DATOS -->
@@ -461,15 +441,13 @@
 
     <script type="module">
         const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } = window.firebaseImports;
-
-        const EMPLOYEES = { "17620": "Luis Ortiz", "1001": "Nadia", "9999": "Admin" };
         
         const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
         let firebaseConfig = fallbackConfig;
         try { if (typeof __firebase_config !== 'undefined' && __firebase_config) { const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; } } catch(e) { console.error(e); }
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        let auth, db, chartD, chartT, chartTrend;
+        let auth, db;
         function showGlobalError(m) { const x = document.getElementById('msgModal'); if (x) { document.getElementById('msgText').textContent = m; document.getElementById('msgIcon').className = 'ph-fill ph-warning-circle text-alert'; x.classList.remove('hidden'); x.classList.add('flex'); } else alert(m); }
         window.onerror = function (m) { if (!String(m).includes('popup')) showGlobalError(m); };
 
@@ -480,7 +458,7 @@
         } catch (e) { setTimeout(() => showGlobalError(e.message), 1000); }
 
         window.app = {
-            data: { logs: [], config: { rate1: 50, rate2: 75, bathAllow: 15, foodAllow: 45, empId: "", empName: "" }, activeShift: null },
+            data: { logs: [], config: { rate1: 50, rate2: 75, bathAllow: 15, foodAllow: 45 }, activeShift: null },
             userId: null, offline: false, editingId: null, date: new Date(), timer: null, processing: false, authMode: 'login',
             currentTheme: 'light', editingTimerType: null, timeOffset: 0, lastSync: 0, isSyncing: false, nextSyncAllowed: 0,
 
@@ -590,7 +568,6 @@
                     const cc = JSON.parse(localStorage.getItem('gp_custom_colors'));
                     if (cc) this.applyCustomColors(cc);
                 }
-                if (this.data.logs.length > 0) this.renderCharts(this.data.logs.filter(l => new Date(l.date + 'T00:00').getMonth() === this.date.getMonth()));
             },
 
             toggleTheme() {
@@ -618,7 +595,7 @@
                 const isRealUser = u && !u.isAnonymous;
                 document.getElementById('authenticatedView').style.display = isRealUser ? 'block' : 'none';
                 document.getElementById('unauthenticatedView').style.display = isRealUser ? 'none' : 'block';
-                let t = u ? (u.isAnonymous ? "ANÓNIMO" : (this.data.config.empName || u.displayName || "Usuario")) : "DESCONECTADO";
+                let t = u ? (u.isAnonymous ? "ANÓNIMO" : (u.displayName || "Usuario")) : "DESCONECTADO";
                 if (isRealUser && u.email && u.email.includes('@godsplan.site')) t = u.email.split('@')[0];
                 document.getElementById('auth-status').innerHTML = `<i class="ph-fill ph-user-circle"></i> ${t}`;
                 document.getElementById('userProfile').textContent = t;
@@ -634,7 +611,7 @@
                     if (snap.exists()) { 
                         this.data = snap.data(); 
                         this.data.logs = this.data.logs || []; 
-                        this.data.config = this.data.config || { rate1: 50, rate2: 75, bathAllow: 15, foodAllow: 45, empId: "", empName: "" };
+                        this.data.config = this.data.config || { rate1: 50, rate2: 75, bathAllow: 15, foodAllow: 45 };
                     } else if (auth.currentUser.isAnonymous) { 
                         const l = localStorage.getItem('godsPlanData'); 
                         if (l) { this.data = JSON.parse(l); this.save(); } 
@@ -856,7 +833,7 @@
                     date: logDate, 
                     type: 'Laboral',
                     in: logIn,        
-                    out: logOut,    
+                    out: logOut,     
                     hours: gross, 
                     disconnection: disc, 
                     details: { bath: b, food: f, pause: pauseTime }
@@ -940,160 +917,6 @@
                     div.innerHTML = html;
                     list.appendChild(div);
                 });
-                this.renderCharts(mLogs);
-            },
-
-            renderCharts(logs) {
-                const daysInMonth = new Date(this.date.getFullYear(), this.date.getMonth() + 1, 0).getDate();
-                const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-
-                const workedData = days.map(d => {
-                    const dailyLogs = logs.filter(l => new Date(l.date + 'T00:00').getDate() === d && (l.type === 'Laboral' || l.type === 'Descanso'));
-                    const dailySum = dailyLogs.reduce((acc, curr) => acc + Math.max(0, (curr.hours - (curr.disconnection || 0))), 0);
-                    return dailySum / 60; 
-                });
-
-                const excessData = days.map(d => {
-                    const dailyLogs = logs.filter(l => new Date(l.date + 'T00:00').getDate() === d);
-                    const dailySum = dailyLogs.reduce((acc, curr) => acc + (curr.disconnection || 0), 0);
-                    return dailySum / 60; 
-                });
-
-                let runningBalance = 0;
-                const trendData = days.map(d => {
-                    const dailyLogs = logs.filter(l => new Date(l.date + 'T00:00').getDate() === d);
-                    
-                    const dailyWorked = dailyLogs.reduce((acc, l) => {
-                         if (l.type === 'Laboral' || l.type === 'Descanso') return acc + (l.hours - (l.disconnection || 0));
-                         return acc;
-                    }, 0);
-
-                    const dailyTarget = dailyLogs.reduce((acc, l) => {
-                         if (l.type === 'Laboral' || l.type === 'Falta') return acc + 480;
-                         return acc;
-                    }, 0);
-                    
-                    const dailyNet = dailyWorked - dailyTarget;
-                    runningBalance += dailyNet;
-                    return runningBalance / 60; 
-                });
-
-
-                let totalWork = 0, totalBath = 0, totalFood = 0;
-                logs.forEach(l => {
-                    if (l.details) { totalBath += l.details.bath || 0; totalFood += l.details.food || 0; }
-                    if (l.type === 'Laboral' || l.type === 'Descanso') {
-                        const rawWork = l.hours - ((l.details?.bath || 0) + (l.details?.food || 0));
-                        totalWork += Math.max(0, rawWork);
-                    }
-                });
-
-                if (chartD) chartD.destroy();
-                if (chartT) chartT.destroy();
-                if (chartTrend) chartTrend.destroy();
-
-                const isRed = this.currentTheme === 'red';
-                const isDark = this.currentTheme === 'dark' || isRed;
-                const textColor = isDark ? '#94a3b8' : '#64748b';
-                const gridColor = isDark ? '#334155' : '#e2e8f0';
-
-                const workColor = isRed ? '#dc2626' : '#2563eb';
-                const excessColor = isRed ? '#7f1d1d' : '#dc2626';
-                const trendColor = '#10b981'; 
-
-                chartD = new Chart(document.getElementById('chartDaily'), {
-                    type: 'bar',
-                    data: {
-                        labels: days,
-                        datasets: [
-                            { label: 'Efectivo (h)', data: workedData, backgroundColor: workColor, borderRadius: 2, stack: 'Stack 0' },
-                            { label: 'Penalización (h)', data: excessData, backgroundColor: excessColor, borderRadius: 2, stack: 'Stack 0' }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { 
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) { label += ': '; }
-                                        const val = context.parsed.y;
-                                        const h = Math.floor(val);
-                                        const m = Math.round((val - h) * 60);
-                                        return label + h + "h " + m + "m";
-                                    }
-                                }
-                            },
-                            legend: { position: 'bottom', labels: { color: textColor, boxWidth: 10, font: { size: 10 } } } 
-                        },
-                        scales: {
-                            y: { beginAtZero: true, stacked: true, grid: { color: gridColor }, ticks: { color: textColor } },
-                            x: { stacked: true, grid: { display: false }, ticks: { color: textColor } }
-                        }
-                    }
-                });
-
-                chartTrend = new Chart(document.getElementById('chartTrend'), {
-                    type: 'line',
-                    data: {
-                        labels: days,
-                        datasets: [{
-                            label: 'Saldo Acumulado (h)',
-                            data: trendData,
-                            borderColor: trendColor,
-                            backgroundColor: (ctx) => {
-                                const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 200);
-                                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.5)');
-                                gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
-                                return gradient;
-                            },
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 2,
-                            pointHoverRadius: 5
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { 
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const val = context.parsed.y;
-                                        const absVal = Math.abs(val);
-                                        const h = Math.floor(absVal);
-                                        const m = Math.round((absVal - h) * 60);
-                                        const sign = val >= 0 ? '+' : '-';
-                                        return `Saldo: ${sign}${h}h ${m}m`;
-                                    }
-                                }
-                            },
-                            legend: { display: false } 
-                        },
-                        scales: {
-                            y: { grid: { color: gridColor }, ticks: { color: textColor } },
-                            x: { grid: { display: false }, ticks: { color: textColor } }
-                        }
-                    }
-                });
-
-                chartT = new Chart(document.getElementById('chartTypes'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Trabajo', 'Baño', 'Comida'],
-                        datasets: [{
-                            data: [totalWork, totalBath, totalFood],
-                            backgroundColor: [workColor, '#94a3b8', '#f59e0b'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { position: 'right', labels: { color: textColor, boxWidth: 10, font: { size: 11 } } } },
-                        cutout: '65%'
-                    }
-                });
             },
 
             calcStats(logs) { let t = 0, w = 0, f = 0; logs.forEach(l => { t += (l.type === 'Laboral' || l.type === 'Falta') ? 480 : 0; w += (l.type === 'Laboral' || l.type === 'Descanso') ? (l.hours - (l.disconnection || 0)) : 0; if (l.type === 'Falta') f++; }); return { target: t, worked: w, bal: w - t, fails: f }; },
@@ -1114,11 +937,10 @@
                 const m = document.getElementById('configModal');
                 m.classList.remove('hidden');
                 m.classList.add('flex');
-                document.getElementById('cfgBath').value = this.data.config.bathAllow || 15; document.getElementById('cfgFood').value = this.data.config.foodAllow || 45; document.getElementById('cfgRate1').value = this.data.config.rate1; document.getElementById('cfgRate2').value = this.data.config.rate2; document.getElementById('cfgEmpId').value = this.data.config.empId || ""; this.switchTab('tAccount'); 
+                document.getElementById('cfgBath').value = this.data.config.bathAllow || 15; document.getElementById('cfgFood').value = this.data.config.foodAllow || 45; document.getElementById('cfgRate1').value = this.data.config.rate1; document.getElementById('cfgRate2').value = this.data.config.rate2; this.switchTab('tAccount'); 
             },
             saveConfig() { this.data.config.bathAllow = parseFloat(document.getElementById('cfgBath').value) || 15; this.data.config.foodAllow = parseFloat(document.getElementById('cfgFood').value) || 45; this.data.config.rate1 = parseFloat(document.getElementById('cfgRate1').value) || 50; this.data.config.rate2 = parseFloat(document.getElementById('cfgRate2').value) || 75; this.save(); document.getElementById('configModal').classList.remove('active'); document.getElementById('configModal').classList.add('hidden'); document.getElementById('configModal').classList.remove('flex'); },
             switchTab(id) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('block')); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); event.target.classList.add('active'); document.getElementById(id).classList.add('active'); document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('block'); },
-            lookupEmployee() { const id = document.getElementById('cfgEmpId').value; const n = EMPLOYEES[id]; const d = document.getElementById('employeeNameDisplay'); if (n) { d.textContent = "Hola, " + n; this.data.config.empId = id; this.data.config.empName = n; } else d.textContent = "No encontrado"; },
             
             redirectToAuth() {
                  this.showMessage("Redirigiendo a GodsPlan.site para iniciar sesión...");
