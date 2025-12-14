@@ -473,7 +473,7 @@
         window.app = {
             data: { logs: [], config: { rate1: 50, rate2: 75, bathAllow: 15, foodAllow: 45, empId: "", empName: "" }, activeShift: null },
             userId: null, offline: false, editingId: null, date: new Date(), timer: null, processing: false, authMode: 'login',
-            currentTheme: 'light', editingTimerType: null, timeOffset: 0, lastSync: 0, isSyncing: false,
+            currentTheme: 'light', editingTimerType: null, timeOffset: 0, lastSync: 0, isSyncing: false, nextSyncAllowed: 0,
 
             init() {
                 this.syncNetworkTime();
@@ -481,7 +481,7 @@
                 // ACTUALIZACIÓN AUTOMÁTICA
                 document.addEventListener("visibilitychange", () => {
                     if (document.visibilityState === 'visible') {
-                        if (Date.now() - this.lastSync > 60000) {
+                        if (Date.now() > this.nextSyncAllowed && Date.now() - this.lastSync > 60000) {
                             this.syncNetworkTime();
                         }
                     }
@@ -531,13 +531,12 @@
                 });
             },
 
-            async syncNetworkTime() {
+            async syncNetworkTime(force = false) {
                 if (this.isSyncing) return;
                 
-                // Prevent spamming requests if it failed recently (e.g. within 10 seconds)
-                // unless it's a forced manual sync (which calls this method directly usually, but here it's automatic)
                 const now = Date.now();
-                if (now - this.lastSync < 10000 && this.timeOffset === 0) return; 
+                // Circuit breaker check: Don't sync if we are in the penalty box, unless forced
+                if (!force && now < this.nextSyncAllowed) return;
 
                 this.isSyncing = true;
                 const badge = document.getElementById('networkTimeBadge');
@@ -562,19 +561,20 @@
                     let serverTime = 0;
 
                     try {
-                        // Priority 1: WorldTimeAPI
-                        const data = await fetchTime('https://worldtimeapi.org/api/timezone/America/Mexico_City');
-                        serverTime = new Date(data.datetime).getTime();
-                    } catch (err1) {
-                        // Priority 2: TimeAPI (Silent fallback)
+                        // Priority 1: TimeAPI (Timeout is handled better than connection reset)
                         const data = await fetchTime('https://timeapi.io/api/Time/current/zone?timeZone=America/Mexico_City');
                         serverTime = new Date(data.dateTime).getTime();
+                    } catch (err1) {
+                        // Priority 2: WorldTimeAPI (Often flaky/resets connection)
+                        const data = await fetchTime('https://worldtimeapi.org/api/timezone/America/Mexico_City');
+                        serverTime = new Date(data.datetime).getTime();
                     }
                     
                     const end = Date.now();
                     const latency = (end - start) / 2;
                     this.timeOffset = (serverTime + latency) - end;
                     this.lastSync = Date.now();
+                    this.nextSyncAllowed = 0; // Success! Clear penalty
                     
                     if(badge) {
                         badge.style.opacity = '1';
@@ -585,10 +585,12 @@
                         }, 5000);
                     }
                 } catch (e) {
-                    // Silent Local Fallback
-                    console.log("Time sync failed, using local time."); // Changed from warn to log
+                    // Silent Local Fallback with Circuit Breaker
+                    console.log("Time sync failed. Pausing sync attempts for 1 hour to avoid network spam."); 
                     this.timeOffset = 0; 
-                    this.lastSync = Date.now(); // Mark as synced (locally) to prevent immediate retry loops
+                    this.lastSync = Date.now(); 
+                    this.nextSyncAllowed = Date.now() + 3600000; // 1 hour cool-down
+                    
                     if(badge) { 
                         badge.style.opacity = '1'; 
                         badge.style.color = 'var(--text-mute)';
@@ -690,7 +692,7 @@
                 }
             },
             
-            syncData() { this.load(); this.showSuccess("Sincronizado"); this.syncNetworkTime(); },
+            syncData() { this.load(); this.showSuccess("Sincronizado"); this.syncNetworkTime(true); },
             openExtensionModal() { document.getElementById('extensionModal').classList.remove('hidden'); document.getElementById('extensionModal').classList.add('flex'); },
 
             uiClock() {
