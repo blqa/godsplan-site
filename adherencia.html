@@ -719,19 +719,6 @@
             border-color: #991b1b;
         }
 
-        /* TEAM LIST */
-        .team-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .team-row:last-child { border-bottom: none; }
-        .team-name { font-weight: 700; color: var(--text); font-size: 0.9rem; }
-        .team-hours { font-weight: 800; color: var(--brand); font-family: monospace; }
-
         /* UI & MODALS */
         .form-label {
             color: var(--text-mute);
@@ -910,7 +897,6 @@
         <div class="header-title"><i class="ph-fill ph-check-circle" style="color:var(--brand)"></i> <span>Adherencia</span></div>
         <div class="nav-group">
             <button class="btn-reset" onclick="window.app.openExtensionModal()" title="Instalar Extensión"><i class="ph-bold ph-puzzle-piece"></i></button>
-            <button class="btn-reset" onclick="window.app.loadTeamStatsModal()" title="Equipo"><i class="ph-bold ph-users"></i></button>
             <button class="btn-reset" onclick="window.app.syncData()" title="Sincronizar"><i class="ph-bold ph-arrows-clockwise"></i></button>
             <button class="btn-reset" onclick="window.app.openConfigModal()" title="Menú"><i class="ph-bold ph-list"></i></button>
             <div class="month-nav">
@@ -1172,15 +1158,6 @@
             <h3>Importar Excel</h3><textarea id="importTextArea" rows="6" style="font-family:monospace; font-size:0.8rem;"></textarea><button class="btn-primary" onclick="window.app.processImport()">Procesar</button><button class="btn-secondary" onclick="document.getElementById('importModal').classList.remove('active')">Cancelar</button>
         </div>
     </div>
-    <div class="modal" id="teamModal">
-        <div class="modal-content">
-            <h3>🏆 Reporte de Equipo</h3>
-            <p style="font-size:0.8rem; color:var(--text-mute); margin-bottom:10px;">Horas netas trabajadas en la semana actual por cada usuario con registro.</p>
-            <div id="teamLoader" style="text-align:center; padding:15px;"><i class="ph-bold ph-circle-notch" style="animation: spin 1s linear infinite; font-size:1.5rem; color:var(--brand);"></i> Cargando...</div>
-            <div id="teamList" style="max-height:300px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; margin-bottom:15px;"></div>
-            <button class="btn-secondary" onclick="document.getElementById('teamModal').classList.remove('active')">Cerrar</button>
-        </div>
-    </div>
 
     <script type="module">
         const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } = window.firebaseImports;
@@ -1394,41 +1371,6 @@
             
             syncData() { this.load(); this.showSuccess("Sincronizado"); this.syncNetworkTime(); },
             openExtensionModal() { document.getElementById('extensionModal').classList.add('active'); },
-            loadTeamStatsModal() { document.getElementById('teamModal').classList.add('active'); this.loadTeamStats(); },
-
-            async loadTeamStats() {
-                const loader = document.getElementById('teamLoader');
-                const list = document.getElementById('teamList');
-                loader.style.display = 'block'; list.innerHTML = '';
-                try {
-                    const q = collection(db, "godsPlanData");
-                    const snap = await getDocs(q);
-                    let teamData = [];
-                    const d = new Date();
-                    const currentWeek = this.getWeek(d);
-                    const currentYear = d.getFullYear();
-                    snap.forEach(docSnap => {
-                        const uData = docSnap.data();
-                        const logs = uData.logs || [];
-                        const config = uData.config || {};
-                        const wLogs = logs.filter(l => this.getWeek(new Date(l.date + 'T00:00')) === currentWeek && new Date(l.date).getFullYear() === currentYear);
-                        if (wLogs.length === 0) return;
-                        let totalMins = 0;
-                        wLogs.forEach(l => { if (l.type === 'Laboral' || l.type === 'Descanso') totalMins += (l.hours - (l.disconnection || 0)); });
-                        if (totalMins <= 0) return;
-                        let name = config.empName ? config.empName : (docSnap.id.includes('@') ? docSnap.id.split('@')[0] : docSnap.id.slice(0, 8));
-                        teamData.push({ name, mins: totalMins });
-                    });
-                    teamData.sort((a, b) => b.mins - a.mins);
-                    if (teamData.length === 0) list.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-mute);">Nadie ha registrado horas esta semana.</div>';
-                    else teamData.forEach(member => {
-                        const row = document.createElement('div'); row.className = 'team-row';
-                        row.innerHTML = `<div class="team-name">${member.name}</div><div class="team-hours">${this.fmt(member.mins)}</div>`;
-                        list.appendChild(row);
-                    });
-                } catch (e) { list.innerHTML = '<div style="padding:15px; text-align:center; color:var(--alert);">Error al cargar.</div>'; }
-                loader.style.display = 'none';
-            },
 
             uiClock() {
                 const s = this.data.activeShift;
@@ -1612,7 +1554,7 @@
                     id: this.getNow(), 
                     date: logDate, 
                     type: 'Laboral',
-                    in: logIn,     
+                    in: logIn,      
                     out: logOut,    
                     hours: gross, 
                     disconnection: disc, 
@@ -1922,8 +1864,8 @@
                 }
 
                 if (t === 'Laboral' || (t === 'Descanso' && h > 0)) {
-                      const config = this.data.config || {};
-                      disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
+                       const config = this.data.config || {};
+                       disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
                 }
 
                 const log = { id: this.editingId || this.getNow(), date: d, type: t, in: i || '', out: o || '', hours: h, disconnection: disc, details: { bath: b, food: f, pause: p } };
