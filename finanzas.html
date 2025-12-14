@@ -463,9 +463,10 @@
                                 <span id="summaryFixed" class="font-bold text-red-400 font-mono text-base">---</span>
                             </div>
                             <div class="flex justify-between items-center text-sm">
-                                <span class="text-zinc-400 text-xs font-bold uppercase">Deudas</span>
+                                <span class="text-zinc-400 text-xs font-bold uppercase">Deudas (Activas)</span>
                                 <span id="summaryShortLoans" class="font-bold text-orange-400 font-mono text-base">---</span>
                             </div>
+                            <div class="mt-2 text-[10px] text-zinc-500 italic">* Estos montos se restan de tu disponible.</div>
                         </div>
 
                         <!-- INGRESO -->
@@ -967,7 +968,7 @@
                 this.calcBalance();
             },
 
-            // --- CORE FINANCIAL MATH (CORREGIDO PARA GASTO DE HOY & SIMULACIÓN) ---
+            // --- CORE FINANCIAL MATH (CORREGIDO PARA DEUDAS Y FIJOS) ---
             calcBalance() {
                 if(!this.currentPeriod) return;
                 
@@ -1000,8 +1001,10 @@
                     extraInc += this.pendingExtraPay;
                 }
 
-                // Calcular Reserva para Gastos Fijos (Smart Reserve)
+                // Calcular Reserva para Gastos Fijos (Smart Reserve MEJORADO)
                 let fixedReserve = 0;
+                const fixedStatus = []; // Para trackear visualmente si se pagaron
+
                 (this.data.fixed || []).forEach(f => {
                     const day = parseInt(f.day);
                     let triggers = false;
@@ -1014,20 +1017,31 @@
                     if (datePrevMonth >= pStart && datePrevMonth <= pEnd) triggers = true;
 
                     if (triggers) {
+                        // FIX: Lógica Robusta. Busca metadata o fallback al nombre string
                         const isPaid = periodLogs.some(l => 
-                            l.type === 'expense' && 
-                            (l.desc || '').toLowerCase().includes(f.name.toLowerCase()) &&
-                            l.amount > 0 
+                            (l.meta_related_fixed && l.meta_related_fixed === f.name) || // 1. Match Exacto por MetaData
+                            (l.type === 'expense' && (l.desc || '').toLowerCase().includes(f.name.toLowerCase()) && l.amount > 0) // 2. Fallback antiguo
                         );
+                        
+                        fixedStatus.push({ name: f.name, paid: isPaid }); // Guardamos estado
+                        
                         if (!isPaid) fixedReserve += (parseFloat(f.amount) || 0);
+                    } else {
+                         fixedStatus.push({ name: f.name, paid: 'n/a' });
                     }
                 });
+                this.updateFixedUI(fixedStatus); // Actualizar UI con checkmarks
+
+                // FIX: Calcular Deudas Activas para restar del disponible
+                // Asumimos que si está en la lista de "Activas", el usuario quiere pagarlas
+                const totalLoans = (this.data.loans || []).reduce((a, b) => a + (parseFloat(b.amount) || 0), 0);
 
                 const baseInc = parseFloat(this.data.income) || 0;
                 const liquidIncome = (baseInc + extraInc);
                 
-                // Dinero Realmente Disponible en la cuenta (Total - Fijos - Gastado Total)
-                const remainingTotal = liquidIncome - fixedReserve - totalSpentInCycle;
+                // Dinero Realmente Disponible en la cuenta (Total - Fijos - Deudas - Gastado Total)
+                // FIX: Ahora restamos totalLoans
+                const remainingTotal = liquidIncome - fixedReserve - totalLoans - totalSpentInCycle;
                 
                 // --- LÓGICA CRÍTICA: PRESUPUESTO DE HOY ---
                 const daysLeft = this.currentPeriod.daysLeft; // Asegurado que es min 1
@@ -1089,8 +1103,7 @@
                 
                 document.getElementById('cycleSpent').textContent = `-${UI.fmtMoney(totalSpentInCycle)}`;
                 document.getElementById('summaryFixed').textContent = UI.fmtMoney(fixedReserve);
-                const loanSum = (this.data.loans||[]).reduce((a,b)=>a+(b.amount||0),0);
-                document.getElementById('summaryShortLoans').textContent = UI.fmtMoney(loanSum);
+                document.getElementById('summaryShortLoans').textContent = UI.fmtMoney(totalLoans);
             },
             
             togglePrivacy() {
@@ -1122,6 +1135,9 @@
                     const cat = cats.find(c=>c.id === l.category) || {icon:'ph-question',color:'text-gray-500'};
                     const icon = isInc ? 'ph-arrow-down-left' : cat.icon;
                     const color = isInc ? 'text-emerald-500' : cat.color;
+                    // FIX: Visual indicator if fixed linked
+                    const isFixedLink = l.meta_related_fixed ? '<i class="ph-bold ph-link text-zinc-600 ml-1" title="Vinculado a Gasto Fijo"></i>' : '';
+                    
                     list.innerHTML += `
                     <div onclick="app.openModal('${isInc?'extra':'expense'}','${l.id}')" class="flex justify-between items-center p-3 rounded-2xl hover:bg-zinc-900/50 transition-colors cursor-pointer border border-transparent hover:border-zinc-800 group active:scale-[0.99] active:bg-zinc-900 md:bg-zinc-900/20 md:mb-2">
                         <div class="flex items-center gap-4 overflow-hidden">
@@ -1129,7 +1145,7 @@
                                 <i class="ph-fill ${icon} ${color} text-xl"></i>
                             </div>
                             <div class="min-w-0">
-                                <h4 class="font-bold text-zinc-300 text-sm truncate">${l.desc || l.category || 'Movimiento'}</h4>
+                                <h4 class="font-bold text-zinc-300 text-sm truncate flex items-center">${l.desc || l.category || 'Movimiento'} ${isFixedLink}</h4>
                                 <p class="text-xs text-zinc-500">${new Date(l.date).toLocaleDateString()}</p>
                             </div>
                         </div>
@@ -1139,16 +1155,45 @@
             },
 
             renderFixed() {
+                // Se llama inicialmente, pero calcBalance actualiza el estado visual después
                 const el = document.getElementById('fixedExpensesList'); el.innerHTML='';
                 (this.data.fixed || []).sort((a,b)=>a.day-b.day).forEach((f,i) => {
                     el.innerHTML += `
-                    <div class="flex items-center justify-between p-3.5 bg-zinc-900/50 border border-zinc-800 rounded-2xl mb-2 active:scale-[0.99] transition-transform">
+                    <div class="fixed-item-row flex items-center justify-between p-3.5 bg-zinc-900/50 border border-zinc-800 rounded-2xl mb-2 active:scale-[0.99] transition-transform" data-name="${f.name}">
                         <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="app.openModal('fixed', ${i})">
-                            <div class="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center font-bold text-xs text-zinc-400">${f.day}</div>
+                            <div class="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center font-bold text-xs text-zinc-400 relative">
+                                ${f.day}
+                                <div class="status-dot absolute -top-1 -right-1 w-3 h-3 bg-zinc-700 rounded-full border-2 border-[#050505] hidden"></div>
+                            </div>
                             <div class="min-w-0"><div class="font-bold text-sm text-zinc-200 truncate">${f.name}</div><div class="text-xs text-zinc-500">${UI.fmtMoney(f.amount)}</div></div>
                         </div>
                         <button onclick="app.payFixed(${i})" class="bg-zinc-800 hover:bg-red-600 hover:text-white text-zinc-400 text-[10px] font-bold px-3 py-2 rounded-lg transition-colors ml-2" title="Registrar Pago Hoy">PAGAR</button>
                     </div>`;
+                });
+            },
+            
+            updateFixedUI(statusArray) {
+                // Actualiza visualmente los puntos de estado (pagado o no)
+                const rows = document.querySelectorAll('.fixed-item-row');
+                rows.forEach(row => {
+                    const name = row.dataset.name;
+                    const status = statusArray.find(s => s.name === name);
+                    const dot = row.querySelector('.status-dot');
+                    const btn = row.querySelector('button');
+                    
+                    if (status && status.paid === true) {
+                        dot.classList.remove('hidden', 'bg-zinc-700');
+                        dot.classList.add('bg-emerald-500');
+                        btn.classList.add('opacity-50', 'pointer-events-none');
+                        btn.textContent = 'LISTO';
+                    } else if (status && status.paid === false) {
+                        dot.classList.remove('hidden', 'bg-emerald-500');
+                        dot.classList.add('bg-zinc-700');
+                        btn.classList.remove('opacity-50', 'pointer-events-none');
+                        btn.textContent = 'PAGAR';
+                    } else {
+                        dot.classList.add('hidden');
+                    }
                 });
             },
             
@@ -1376,8 +1421,14 @@
             async payFixed(idx) {
                 const f = this.data.fixed[idx];
                 if(await UI.confirm('Pagar Fijo', `¿Registrar pago de ${f.name} por ${UI.fmtMoney(f.amount)}?`)) {
+                    // FIX: Metadata para enlace robusto
                     await addDoc(collection(db,'artifacts',APP_ID,'users',this.user.uid,'transactions'), {
-                        amount: parseFloat(f.amount), desc: `Pago Fijo: ${f.name}`, category: 'Servicios', type: 'expense', date: new Date().toISOString()
+                        amount: parseFloat(f.amount), 
+                        desc: `Pago Fijo: ${f.name}`, 
+                        category: 'Servicios', 
+                        type: 'expense', 
+                        date: new Date().toISOString(),
+                        meta_related_fixed: f.name // ENLACE CLAVE
                     });
                     UI.toast('Pago registrado','success');
                 }
