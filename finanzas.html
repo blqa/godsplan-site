@@ -455,56 +455,63 @@
                 </div>
             </section>
 
-            <!-- VISTA: SIMULACIÓN (NUEVA) -->
-            <section id="view-simulation" class="p-4 sm:p-0 hidden fade-in max-w-4xl mx-auto pb-24">
-                <div class="md:flex md:justify-between md:items-end mb-6">
-                    <div>
-                        <h2 class="text-2xl font-black text-white mb-1 flex items-center gap-2"><i class="ph-duotone ph-crystal-ball text-purple-500"></i> Simulación Futura</h2>
-                        <p class="text-zinc-500 text-xs">Proyección estimada de tu economía a 6 meses.</p>
+            <!-- VISTA: SIMULACIÓN (MODIFICADA: DIRECTA Y CLARA) -->
+            <section id="view-simulation" class="p-4 sm:p-0 hidden fade-in max-w-2xl mx-auto pb-24">
+                <h2 class="text-2xl font-black text-white mb-1">Simulador de Ciclo</h2>
+                <p class="text-zinc-500 text-xs mb-6">Proyección basada en tu configuración actual.</p>
+
+                <!-- RESULTADO PRINCIPAL -->
+                <div class="glass-highlight rounded-3xl p-6 text-center mb-6 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <div class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Dinero Libre Estimado</div>
+                        <div class="text-5xl font-black text-white tracking-tight" id="simFreeMoney">---</div>
+                        <div class="text-xs text-zinc-500 mt-2">Después de pagar todos tus fijos</div>
                     </div>
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
                 </div>
 
-                <!-- CONTROLES -->
-                <div class="glass-purple p-6 rounded-3xl mb-6">
-                    <div class="flex flex-col md:flex-row gap-6 md:items-center justify-between">
-                        <div>
-                            <div class="text-xs font-bold text-purple-300 uppercase tracking-widest mb-1">Escenario de Ahorro</div>
-                            <div class="text-2xl font-bold text-white mb-1">Reducción Gasto Variable</div>
-                            <div class="text-[10px] text-zinc-400">Si gastaras un <span id="simSavingsPctDisplay" class="text-purple-400 font-bold">0%</span> menos en compras no fijas.</div>
-                        </div>
-                        <div class="flex-1 max-w-xs">
-                            <input type="range" id="simSavingsSlider" min="0" max="50" value="0" step="5" class="w-full" oninput="app.updateSimulation()">
-                            <div class="flex justify-between text-[10px] text-zinc-500 font-mono mt-2">
-                                <span>Realista (0%)</span>
-                                <span>Estricto (50%)</span>
+                <!-- DESGLOSE -->
+                <div class="space-y-4">
+                    <!-- Ingresos -->
+                    <div class="flex justify-between items-center p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                <i class="ph-bold ph-arrow-down-left text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-white">Ingreso Base</div>
+                                <div class="text-[10px] text-zinc-500">Tu entrada mensual</div>
                             </div>
                         </div>
+                        <div class="font-bold text-emerald-400" id="simIncomeVal">---</div>
+                    </div>
+
+                    <!-- Separator -->
+                    <div class="flex items-center gap-4 py-2">
+                        <div class="h-px bg-zinc-800 flex-1"></div>
+                        <span class="text-[10px] text-zinc-500 font-bold uppercase">Menos tus Fijos</span>
+                        <div class="h-px bg-zinc-800 flex-1"></div>
+                    </div>
+
+                    <!-- Lista de Fijos -->
+                    <div id="simFixedList" class="space-y-2">
+                        <!-- Items injected by JS -->
+                    </div>
+                    
+                    <!-- Total Fijos Summary -->
+                     <div class="flex justify-between items-center px-4 py-2">
+                        <span class="text-xs text-zinc-500">Total Fijos</span>
+                        <span class="text-sm font-bold text-red-400" id="simTotalFixed">---</span>
                     </div>
                 </div>
-
-                <!-- METRICAS PROYECTADAS -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div class="glass p-5 rounded-2xl border-l-4 border-l-purple-500">
-                        <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Flujo de Caja Libre (Mes)</div>
-                        <div class="text-2xl font-bold text-white" id="simMonthlyFree">---</div>
-                        <div class="text-[10px] text-zinc-500 mt-1">Ingresos - (Fijos + Var. Promedio)</div>
-                    </div>
-                    <div class="glass p-5 rounded-2xl border-l-4 border-l-indigo-500">
-                        <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Proyección a 6 Meses</div>
-                        <div class="text-2xl font-bold text-indigo-400" id="simSixMonthTotal">---</div>
-                        <div class="text-[10px] text-zinc-500 mt-1">Patrimonio acumulado estimado</div>
-                    </div>
-                    <div class="glass p-5 rounded-2xl border-l-4 border-l-pink-500">
-                        <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Deuda Liquidada</div>
-                        <div class="text-2xl font-bold text-pink-400" id="simDebtPaid">---</div>
-                        <div class="text-[10px] text-zinc-500 mt-1">En el periodo proyectado</div>
-                    </div>
-                </div>
-
-                <!-- CHART SIMULACION -->
-                <div class="glass rounded-3xl p-5 relative">
-                    <div class="chart-container h-[250px]">
-                        <canvas id="simulationChart"></canvas>
+                
+                <!-- Chart Context -->
+                <div class="mt-8 pt-8 border-t border-zinc-800">
+                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Proyección Patrimonio (6 Meses)</h3>
+                    <div class="glass rounded-2xl p-4">
+                         <div class="chart-container h-[200px]">
+                            <canvas id="simulationChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1566,43 +1573,53 @@
             
             // --- NUEVA LÓGICA DE SIMULACIÓN ---
             updateSimulation() {
-                const pct = document.getElementById('simSavingsSlider').value;
-                document.getElementById('simSavingsPctDisplay').textContent = pct + '%';
-                
                 const months = ['Mes 1', 'Mes 2', 'Mes 3', 'Mes 4', 'Mes 5', 'Mes 6'];
                 const income = parseFloat(this.data.income) || 0;
-                const fixed = (this.data.fixed || []).reduce((a,b)=>a+b.amount,0);
+                const fixedList = this.data.fixed || [];
+                const totalFixed = fixedList.reduce((a,b) => a + b.amount, 0);
                 
-                // Calcular gasto variable promedio real (últimos 60 días)
-                const now = new Date();
-                const past = new Date(); past.setDate(past.getDate() - 60);
-                const recentLogs = this.logs.filter(l => l.type === 'expense' && new Date(l.date) >= past);
-                const totalRecentVar = recentLogs.reduce((a,b) => {
-                    // Excluir pagos de fijos (aproximado por descripción)
-                    const isFixed = (this.data.fixed||[]).some(f => l.desc.toLowerCase().includes(f.name.toLowerCase()));
-                    return isFixed ? a : a + l.amount;
-                }, 0);
+                // Calcular gasto variable promedio real (últimos 60 días) para la proyección del chart
+                // Pero para la vista principal, solo mostramos Neto (Ingreso - Fijos)
                 
-                // Si no hay datos, asumir 50% del ingreso
-                let monthlyVarAvg = recentLogs.length > 0 ? (totalRecentVar / 2) : (income * 0.5); 
+                const freeMoney = income - totalFixed;
                 
-                // Aplicar reducción del slider
-                const adjustedVar = monthlyVarAvg * (1 - (pct / 100));
+                // Renderizar valores principales
+                document.getElementById('simFreeMoney').textContent = UI.fmtMoney(freeMoney);
+                document.getElementById('simIncomeVal').textContent = '+' + UI.fmtMoney(income);
+                document.getElementById('simTotalFixed').textContent = '-' + UI.fmtMoney(totalFixed);
                 
-                const monthlyFree = income - fixed - adjustedVar;
-                document.getElementById('simMonthlyFree').textContent = UI.fmtMoney(monthlyFree);
-                document.getElementById('simSixMonthTotal').textContent = UI.fmtMoney(monthlyFree * 6);
+                // Renderizar Lista de Fijos
+                const listEl = document.getElementById('simFixedList');
+                listEl.innerHTML = '';
                 
-                // Simular deuda
-                const debt = (this.data.loans || []).reduce((a,b)=>a+b.amount,0);
-                const debtCanPay = Math.min(debt, Math.max(0, monthlyFree * 6));
-                document.getElementById('simDebtPaid').textContent = UI.fmtMoney(debtCanPay);
+                if (fixedList.length === 0) {
+                    listEl.innerHTML = '<div class="text-center text-zinc-600 text-xs py-2 italic">Sin gastos fijos configurados</div>';
+                } else {
+                    fixedList.forEach(f => {
+                        listEl.innerHTML += `
+                        <div class="flex justify-between items-center p-3 rounded-xl bg-zinc-900/30 border border-zinc-800/50">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 font-bold text-xs">
+                                    ${f.day}
+                                </div>
+                                <span class="text-xs font-bold text-zinc-300">${f.name}</span>
+                            </div>
+                            <span class="text-xs font-mono text-red-400">-${UI.fmtMoney(f.amount)}</span>
+                        </div>
+                        `;
+                    });
+                }
                 
-                // Generar datos para chart
-                let currentBal = 0; // Iniciar en 0 para mostrar crecimiento neto
+                // --- Chart Proyección (Simple: Ahorro acumulado asumiendo un gasto variable X) ---
+                // Asumimos un gasto variable promedio del 40% del ingreso si no hay datos
+                // Esto es solo visual para rellenar la parte inferior
+                const estimatedVar = income * 0.4; 
+                const projectedMonthlySavings = freeMoney - estimatedVar;
+                
+                let currentBal = 0;
                 const projData = [];
                 for(let i=0; i<6; i++) {
-                    currentBal += monthlyFree;
+                    currentBal += projectedMonthlySavings;
                     projData.push(currentBal);
                 }
                 
@@ -1612,9 +1629,9 @@
                     data: {
                         labels: months,
                         datasets: [{
-                            label: 'Crecimiento de Patrimonio',
+                            label: 'Crecimiento Estimado',
                             data: projData,
-                            borderColor: '#a855f7', // Purple
+                            borderColor: '#a855f7',
                             backgroundColor: 'rgba(168, 85, 247, 0.1)',
                             fill: true,
                             tension: 0.4,
@@ -1626,8 +1643,8 @@
                         responsive: true, maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: { 
-                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a' } }, 
-                            x: { grid: { display: false }, ticks: { color: '#71717a' } } 
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a', font: {size: 10} } }, 
+                            x: { grid: { display: false }, ticks: { color: '#71717a', font: {size: 10} } } 
                         }
                     }
                 });
