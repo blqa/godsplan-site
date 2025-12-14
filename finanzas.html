@@ -455,17 +455,17 @@
                 </div>
             </section>
 
-            <!-- VISTA: SIMULACIÓN (MODIFICADA: DIRECTA Y CLARA) -->
+            <!-- VISTA: SIMULACIÓN (MODIFICADA: LÓGICA MENSUAL REAL) -->
             <section id="view-simulation" class="p-4 sm:p-0 hidden fade-in max-w-2xl mx-auto pb-24">
-                <h2 class="text-2xl font-black text-white mb-1">Simulador de Ciclo</h2>
-                <p class="text-zinc-500 text-xs mb-6">Proyección basada en tu configuración actual.</p>
+                <h2 class="text-2xl font-black text-white mb-1">Simulador Mensual</h2>
+                <p class="text-zinc-500 text-xs mb-6">Proyección mensual real (Ingreso Total - Fijos Mensuales).</p>
 
                 <!-- RESULTADO PRINCIPAL -->
                 <div class="glass-highlight rounded-3xl p-6 text-center mb-6 relative overflow-hidden">
                     <div class="relative z-10">
-                        <div class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Dinero Libre Estimado</div>
+                        <div class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Flujo Libre Mensual</div>
                         <div class="text-5xl font-black text-white tracking-tight" id="simFreeMoney">---</div>
-                        <div class="text-xs text-zinc-500 mt-2">Después de pagar todos tus fijos</div>
+                        <div class="text-xs text-zinc-500 mt-2">Dinero real disponible tras pagar TODO en el mes</div>
                     </div>
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
                 </div>
@@ -476,11 +476,11 @@
                     <div class="flex justify-between items-center p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                                <i class="ph-bold ph-arrow-down-left text-xl"></i>
+                                <i class="ph-bold ph-money text-xl"></i>
                             </div>
                             <div>
-                                <div class="text-sm font-bold text-white">Ingreso Base</div>
-                                <div class="text-[10px] text-zinc-500">Tu entrada mensual</div>
+                                <div class="text-sm font-bold text-white">Ingreso Mensual Total</div>
+                                <div class="text-[10px] text-zinc-500" id="simIncomeDesc">Calculado según tu ciclo</div>
                             </div>
                         </div>
                         <div class="font-bold text-emerald-400" id="simIncomeVal">---</div>
@@ -489,7 +489,7 @@
                     <!-- Separator -->
                     <div class="flex items-center gap-4 py-2">
                         <div class="h-px bg-zinc-800 flex-1"></div>
-                        <span class="text-[10px] text-zinc-500 font-bold uppercase">Menos tus Fijos</span>
+                        <span class="text-[10px] text-zinc-500 font-bold uppercase">Menos Gastos Fijos (Mes)</span>
                         <div class="h-px bg-zinc-800 flex-1"></div>
                     </div>
 
@@ -500,7 +500,7 @@
                     
                     <!-- Total Fijos Summary -->
                      <div class="flex justify-between items-center px-4 py-2">
-                        <span class="text-xs text-zinc-500">Total Fijos</span>
+                        <span class="text-xs text-zinc-500">Total Fijos Mensuales</span>
                         <span class="text-sm font-bold text-red-400" id="simTotalFixed">---</span>
                     </div>
                 </div>
@@ -552,12 +552,24 @@
                             <div class="mt-2 text-[10px] text-zinc-500 italic">* Estos montos se restan de tu disponible.</div>
                         </div>
 
-                        <!-- INGRESO -->
-                        <div class="bg-[#09090b] border border-zinc-800 p-5 rounded-2xl mb-8 shadow-inner group focus-within:border-zinc-600 transition-colors">
-                            <label class="text-emerald-500 text-xxs font-black uppercase tracking-wider mb-2 block">Ingreso Base (Por Ciclo)</label>
-                            <div class="relative flex items-center">
-                                <span class="absolute left-0 top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none group-focus-within:text-emerald-500 transition-colors">$</span>
-                                <input type="number" id="inpIncome" inputmode="decimal" class="bg-transparent text-3xl font-bold text-white w-full focus:outline-none placeholder-zinc-800 pl-6 h-10" placeholder="0.00" onblur="app.saveConfig()">
+                        <!-- INGRESOS CONFIG -->
+                        <div class="bg-[#09090b] border border-zinc-800 p-5 rounded-2xl mb-8 shadow-inner transition-colors">
+                            <div class="mb-4">
+                                <label class="text-emerald-500 text-xxs font-black uppercase tracking-wider mb-2 block" id="lblIncome1">Ingreso Base (Por Ciclo)</label>
+                                <div class="relative flex items-center group focus-within:border-zinc-600">
+                                    <span class="absolute left-0 top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none group-focus-within:text-emerald-500 transition-colors">$</span>
+                                    <input type="number" id="inpIncome" inputmode="decimal" class="bg-transparent text-3xl font-bold text-white w-full focus:outline-none placeholder-zinc-800 pl-6 h-10" placeholder="0.00" onblur="app.saveConfig()">
+                                </div>
+                            </div>
+                            
+                            <!-- Campo Opcional Q2 -->
+                            <div id="divIncomeQ2" class="hidden border-t border-zinc-800 pt-4">
+                                <label class="text-emerald-500 text-xxs font-black uppercase tracking-wider mb-2 block">Ingreso 2da Quincena (Opcional)</label>
+                                <div class="relative flex items-center group focus-within:border-zinc-600">
+                                    <span class="absolute left-0 top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none group-focus-within:text-emerald-500 transition-colors">$</span>
+                                    <input type="number" id="inpIncomeQ2" inputmode="decimal" class="bg-transparent text-2xl font-bold text-white w-full focus:outline-none placeholder-zinc-700 pl-6 h-10" placeholder="Mismo monto..." onblur="app.saveConfig()">
+                                </div>
+                                <p class="text-[9px] text-zinc-600 mt-1">Si se deja vacío, se asume igual al ingreso base.</p>
                             </div>
                         </div>
                     </div>
@@ -844,15 +856,15 @@
         // --- APP LOGIC ---
         const app = window.app = {
             user: null, 
-            data: { income: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true }, 
+            data: { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true }, 
             logs: [], adhData: null,
             currentPeriod: null, 
             privacyMode: false,
             searchQuery: '',
             charts: {},
             printCharts: {},
-            pendingExtraPay: 0, // Almacena el valor calculado
-            isSimulating: false, // Nueva bandera de estado
+            pendingExtraPay: 0, 
+            isSimulating: false, 
 
             async init() {
                 if(!auth) return;
@@ -886,35 +898,49 @@
                 
                 onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
-                        this.data = { income: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, ...snap.data() };
+                        this.data = { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, ...snap.data() };
                         document.getElementById('inpIncome').value = this.data.income || '';
+                        document.getElementById('inpIncomeQ2').value = this.data.incomeQ2 || '';
                         document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
                         
+                        this.renderPlanInputs();
                         this.renderFixed(); this.renderLoans(); this.renderGoals();
                         this.calcPeriod();
                         
-                        // Re-trigger adherence calculation in case enabling logic changed
                         if (this.adhData) this.calcAdherencePay();
                     } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
                 });
 
-                const q = query(logsRef, orderBy('date', 'desc'), limit(1000)); // Increased limit for history
+                const q = query(logsRef, orderBy('date', 'desc'), limit(1000));
                 onSnapshot(q, (snap) => {
                     this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
                     this.renderTransactions(); this.calcBalance(); this.renderCharts(); this.renderAnalysisMetrics(); this.renderHistory();
                 });
 
-                // Listener ADHERENCIA (Nueva conexión)
                 const adhRef = doc(db, 'godsPlanData', uid);
                 onSnapshot(adhRef, (snap) => {
                     if (snap.exists()) {
                         this.adhData = snap.data();
-                        this.calcAdherencePay(); // Recalcular cuando cambie la adherencia
+                        this.calcAdherencePay(); 
                     }
                 });
             },
+            
+            renderPlanInputs() {
+                const isBi = this.data.cycle === 'biweekly';
+                const divQ2 = document.getElementById('divIncomeQ2');
+                const lbl1 = document.getElementById('lblIncome1');
+                
+                if (isBi) {
+                    divQ2.classList.remove('hidden');
+                    lbl1.textContent = 'Ingreso 1ra Quincena (Q1)';
+                } else {
+                    divQ2.classList.add('hidden');
+                    lbl1.textContent = 'Ingreso Mensual Base';
+                }
+            },
 
-            // --- LÓGICA DE HISTORIAL CON QUINCENAS (CORREGIDO) ---
+            // --- LÓGICA DE HISTORIAL ---
             renderHistory() {
                 const container = document.getElementById('historyList');
                 if(!this.logs.length) {
@@ -924,6 +950,7 @@
 
                 // Configuración de Ingreso Base
                 const baseIncome = parseFloat(this.data.income) || 0;
+                const baseIncomeQ2 = parseFloat(this.data.incomeQ2) || baseIncome; // Default to base if empty
                 const cycleMode = this.data.cycle || 'biweekly';
 
                 // 1. Agrupar por mes Y Quincena
@@ -950,57 +977,41 @@
                     groups[k].count++;
                 });
 
-                // Calcular Net Worth "Proyectado" (Sumando base a la historia visible es peligroso, mejor mostrar el real de logs + saldo actual derivado)
                 const nwEl = document.getElementById('netWorthDisplay');
-                // Mostramos el cálculo basado en logs puros para "Patrimonio", ya que es acumulado histórico real registrado.
                 nwEl.textContent = UI.fmtMoney(loggedNetWorth); 
                 nwEl.className = `text-4xl font-black tracking-tighter ${loggedNetWorth >= 0 ? 'text-white' : 'text-red-500'}`;
 
                 const sortedKeys = Object.keys(groups).sort((a,b) => b.localeCompare(a));
-                
                 container.innerHTML = '';
                 
                 sortedKeys.forEach(key => {
                     const g = groups[key];
                     
                     // --- INYECCIÓN DE INGRESO BASE ---
-                    // Si es quincenal, se suma en Q1 y Q2. Si es mensual, solo en Q1.
                     let periodBaseIncome = 0;
                     if (cycleMode === 'biweekly') {
-                        periodBaseIncome = baseIncome;
+                        periodBaseIncome = g.q === 'Q1' ? baseIncome : baseIncomeQ2;
                     } else {
                         // Mensual: solo sumar en la primera quincena
                         if (g.q === 'Q1') periodBaseIncome = baseIncome;
                     }
 
-                    // Total Ingresos para visualizar en la tarjeta (Suma real + Base configurado)
                     const totalPeriodIncome = g.income + periodBaseIncome;
-                    
                     const balance = totalPeriodIncome - g.expense;
                     const savingsRate = totalPeriodIncome > 0 ? ((totalPeriodIncome - g.expense) / totalPeriodIncome) * 100 : 0;
                     
                     // Lógica de "Vibe"
-                    let vibeIcon = 'ph-mask-happy';
-                    let vibeColor = 'text-emerald-400';
-                    let vibeText = 'Excelente periodo';
-                    let barColor = 'bg-emerald-500';
+                    let vibeIcon = 'ph-mask-happy'; let vibeColor = 'text-emerald-400'; let vibeText = 'Excelente periodo'; let barColor = 'bg-emerald-500';
 
-                    if (balance < 0) {
-                        vibeIcon = 'ph-mask-sad'; vibeColor = 'text-red-500'; vibeText = 'Gasto excesivo'; barColor = 'bg-red-500';
-                    } else if (savingsRate < 10) {
-                        vibeIcon = 'ph-mask-sad'; vibeColor = 'text-orange-400'; vibeText = 'Ahorro bajo'; barColor = 'bg-orange-500';
-                    } else if (savingsRate < 30) {
-                        vibeIcon = 'ph-smiley'; vibeColor = 'text-yellow-400'; vibeText = 'Buen equilibrio'; barColor = 'bg-yellow-400';
-                    } else {
-                        vibeIcon = 'ph-star-fill'; vibeColor = 'text-emerald-400'; vibeText = '¡Imparable!'; barColor = 'bg-emerald-500';
-                    }
+                    if (balance < 0) { vibeIcon = 'ph-mask-sad'; vibeColor = 'text-red-500'; vibeText = 'Gasto excesivo'; barColor = 'bg-red-500'; } 
+                    else if (savingsRate < 10) { vibeIcon = 'ph-mask-sad'; vibeColor = 'text-orange-400'; vibeText = 'Ahorro bajo'; barColor = 'bg-orange-500'; } 
+                    else if (savingsRate < 30) { vibeIcon = 'ph-smiley'; vibeColor = 'text-yellow-400'; vibeText = 'Buen equilibrio'; barColor = 'bg-yellow-400'; } 
+                    else { vibeIcon = 'ph-star-fill'; vibeColor = 'text-emerald-400'; vibeText = '¡Imparable!'; barColor = 'bg-emerald-500'; }
 
-                    // Formato Mes + Quincena
                     const monthName = g.date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
                     const capMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
                     const qText = g.q === 'Q1' ? '1ª Quincena' : '2ª Quincena';
 
-                    // Barra de salud financiera (Income vs Expense visual)
                     const maxVal = Math.max(totalPeriodIncome, g.expense);
                     const incPct = maxVal > 0 ? (totalPeriodIncome / maxVal) * 100 : 0;
                     const expPct = maxVal > 0 ? (g.expense / maxVal) * 100 : 0;
@@ -1023,71 +1034,44 @@
                                 <div class="text-xl font-bold ${balance >= 0 ? 'text-white' : 'text-red-500'}">${balance >=0 ? '+':''}${UI.fmtMoney(balance)}</div>
                             </div>
                         </div>
-                        
-                        <!-- Barras comparativas -->
                         <div class="space-y-2 mb-4 relative z-10">
-                            <!-- Ingreso -->
                             <div class="flex items-center gap-2">
                                 <span class="text-[10px] w-12 text-zinc-500 font-bold">IN</span>
-                                <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                                    <div class="h-full bg-emerald-500/80 rounded-full" style="width: ${incPct}%"></div>
-                                </div>
+                                <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-emerald-500/80 rounded-full" style="width: ${incPct}%"></div></div>
                                 <span class="text-[10px] w-16 text-right text-emerald-400 font-mono">${UI.fmtMoney(totalPeriodIncome)}</span>
                             </div>
-                            <!-- Gasto -->
                             <div class="flex items-center gap-2">
                                 <span class="text-[10px] w-12 text-zinc-500 font-bold">OUT</span>
-                                <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                                    <div class="h-full bg-red-500/80 rounded-full" style="width: ${expPct}%"></div>
-                                </div>
+                                <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-red-500/80 rounded-full" style="width: ${expPct}%"></div></div>
                                 <span class="text-[10px] w-16 text-right text-red-400 font-mono">${UI.fmtMoney(g.expense)}</span>
                             </div>
                         </div>
-
-                        <!-- Glow ambiental según vibe -->
                         <div class="absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-10 ${barColor}"></div>
-                    </div>
-                    `;
+                    </div>`;
                 });
             },
 
-
-            // --- LÓGICA DE ADHERENCIA ---
+            // --- ADHERENCIA ---
             calcAdherencePay() {
                 const card = document.getElementById('adherenceCard');
-                
-                // 1. Verificar si el módulo está habilitado
-                if (this.data.enableAdherence === false) {
-                    card.classList.add('hidden');
-                    return;
-                }
-
+                if (this.data.enableAdherence === false) { card.classList.add('hidden'); return; }
                 if (!this.adhData || !this.adhData.logs) return;
                 
-                // 2. Obtener semana actual
-                const d = new Date();
-                const currentWeek = this.getWeek(d);
-                const currentYear = d.getFullYear();
-
-                // 3. Filtrar logs de esta semana
+                const d = new Date(); const currentWeek = this.getWeek(d); const currentYear = d.getFullYear();
                 const wLogs = this.adhData.logs.filter(l => this.getWeek(new Date(l.date + 'T00:00')) === currentWeek && new Date(l.date).getFullYear() === currentYear);
 
-                // 4. Calcular horas netas (copiado de lógica Adherencia)
                 let t = 0, w = 0; 
                 wLogs.forEach(l => { 
                     t += (l.type === 'Laboral' || l.type === 'Falta') ? 480 : 0; 
                     w += (l.type === 'Laboral' || l.type === 'Descanso') ? (l.hours - (l.disconnection || 0)) : 0; 
                 }); 
                 const bal = w - t;
-
-                // 5. Calcular dinero
                 const config = this.adhData.config || {}; 
                 let pay = 0, he = Math.floor(bal / 60); 
                 if (bal > 0) pay = (he <= 12) ? he * (config.rate1 || 50) : (12 * (config.rate1 || 50)) + ((he - 12) * (config.rate1 || 50));
                 
                 this.pendingExtraPay = Math.round(pay);
 
-                // 6. Actualizar UI Widget
                 if (this.pendingExtraPay > 0) {
                     card.classList.remove('hidden');
                     document.getElementById('extraPayValue').textContent = UI.fmtMoney(this.pendingExtraPay);
@@ -1097,31 +1081,24 @@
                 } else {
                     card.classList.add('hidden');
                 }
-
-                // 7. Calcular fecha de cobro
                 this.resolvePayDate();
             },
 
             resolvePayDate() {
-                // Si el usuario guardó una fecha manual, usarla
                 if (this.data.nextExtraPayDate) {
-                    const savedDate = new Date(this.data.nextExtraPayDate + 'T12:00:00'); // T12 to avoid timezone shifts
+                    const savedDate = new Date(this.data.nextExtraPayDate + 'T12:00:00');
                     const now = new Date();
                     const daysDiff = Math.ceil((savedDate - now) / (1000 * 60 * 60 * 24));
-                    
                     document.getElementById('extraPayDateInput').value = this.data.nextExtraPayDate;
                     document.getElementById('daysToTuesday').textContent = daysDiff === 0 ? '¡Es Hoy!' : (daysDiff < 0 ? 'Pasado' : `Faltan ${daysDiff} días`);
                 } else {
-                    // Lógica por defecto (Próximo Martes)
-                    const now = new Date();
-                    const resultDate = new Date();
+                    const now = new Date(); const resultDate = new Date();
                     const diff = 2 - now.getDay() + 7; 
                     resultDate.setDate(now.getDate() + (diff % 7 === 0 ? 0 : (2 - now.getDay() + 7) % 7));
                     if (resultDate <= now) resultDate.setDate(resultDate.getDate() + 7);
                     
                     const dateStr = resultDate.toISOString().split('T')[0];
                     document.getElementById('extraPayDateInput').value = dateStr;
-                    
                     const daysDiff = Math.ceil((resultDate - now) / (1000 * 60 * 60 * 24));
                     document.getElementById('daysToTuesday').textContent = `Faltan ${daysDiff} días`;
                 }
@@ -1129,38 +1106,30 @@
 
             async saveExtraPayDate(val) {
                 await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { nextExtraPayDate: val });
-                this.resolvePayDate(); // Refresh UI
+                this.resolvePayDate();
             },
 
             toggleAdherenceModule() {
                 const isEnabled = document.getElementById('adhToggle').checked;
                 updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { enableAdherence: isEnabled });
-                // UI will update via snapshot listener
             },
 
             toggleSimulation() {
                 this.isSimulating = document.getElementById('simToggle').checked;
-                this.calcBalance(); // Recalculate main numbers
+                this.calcBalance();
             },
 
             async importExtraMoney() {
                 if (this.pendingExtraPay <= 0) return;
-                
                 if (await UI.confirm('Importar Dinero', `¿Registrar ingreso de ${UI.fmtMoney(this.pendingExtraPay)} por horas extras?`)) {
                     await addDoc(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions'), {
-                        amount: this.pendingExtraPay, 
-                        desc: `Cobro Horas Extras (Semana ${this.getWeek(new Date())})`, 
-                        category: 'Otro', 
-                        type: 'income', 
-                        date: new Date().toISOString()
+                        amount: this.pendingExtraPay, desc: `Cobro Horas Extras (Semana ${this.getWeek(new Date())})`, category: 'Otro', type: 'income', date: new Date().toISOString()
                     });
-                    
                     UI.toast('Dinero sumado a billetera', 'success');
                 }
             },
 
             getWeek(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); var y = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); return Math.ceil((((d - y) / 86400000) + 1) / 7); },
-
 
             // --- DATE & PERIOD LOGIC ---
             calcPeriod() {
@@ -1186,59 +1155,35 @@
                 const progress = Math.min(100, Math.max(0, (elapsed / totalMs) * 100));
                 const daysLeft = Math.ceil((end - now) / (86400000));
                 
-                this.currentPeriod = { start, end, daysLeft: Math.max(1, daysLeft), progress }; // Use Max 1 to prevent division by zero or negative days if clocks are weird
-                
+                this.currentPeriod = { start, end, daysLeft: Math.max(1, daysLeft), progress };
                 document.getElementById('periodDates').innerHTML = `<span class="text-zinc-400 text-sm font-normal">${start.getDate()} ${start.toLocaleString('es',{month:'short'})}</span> <i class="ph-bold ph-arrow-right text-zinc-600 text-xs"></i> <span class="text-white text-sm">${end.getDate()} ${end.toLocaleString('es',{month:'short'})}</span>`;
-                
-                // --- LÓGICA DE DÍA DE PAGO PRINCIPAL ---
-                const payDay = end.getDate() + 1; // Asumimos se paga al día siguiente del corte
                 document.getElementById('daysLeftBadge').textContent = `Faltan ${this.currentPeriod.daysLeft} días para la quincena`;
-                
                 document.getElementById('periodProgress').style.width = `${progress}%`;
                 
                 this.calcBalance();
             },
 
-            // --- CORE FINANCIAL MATH (CORREGIDO PARA DEUDAS Y FIJOS) ---
+            // --- CORE FINANCIAL MATH ---
             calcBalance() {
                 if(!this.currentPeriod) return;
                 
                 const pStart = this.currentPeriod.start;
                 const pEnd = this.currentPeriod.end;
-                
-                // Filtramos logs del periodo completo
-                const periodLogs = this.logs.filter(l => {
-                    const d = new Date(l.date);
-                    return d >= pStart && d <= pEnd;
-                });
+                const periodLogs = this.logs.filter(l => { const d = new Date(l.date); return d >= pStart && d <= pEnd; });
 
-                // Calculamos GASTO DE HOY específicamente
                 const todayStr = new Date().toDateString();
-                const todaySpent = periodLogs
-                    .filter(l => l.type === 'expense' && new Date(l.date).toDateString() === todayStr)
-                    .reduce((a, b) => a + b.amount, 0);
+                const todaySpent = periodLogs.filter(l => l.type === 'expense' && new Date(l.date).toDateString() === todayStr).reduce((a, b) => a + b.amount, 0);
 
-                // Calcular Gastos Variables Totales e Ingresos Extra Totales del periodo
-                let totalSpentInCycle = 0; 
-                let extraInc = 0;
-                
-                periodLogs.forEach(l => {
-                    if(l.type === 'income') extraInc += l.amount; 
-                    else totalSpentInCycle += l.amount;
-                });
+                let totalSpentInCycle = 0; let extraInc = 0;
+                periodLogs.forEach(l => { if(l.type === 'income') extraInc += l.amount; else totalSpentInCycle += l.amount; });
 
-                // --- LÓGICA DE SIMULACIÓN ---
-                if (this.isSimulating && this.pendingExtraPay > 0) {
-                    extraInc += this.pendingExtraPay;
-                }
+                if (this.isSimulating && this.pendingExtraPay > 0) { extraInc += this.pendingExtraPay; }
 
-                // Calcular Reserva para Gastos Fijos (Smart Reserve MEJORADO)
                 let fixedReserve = 0;
-                const fixedStatus = []; // Para trackear visualmente si se pagaron
+                const fixedStatus = []; 
 
                 (this.data.fixed || []).forEach(f => {
-                    const day = parseInt(f.day);
-                    let triggers = false;
+                    const day = parseInt(f.day); let triggers = false;
                     const dateInMonth = new Date(pStart.getFullYear(), pStart.getMonth(), day);
                     const dateNextMonth = new Date(pStart.getFullYear(), pStart.getMonth() + 1, day);
                     const datePrevMonth = new Date(pStart.getFullYear(), pStart.getMonth() - 1, day);
@@ -1248,100 +1193,67 @@
                     if (datePrevMonth >= pStart && datePrevMonth <= pEnd) triggers = true;
 
                     if (triggers) {
-                        // FIX: Lógica Robusta. Busca metadata o fallback al nombre string
                         const isPaid = periodLogs.some(l => 
-                            (l.meta_related_fixed && l.meta_related_fixed === f.name) || // 1. Match Exacto por MetaData
-                            (l.type === 'expense' && (l.desc || '').toLowerCase().includes(f.name.toLowerCase()) && l.amount > 0) // 2. Fallback antiguo
+                            (l.meta_related_fixed && l.meta_related_fixed === f.name) || 
+                            (l.type === 'expense' && (l.desc || '').toLowerCase().includes(f.name.toLowerCase()) && l.amount > 0)
                         );
-                        
-                        fixedStatus.push({ name: f.name, paid: isPaid }); // Guardamos estado
-                        
+                        fixedStatus.push({ name: f.name, paid: isPaid });
                         if (!isPaid) fixedReserve += (parseFloat(f.amount) || 0);
                     } else {
                          fixedStatus.push({ name: f.name, paid: 'n/a' });
                     }
                 });
-                this.updateFixedUI(fixedStatus); // Actualizar UI con checkmarks
+                this.updateFixedUI(fixedStatus);
 
-                // FIX: Calcular Deudas Activas QUE VENCEN EN ESTE CICLO (o antes) para restar del disponible
                 const totalLoans = (this.data.loans || []).reduce((acc, loan) => {
                     const amount = parseFloat(loan.amount) || 0;
-                    
-                    // Si no tiene fecha, asumimos que es deuda corriente (se resta)
                     if (!loan.dueDate) return acc + amount;
-                    
-                    // Crear fecha vencimiento (comparable con pEnd)
                     const [y, m, d] = loan.dueDate.split('-').map(Number);
                     const due = new Date(y, m-1, d, 23, 59, 59);
-                    
-                    // Si la fecha de vencimiento es menor o igual al fin del periodo actual, la contamos
                     if (due <= pEnd) return acc + amount;
-                    
                     return acc;
                 }, 0);
 
-                const baseInc = parseFloat(this.data.income) || 0;
+                // --- DETERMINAR INGRESO DEL CICLO (Q1 vs Q2) ---
+                let baseInc = parseFloat(this.data.income) || 0;
+                if (this.data.cycle === 'biweekly') {
+                    // Start Day of current period tells us if we are in Q1 or Q2
+                    const periodStartDay = this.currentPeriod.start.getDate();
+                    // Q2 usually starts around day 15 or 16 depending on startDay
+                    const triggerQ2 = (this.data.startDay || 1) + 14; 
+                    if (periodStartDay >= triggerQ2) {
+                        // We are in Q2
+                        baseInc = parseFloat(this.data.incomeQ2) || baseInc; // Use Q2 income or fallback to Q1
+                    }
+                }
+
                 const liquidIncome = (baseInc + extraInc);
-                
-                // Dinero Realmente Disponible en la cuenta (Total - Fijos - Deudas - Gastado Total)
-                // FIX: Ahora restamos totalLoans
                 const remainingTotal = liquidIncome - fixedReserve - totalLoans - totalSpentInCycle;
-                
-                // --- LÓGICA CRÍTICA: PRESUPUESTO DE HOY ---
-                const daysLeft = this.currentPeriod.daysLeft; // Asegurado que es min 1
-                
-                // Dinero que "tenías" hoy antes de gastar nada
+                const daysLeft = this.currentPeriod.daysLeft;
                 const virtualAvailableStartOfDay = remainingTotal + todaySpent;
-                
-                // Tu límite teórico para hoy
                 const dailyLimit = virtualAvailableStartOfDay / daysLeft;
-                
-                // Tu saldo real de hoy (Límite - Gasto)
                 const balanceToday = dailyLimit - todaySpent;
 
-                // --- UI UPDATES ---
                 const dailyEl = document.getElementById('dailyFree');
                 const labelState = document.getElementById('labelDailyState');
                 const cardBg = document.getElementById('mainCardBg');
                 
-                // Formatear valor principal
                 if (this.isSimulating) {
-                    // MODO SIMULACIÓN (Verde/Emerald)
-                    dailyEl.textContent = UI.fmtMoney(balanceToday);
-                    dailyEl.className = 'text-emerald-400 font-black animate-pulse'; 
-                    labelState.textContent = 'SIMULACIÓN ACTIVADA';
-                    labelState.className = 'text-xs font-black text-emerald-500 uppercase tracking-widest';
-                    cardBg.classList.replace('bg-red-600/50', 'bg-emerald-600/20');
-                    cardBg.classList.replace('bg-red-600/20', 'bg-emerald-600/20');
-                    cardBg.classList.remove('animate-pulse-red');
-                    cardBg.classList.add('animate-pulse-green');
+                    dailyEl.textContent = UI.fmtMoney(balanceToday); dailyEl.className = 'text-emerald-400 font-black animate-pulse'; 
+                    labelState.textContent = 'SIMULACIÓN ACTIVADA'; labelState.className = 'text-xs font-black text-emerald-500 uppercase tracking-widest';
+                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-emerald-600/20 rounded-full blur-3xl transition-colors duration-500 animate-pulse-green';
                 } else if (balanceToday < 0) {
-                    // TE PASASTE (Rojo)
-                    dailyEl.textContent = UI.fmtMoney(balanceToday);
-                    dailyEl.className = 'text-red-500 animate-pulse font-black'; 
-                    labelState.textContent = 'EXCEDIDO HOY';
-                    labelState.className = 'text-xs font-black text-red-500 uppercase tracking-widest';
-                    cardBg.classList.replace('bg-red-600/20', 'bg-red-600/50');
-                    cardBg.classList.replace('bg-emerald-600/20', 'bg-red-600/50');
-                    cardBg.classList.remove('animate-pulse-green');
-                    cardBg.classList.add('animate-pulse-red');
+                    dailyEl.textContent = UI.fmtMoney(balanceToday); dailyEl.className = 'text-red-500 animate-pulse font-black'; 
+                    labelState.textContent = 'EXCEDIDO HOY'; labelState.className = 'text-xs font-black text-red-500 uppercase tracking-widest';
+                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/50 rounded-full blur-3xl transition-colors duration-500 animate-pulse-red';
                 } else {
-                    // TODO BIEN (Normal)
-                    dailyEl.textContent = UI.fmtMoney(balanceToday);
-                    dailyEl.className = 'text-white';
-                    labelState.textContent = 'DISPONIBLE HOY';
-                    labelState.className = 'text-xs font-bold text-zinc-400 uppercase tracking-widest';
-                    cardBg.classList.replace('bg-red-600/50', 'bg-red-600/20');
-                    cardBg.classList.replace('bg-emerald-600/20', 'bg-red-600/20');
-                    cardBg.classList.remove('animate-pulse-red');
-                    cardBg.classList.remove('animate-pulse-green');
+                    dailyEl.textContent = UI.fmtMoney(balanceToday); dailyEl.className = 'text-white';
+                    labelState.textContent = 'DISPONIBLE HOY'; labelState.className = 'text-xs font-bold text-zinc-400 uppercase tracking-widest';
+                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 rounded-full blur-3xl transition-colors duration-500';
                 }
 
-                // Actualizar desglose
                 document.getElementById('valDailyLimit').textContent = UI.fmtMoney(dailyLimit);
                 document.getElementById('valTodaySpent').textContent = UI.fmtMoney(todaySpent);
-                
-                // Actualizar totales generales
                 document.getElementById('totalFree').textContent = UI.fmtMoney(remainingTotal);
                 document.getElementById('totalFree').className = remainingTotal < 0 ? 'text-lg font-bold text-red-500' : 'text-lg font-bold text-zinc-200';
                 
@@ -1352,46 +1264,33 @@
             
             togglePrivacy() {
                 this.privacyMode = !this.privacyMode;
-                const blur = document.getElementById('dailyFreeBlur');
-                const icon = document.getElementById('eyeIcon');
+                const blur = document.getElementById('dailyFreeBlur'); const icon = document.getElementById('eyeIcon');
                 if(this.privacyMode) { blur.classList.remove('hidden'); icon.className = 'ph-fill ph-eye-slash text-lg'; }
                 else { blur.classList.add('hidden'); icon.className = 'ph ph-eye text-lg'; }
             },
 
             // --- RENDERING ---
             renderTransactions() {
-                const list = document.getElementById('transactionsList');
-                list.innerHTML = '';
-                
+                const list = document.getElementById('transactionsList'); list.innerHTML = '';
                 let visibleLogs = this.logs;
-                
                 if(this.searchQuery) {
                     const q = this.searchQuery.toLowerCase();
                     visibleLogs = visibleLogs.filter(l => (l.desc||'').toLowerCase().includes(q) || (l.category||'').toLowerCase().includes(q) || l.amount.toString().includes(q));
                 }
-                
                 if(!visibleLogs.length) { list.innerHTML = `<div class="text-center py-6 text-zinc-600 text-xs italic">No hay movimientos.</div>`; return; }
-                
                 const cats = DefaultCategories;
-
                 visibleLogs.slice(0,50).forEach(l => {
                     const isInc = l.type === 'income';
                     const cat = cats.find(c=>c.id === l.category) || {icon:'ph-question',color:'text-gray-500'};
                     const icon = isInc ? 'ph-arrow-down-left' : cat.icon;
                     const color = isInc ? 'text-emerald-500' : cat.color;
-                    // FIX: Visual indicator if fixed linked
                     const isFixedLink = l.meta_related_fixed ? '<i class="ph-bold ph-link text-zinc-600 ml-1" title="Vinculado a Gasto Fijo"></i>' : '';
                     
                     list.innerHTML += `
                     <div onclick="app.openModal('${isInc?'extra':'expense'}','${l.id}')" class="flex justify-between items-center p-3 rounded-2xl hover:bg-zinc-900/50 transition-colors cursor-pointer border border-transparent hover:border-zinc-800 group active:scale-[0.99] active:bg-zinc-900 md:bg-zinc-900/20 md:mb-2">
                         <div class="flex items-center gap-4 overflow-hidden">
-                            <div class="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform md:bg-black">
-                                <i class="ph-fill ${icon} ${color} text-xl"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <h4 class="font-bold text-zinc-300 text-sm truncate flex items-center">${l.desc || l.category || 'Movimiento'} ${isFixedLink}</h4>
-                                <p class="text-xs text-zinc-500">${new Date(l.date).toLocaleDateString()}</p>
-                            </div>
+                            <div class="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform md:bg-black"><i class="ph-fill ${icon} ${color} text-xl"></i></div>
+                            <div class="min-w-0"><h4 class="font-bold text-zinc-300 text-sm truncate flex items-center">${l.desc || l.category || 'Movimiento'} ${isFixedLink}</h4><p class="text-xs text-zinc-500">${new Date(l.date).toLocaleDateString()}</p></div>
                         </div>
                         <span class="font-bold text-base ${isInc?'text-emerald-500':'text-zinc-300'} whitespace-nowrap">${isInc?'+':'-'}${UI.fmtMoney(l.amount)}</span>
                     </div>`;
@@ -1399,16 +1298,12 @@
             },
 
             renderFixed() {
-                // Se llama inicialmente, pero calcBalance actualiza el estado visual después
                 const el = document.getElementById('fixedExpensesList'); el.innerHTML='';
                 (this.data.fixed || []).sort((a,b)=>a.day-b.day).forEach((f,i) => {
                     el.innerHTML += `
                     <div class="fixed-item-row flex items-center justify-between p-3.5 bg-zinc-900/50 border border-zinc-800 rounded-2xl mb-2 active:scale-[0.99] transition-transform" data-name="${f.name}">
                         <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="app.openModal('fixed', ${i})">
-                            <div class="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center font-bold text-xs text-zinc-400 relative">
-                                ${f.day}
-                                <div class="status-dot absolute -top-1 -right-1 w-3 h-3 bg-zinc-700 rounded-full border-2 border-[#050505] hidden"></div>
-                            </div>
+                            <div class="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center font-bold text-xs text-zinc-400 relative">${f.day}<div class="status-dot absolute -top-1 -right-1 w-3 h-3 bg-zinc-700 rounded-full border-2 border-[#050505] hidden"></div></div>
                             <div class="min-w-0"><div class="font-bold text-sm text-zinc-200 truncate">${f.name}</div><div class="text-xs text-zinc-500">${UI.fmtMoney(f.amount)}</div></div>
                         </div>
                         <button onclick="app.payFixed(${i})" class="bg-zinc-800 hover:bg-red-600 hover:text-white text-zinc-400 text-[10px] font-bold px-3 py-2 rounded-lg transition-colors ml-2" title="Registrar Pago Hoy">PAGAR</button>
@@ -1417,52 +1312,28 @@
             },
             
             updateFixedUI(statusArray) {
-                // Actualiza visualmente los puntos de estado (pagado o no)
                 const rows = document.querySelectorAll('.fixed-item-row');
                 rows.forEach(row => {
-                    const name = row.dataset.name;
-                    const status = statusArray.find(s => s.name === name);
-                    const dot = row.querySelector('.status-dot');
-                    const btn = row.querySelector('button');
+                    const name = row.dataset.name; const status = statusArray.find(s => s.name === name);
+                    const dot = row.querySelector('.status-dot'); const btn = row.querySelector('button');
                     
-                    if (status && status.paid === true) {
-                        dot.classList.remove('hidden', 'bg-zinc-700');
-                        dot.classList.add('bg-emerald-500');
-                        btn.classList.add('opacity-50', 'pointer-events-none');
-                        btn.textContent = 'LISTO';
-                    } else if (status && status.paid === false) {
-                        dot.classList.remove('hidden', 'bg-emerald-500');
-                        dot.classList.add('bg-zinc-700');
-                        btn.classList.remove('opacity-50', 'pointer-events-none');
-                        btn.textContent = 'PAGAR';
-                    } else {
-                        dot.classList.add('hidden');
-                    }
+                    if (status && status.paid === true) { dot.classList.remove('hidden', 'bg-zinc-700'); dot.classList.add('bg-emerald-500'); btn.classList.add('opacity-50', 'pointer-events-none'); btn.textContent = 'LISTO'; } 
+                    else if (status && status.paid === false) { dot.classList.remove('hidden', 'bg-emerald-500'); dot.classList.add('bg-zinc-700'); btn.classList.remove('opacity-50', 'pointer-events-none'); btn.textContent = 'PAGAR'; } 
+                    else { dot.classList.add('hidden'); }
                 });
             },
             
             renderLoans() {
                 const el = document.getElementById('loansList'); el.innerHTML='';
                 if(!this.data.loans?.length) el.innerHTML = '<div class="text-zinc-700 text-xs text-center py-2 col-span-2">Sin deudas activas</div>';
-                
                 const pEnd = this.currentPeriod ? this.currentPeriod.end : new Date(2100,0,1);
-
                 (this.data.loans || []).forEach((l,i) => {
                     const [y, m, d] = l.dueDate ? l.dueDate.split('-').map(Number) : [0,0,0];
-                    const due = l.dueDate ? new Date(y, m-1, d, 23, 59, 59) : new Date(0); // If no date, treat as urgent/past
+                    const due = l.dueDate ? new Date(y, m-1, d, 23, 59, 59) : new Date(0); 
                     const affectsBudget = !l.dueDate || due <= pEnd;
-                    
                     const opacityClass = affectsBudget ? '' : 'opacity-50 grayscale';
                     const badge = affectsBudget ? '' : '<span class="text-[9px] bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded ml-2 border border-zinc-700">Próx. Ciclo</span>';
-
-                    el.innerHTML += `
-                    <div onclick="app.openModal('loan', ${i})" class="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center mb-2 active:scale-[0.99] ${opacityClass}">
-                        <div>
-                            <div class="font-bold text-sm text-white flex items-center">${l.name} ${badge}</div>
-                            <div class="text-xs text-red-400">Vence: ${l.dueDate||'Sin fecha'}</div>
-                        </div>
-                        <div class="text-right font-bold text-base text-zinc-300">${UI.fmtMoney(l.amount)}</div>
-                    </div>`;
+                    el.innerHTML += `<div onclick="app.openModal('loan', ${i})" class="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center mb-2 active:scale-[0.99] ${opacityClass}"><div><div class="font-bold text-sm text-white flex items-center">${l.name} ${badge}</div><div class="text-xs text-red-400">Vence: ${l.dueDate||'Sin fecha'}</div></div><div class="text-right font-bold text-base text-zinc-300">${UI.fmtMoney(l.amount)}</div></div>`;
                 });
             },
             
@@ -1470,16 +1341,7 @@
                 const el = document.getElementById('goalsList'); el.innerHTML='';
                 (this.data.goals || []).forEach((g,i) => {
                     const pct = Math.min(100, Math.round((g.saved / g.target) * 100));
-                    el.innerHTML += `
-                    <div onclick="app.openModal('goal', ${i})" class="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer hover:border-pink-500/30 transition-colors mb-2">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs font-bold text-white">${g.name}</span>
-                            <span class="text-[10px] text-pink-400 font-bold">${UI.fmtMoney(g.saved)} / ${UI.fmtMoney(g.target)}</span>
-                        </div>
-                        <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
-                            <div class="h-full bg-pink-500 transition-all" style="width: ${pct}%"></div>
-                        </div>
-                    </div>`;
+                    el.innerHTML += `<div onclick="app.openModal('goal', ${i})" class="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer hover:border-pink-500/30 transition-colors mb-2"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-white">${g.name}</span><span class="text-[10px] text-pink-400 font-bold">${UI.fmtMoney(g.saved)} / ${UI.fmtMoney(g.target)}</span></div><div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-pink-500 transition-all" style="width: ${pct}%"></div></div></div>`;
                 });
             },
             
@@ -1491,104 +1353,64 @@
                 const pStart = this.currentPeriod.start; const pEnd = this.currentPeriod.end;
                 const periodLogs = this.logs.filter(l => l.type === 'expense' && new Date(l.date).getTime() >= pStart.getTime() && new Date(l.date).getTime() <= pEnd.getTime());
                 
-                // 1. Donut Chart (Categorías)
-                const cats = {};
-                periodLogs.forEach(l => { cats[l.category] = (cats[l.category]||0) + l.amount; });
-                
+                const cats = {}; periodLogs.forEach(l => { cats[l.category] = (cats[l.category]||0) + l.amount; });
                 if(this.charts.donut) this.charts.donut.destroy();
-                this.charts.donut = new Chart(document.getElementById('expenseChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: Object.keys(cats),
-                        datasets: [{ data: Object.values(cats), backgroundColor: ['#fb923c','#60a5fa','#c084fc','#facc15','#ec4899','#f87171','#34d399','#818cf8','#9ca3af'], borderWidth:0 }]
-                    },
-                    options: { responsive:true, maintainAspectRatio:false, cutout:'75%', plugins:{ legend:{position:'right',labels:{color:'#71717a',font:{size:10,family:'Plus Jakarta Sans'},boxWidth:8,usePointStyle:true}} } }
-                });
+                this.charts.donut = new Chart(document.getElementById('expenseChart'), { type: 'doughnut', data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#fb923c','#60a5fa','#c084fc','#facc15','#ec4899','#f87171','#34d399','#818cf8','#9ca3af'], borderWidth:0 }] }, options: { responsive:true, maintainAspectRatio:false, cutout:'75%', plugins:{ legend:{position:'right',labels:{color:'#71717a',font:{size:10,family:'Plus Jakarta Sans'},boxWidth:8,usePointStyle:true}} } } });
 
-                // 2. Trend Line Chart (Burn-down)
-                const days = [];
-                const dailySpending = {};
-                const currentDay = new Date(pStart);
-                while (currentDay <= pEnd) {
-                    const key = currentDay.getDate() + '/' + (currentDay.getMonth()+1);
-                    days.push(key);
-                    dailySpending[key] = 0;
-                    currentDay.setDate(currentDay.getDate() + 1);
-                }
+                const days = []; const dailySpending = {}; const currentDay = new Date(pStart);
+                while (currentDay <= pEnd) { const key = currentDay.getDate() + '/' + (currentDay.getMonth()+1); days.push(key); dailySpending[key] = 0; currentDay.setDate(currentDay.getDate() + 1); }
+                periodLogs.forEach(l => { const d = new Date(l.date); const key = d.getDate() + '/' + (d.getMonth()+1); if(dailySpending[key] !== undefined) dailySpending[key] += l.amount; });
 
-                periodLogs.forEach(l => {
-                    const d = new Date(l.date);
-                    const key = d.getDate() + '/' + (d.getMonth()+1);
-                    if(dailySpending[key] !== undefined) dailySpending[key] += l.amount;
-                });
-
-                const dataPoints = [];
-                let accum = 0;
-                days.forEach(d => {
-                    accum += dailySpending[d];
-                    dataPoints.push(accum);
-                });
+                const dataPoints = []; let accum = 0; days.forEach(d => { accum += dailySpending[d]; dataPoints.push(accum); });
                 
                 const totalBudget = (this.data.income || 0) - (this.data.fixed||[]).reduce((a,b)=>a+b.amount,0); 
                 const idealPoints = days.map((_, i) => (totalBudget / days.length) * (i + 1));
 
                 if(this.charts.line) this.charts.line.destroy();
-                this.charts.line = new Chart(document.getElementById('trendChart'), {
-                    type: 'line',
-                    data: {
-                        labels: days.filter((_,i) => i % 2 === 0),
-                        datasets: [
-                            { label: 'Gasto Acumulado', data: dataPoints, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.3, fill: true, pointRadius: 2 },
-                            { label: 'Límite Ideal', data: idealPoints, borderColor: '#3f3f46', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, tension: 0.1 }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: { y: { display: false, grid: { display: false } }, x: { grid: { display: false }, ticks: { color: '#52525b', font: { size: 9 } } } }
-                    }
-                });
+                this.charts.line = new Chart(document.getElementById('trendChart'), { type: 'line', data: { labels: days.filter((_,i) => i % 2 === 0), datasets: [ { label: 'Gasto Acumulado', data: dataPoints, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.3, fill: true, pointRadius: 2 }, { label: 'Límite Ideal', data: idealPoints, borderColor: '#3f3f46', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, tension: 0.1 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false, grid: { display: false } }, x: { grid: { display: false }, ticks: { color: '#52525b', font: { size: 9 } } } } } });
             },
 
             renderAnalysisMetrics() {
                 if(!this.logs.length || !this.currentPeriod) return;
                 const pStart = this.currentPeriod.start; const pEnd = this.currentPeriod.end;
                 const periodLogs = this.logs.filter(l => l.type === 'expense' && new Date(l.date).getTime() >= pStart.getTime() && new Date(l.date).getTime() <= pEnd.getTime());
-                
                 const totalSpent = periodLogs.reduce((a,b)=>a+b.amount,0);
                 const dayDiff = Math.max(1, Math.ceil((new Date() - pStart) / (1000 * 60 * 60 * 24)));
                 const avg = totalSpent / dayDiff;
                 document.getElementById('statDailyAvg').textContent = UI.fmtMoney(avg);
-
-                const cats = {};
-                periodLogs.forEach(l => { cats[l.category] = (cats[l.category]||0) + l.amount; });
+                const cats = {}; periodLogs.forEach(l => { cats[l.category] = (cats[l.category]||0) + l.amount; });
                 const maxCat = Object.keys(cats).reduce((a, b) => cats[a] > cats[b] ? a : b, '---');
                 document.getElementById('statMaxCat').textContent = maxCat;
-                
                 const income = this.logs.filter(l => l.type === 'income' && new Date(l.date).getTime() >= pStart.getTime() && new Date(l.date).getTime() <= pEnd.getTime());
                 const totalInc = income.reduce((a,b)=>a+b.amount,0) + (this.data.income || 0);
                 document.getElementById('statTotalInc').textContent = UI.fmtMoney(totalInc);
                 document.getElementById('statTotalExp').textContent = UI.fmtMoney(totalSpent);
             },
             
-            // --- NUEVA LÓGICA DE SIMULACIÓN ---
+            // --- NUEVA LÓGICA DE SIMULACIÓN (CORREGIDA) ---
             updateSimulation() {
                 const months = ['Mes 1', 'Mes 2', 'Mes 3', 'Mes 4', 'Mes 5', 'Mes 6'];
-                const income = parseFloat(this.data.income) || 0;
+                let monthlyIncome = parseFloat(this.data.income) || 0;
+                
+                // Si es quincenal, el ingreso mensual es Q1 + Q2 (o Q1 * 2 si Q2 está vacío)
+                if (this.data.cycle === 'biweekly') {
+                    const q1 = monthlyIncome;
+                    const q2 = parseFloat(this.data.incomeQ2) || q1; // Fallback a Q1 si Q2 es 0
+                    monthlyIncome = q1 + q2;
+                    document.getElementById('simIncomeDesc').textContent = 'Suma de ambas quincenas';
+                } else {
+                    document.getElementById('simIncomeDesc').textContent = 'Ingreso único mensual';
+                }
+
                 const fixedList = this.data.fixed || [];
                 const totalFixed = fixedList.reduce((a,b) => a + b.amount, 0);
                 
-                // Calcular gasto variable promedio real (últimos 60 días) para la proyección del chart
-                // Pero para la vista principal, solo mostramos Neto (Ingreso - Fijos)
+                const freeMoney = monthlyIncome - totalFixed;
                 
-                const freeMoney = income - totalFixed;
-                
-                // Renderizar valores principales
                 document.getElementById('simFreeMoney').textContent = UI.fmtMoney(freeMoney);
-                document.getElementById('simIncomeVal').textContent = '+' + UI.fmtMoney(income);
+                document.getElementById('simIncomeVal').textContent = '+' + UI.fmtMoney(monthlyIncome);
                 document.getElementById('simTotalFixed').textContent = '-' + UI.fmtMoney(totalFixed);
                 
-                // Renderizar Lista de Fijos
                 const listEl = document.getElementById('simFixedList');
                 listEl.innerHTML = '';
                 
@@ -1610,10 +1432,8 @@
                     });
                 }
                 
-                // --- Chart Proyección (Simple: Ahorro acumulado asumiendo un gasto variable X) ---
-                // Asumimos un gasto variable promedio del 40% del ingreso si no hay datos
-                // Esto es solo visual para rellenar la parte inferior
-                const estimatedVar = income * 0.4; 
+                // --- Chart Proyección ---
+                const estimatedVar = monthlyIncome * 0.4; // 40% gasto variable estimado
                 const projectedMonthlySavings = freeMoney - estimatedVar;
                 
                 let currentBal = 0;
@@ -1788,8 +1608,9 @@
             
             async saveConfig() {
                 const inc = parseFloat(document.getElementById('inpIncome').value);
-                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{income:inc});
-                UI.toast('Ingreso actualizado','success');
+                const incQ2 = parseFloat(document.getElementById('inpIncomeQ2').value);
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{income:inc, incomeQ2: incQ2});
+                UI.toast('Ingresos actualizados','success');
             },
             
             setCycleMode(mode) {
