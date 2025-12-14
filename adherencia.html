@@ -200,7 +200,7 @@
                     <div class="text-[0.7rem] uppercase tracking-widest text-text-mute font-extrabold mb-1.5" id="clockStatus">TURNO ACTIVO</div>
                     <div class="text-[clamp(2.5rem,12vw,4rem)] font-extrabold text-text tabular-nums leading-none" id="clockDisplay">00:00</div>
                     <div id="networkTimeBadge" class="text-[0.65rem] text-money font-bold mt-1.5 opacity-0 transition-opacity duration-500">
-                        <i class="ph-bold ph-globe"></i> Sync
+                        <i class="ph-bold ph-globe"></i> Local
                     </div>
                 </div>
 
@@ -485,23 +485,7 @@
             currentTheme: 'light', editingTimerType: null, timeOffset: 0, lastSync: 0, isSyncing: false, nextSyncAllowed: 0,
 
             init() {
-                this.syncNetworkTime();
-                
-                // ACTUALIZACIÓN AUTOMÁTICA
-                document.addEventListener("visibilitychange", () => {
-                    if (document.visibilityState === 'visible') {
-                        if (Date.now() > this.nextSyncAllowed && Date.now() - this.lastSync > 60000) {
-                            this.syncNetworkTime();
-                        }
-                    }
-                });
-
-                window.addEventListener("online", () => this.syncNetworkTime());
-
-                // Sync loop más robusto
-                setInterval(() => {
-                    this.syncNetworkTime();
-                }, 300000); // 5 min
+                // Se eliminó la llamada a syncNetworkTime para evitar errores de conexión
                 
                 // Forzar actualización inmediata del reloj
                 this.updateRealClockUI();
@@ -546,135 +530,32 @@
                 });
             },
 
-            // Lógica MEJORADA para el Sync Time (A prueba de firewall de oficina)
+            // Función simplificada para el Sync Time (Solo stubs para evitar errores)
             async syncNetworkTime(force = false) {
-                if (this.isSyncing) return;
-                const now = Date.now();
-                if (!force && now < this.nextSyncAllowed) return;
-
-                this.isSyncing = true;
-                const badge = document.getElementById('networkTimeBadge');
-                const dot = document.getElementById('syncDot'); 
-                if (badge) { badge.classList.remove('opacity-0'); badge.style.opacity = '0.5'; }
-
-                // ESTRATEGIA: Intentar varios métodos hasta que uno funcione
-                // Método 1: API JSON Simple (timeapi.io)
-                // Método 2: API JSON Respaldo (worldtimeapi.org)
-                // Método 3: TRUCO DE SERVIDOR (Bypasea firewall de oficina casi siempre) -> Headers de la propia página
-                
-                const fetchWithTimeout = async (url, options = {}) => {
-                    const controller = new AbortController();
-                    const id = setTimeout(() => controller.abort(), 5000);
-                    try {
-                        const res = await fetch(url, { ...options, signal: controller.signal, cache: 'no-store' });
-                        clearTimeout(id);
-                        if (!res.ok) throw new Error("Status " + res.status);
-                        return res;
-                    } catch (e) {
-                        clearTimeout(id);
-                        throw e;
-                    }
-                };
-
-                try {
-                    const start = Date.now();
-                    let serverTime = 0;
-                    let source = "";
-
-                    // INTENTO 1: TimeAPI
-                    try {
-                        const res = await fetchWithTimeout('https://timeapi.io/api/Time/current/zone?timeZone=America/Mexico_City');
-                        const data = await res.json();
-                        serverTime = new Date(data.dateTime).getTime();
-                        source = "TimeAPI";
-                    } catch (err1) {
-                        // INTENTO 2: WorldTimeAPI
-                        try {
-                            const res = await fetchWithTimeout('https://worldtimeapi.org/api/timezone/America/Mexico_City');
-                            const data = await res.json();
-                            serverTime = new Date(data.datetime).getTime();
-                            source = "WorldTime";
-                        } catch (err2) {
-                            // INTENTO 3: SERVER HEADER FALLBACK (El más robusto para oficinas)
-                            // Hacemos un HEAD request a la propia página. 
-                            // Si la página carga, el servidor responde, y el servidor tiene la hora correcta.
-                            // Esto evita el bloqueo de "sitios desconocidos" del firewall.
-                            const res = await fetchWithTimeout(window.location.href + '?' + start, { method: 'HEAD' });
-                            const dateHeader = res.headers.get('date');
-                            if(!dateHeader) throw new Error("No date header");
-                            serverTime = new Date(dateHeader).getTime();
-                            source = "ServerHeader";
-                        }
-                    }
-                    
-                    const end = Date.now();
-                    const latency = (end - start) / 2;
-                    this.timeOffset = (serverTime + latency) - end;
-                    this.lastSync = Date.now();
-                    this.nextSyncAllowed = 0; // Éxito
-                    
-                    if(badge) {
-                        badge.style.opacity = '1';
-                        badge.innerHTML = `<i class="ph-bold ph-globe"></i> Sync OK`;
-                        badge.style.color = 'var(--money)';
-                        setTimeout(() => { 
-                            if(badge) badge.innerHTML = `<i class="ph-bold ph-globe"></i> Sync`; 
-                        }, 5000);
-                    }
-                    if (dot) {
-                        dot.classList.remove('bg-red-500');
-                        dot.classList.add('bg-emerald-500');
-                        dot.classList.add('shadow-[0_0_8px_rgba(16,185,129,0.5)]');
-                    }
-                    console.log(`Time synced via ${source}. Offset: ${this.timeOffset}ms`);
-
-                } catch (e) {
-                    console.log("Time sync failed completely. Using existing offset or local time."); 
-                    // NO resetear offset a 0 si falla, mantener el último bueno si existe.
-                    // Solo resetear si nunca se ha sincronizado y la diferencia es absurda (opcional)
-                    
-                    this.lastSync = Date.now(); 
-                    this.nextSyncAllowed = Date.now() + 60000; // Reintentar en 1 min
-                    
-                    if(badge) { 
-                        badge.style.opacity = '1'; 
-                        badge.style.color = 'var(--text-mute)';
-                        badge.innerHTML = `<i class="ph-bold ph-desktop"></i> PC Time`; 
-                    }
-                    if (dot) {
-                        dot.classList.remove('bg-emerald-500');
-                        dot.classList.remove('shadow-[0_0_8px_rgba(16,185,129,0.5)]');
-                        dot.classList.add('bg-red-500');
-                    }
-                } finally {
-                    this.isSyncing = false;
-                }
+                // Ya no intentamos conectar a servidores externos para evitar ERR_CONNECTION_RESET
+                this.isSyncing = false;
             },
 
             // Función dedicada para actualizar el Reloj Real del Header
             updateRealClockUI() {
-                const now = this.getNow();
+                const now = new Date();
                 const clockEl = document.getElementById('realClockTime');
+                
                 if (clockEl) {
                     try {
-                        // Intentar formato CDMX
-                        const timeStr = new Date(now).toLocaleTimeString('es-MX', {
+                        // Formatea la hora especificando la zona horaria de CDMX
+                        const horaCDMX = new Intl.DateTimeFormat('es-MX', {
                             timeZone: 'America/Mexico_City',
                             hour: '2-digit',
                             minute: '2-digit',
                             second: '2-digit',
-                            hour12: false
-                        });
-                        clockEl.textContent = timeStr;
+                            hour12: false // Cambia a true si prefieres formato AM/PM
+                        }).format(now);
+                        
+                        clockEl.textContent = horaCDMX;
                     } catch (e) {
-                        // Fallback a hora local si el dispositivo no soporta timeZone específico
-                        const timeStr = new Date(now).toLocaleTimeString('es-MX', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                            hour12: false
-                        });
-                        clockEl.textContent = timeStr;
+                        // Fallback simple
+                        clockEl.textContent = now.toLocaleTimeString();
                     }
                 }
             },
