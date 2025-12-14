@@ -850,45 +850,62 @@
                     return;
                 }
 
-                // 1. Agrupar por mes Y Quincena (YYYY-MM-Q1 o Q2)
+                // Configuración de Ingreso Base
+                const baseIncome = parseFloat(this.data.income) || 0;
+                const cycleMode = this.data.cycle || 'biweekly';
+
+                // 1. Agrupar por mes Y Quincena
                 const groups = {};
-                let netWorth = 0;
+                let loggedNetWorth = 0; // Solo logs reales
 
                 this.logs.forEach(l => {
                     const d = new Date(l.date);
-                    // Determinar Q1 (Días 1-15) o Q2 (Días 16+)
+                    // Q1: 1-15, Q2: 16-31
                     const day = d.getDate();
                     const qLabel = day <= 15 ? 'Q1' : 'Q2';
                     const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${qLabel}`;
                     
-                    if(!groups[k]) groups[k] = { income:0, expense:0, date: d, count:0, q: qLabel };
+                    if(!groups[k]) groups[k] = { income:0, expense:0, date: d, count:0, q: qLabel, realIncomeLogs: 0 };
                     
                     if(l.type === 'income') {
                         groups[k].income += l.amount;
-                        netWorth += l.amount;
+                        groups[k].realIncomeLogs += l.amount;
+                        loggedNetWorth += l.amount;
                     } else {
                         groups[k].expense += l.amount;
-                        netWorth -= l.amount;
+                        loggedNetWorth -= l.amount;
                     }
                     groups[k].count++;
                 });
 
-                // Actualizar Patrimonio Neto Visual
+                // Calcular Net Worth "Proyectado" (Sumando base a la historia visible es peligroso, mejor mostrar el real de logs + saldo actual derivado)
                 const nwEl = document.getElementById('netWorthDisplay');
-                nwEl.textContent = UI.fmtMoney(netWorth);
-                nwEl.className = `text-4xl font-black tracking-tighter ${netWorth >= 0 ? 'text-white' : 'text-red-500'}`;
+                // Mostramos el cálculo basado en logs puros para "Patrimonio", ya que es acumulado histórico real registrado.
+                nwEl.textContent = UI.fmtMoney(loggedNetWorth); 
+                nwEl.className = `text-4xl font-black tracking-tighter ${loggedNetWorth >= 0 ? 'text-white' : 'text-red-500'}`;
 
-                // 2. Ordenar grupos (más reciente primero)
-                // Usamos key string comparison que funciona bien (YYYY-MM-Q2 > YYYY-MM-Q1)
                 const sortedKeys = Object.keys(groups).sort((a,b) => b.localeCompare(a));
                 
                 container.innerHTML = '';
                 
-                // 3. Generar HTML
                 sortedKeys.forEach(key => {
                     const g = groups[key];
-                    const balance = g.income - g.expense;
-                    const savingsRate = g.income > 0 ? ((g.income - g.expense) / g.income) * 100 : 0;
+                    
+                    // --- INYECCIÓN DE INGRESO BASE ---
+                    // Si es quincenal, se suma en Q1 y Q2. Si es mensual, solo en Q1.
+                    let periodBaseIncome = 0;
+                    if (cycleMode === 'biweekly') {
+                        periodBaseIncome = baseIncome;
+                    } else {
+                        // Mensual: solo sumar en la primera quincena
+                        if (g.q === 'Q1') periodBaseIncome = baseIncome;
+                    }
+
+                    // Total Ingresos para visualizar en la tarjeta (Suma real + Base configurado)
+                    const totalPeriodIncome = g.income + periodBaseIncome;
+                    
+                    const balance = totalPeriodIncome - g.expense;
+                    const savingsRate = totalPeriodIncome > 0 ? ((totalPeriodIncome - g.expense) / totalPeriodIncome) * 100 : 0;
                     
                     // Lógica de "Vibe"
                     let vibeIcon = 'ph-mask-happy';
@@ -912,8 +929,8 @@
                     const qText = g.q === 'Q1' ? '1ª Quincena' : '2ª Quincena';
 
                     // Barra de salud financiera (Income vs Expense visual)
-                    const maxVal = Math.max(g.income, g.expense);
-                    const incPct = maxVal > 0 ? (g.income / maxVal) * 100 : 0;
+                    const maxVal = Math.max(totalPeriodIncome, g.expense);
+                    const incPct = maxVal > 0 ? (totalPeriodIncome / maxVal) * 100 : 0;
                     const expPct = maxVal > 0 ? (g.expense / maxVal) * 100 : 0;
 
                     container.innerHTML += `
@@ -943,7 +960,7 @@
                                 <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
                                     <div class="h-full bg-emerald-500/80 rounded-full" style="width: ${incPct}%"></div>
                                 </div>
-                                <span class="text-[10px] w-16 text-right text-emerald-400 font-mono">${UI.fmtMoney(g.income)}</span>
+                                <span class="text-[10px] w-16 text-right text-emerald-400 font-mono">${UI.fmtMoney(totalPeriodIncome)}</span>
                             </div>
                             <!-- Gasto -->
                             <div class="flex items-center gap-2">
