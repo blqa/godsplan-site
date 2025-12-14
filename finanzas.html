@@ -455,7 +455,7 @@
                 </div>
             </section>
 
-            <!-- VISTA: SIMULACIÓN (MODIFICADA: LÓGICA MENSUAL REAL) -->
+            <!-- VISTA: SIMULACIÓN (MODIFICADA: DOS TARJETAS + DESGLOSE) -->
             <section id="view-simulation" class="p-4 sm:p-0 hidden fade-in max-w-2xl mx-auto pb-24">
                 <h2 class="text-2xl font-black text-white mb-1">Simulador Mensual</h2>
                 <p class="text-zinc-500 text-xs mb-6">Proyección mensual real (Ingreso Total - Fijos Mensuales).</p>
@@ -472,18 +472,39 @@
 
                 <!-- DESGLOSE -->
                 <div class="space-y-4">
-                    <!-- Ingresos -->
+                    <!-- TARJETA 1: Ingreso Base (Salario) -->
                     <div class="flex justify-between items-center p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                                 <i class="ph-bold ph-money text-xl"></i>
                             </div>
                             <div>
-                                <div class="text-sm font-bold text-white">Ingreso Mensual Total</div>
+                                <div class="text-sm font-bold text-white">Salario Base</div>
                                 <div class="text-[10px] text-zinc-500" id="simIncomeDesc">Calculado según tu ciclo</div>
                             </div>
                         </div>
-                        <div class="font-bold text-emerald-400" id="simIncomeVal">---</div>
+                        <div class="font-bold text-emerald-400" id="simBaseIncomeVal">---</div>
+                    </div>
+
+                    <!-- TARJETA 2: Ingresos Adicionales (Con Desglose) -->
+                    <div class="rounded-2xl bg-zinc-900/50 border border-zinc-800 overflow-hidden">
+                        <div class="flex justify-between items-center p-4 border-b border-zinc-800/50 bg-zinc-900/30">
+                             <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                    <i class="ph-bold ph-trend-up text-xl"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-bold text-white">Ingresos Adicionales</div>
+                                    <div class="text-[10px] text-zinc-500">Extras detectados este mes</div>
+                                </div>
+                            </div>
+                             <div class="font-bold text-blue-400" id="simTotalExtraVal">---</div>
+                        </div>
+                        <!-- Lista Desglose de Extras -->
+                        <div id="simExtraList" class="p-2 space-y-1">
+                            <!-- Items injected by JS -->
+                            <div class="text-center text-[10px] text-zinc-600 py-2 italic">Sin ingresos extra este mes</div>
+                        </div>
                     </div>
 
                     <!-- Separator -->
@@ -1397,29 +1418,53 @@
                     const q1 = monthlyIncome;
                     const q2 = parseFloat(this.data.incomeQ2) || q1; // Fallback a Q1 si Q2 es 0
                     monthlyIncome = q1 + q2;
-                    document.getElementById('simIncomeDesc').textContent = 'Suma de ambas quincenas + Extras del mes'; // Updated label
+                    document.getElementById('simIncomeDesc').textContent = 'Suma de ambas quincenas';
                 } else {
-                    document.getElementById('simIncomeDesc').textContent = 'Ingreso único mensual + Extras del mes'; // Updated label
+                    document.getElementById('simIncomeDesc').textContent = 'Ingreso único mensual';
                 }
+                
+                // Actualizar Tarjeta 1 (Salario Base)
+                document.getElementById('simBaseIncomeVal').textContent = UI.fmtMoney(monthlyIncome);
 
-                // --- NUEVO: Sumar Ingresos Extras (Prestamos, Horas Extras, etc.) del MES ACTUAL ---
+                // --- CALCULAR INGRESOS EXTRAS ---
                 const now = new Date();
                 const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
                 const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
                 
-                const extraMonthIncome = this.logs
-                    .filter(l => l.type === 'income' && new Date(l.date) >= startOfMonth && new Date(l.date) <= endOfMonth)
-                    .reduce((a, b) => a + b.amount, 0);
+                const extraLogs = this.logs.filter(l => 
+                    l.type === 'income' && 
+                    new Date(l.date) >= startOfMonth && 
+                    new Date(l.date) <= endOfMonth
+                );
+                
+                const extraMonthIncome = extraLogs.reduce((a, b) => a + b.amount, 0);
+                
+                // Actualizar Tarjeta 2 (Extras + Desglose)
+                document.getElementById('simTotalExtraVal').textContent = '+' + UI.fmtMoney(extraMonthIncome);
+                
+                const extraListEl = document.getElementById('simExtraList');
+                extraListEl.innerHTML = '';
+                
+                if (extraLogs.length === 0) {
+                    extraListEl.innerHTML = '<div class="text-center text-[10px] text-zinc-600 py-2 italic">Sin ingresos extra este mes</div>';
+                } else {
+                    extraLogs.forEach(l => {
+                        extraListEl.innerHTML += `
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-zinc-400 truncate max-w-[70%]">${l.desc || l.category}</span>
+                            <span class="text-emerald-500 font-mono">+${UI.fmtMoney(l.amount)}</span>
+                        </div>
+                        `;
+                    });
+                }
 
-                monthlyIncome += extraMonthIncome;
-
+                const totalMonthlyIncome = monthlyIncome + extraMonthIncome;
                 const fixedList = this.data.fixed || [];
                 const totalFixed = fixedList.reduce((a,b) => a + b.amount, 0);
                 
-                const freeMoney = monthlyIncome - totalFixed;
+                const freeMoney = totalMonthlyIncome - totalFixed;
                 
                 document.getElementById('simFreeMoney').textContent = UI.fmtMoney(freeMoney);
-                document.getElementById('simIncomeVal').textContent = '+' + UI.fmtMoney(monthlyIncome);
                 document.getElementById('simTotalFixed').textContent = '-' + UI.fmtMoney(totalFixed);
                 
                 const listEl = document.getElementById('simFixedList');
@@ -1444,7 +1489,7 @@
                 }
                 
                 // --- Chart Proyección ---
-                const estimatedVar = monthlyIncome * 0.4; // 40% gasto variable estimado
+                const estimatedVar = totalMonthlyIncome * 0.4; // 40% gasto variable estimado
                 const projectedMonthlySavings = freeMoney - estimatedVar;
                 
                 let currentBal = 0;
