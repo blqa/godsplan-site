@@ -10,8 +10,31 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- IMPORTANTE: TAILWIND CSS AGREGADO PARA QUE FUNCIONEN LAS CLASES DEL NAV -->
+    <!-- TAILWIND CSS & CONFIGURACIÓN DE TEMA -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: 'var(--bg)',
+                        card: 'var(--card)',
+                        text: 'var(--text)',
+                        'text-mute': 'var(--text-mute)',
+                        brand: 'var(--brand)',
+                        money: 'var(--money)',
+                        alert: 'var(--alert)',
+                        warn: 'var(--warn)',
+                        border: 'var(--border)',
+                        'input-bg': 'var(--input-bg)',
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
     <!-- FIREBASE MODULAR (v9+) -->
     <script type="module">
@@ -27,8 +50,8 @@
     </script>
 
     <style>
+        /* --- DEFINICIÓN DE VARIABLES DE TEMA --- */
         :root {
-            /* VALORES BASE (SE SOBREESCRIBEN POR TEMAS) */
             --bg: #f8fafc;
             --card: #ffffff;
             --text: #0f172a;
@@ -41,7 +64,6 @@
             --input-bg: #f8fafc;
         }
 
-        /* TEMA OSCURO (SLATE) */
         [data-theme="dark"] {
             --bg: #0f172a;
             --card: #1e293b;
@@ -55,7 +77,6 @@
             --input-bg: #0f172a;
         }
 
-        /* TEMA RED CORE (NEGRO Y ROJO) */
         [data-theme="red"] {
             --bg: #000000;
             --card: #111111;
@@ -69,1093 +90,363 @@
             --input-bg: #0a0a0a;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif; /* FUENTE ACTUALIZADA */
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            padding-bottom: 100px;
-            font-size: 14px;
-            font-weight: 400;
-        }
-
-        /* --- GLOBAL NAV (ESTILO ECOSISTEMA UNIFICADO) --- */
-        #global-nav {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .g-logo {
-            color: #fff;
-            font-weight: 900;
-            text-decoration: none;
-            font-size: 1rem;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-        }
+        /* RESET & UTILIDADES ESPECÍFICAS */
+        * { -webkit-tap-highlight-color: transparent; outline: none; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
         
-        .g-logo:hover { color: #ef4444; transition: color 0.3s; }
+        /* Ocultar scrollbar en navegación */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .g-links {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            padding-right: 10px;
-        }
-        
-        .g-links::-webkit-scrollbar { display: none; }
-
-        .g-link {
-            color: #71717a;
-            text-decoration: none;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            transition: color 0.2s;
-            white-space: nowrap;
-        }
-
-        .g-link:hover { color: #fff; }
-        
-        .g-link.active {
-            color: #fff;
-            border-bottom: 2px solid #fff;
-            padding-bottom: 2px;
-        }
-
-        #syncStatus {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #10b981;
-            box-shadow: 0 0 8px rgba(16,185,129,0.5);
-            margin-left: 5px;
-        }
-
-        /* HEADER APP */
-        header {
-            background: var(--card);
-            border-bottom: 1px solid var(--border);
-            padding: 10px 15px;
-            position: sticky;
-            top: 56px;
-            z-index: 50;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 15px -5px rgba(0, 0, 0, 0.05);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .header-title {
-            font-size: 1.1rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text);
-            text-transform: uppercase;
-        }
-
-        @media (max-width: 360px) {
-            .header-title span { display: none; }
-        }
-
-        .nav-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
-        .month-nav {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--bg);
-            padding: 4px 8px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-        }
-
-        .month-label {
-            font-size: 0.85rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: var(--text);
-            min-width: 75px;
-            text-align: center;
-        }
-
-        .nav-btn {
-            background: none;
-            border: none;
-            color: var(--text-mute);
-            cursor: pointer;
-            font-size: 1.1rem;
-            padding: 4px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-today { color: var(--brand); }
-
-        .btn-reset {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text-mute);
-            font-size: 1rem;
-            padding: 6px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 15px;
-            width: 100%;
-            overflow-x: hidden;
-        }
-
-        #auth-status {
-            text-align: center;
-            font-size: 0.85rem;
-            color: var(--text-mute);
-            margin: 0 auto 20px auto;
-            padding: 10px 15px;
-            width: fit-content;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 50px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
-            max-width: 100%;
-        }
-
-        /* RELOJ */
-        .clock-section {
-            background: var(--card);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            padding: 20px 10px;
-            text-align: center;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .timer-grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr 1fr;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 400px) {
-            .timer-grid { gap: 2px; }
-        }
-
-        .side-clock {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.5;
-            transition: opacity 0.3s, transform 0.2s, background 0.3s;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 8px;
-            position: relative;
-            z-index: 5;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-            background: transparent;
-            border: none;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
-        }
-
-        .side-clock:hover {
-            background: var(--bg);
-            opacity: 0.8;
-        }
-
-        .side-clock.active {
-            opacity: 1;
-            transform: scale(1.05);
-            background: transparent;
-        }
-
-        .side-label {
-            font-size: 0.65rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: var(--text-mute);
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
-
-        .side-val {
-            font-family: monospace;
-            font-weight: 700;
-            font-size: 1rem;
-            color: var(--text);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .side-limit {
-            font-size: 0.65rem;
-            color: var(--text-mute);
-            margin-top: 2px;
-        }
-
-        .side-remaining {
-            font-size: 0.7rem;
-            font-weight: 800;
-            margin-top: 3px;
-            color: var(--money);
-        }
-        
-        .side-remaining.neg { color: var(--alert); }
-
-        .side-clock.danger .side-val { color: var(--alert); }
-
-        .main-clock {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .clock-status {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-mute);
-            font-weight: 800;
-            margin-bottom: 5px;
-        }
-
-        .clock-status.paused {
-            color: var(--warn);
-            animation: pulse 2s infinite;
-        }
-
+        /* Animaciones */
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        .clock-timer {
-            font-size: clamp(2.5rem, 12vw, 4rem);
-            font-weight: 800;
-            color: var(--text);
-            font-variant-numeric: tabular-nums;
-            line-height: 1;
-        }
-
-        .controls-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .full-btn { grid-column: span 2; }
-
-        .ctrl-btn {
-            height: 55px;
-            border-radius: 10px;
-            border: none;
-            font-weight: 800;
-            font-size: 0.85rem;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            text-transform: uppercase;
-            transition: all 0.1s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .ctrl-btn i { font-size: 1.2rem; }
-        .ctrl-btn:active { transform: scale(0.96); }
-
-        .btn-start {
-            background: linear-gradient(135deg, var(--brand), #1e40af);
-            color: white;
-            font-size: 1.1rem;
-            height: 70px;
-        }
-
-        .btn-stop {
-            background: linear-gradient(135deg, var(--alert), #991b1b);
-            color: white;
-        }
-
-        [data-theme="red"] .btn-start { background: linear-gradient(135deg, #dc2626, #991b1b); }
-        [data-theme="red"] .btn-stop { background: linear-gradient(135deg, #7f1d1d, #450a0a); }
-
-        .btn-bath {
-            background: var(--bg);
-            color: var(--text-mute);
-            border: 1px solid var(--border);
-        }
-
-        .btn-bath.active {
-            background: var(--bg);
-            color: var(--brand);
-            border-color: var(--brand);
-            box-shadow: inset 0 0 0 1px var(--brand);
-        }
-
-        .btn-food {
-            background: var(--bg);
-            color: var(--text-mute);
-            border: 1px solid var(--border);
-        }
-
-        .btn-food.active {
-            background: var(--bg);
-            color: var(--warn);
-            border-color: var(--warn);
-            box-shadow: inset 0 0 0 1px var(--warn);
-        }
-
-        /* ESTILOS PARA BOTON PAUSA */
-        .btn-pause {
-            background: var(--bg);
-            color: var(--text-mute);
-            border: 1px solid var(--border);
-        }
-
-        .btn-pause.active {
-            background: #fff7ed; /* orange-50 en light */
-            color: #f97316; /* orange-500 */
-            border-color: #f97316;
-            box-shadow: inset 0 0 0 1px #f97316;
-        }
-
-        [data-theme="dark"] .btn-pause.active, [data-theme="red"] .btn-pause.active {
-            background: #431407; /* orange-950 */
-            color: #fb923c; /* orange-400 */
-            border-color: #fb923c;
-        }
-
-        /* DASHBOARD & CHARTS */
-        .dash-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        @media (min-width: 768px) {
-            .dash-grid { grid-template-columns: 1fr 1fr; }
-        }
-
-        .kpi-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 15px;
-        }
-
-        .kpi-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .kpi-title-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .mini-nav-btn {
-            background: none;
-            border: none;
-            color: var(--brand);
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 0;
-        }
-
-        .kpi-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            align-items: center;
-            font-size: 0.9rem;
-        }
-
-        .balance-badge {
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-weight: 800;
-            font-size: 0.8rem;
-        }
-
-        .pos { background: #d1fae5; color: #047857; }
-        .neg { background: #fee2e2; color: #b91c1c; }
-
-        [data-theme="dark"] .pos, [data-theme="red"] .pos { background: #064e3b; color: #6ee7b7; }
-        [data-theme="dark"] .neg, [data-theme="red"] .neg { background: #7f1d1d; color: #fca5a5; }
-
-        .chart-container {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-        
-        /* Ajuste para grids de graficas */
-        .chart-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-        @media (min-width: 768px) {
-            .chart-grid { grid-template-columns: 2fr 1fr; }
-        }
-
-        canvas {
-            width: 100% !important;
-            height: auto !important;
-        }
-
-        /* --- LOGS SECTION MEJORADA --- */
-        .log-section {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        .log-header {
-            padding: 15px 20px;
-            background: var(--bg);
-            font-weight: 800;
-            color: var(--text-mute);
-            font-size: 0.75rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            letter-spacing: 0.5px;
-        }
-
-        .log-item {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            display: grid;
-            grid-template-columns: 45px 1fr auto;
-            gap: 15px;
-            align-items: center;
-            transition: background 0.2s;
-            cursor: pointer;
-        }
-
-        .log-item:hover { background: var(--bg); }
-        .log-item:last-child { border-bottom: none; }
-
-        .log-date-box {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            text-align: center;
-            padding: 6px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .log-day {
-            font-size: 1rem;
-            font-weight: 800;
-            color: var(--text);
-            line-height: 1;
-            margin-bottom: 2px;
-        }
-
-        .log-dow {
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            color: var(--text-mute);
-            font-weight: 700;
-        }
-
-        .log-info {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .log-type {
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            color: var(--text);
-        }
-
-        /* NUEVAS ETIQUETAS (TAGS) */
-        .tag {
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1;
-            letter-spacing: 0.5px;
-        }
-
-        .tag.laboral { background: #dbeafe; color: #1e40af; }
-        [data-theme="dark"] .tag.laboral, [data-theme="red"] .tag.laboral { background: #1e3a8a; color: #bfdbfe; }
-        
-        .tag.descanso { background: #f1f5f9; color: #475569; border: 1px solid var(--border); }
-        [data-theme="dark"] .tag.descanso, [data-theme="red"] .tag.descanso { background: #334155; color: #cbd5e1; border-color: transparent; }
-        
-        .tag.falta { background: #fee2e2; color: #991b1b; }
-        [data-theme="dark"] .tag.falta, [data-theme="red"] .tag.falta { background: #7f1d1d; color: #fca5a5; }
-        
-        .tag.vacaciones { background: #ffe6cc; color: #d97706; }
-        [data-theme="dark"] .tag.vacaciones, [data-theme="red"] .tag.vacaciones { background: #78350f; color: #fcd34d; }
-
-        .log-hours {
-            font-size: 0.8rem;
-            color: var(--text-mute);
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            font-weight: 500;
-        }
-
-        .log-balance {
-            text-align: center;
-            font-weight: 800;
-            font-size: 0.8rem; /* IGUALADO AL BADGE */
-            padding: 4px 8px;   /* IGUALADO AL BADGE */
-            border-radius: 6px; /* IGUALADO AL BADGE */
-            justify-self: end;  /* ALINEACION EN GRID */
-            min-width: 60px;
-        }
-
-        /* SE ELIMINARON LAS CLASES .log-balance.pos Y .log-balance.neg PARA QUE HEREDE LOS ESTILOS GLOBALES (CON FONDO) */
-
-        .log-breaks {
-            display: flex;
-            gap: 5px;
-            margin-top: 0;
-            font-size: 0.7rem;
-            flex-wrap: wrap;
-        }
-
-        .break-pill {
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            color: var(--text-mute);
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            font-weight: 600;
-        }
-
-        .break-pill.excess {
-            background: #fee2e2;
-            color: #991b1b;
-            border-color: #fca5a5;
-        }
-
-        [data-theme="dark"] .break-pill.excess, [data-theme="red"] .break-pill.excess {
-            background: #7f1d1d;
-            color: #fca5a5;
-            border-color: #991b1b;
-        }
-
-        /* UI & MODALS */
-        .form-label {
-            color: var(--text-mute);
-            font-size: 0.75rem;
-            font-weight: 800;
-            margin-bottom: 5px;
-            display: block;
-            text-transform: uppercase;
-        }
-
-        input, select {
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        .btn-primary, .btn-secondary {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 800;
-            cursor: pointer;
-            border: none;
-            margin-bottom: 10px;
-        }
-
-        .btn-primary { background: var(--text); color: var(--bg); }
-        .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text-mute); }
-        
-        .btn-delete {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 800;
-            cursor: pointer;
-            margin-bottom: 10px;
-            color: var(--alert);
-            border: 1px solid var(--alert);
-            background: transparent;
-        }
-
-        .btn-delete:hover { background: rgba(239, 68, 68, 0.1); }
-
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal.active { display: flex; }
-
-        .modal-content {
-            background: var(--card);
-            border-radius: 16px;
-            width: 90%;
-            max-width: 380px;
-            padding: 20px;
-            max-height: 85vh;
-            overflow-y: auto;
-            border: 1px solid var(--border);
-        }
-
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 15px;
-        }
-
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            font-size: 0.8rem;
-            font-weight: 800;
-            color: var(--text-mute);
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-        }
-
-        .tab.active { color: var(--brand); border-bottom-color: var(--brand); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        .loader-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--card);
-            opacity: 0.9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            border-radius: 16px;
-            display: none;
-        }
-
-        .spinner {
-            width: 30px;
-            height: 30px;
-            border: 4px solid var(--border);
-            border-top: 4px solid var(--brand);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
+        .animate-pulse-custom { animation: pulse 2s infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinner { border: 4px solid var(--border); border-top: 4px solid var(--brand); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
 
-        /* GRID TEMAS */
-        .theme-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .theme-btn {
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        .theme-btn.active {
-            border-color: var(--brand);
-            color: var(--brand);
-            background: var(--card);
-            box-shadow: 0 0 0 2px var(--brand);
-        }
-
-        .theme-btn i { font-size: 1.1rem; }
-        .color-picker-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-        .color-input { width: 40px; height: 30px; padding: 0; border: none; border-radius: 4px; cursor: pointer; }
+        /* ESTADOS ACTIVOS COMPLEJOS (Difíciles de hacer solo con utilidades puras debido a la lógica JS existente) */
+        .g-link.active { color: #fff; border-bottom: 2px solid #fff; padding-bottom: 2px; }
+        
+        /* Botones de control de tiempo activos */
+        .btn-ctrl.active-bath { background: var(--bg); color: var(--brand) !important; border-color: var(--brand) !important; box-shadow: inset 0 0 0 1px var(--brand); }
+        .btn-ctrl.active-food { background: var(--bg); color: var(--warn) !important; border-color: var(--warn) !important; box-shadow: inset 0 0 0 1px var(--warn); }
+        .btn-ctrl.active-pause { background: #fff7ed; color: #f97316 !important; border-color: #f97316 !important; box-shadow: inset 0 0 0 1px #f97316; }
+        
+        [data-theme="dark"] .btn-ctrl.active-pause, [data-theme="red"] .btn-ctrl.active-pause { background: #431407; color: #fb923c !important; border-color: #fb923c !important; }
+        
+        .side-clock.active { opacity: 1; transform: scale(1.05); background: transparent; }
+        .side-clock.danger .side-val { color: var(--alert) !important; }
+        
+        /* Tabs del modal */
+        .tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+        
+        /* Theme buttons */
+        .theme-btn.active { border-color: var(--brand); color: var(--brand); background: var(--card); box-shadow: 0 0 0 2px var(--brand); }
+        
+        /* Inputs Color Picker */
+        input[type="color"] { -webkit-appearance: none; padding: 0; border: none; border-radius: 4px; height: 30px; width: 40px; cursor: pointer; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
     </style>
 </head>
 
-<body>
+<body class="bg-bg text-text font-sans pb-24 text-sm font-normal selection:bg-brand selection:text-white">
 
-    <!-- NAV GLOBAL UNIFICADA -->
-    <nav id="global-nav" class="h-14 bg-black border-b border-white/5 flex items-center justify-between px-5 shrink-0 z-50">
-        <a href="/" class="g-logo"><i class="ph-bold ph-circles-three-plus text-lg text-red-500"></i> God's Plan</a>
-        <div class="g-links no-scrollbar">
-            <a href="/adherencia.html" class="g-link active">ADHERENCIA</a>
-            <a href="/chat.html" class="g-link">CHAT</a>
-            <a href="/finanzas" class="g-link">FINANZAS</a>
-            <a href="/cuenta.html" class="g-link">CUENTA</a>
-            <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-zinc-800 ml-1 flex-shrink-0 transition-all duration-500" title="Estado"></div>
+    <!-- NAV GLOBAL -->
+    <nav id="global-nav" class="sticky top-0 z-[100] h-14 bg-black border-b border-white/5 flex items-center justify-between px-5 shrink-0 shadow-md">
+        <a href="/" class="text-white font-black text-base tracking-wide flex items-center gap-2 no-underline hover:text-red-500 transition-colors">
+            <i class="ph-bold ph-circles-three-plus text-lg text-red-500"></i> God's Plan
+        </a>
+        <div class="flex items-center gap-5 overflow-x-auto no-scrollbar pr-2.5">
+            <a href="/adherencia.html" class="g-link active text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">ADHERENCIA</a>
+            <a href="/chat.html" class="g-link text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">CHAT</a>
+            <a href="/finanzas" class="g-link text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">FINANZAS</a>
+            <a href="/cuenta.html" class="g-link text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">CUENTA</a>
+            <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] ml-1 shrink-0"></div>
         </div>
     </nav>
 
-    <header>
-        <div class="header-title"><i class="ph-fill ph-check-circle" style="color:var(--brand)"></i> <span>Adherencia</span></div>
-        <div class="nav-group">
-            <button class="btn-reset" onclick="window.app.openExtensionModal()" title="Instalar Extensión"><i class="ph-bold ph-puzzle-piece"></i></button>
-            <button class="btn-reset" onclick="window.app.syncData()" title="Sincronizar"><i class="ph-bold ph-arrows-clockwise"></i></button>
-            <button class="btn-reset" onclick="window.app.openConfigModal()" title="Menú"><i class="ph-bold ph-list"></i></button>
-            <div class="month-nav">
-                <button class="nav-btn" onclick="window.app.changeMonth(-1)"><i class="ph-bold ph-caret-left"></i></button>
-                <span class="month-label" id="monthLabel">--</span>
-                <button class="nav-btn" onclick="window.app.changeMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
-                <button class="nav-btn btn-today" onclick="window.app.goToday()"><i class="ph-bold ph-calendar-check"></i></button>
+    <!-- HEADER APP -->
+    <header class="bg-card border-b border-border py-2.5 px-4 sticky top-14 z-50 flex justify-between items-center shadow-sm flex-wrap gap-2.5">
+        <div class="text-[1.1rem] font-extrabold flex items-center gap-2 text-text uppercase">
+            <i class="ph-fill ph-check-circle text-brand"></i> <span>Adherencia</span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+            <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.openExtensionModal()" title="Instalar Extensión"><i class="ph-bold ph-puzzle-piece"></i></button>
+            <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.syncData()" title="Sincronizar"><i class="ph-bold ph-arrows-clockwise"></i></button>
+            <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.openConfigModal()" title="Menú"><i class="ph-bold ph-list"></i></button>
+            
+            <div class="flex items-center gap-1 bg-bg px-2 py-1 rounded-full border border-border">
+                <button class="bg-transparent border-none text-text-mute cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center" onclick="window.app.changeMonth(-1)"><i class="ph-bold ph-caret-left"></i></button>
+                <span class="text-[0.85rem] font-extrabold uppercase text-text min-w-[75px] text-center" id="monthLabel">--</span>
+                <button class="bg-transparent border-none text-text-mute cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center" onclick="window.app.changeMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
+                <button class="bg-transparent border-none text-brand cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center" onclick="window.app.goToday()"><i class="ph-bold ph-calendar-check"></i></button>
             </div>
         </div>
     </header>
 
-    <div class="container">
-        <div id="auth-status">Conectando...</div>
+    <div class="w-full max-w-[900px] mx-auto p-4 overflow-x-hidden">
+        <div id="auth-status" class="text-center text-[0.85rem] text-text-mute mx-auto mb-5 py-2.5 px-4 w-fit bg-card border border-border rounded-full hidden items-center justify-center gap-2.5 shadow-sm">Conectando...</div>
 
         <!-- RELOJ -->
-        <div class="clock-section">
-            <div class="loader-overlay" id="mainLoader">
+        <div class="bg-card rounded-2xl border border-border py-5 px-2.5 text-center mb-5 shadow-sm relative overflow-hidden">
+            <!-- Loader Overlay -->
+            <div id="mainLoader" class="absolute inset-0 bg-card/90 flex items-center justify-center z-10 rounded-2xl hidden">
                 <div class="spinner"></div>
             </div>
-            <div class="timer-grid" id="timersDisplay" style="display:none;">
-                <button class="side-clock" id="clockBathContainer" onclick="window.app.openTimerEdit('bathroom')" type="button" title="Toca para ajustar">
-                    <div class="side-label"><i class="ph-bold ph-toilet"></i> Baño <i class="ph-bold ph-pencil-simple" style="font-size:0.9em; margin-left:3px; color:var(--brand);"></i></div>
-                    <div class="side-val" id="dispBath">00:00</div>
-                    <div class="side-limit">/ <span id="limBath">15</span>m</div>
-                    <div id="remBath" class="side-remaining">Restan: --</div>
+
+            <!-- Timer Grid -->
+            <div class="grid grid-cols-[1fr_1.2fr_1fr] items-center gap-1.5 mb-5" id="timersDisplay" style="display:none;">
+                <!-- Baño -->
+                <button class="side-clock flex flex-col items-center justify-center opacity-50 p-1.5 rounded-lg relative z-10 w-full h-full border-none hover:bg-bg hover:opacity-80 transition-all cursor-pointer" id="clockBathContainer" onclick="window.app.openTimerEdit('bathroom')" type="button">
+                    <div class="text-[0.65rem] font-extrabold uppercase text-text-mute mb-1 flex items-center justify-center gap-1">
+                        <i class="ph-bold ph-toilet"></i> Baño <i class="ph-bold ph-pencil-simple text-brand text-[0.9em]"></i>
+                    </div>
+                    <div class="font-mono font-bold text-base text-text tabular-nums" id="dispBath">00:00</div>
+                    <div class="text-[0.65rem] text-text-mute mt-0.5">/ <span id="limBath">15</span>m</div>
+                    <div id="remBath" class="text-[0.7rem] font-extrabold mt-1 text-money">Restan: --</div>
                 </button>
                 
-                <div class="main-clock">
-                    <div class="clock-status" id="clockStatus">TURNO ACTIVO</div>
-                    <div class="clock-timer" id="clockDisplay">00:00</div>
-                    <div id="networkTimeBadge" style="font-size: 0.65rem; color: var(--money); font-weight: 700; margin-top: 5px; opacity: 0; transition: opacity 0.5s;">
+                <!-- Reloj Principal -->
+                <div class="flex flex-col items-center">
+                    <div class="text-[0.7rem] uppercase tracking-widest text-text-mute font-extrabold mb-1.5" id="clockStatus">TURNO ACTIVO</div>
+                    <div class="text-[clamp(2.5rem,12vw,4rem)] font-extrabold text-text tabular-nums leading-none" id="clockDisplay">00:00</div>
+                    <div id="networkTimeBadge" class="text-[0.65rem] text-money font-bold mt-1.5 opacity-0 transition-opacity duration-500">
                         <i class="ph-bold ph-globe"></i> Sync
                     </div>
                 </div>
 
-                <button class="side-clock" id="clockFoodContainer" onclick="window.app.openTimerEdit('food')" type="button" title="Toca para ajustar">
-                    <div class="side-label"><i class="ph-bold ph-hamburger"></i> Comida <i class="ph-bold ph-pencil-simple" style="font-size:0.9em; margin-left:3px; color:var(--brand);"></i></div>
-                    <div class="side-val" id="dispFood">00:00</div>
-                    <div class="side-limit">/ <span id="limFood">45</span>m</div>
-                    <div id="remFood" class="side-remaining">Restan: --</div>
+                <!-- Comida -->
+                <button class="side-clock flex flex-col items-center justify-center opacity-50 p-1.5 rounded-lg relative z-10 w-full h-full border-none hover:bg-bg hover:opacity-80 transition-all cursor-pointer" id="clockFoodContainer" onclick="window.app.openTimerEdit('food')" type="button">
+                    <div class="text-[0.65rem] font-extrabold uppercase text-text-mute mb-1 flex items-center justify-center gap-1">
+                        <i class="ph-bold ph-hamburger"></i> Comida <i class="ph-bold ph-pencil-simple text-brand text-[0.9em]"></i>
+                    </div>
+                    <div class="font-mono font-bold text-base text-text tabular-nums" id="dispFood">00:00</div>
+                    <div class="text-[0.65rem] text-text-mute mt-0.5">/ <span id="limFood">45</span>m</div>
+                    <div id="remFood" class="text-[0.7rem] font-extrabold mt-1 text-money">Restan: --</div>
                 </button>
             </div>
+
+            <!-- Offline Display -->
             <div id="offlineDisplay" style="display:block;">
-                <div class="clock-status" style="margin-bottom:10px;">FUERA DE TURNO</div>
-                <div class="clock-timer" style="margin-bottom:20px; color:var(--text-mute);">--:--:--</div>
+                <div class="text-[0.7rem] uppercase tracking-widest text-text-mute font-extrabold mb-2.5">FUERA DE TURNO</div>
+                <div class="text-[clamp(2.5rem,12vw,4rem)] font-extrabold text-text-mute tabular-nums leading-none mb-5">--:--:--</div>
             </div>
-            <div class="controls-grid" id="actionButtons"></div>
+
+            <!-- Botones de Acción -->
+            <div class="grid grid-cols-2 gap-2.5 mt-4" id="actionButtons"></div>
         </div>
 
-        <!-- KPI -->
-        <div class="dash-grid">
-            <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-title-group">
-                        <button class="mini-nav-btn" onclick="window.app.changeWeek(-1)"><i class="ph-bold ph-caret-left"></i></button>
-                        <span class="kpi-title">Semana <span id="weekNum">--</span></span>
-                        <button class="mini-nav-btn" onclick="window.app.changeWeek(1)"><i class="ph-bold ph-caret-right"></i></button>
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <!-- Semanal -->
+            <div class="bg-card border border-border rounded-xl p-4">
+                <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-border">
+                    <div class="flex items-center gap-2">
+                        <button class="bg-transparent border-none text-brand cursor-pointer text-base p-0" onclick="window.app.changeWeek(-1)"><i class="ph-bold ph-caret-left"></i></button>
+                        <span class="text-[0.9rem] font-extrabold text-text">Semana <span id="weekNum">--</span></span>
+                        <button class="bg-transparent border-none text-brand cursor-pointer text-base p-0" onclick="window.app.changeWeek(1)"><i class="ph-bold ph-caret-right"></i></button>
                     </div>
-                    <span id="weekBalance" class="balance-badge">0h</span>
+                    <span id="weekBalance" class="px-2 py-0.5 rounded-md font-extrabold text-[0.8rem] bg-emerald-100 text-emerald-700">0h</span>
                 </div>
-                <div class="kpi-row"><span style="color:var(--text-mute)">Meta</span><strong id="weekTarget">0:00</strong></div>
-                <div class="kpi-row"><span style="color:var(--text-mute)">Trabajado</span><strong style="color:var(--brand)" id="weekWorked">0:00</strong></div>
-                <div class="kpi-row" style="margin-top:10px; padding-top:5px; border-top:1px dashed var(--border);">
-                    <span style="color:var(--text-mute)">Pago Extra</span><strong style="color:var(--money)" id="weekPay">$0</strong>
+                <div class="flex justify-between items-center mb-1 text-[0.9rem]"><span class="text-text-mute">Meta</span><strong id="weekTarget" class="text-text">0:00</strong></div>
+                <div class="flex justify-between items-center mb-1 text-[0.9rem]"><span class="text-text-mute">Trabajado</span><strong class="text-brand" id="weekWorked">0:00</strong></div>
+                <div class="flex justify-between items-center mt-2.5 pt-1.5 border-t border-dashed border-border text-[0.9rem]">
+                    <span class="text-text-mute">Pago Extra</span><strong class="text-money" id="weekPay">$0</strong>
                 </div>
             </div>
-            <div class="kpi-card">
-                <div class="kpi-header"><span class="kpi-title">Quincena <span id="qName">--</span></span><span id="qBalance" class="balance-badge">0h</span></div>
-                <div class="kpi-row"><span style="color:var(--text-mute)">Meta</span><strong id="qTarget">0:00</strong></div>
-                <div class="kpi-row"><span style="color:var(--text-mute)">Trabajado</span><strong style="color:var(--brand)" id="qWorked">0:00</strong></div>
-                <div class="kpi-row" style="margin-top:10px;"><span style="color:var(--alert)">Faltas</span><strong style="color:var(--alert)" id="qFails">0</strong></div>
+
+            <!-- Quincenal -->
+            <div class="bg-card border border-border rounded-xl p-4">
+                <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-border">
+                    <span class="text-[0.9rem] font-extrabold text-text">Quincena <span id="qName">--</span></span>
+                    <span id="qBalance" class="px-2 py-0.5 rounded-md font-extrabold text-[0.8rem] bg-emerald-100 text-emerald-700">0h</span>
+                </div>
+                <div class="flex justify-between items-center mb-1 text-[0.9rem]"><span class="text-text-mute">Meta</span><strong id="qTarget" class="text-text">0:00</strong></div>
+                <div class="flex justify-between items-center mb-1 text-[0.9rem]"><span class="text-text-mute">Trabajado</span><strong class="text-brand" id="qWorked">0:00</strong></div>
+                <div class="flex justify-between items-center mt-2.5 text-[0.9rem]"><span class="text-alert">Faltas</span><strong class="text-alert" id="qFails">0</strong></div>
             </div>
         </div>
 
-        <!-- LISTA -->
-        <div class="log-section">
-            <div class="log-header"><span id="logListTitle">HISTORIAL</span><button onclick="window.app.openModal()" style="border:none; background:none; color:var(--brand); font-weight:800; cursor:pointer;">+ MANUAL</button></div>
+        <!-- LISTA HISTORIAL -->
+        <div class="bg-card border border-border rounded-2xl overflow-hidden shadow-sm mb-6">
+            <div class="px-5 py-4 bg-bg font-extrabold text-text-mute text-[0.75rem] border-b border-border flex justify-between items-center tracking-wide">
+                <span id="logListTitle">HISTORIAL</span>
+                <button onclick="window.app.openModal()" class="border-none bg-transparent text-brand font-extrabold cursor-pointer hover:underline">+ MANUAL</button>
+            </div>
             <div id="logList"></div>
         </div>
 
-        <!-- GRAFICOS CORREGIDOS -->
-        <div class="chart-container">
-            <h3 style="margin-bottom:15px; font-size:0.9rem; color:var(--text-mute); text-transform:uppercase; text-align:center; font-weight:800;">
-                Adherencia Mensual</h3>
-            
-            <div style="height:220px; margin-bottom: 25px;"><canvas id="chartDaily"></canvas></div>
+        <!-- GRÁFICOS -->
+        <div class="bg-card border border-border rounded-xl p-4 mt-5">
+            <h3 class="mb-4 text-[0.9rem] text-text-mute uppercase text-center font-extrabold">Adherencia Mensual</h3>
+            <div class="h-[220px] mb-6 w-full"><canvas id="chartDaily"></canvas></div>
 
-            <!-- NUEVA GRAFICA: TENDENCIA ACUMULADA -->
-            <h3 style="margin-bottom:15px; font-size:0.9rem; color:var(--text-mute); text-transform:uppercase; text-align:center; font-weight:800; border-top: 1px dashed var(--border); padding-top: 20px;">
-                Tendencia de Saldo Acumulado</h3>
-            <p style="text-align: center; font-size: 0.75rem; color: var(--text-mute); margin-bottom: 10px;">Muestra si estás ganando o perdiendo tiempo día a día.</p>
-            <div style="height:180px; margin-bottom: 25px;"><canvas id="chartTrend"></canvas></div>
+            <h3 class="mb-4 text-[0.9rem] text-text-mute uppercase text-center font-extrabold border-t border-dashed border-border pt-5">Tendencia de Saldo</h3>
+            <p class="text-center text-xs text-text-mute mb-2.5">Muestra si estás ganando o perdiendo tiempo día a día.</p>
+            <div class="h-[180px] mb-6 w-full"><canvas id="chartTrend"></canvas></div>
 
-            <div style="border-top:1px dashed var(--border); padding-top:15px; display: flex; flex-direction: column; align-items: center;">
-                <h3 style="margin-bottom:15px; font-size:0.8rem; color:var(--text-mute); text-transform:uppercase; font-weight:800;">
-                    Distribución de Tiempos</h3>
-                <div style="height:200px; width: 100%; max-width: 300px;"><canvas id="chartTypes"></canvas></div>
+            <div class="border-t border-dashed border-border pt-4 flex flex-col items-center">
+                <h3 class="mb-4 text-[0.8rem] text-text-mute uppercase font-extrabold">Distribución de Tiempos</h3>
+                <div class="h-[200px] w-full max-w-[300px]"><canvas id="chartTypes"></canvas></div>
             </div>
         </div>
     </div>
 
+    <!-- MODALES (Usando clases Tailwind para estructura, CSS para funcionalidad display) -->
+    
     <!-- MENU CONFIGURACION -->
-    <div class="modal" id="configModal">
-        <div class="modal-content">
-            <h3 style="text-align:center; margin-bottom:15px;">Configuración</h3>
-            <div class="tabs">
-                <div class="tab active" onclick="window.app.switchTab('tAccount')">Cuenta</div>
-                <div class="tab" onclick="window.app.switchTab('tDesign')">Diseño</div>
-                <div class="tab" onclick="window.app.switchTab('tSettings')">Ajustes</div>
-                <div class="tab" onclick="window.app.switchTab('tData')">Datos</div>
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="configModal">
+        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 max-h-[85vh] overflow-y-auto border border-border">
+            <h3 class="text-center mb-4 text-text font-bold text-lg">Configuración</h3>
+            
+            <div class="flex border-b border-border mb-4">
+                <div class="tab active flex-1 text-center p-2.5 text-[0.8rem] font-extrabold text-text-mute cursor-pointer border-b-[3px] border-transparent" onclick="window.app.switchTab('tAccount')">Cuenta</div>
+                <div class="tab flex-1 text-center p-2.5 text-[0.8rem] font-extrabold text-text-mute cursor-pointer border-b-[3px] border-transparent" onclick="window.app.switchTab('tDesign')">Diseño</div>
+                <div class="tab flex-1 text-center p-2.5 text-[0.8rem] font-extrabold text-text-mute cursor-pointer border-b-[3px] border-transparent" onclick="window.app.switchTab('tSettings')">Ajustes</div>
+                <div class="tab flex-1 text-center p-2.5 text-[0.8rem] font-extrabold text-text-mute cursor-pointer border-b-[3px] border-transparent" onclick="window.app.switchTab('tData')">Datos</div>
             </div>
 
-            <div id="tAccount" class="tab-content active">
-                <div id="authenticatedView" style="display:none; background:var(--bg); padding:10px; border-radius:8px; margin-bottom:15px; border:1px solid var(--border);">
-                    <div id="userProfile" style="font-weight:700; margin-bottom:5px;">...</div>
-                    <button class="btn-secondary" onclick="window.app.logout()" style="padding:8px;">Cerrar Sesión</button>
+            <!-- TAB CUENTA -->
+            <div id="tAccount" class="tab-content active block">
+                <div id="authenticatedView" class="hidden bg-bg p-2.5 rounded-lg mb-4 border border-border">
+                    <div id="userProfile" class="font-bold mb-1.5 text-text">...</div>
+                    <button class="w-full p-2 rounded-lg font-bold cursor-pointer border border-border bg-transparent text-text-mute hover:bg-white/5" onclick="window.app.logout()">Cerrar Sesión</button>
                 </div>
-                <div id="unauthenticatedView" style="display:block; text-align:center;">
-                    <p style="font-size:0.8rem; color:var(--text-mute); margin-bottom:15px;">La autenticación es centralizada en GodsPlan.site.</p>
-                    <button class="btn-primary" style="background:var(--brand); color:white;" onclick="window.app.redirectToAuth()">
+                <div id="unauthenticatedView" class="block text-center">
+                    <p class="text-[0.8rem] text-text-mute mb-4">La autenticación es centralizada en GodsPlan.site.</p>
+                    <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-brand text-white hover:opacity-90 transition-opacity" onclick="window.app.redirectToAuth()">
                         <i class="ph-bold ph-sign-in"></i> Iniciar Sesión en GodsPlan.site
                     </button>
                 </div>
             </div>
 
-            <div id="tDesign" class="tab-content">
-                <p style="font-size:0.7rem; font-weight:700; color:var(--text-mute); margin-bottom:10px;">TEMA DE LA APP</p>
-                <div class="theme-grid">
-                    <button class="theme-btn" id="btnThemeLight" onclick="window.app.setTheme('light')"><i class="ph-bold ph-sun"></i> Claro</button>
-                    <button class="theme-btn" id="btnThemeDark" onclick="window.app.setTheme('dark')"><i class="ph-bold ph-moon"></i> Oscuro</button>
-                    <button class="theme-btn" id="btnThemeRed" onclick="window.app.setTheme('red')"><i class="ph-bold ph-fire"></i> Red Core</button>
-                    <button class="theme-btn" id="btnThemeCustom" onclick="window.app.setTheme('custom')"><i class="ph-bold ph-palette"></i> Custom</button>
+            <!-- TAB DISEÑO -->
+            <div id="tDesign" class="tab-content hidden">
+                <p class="text-[0.7rem] font-bold text-text-mute mb-2.5">TEMA DE LA APP</p>
+                <div class="grid grid-cols-2 gap-2.5 mb-4">
+                    <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeLight" onclick="window.app.setTheme('light')"><i class="ph-bold ph-sun"></i> Claro</button>
+                    <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeDark" onclick="window.app.setTheme('dark')"><i class="ph-bold ph-moon"></i> Oscuro</button>
+                    <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeRed" onclick="window.app.setTheme('red')"><i class="ph-bold ph-fire"></i> Red Core</button>
+                    <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeCustom" onclick="window.app.setTheme('custom')"><i class="ph-bold ph-palette"></i> Custom</button>
                 </div>
 
-                <div id="customColorsPanel" style="display:none; background:var(--bg); padding:10px; border-radius:8px; border:1px solid var(--border);">
-                    <p style="font-size:0.7rem; font-weight:700; margin-bottom:10px;">COLORES PERSONALIZADOS</p>
-                    <div class="color-picker-row"><span>Fondo (BG)</span> <input type="color" id="ccBg" class="color-input" onchange="window.app.updateCustomTheme()"></div>
-                    <div class="color-picker-row"><span>Tarjetas</span> <input type="color" id="ccCard" class="color-input" onchange="window.app.updateCustomTheme()"></div>
-                    <div class="color-picker-row"><span>Texto</span> <input type="color" id="ccText" class="color-input" onchange="window.app.updateCustomTheme()"></div>
-                    <div class="color-picker-row"><span>Marca (Brand)</span> <input type="color" id="ccBrand" class="color-input" onchange="window.app.updateCustomTheme()"></div>
+                <div id="customColorsPanel" class="hidden bg-bg p-2.5 rounded-lg border border-border text-text">
+                    <p class="text-[0.7rem] font-bold mb-2.5">COLORES PERSONALIZADOS</p>
+                    <div class="flex items-center justify-between mb-2"><span>Fondo (BG)</span> <input type="color" id="ccBg" onchange="window.app.updateCustomTheme()"></div>
+                    <div class="flex items-center justify-between mb-2"><span>Tarjetas</span> <input type="color" id="ccCard" onchange="window.app.updateCustomTheme()"></div>
+                    <div class="flex items-center justify-between mb-2"><span>Texto</span> <input type="color" id="ccText" onchange="window.app.updateCustomTheme()"></div>
+                    <div class="flex items-center justify-between mb-2"><span>Marca (Brand)</span> <input type="color" id="ccBrand" onchange="window.app.updateCustomTheme()"></div>
                 </div>
             </div>
 
-            <div id="tSettings" class="tab-content">
-                <p style="font-size:0.7rem; font-weight:700; color:var(--brand); margin-bottom:5px;">TIEMPOS (MIN)</p>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div><label class="form-label">Baño</label><input type="number" id="cfgBath"></div>
-                    <div><label class="form-label">Comida</label><input type="number" id="cfgFood"></div>
+            <!-- TAB AJUSTES -->
+            <div id="tSettings" class="tab-content hidden">
+                <p class="text-[0.7rem] font-bold text-brand mb-1.5">TIEMPOS (MIN)</p>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Baño</label><input type="number" id="cfgBath" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
+                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Comida</label><input type="number" id="cfgFood" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
                 </div>
-                <p style="font-size:0.7rem; font-weight:700; color:var(--money); margin:10px 0 5px;">PAGOS ($)</p>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div><label class="form-label">Base</label><input type="number" id="cfgRate1"></div>
-                    <div><label class="form-label">Excedente</label><input type="number" id="cfgRate2"></div>
+                <p class="text-[0.7rem] font-bold text-money my-2.5 mb-1.5">PAGOS ($)</p>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Base</label><input type="number" id="cfgRate1" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
+                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Excedente</label><input type="number" id="cfgRate2" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
                 </div>
-                <p style="font-size:0.7rem; font-weight:700; color:#0369a1; margin:10px 0 5px;">ID EMPLEADO</p>
-                <div style="display:flex; gap:5px;">
-                    <input type="text" id="cfgEmpId" placeholder="Ej. 17620" style="margin:0;">
-                    <button class="btn-primary" onclick="window.app.lookupEmployee()" style="width:auto; margin:0;"><i class="ph-bold ph-check"></i></button>
+                <p class="text-[0.7rem] font-bold text-blue-700 my-2.5 mb-1.5">ID EMPLEADO</p>
+                <div class="flex gap-1.5">
+                    <input type="text" id="cfgEmpId" placeholder="Ej. 17620" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text m-0">
+                    <button class="bg-text text-bg w-auto m-0 p-2.5 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.lookupEmployee()"><i class="ph-bold ph-check"></i></button>
                 </div>
-                <div id="employeeNameDisplay" style="font-size:0.8rem; font-weight:700; color:var(--money); margin-top:5px;"></div>
+                <div id="employeeNameDisplay" class="text-[0.8rem] font-bold text-money mt-1.5"></div>
             </div>
 
-            <div id="tData" class="tab-content">
-                <button class="btn-primary" style="background:var(--brand);" onclick="window.app.openImportModal()">Importar Excel</button>
-                <button class="btn-secondary" onclick="window.app.exportBackup()">Descargar Backup</button>
-                <div style="border-top:1px solid var(--border); margin:15px 0;"></div>
-                <button class="btn-delete" onclick="window.app.resetData()">Borrar Todo y Reiniciar</button>
+            <!-- TAB DATOS -->
+            <div id="tData" class="tab-content hidden">
+                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-brand text-white" onclick="window.app.openImportModal()">Importar Excel</button>
+                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute mb-2.5" onclick="window.app.exportBackup()">Descargar Backup</button>
+                <div class="border-t border-border my-4"></div>
+                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer mb-2.5 text-alert border border-alert bg-transparent hover:bg-red-500/10" onclick="window.app.resetData()">Borrar Todo y Reiniciar</button>
             </div>
 
-            <div style="margin-top:15px; display:flex; gap:10px;">
-                <button class="btn-primary" onclick="window.app.saveConfig()">Guardar Cambios</button>
-                <button class="btn-secondary" onclick="document.getElementById('configModal').classList.remove('active')">Cerrar</button>
+            <div class="mt-4 flex gap-2.5">
+                <button class="flex-1 bg-text text-bg p-3 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.saveConfig()">Guardar Cambios</button>
+                <button class="flex-1 bg-transparent border border-border text-text-mute p-3 rounded-lg font-extrabold cursor-pointer" onclick="document.getElementById('configModal').classList.remove('active')">Cerrar</button>
             </div>
         </div>
     </div>
 
     <!-- LOG MODAL -->
-    <div class="modal" id="logModal">
-        <div class="modal-content">
-            <h3>Registro Manual</h3>
-            <label class="form-label">Fecha</label><input type="date" id="inpDate">
-            <label class="form-label">Tipo</label><select id="inpType" onchange="window.app.toggleTimeInputs()">
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="logModal">
+        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border">
+            <h3 class="text-text font-bold text-lg mb-4">Registro Manual</h3>
+            
+            <label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Fecha</label>
+            <input type="date" id="inpDate" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text mb-2.5">
+            
+            <label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Tipo</label>
+            <select id="inpType" onchange="window.app.toggleTimeInputs()" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text mb-2.5">
                 <option value="Laboral">Laboral</option>
                 <option value="Descanso">Descanso</option>
                 <option value="Falta">Falta</option>
                 <option value="Vacaciones">Vacaciones</option>
             </select>
+
             <div id="timeInputs">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div><label class="form-label">Entrada</label><input type="time" id="inpIn" onchange="window.app.calcPreview()"></div>
-                    <div><label class="form-label">Salida</label><input type="time" id="inpOut" onchange="window.app.calcPreview()"></div>
+                <div class="grid grid-cols-2 gap-2.5 mb-2.5">
+                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Entrada</label><input type="time" id="inpIn" onchange="window.app.calcPreview()" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
+                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Salida</label><input type="time" id="inpOut" onchange="window.app.calcPreview()" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
                 </div>
-                <div style="background:var(--bg); padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid var(--border);">
-                    <label class="form-label">Minutos Reales:</label>
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px;">
-                        <div><label class="form-label">Baño</label><input type="number" id="inpBathTime" value="0" oninput="window.app.calcPreview()"></div>
-                        <div><label class="form-label">Comida</label><input type="number" id="inpFoodTime" value="0" oninput="window.app.calcPreview()"></div>
-                        <div><label class="form-label">Pausa</label><input type="number" id="inpPauseTime" value="0" oninput="window.app.calcPreview()"></div>
+                <div class="bg-bg p-2.5 rounded-lg mb-2.5 border border-border">
+                    <label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Minutos Reales:</label>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <div><label class="block text-text-mute text-[0.65rem] font-bold mb-1">Baño</label><input type="number" id="inpBathTime" value="0" oninput="window.app.calcPreview()" class="bg-card border border-border w-full p-1.5 rounded text-sm text-text"></div>
+                        <div><label class="block text-text-mute text-[0.65rem] font-bold mb-1">Comida</label><input type="number" id="inpFoodTime" value="0" oninput="window.app.calcPreview()" class="bg-card border border-border w-full p-1.5 rounded text-sm text-text"></div>
+                        <div><label class="block text-text-mute text-[0.65rem] font-bold mb-1">Pausa</label><input type="number" id="inpPauseTime" value="0" oninput="window.app.calcPreview()" class="bg-card border border-border w-full p-1.5 rounded text-sm text-text"></div>
                     </div>
                 </div>
-                <p style="text-align:right;">Neto Calculado: <strong id="calcHoursDisplay">0:00</strong></p>
+                <p class="text-right text-text-mute text-sm">Neto Calculado: <strong id="calcHoursDisplay" class="text-text">0:00</strong></p>
             </div>
-            <button class="btn-primary" onclick="window.app.saveLog()">Guardar</button>
-            <button class="btn-delete" id="btnDelete" style="display:none;" onclick="window.app.deleteLog()">Eliminar</button>
-            <button class="btn-secondary" onclick="document.getElementById('logModal').classList.remove('active')">Cancelar</button>
+
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-text text-bg mt-4" onclick="window.app.saveLog()">Guardar</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer mb-2.5 text-alert border border-alert bg-transparent hidden" id="btnDelete" onclick="window.app.deleteLog()">Eliminar</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="document.getElementById('logModal').classList.remove('active')">Cancelar</button>
         </div>
     </div>
 
-    <div class="modal" id="clockOutModal">
-        <div class="modal-content" style="text-align:center;">
-            <h3>¿Terminar Turno?</h3>
-            <button class="btn-primary" onclick="window.app.finishShiftReal()" style="background:var(--alert); margin-top:15px; color:white;">TERMINAR</button>
-            <button class="btn-secondary" onclick="window.app.cancelClockOut()">Cancelar</button>
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="clockOutModal">
+        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border text-center">
+            <h3 class="text-text font-bold text-lg mb-4">¿Terminar Turno?</h3>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-alert text-white mt-4 mb-2.5" onclick="window.app.finishShiftReal()">TERMINAR</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="window.app.cancelClockOut()">Cancelar</button>
         </div>
     </div>
 
     <!-- EDITAR TIEMPO MODAL -->
-    <div class="modal" id="timerEditModal">
-        <div class="modal-content">
-            <h3 style="margin-bottom:15px;">Ajustar Tiempo</h3>
-            <p style="font-size:0.9rem; margin-bottom:10px; color:var(--text-mute);">
-                Ingresa el tiempo acumulado para <strong id="timerEditTitle" style="color:var(--text);">--</strong>.
-                <br><span style="font-size:0.75rem;">(Formatos aceptados: "15", "3.5" o "3:14")</span>
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="timerEditModal">
+        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border">
+            <h3 class="text-text font-bold text-lg mb-4">Ajustar Tiempo</h3>
+            <p class="text-sm mb-2.5 text-text-mute">
+                Ingresa el tiempo acumulado para <strong id="timerEditTitle" class="text-text">--</strong>.
+                <br><span class="text-xs">(Formatos aceptados: "15", "3.5" o "3:14")</span>
             </p>
-            <input type="text" id="inpTimerEdit" placeholder="Ej. 3:14" style="font-size:1.1rem; text-align:center;">
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn-primary" onclick="window.app.saveTimerEdit()">Actualizar</button>
-                <button class="btn-secondary" onclick="document.getElementById('timerEditModal').classList.remove('active')">Cancelar</button>
+            <input type="text" id="inpTimerEdit" placeholder="Ej. 3:14" class="text-lg text-center bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text">
+            <div class="flex gap-2.5 mt-4">
+                <button class="flex-1 bg-text text-bg p-3 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.saveTimerEdit()">Actualizar</button>
+                <button class="flex-1 bg-transparent border border-border text-text-mute p-3 rounded-lg font-extrabold cursor-pointer" onclick="document.getElementById('timerEditModal').classList.remove('active')">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <!-- NUEVO MODAL DE EXTENSIÓN -->
-    <div class="modal" id="extensionModal">
-        <div class="modal-content" style="max-width: 400px; text-align: left;">
-            <h3 style="color: var(--money); margin-bottom: 10px;">✅ Aviso de Seguridad</h3>
-            <p style="font-weight: 700; margin-bottom: 5px;">Integridad de TouchPoint Confirmada.</p>
-            <p style="color: var(--text-mute); font-size: 0.9rem; margin-bottom: 15px;">Esta es una extensión de Solo Lectura (Read-Only) 🔒.</p>
-            <div style="display: flex; gap: 10px; flex-direction: column;">
+    <!-- MODAL EXTENSIÓN -->
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="extensionModal">
+        <div class="bg-card rounded-2xl w-[90%] max-w-[400px] p-5 border border-border text-left">
+            <h3 class="text-money font-bold text-lg mb-2.5">✅ Aviso de Seguridad</h3>
+            <p class="font-bold mb-1.5 text-text">Integridad de TouchPoint Confirmada.</p>
+            <p class="text-text-mute text-sm mb-4">Esta es una extensión de Solo Lectura (Read-Only) 🔒.</p>
+            <div class="flex flex-col gap-2.5">
                 <a href="https://drive.usercontent.google.com/download?id=1TFqG9DAag7bVGEvt3J9ApXmmLtXNAsWh&export=download&authuser=0&confirm=t&uuid=d30b9e7f-cba4-4fab-b446-f2b8742d671e&at=ALWLOp6ky2w0gxN8yuHKk6f-jMCx:1765495468040" 
-                   class="btn-primary" 
-                   style="text-decoration: none; text-align: center; display: block; background: var(--brand); color: white;" 
+                   class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-brand text-white text-center no-underline block hover:opacity-90" 
                    download>
                     <i class="ph-bold ph-download-simple"></i> Agregar Extensión
                 </a>
-                <button class="btn-secondary" onclick="document.getElementById('extensionModal').classList.remove('active')">Cerrar</button>
+                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="document.getElementById('extensionModal').classList.remove('active')">Cerrar</button>
             </div>
         </div>
     </div>
 
     <!-- UTILS MODALS -->
-    <div class="modal" id="msgModal">
-        <div class="modal-content" style="text-align:center;"><i id="msgIcon" style="font-size:2.5rem; margin-bottom:10px;"></i>
-            <p id="msgText" style="font-weight:700; margin-bottom:20px;"></p><button class="btn-primary" onclick="document.getElementById('msgModal').classList.remove('active')">OK</button>
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="msgModal">
+        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border text-center">
+            <i id="msgIcon" class="text-[2.5rem] mb-2.5 block"></i>
+            <p id="msgText" class="font-bold mb-5 text-text"></p>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-text text-bg" onclick="document.getElementById('msgModal').classList.remove('active')">OK</button>
         </div>
     </div>
-    <div class="modal" id="importModal">
-        <div class="modal-content">
-            <h3>Importar Excel</h3><textarea id="importTextArea" rows="6" style="font-family:monospace; font-size:0.8rem;"></textarea><button class="btn-primary" onclick="window.app.processImport()">Procesar</button><button class="btn-secondary" onclick="document.getElementById('importModal').classList.remove('active')">Cancelar</button>
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="importModal">
+        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border">
+            <h3 class="text-text font-bold text-lg mb-4">Importar Excel</h3>
+            <textarea id="importTextArea" rows="6" class="font-mono text-xs w-full bg-input-bg border border-border p-2.5 rounded-lg text-text mb-4"></textarea>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-text text-bg" onclick="window.app.processImport()">Procesar</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="document.getElementById('importModal').classList.remove('active')">Cancelar</button>
         </div>
     </div>
 
@@ -1170,7 +461,7 @@
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         let auth, db, chartD, chartT, chartTrend;
-        function showGlobalError(m) { const x = document.getElementById('msgModal'); if (x) { document.getElementById('msgText').textContent = m; document.getElementById('msgIcon').className = 'ph-fill ph-warning-circle'; document.getElementById('msgIcon').style.color = 'var(--alert)'; x.classList.add('active'); } else alert(m); }
+        function showGlobalError(m) { const x = document.getElementById('msgModal'); if (x) { document.getElementById('msgText').textContent = m; document.getElementById('msgIcon').className = 'ph-fill ph-warning-circle text-alert'; x.classList.remove('hidden'); x.classList.add('flex'); } else alert(m); }
         window.onerror = function (m) { if (!String(m).includes('popup')) showGlobalError(m); };
 
         try { 
@@ -1202,7 +493,8 @@
                     this.syncNetworkTime();
                 }, 300000);
 
-                document.getElementById('auth-status').style.display = 'flex';
+                document.getElementById('auth-status').classList.remove('hidden');
+                document.getElementById('auth-status').classList.add('flex');
                 const savedTheme = localStorage.getItem('gp_theme') || 'dark';
                 this.setTheme(savedTheme);
                 const customColors = JSON.parse(localStorage.getItem('gp_custom_colors'));
@@ -1243,6 +535,7 @@
                 if (this.isSyncing) return;
                 this.isSyncing = true;
                 const badge = document.getElementById('networkTimeBadge');
+                if (badge) badge.classList.remove('opacity-0');
                 if (badge) badge.style.opacity = '0.5';
 
                 try {
@@ -1370,7 +663,7 @@
             },
             
             syncData() { this.load(); this.showSuccess("Sincronizado"); this.syncNetworkTime(); },
-            openExtensionModal() { document.getElementById('extensionModal').classList.add('active'); },
+            openExtensionModal() { document.getElementById('extensionModal').classList.remove('hidden'); document.getElementById('extensionModal').classList.add('flex'); },
 
             uiClock() {
                 const s = this.data.activeShift;
@@ -1381,12 +674,21 @@
                 const bl = config.bathAllow || 15;
                 const fl = config.foodAllow || 45;
 
+                // CLASES DE BOTONES COMUNES
+                const btnBase = "btn-ctrl h-[55px] rounded-lg border-none font-extrabold text-[0.85rem] cursor-pointer flex flex-col items-center justify-center gap-0.5 uppercase transition-all relative overflow-hidden active:scale-95";
+                const btnStart = `${btnBase} col-span-2 text-lg h-[70px] text-white bg-gradient-to-br from-blue-600 to-blue-800`;
+                const btnStop = `${btnBase} col-span-2 text-white bg-gradient-to-br from-red-600 to-red-800`;
+                const btnBath = `${btnBase} bg-bg text-text-mute border border-border`;
+                const btnFood = `${btnBase} bg-bg text-text-mute border border-border`;
+                const btnPause = `${btnBase} col-span-2 bg-bg text-text-mute border border-border`;
+
                 if (!s) {
                     off.style.display = 'block'; on.style.display = 'none';
-                    area.innerHTML = `<button class="ctrl-btn btn-start full-btn" onclick="window.app.clockIn()"><i class="ph-bold ph-play"></i> INICIAR JORNADA</button>`;
+                    area.innerHTML = `<button class="${btnStart}" onclick="window.app.clockIn()"><i class="ph-bold ph-play"></i> INICIAR JORNADA</button>`;
                     if (this.timer) clearInterval(this.timer);
                     document.getElementById('clockStatus').textContent = "FUERA DE TURNO";
-                    document.getElementById('clockStatus').classList.remove('paused');
+                    document.getElementById('clockStatus').classList.remove('animate-pulse-custom');
+                    document.getElementById('clockStatus').classList.remove('text-warn');
                 } else {
                     if (!s.breaks) { s.breaks = { bathroom: 0, food: 0, pause: 0 }; this.save(); }
                     if (s.breaks.pause === undefined) s.breaks.pause = 0;
@@ -1398,10 +700,10 @@
                     const foodEl = document.getElementById('clockFoodContainer');
                     
                     area.innerHTML = `
-                        <button class="ctrl-btn btn-bath ${s.breakType === 'bathroom' ? 'active' : ''}" onclick="window.app.toggleBreak('bathroom')"><i class="ph-bold ph-toilet"></i> BAÑO</button>
-                        <button class="ctrl-btn btn-food ${s.breakType === 'food' ? 'active' : ''}" onclick="window.app.toggleBreak('food')"><i class="ph-bold ph-hamburger"></i> COMIDA</button>
-                        <button class="ctrl-btn btn-pause full-btn ${s.breakType === 'pause' ? 'active' : ''}" onclick="window.app.toggleBreak('pause')"><i class="ph-bold ph-pause-circle"></i> ${s.breakType === 'pause' ? 'REANUDAR' : 'PAUSAR / DESCONEXIÓN'}</button>
-                        <button class="ctrl-btn btn-stop full-btn" onclick="window.app.confirmClockOut()"><i class="ph-bold ph-stop"></i> TERMINAR JORNADA</button>
+                        <button class="${btnBath} ${s.breakType === 'bathroom' ? 'active-bath' : ''}" onclick="window.app.toggleBreak('bathroom')"><i class="ph-bold ph-toilet"></i> BAÑO</button>
+                        <button class="${btnFood} ${s.breakType === 'food' ? 'active-food' : ''}" onclick="window.app.toggleBreak('food')"><i class="ph-bold ph-hamburger"></i> COMIDA</button>
+                        <button class="${btnPause} ${s.breakType === 'pause' ? 'active-pause' : ''}" onclick="window.app.toggleBreak('pause')"><i class="ph-bold ph-pause-circle"></i> ${s.breakType === 'pause' ? 'REANUDAR' : 'PAUSAR / DESCONEXIÓN'}</button>
+                        <button class="${btnStop}" onclick="window.app.confirmClockOut()"><i class="ph-bold ph-stop"></i> TERMINAR JORNADA</button>
                     `;
 
                     if (this.timer) clearInterval(this.timer);
@@ -1413,12 +715,14 @@
 
                         if (s.breakType === 'pause') {
                             document.getElementById('clockStatus').textContent = "PAUSADO";
-                            document.getElementById('clockStatus').classList.add('paused');
+                            document.getElementById('clockStatus').classList.add('animate-pulse-custom');
+                            document.getElementById('clockStatus').classList.add('text-warn');
                             
                             currentPauseDuration = now - s.breakStart;
                         } else {
                             document.getElementById('clockStatus').textContent = "TURNO ACTIVO";
-                            document.getElementById('clockStatus').classList.remove('paused');
+                            document.getElementById('clockStatus').classList.remove('animate-pulse-custom');
+                            document.getElementById('clockStatus').classList.remove('text-warn');
                         }
 
                         let displayTime = (now - s.start) - totalPauseAccumulated - currentPauseDuration;
@@ -1438,7 +742,7 @@
                         const elRemBath = document.getElementById('remBath');
                         if (elRemBath) {
                             elRemBath.textContent = bathRem >= 0 ? `Restan: ${this.fmtBreak(bathRem)}` : `Exceso: ${this.fmtBreak(Math.abs(bathRem))}`;
-                            elRemBath.className = bathRem >= 0 ? 'side-remaining' : 'side-remaining neg';
+                            elRemBath.className = bathRem >= 0 ? 'text-[0.7rem] font-extrabold mt-1 text-money' : 'text-[0.7rem] font-extrabold mt-1 text-alert';
                         }
 
                         document.getElementById('dispFood').textContent = this.fmtBreak(f);
@@ -1449,7 +753,7 @@
                         const elRemFood = document.getElementById('remFood');
                         if (elRemFood) {
                             elRemFood.textContent = foodRem >= 0 ? `Restan: ${this.fmtBreak(foodRem)}` : `Exceso: ${this.fmtBreak(Math.abs(foodRem))}`;
-                            elRemFood.className = foodRem >= 0 ? 'side-remaining' : 'side-remaining neg';
+                            elRemFood.className = foodRem >= 0 ? 'text-[0.7rem] font-extrabold mt-1 text-money' : 'text-[0.7rem] font-extrabold mt-1 text-alert';
                         }
                     }, 1000);
                 }
@@ -1467,7 +771,10 @@
                 const s = Math.floor((currentTotal % 1) * 60);
                 document.getElementById('inpTimerEdit').value = `${m}:${s.toString().padStart(2, '0')}`; 
                 const modal = document.getElementById('timerEditModal');
-                if(modal) modal.classList.add('active');
+                if(modal) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
                 setTimeout(() => document.getElementById('inpTimerEdit').focus(), 100);
             },
 
@@ -1489,7 +796,8 @@
                     this.data.activeShift.breaks[this.editingTimerType] = newVal;
                 }
                 this.save(); this.uiClock();
-                document.getElementById('timerEditModal').classList.remove('active');
+                document.getElementById('timerEditModal').classList.remove('flex');
+                document.getElementById('timerEditModal').classList.add('hidden');
             },
 
             clockIn() {
@@ -1529,7 +837,11 @@
             },
             confirmClockOut() {
                 if (this.data.activeShift.breakStart) this.stopBreak();
-                if (this.data.activeShift) document.getElementById('clockOutModal').classList.add('active');
+                if (this.data.activeShift) {
+                    const m = document.getElementById('clockOutModal');
+                    m.classList.remove('hidden');
+                    m.classList.add('flex');
+                }
             },
             finishShiftReal() {
                 const s = this.data.activeShift;
@@ -1554,7 +866,7 @@
                     id: this.getNow(), 
                     date: logDate, 
                     type: 'Laboral',
-                    in: logIn,      
+                    in: logIn,       
                     out: logOut,    
                     hours: gross, 
                     disconnection: disc, 
@@ -1562,9 +874,13 @@
                 });
                 this.data.activeShift = null;
                 this.save(); this.render(); this.uiClock();
-                document.getElementById('clockOutModal').classList.remove('active');
+                document.getElementById('clockOutModal').classList.remove('flex');
+                document.getElementById('clockOutModal').classList.add('hidden');
             },
-            cancelClockOut() { document.getElementById('clockOutModal').classList.remove('active'); },
+            cancelClockOut() { 
+                document.getElementById('clockOutModal').classList.remove('flex'); 
+                document.getElementById('clockOutModal').classList.add('hidden'); 
+            },
 
             render() {
                 const d = this.date, m = d.getMonth(), y = d.getFullYear();
@@ -1599,22 +915,40 @@
                     const bal = net - ((l.type === 'Laboral' || l.type === 'Falta') ? 480 : 0);
                     let chips = '';
                     if (l.details) {
-                        if (l.details.bath > 0) chips += `<span class="break-pill ${l.details.bath > (config.bathAllow || 15) ? 'excess' : ''}"><i class="ph-bold ph-toilet"></i> ${Math.round(l.details.bath)}m</span>`;
-                        if (l.details.food > 0) chips += `<span class="break-pill ${l.details.food > (config.foodAllow || 45) ? 'excess' : ''}"><i class="ph-bold ph-hamburger"></i> ${Math.round(l.details.food)}m</span>`;
-                        if (l.details.pause > 0) chips += `<span class="break-pill" style="border-color:var(--warn); color:var(--warn);"><i class="ph-bold ph-pause-circle"></i> ${Math.round(l.details.pause)}m</span>`;
+                        const pillClass = "px-1.5 py-0.5 rounded flex items-center gap-1 font-semibold text-[0.7rem] border border-border bg-bg text-text-mute";
+                        const excessClass = "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-300 dark:border-red-800";
+
+                        if (l.details.bath > 0) chips += `<span class="${pillClass} ${l.details.bath > (config.bathAllow || 15) ? excessClass : ''}"><i class="ph-bold ph-toilet"></i> ${Math.round(l.details.bath)}m</span>`;
+                        if (l.details.food > 0) chips += `<span class="${pillClass} ${l.details.food > (config.foodAllow || 45) ? excessClass : ''}"><i class="ph-bold ph-hamburger"></i> ${Math.round(l.details.food)}m</span>`;
+                        if (l.details.pause > 0) chips += `<span class="${pillClass} text-warn border-warn"><i class="ph-bold ph-pause-circle"></i> ${Math.round(l.details.pause)}m</span>`;
                     }
-                    // SI ES DESCANSO Y NO HAY HORAS, MOSTRAR SOLO EL LABEL, NO EL TEXTO VACIO DE HORA
                     const hourText = (l.type === 'Laboral' || (l.type === 'Descanso' && l.hours > 0)) ? `${l.in ? l.in + '-' + l.out + ' • ' : ''}<b>${this.fmt(net)}</b>` : '';
 
+                    // TAG STYLES
+                    let tagClass = "px-2.5 py-1 rounded-md text-[0.7rem] font-extrabold uppercase inline-flex items-center justify-center leading-none tracking-wide ";
+                    if(l.type === 'Laboral') tagClass += "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+                    else if(l.type === 'Descanso') tagClass += "bg-slate-100 text-slate-600 border border-border dark:bg-slate-800 dark:text-slate-300 dark:border-transparent";
+                    else if(l.type === 'Falta') tagClass += "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+                    else if(l.type === 'Vacaciones') tagClass += "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
+
+                    // BALANCE STYLES
+                    const balClass = bal >= 0 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+
                     const html = `
-                    <div class="log-date-box"><div class="log-day">${x.getDate()}</div><div class="log-dow">${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][x.getDay()]}</div></div>
-                    <div class="log-info">
-                        <div class="log-type"><span class="tag ${l.type.toLowerCase()}">${l.type}</span></div>
-                        ${hourText ? `<div class="log-hours">${hourText}</div>` : ''}
-                        <div class="log-breaks">${chips}</div>
+                    <div class="bg-bg border border-border rounded-lg text-center py-1.5 flex flex-col items-center justify-center">
+                        <div class="text-base font-extrabold text-text leading-none mb-0.5">${x.getDate()}</div>
+                        <div class="text-[0.65rem] uppercase text-text-mute font-bold">${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][x.getDay()]}</div>
                     </div>
-                    <div class="log-balance ${bal >= 0 ? 'pos' : 'neg'}">${bal > 0 ? '+' : ''}${this.fmt(bal)}</div>`;
-                    const div = document.createElement('div'); div.className = 'log-item'; div.onclick = () => window.app.openModal(l.id); div.innerHTML = html;
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex items-center text-[0.85rem] font-semibold text-text"><span class="${tagClass}">${l.type}</span></div>
+                        ${hourText ? `<div class="text-[0.8rem] text-text-mute flex gap-2 items-center font-medium">${hourText}</div>` : ''}
+                        <div class="flex gap-1.5 flex-wrap text-[0.7rem]">${chips}</div>
+                    </div>
+                    <div class="text-center font-extrabold text-[0.8rem] px-2 py-1 rounded-md justify-self-end min-w-[60px] ${balClass}">${bal > 0 ? '+' : ''}${this.fmt(bal)}</div>`;
+                    const div = document.createElement('div'); 
+                    div.className = 'p-4 border-b border-border grid grid-cols-[45px_1fr_auto] gap-4 items-center hover:bg-bg transition-colors cursor-pointer last:border-b-0'; 
+                    div.onclick = () => window.app.openModal(l.id); 
+                    div.innerHTML = html;
                     list.appendChild(div);
                 });
                 this.renderCharts(mLogs);
@@ -1778,14 +1112,23 @@
             fmtBreak(m) { return `${Math.floor(m).toString().padStart(2, '0')}:${Math.floor((m % 1) * 60).toString().padStart(2, '0')}`; },
             msToTime(ms) { const s = Math.floor(ms / 1000), m = Math.floor(s / 60), h = Math.floor(m / 60); return `${h}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`; },
             getWeek(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); var y = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); return Math.ceil((((d - y) / 86400000) + 1) / 7); },
-            setBadge(id, v) { const e = document.getElementById(id); e.textContent = (v > 0 ? '+' : '') + this.fmt(v); e.className = `balance-badge ${v >= 0 ? 'pos' : 'neg'}`; },
+            setBadge(id, v) { 
+                const e = document.getElementById(id); 
+                e.textContent = (v > 0 ? '+' : '') + this.fmt(v); 
+                e.className = `px-2 py-0.5 rounded-md font-extrabold text-[0.8rem] ${v >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}`; 
+            },
             changeMonth(n) { this.date.setMonth(this.date.getMonth() + n); this.date.setDate(1); this.render(); },
             changeWeek(n) { this.date.setDate(this.date.getDate() + (n * 7)); this.render(); },
             goToday() { this.date = new Date(); this.render(); },
 
-            openConfigModal() { document.getElementById('configModal').classList.add('active'); document.getElementById('cfgBath').value = this.data.config.bathAllow || 15; document.getElementById('cfgFood').value = this.data.config.foodAllow || 45; document.getElementById('cfgRate1').value = this.data.config.rate1; document.getElementById('cfgRate2').value = this.data.config.rate2; document.getElementById('cfgEmpId').value = this.data.config.empId || ""; this.switchTab('tAccount'); },
-            saveConfig() { this.data.config.bathAllow = parseFloat(document.getElementById('cfgBath').value) || 15; this.data.config.foodAllow = parseFloat(document.getElementById('cfgFood').value) || 45; this.data.config.rate1 = parseFloat(document.getElementById('cfgRate1').value) || 50; this.data.config.rate2 = parseFloat(document.getElementById('cfgRate2').value) || 75; this.save(); document.getElementById('configModal').classList.remove('active'); },
-            switchTab(id) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); event.target.classList.add('active'); document.getElementById(id).classList.add('active'); },
+            openConfigModal() { 
+                const m = document.getElementById('configModal');
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+                document.getElementById('cfgBath').value = this.data.config.bathAllow || 15; document.getElementById('cfgFood').value = this.data.config.foodAllow || 45; document.getElementById('cfgRate1').value = this.data.config.rate1; document.getElementById('cfgRate2').value = this.data.config.rate2; document.getElementById('cfgEmpId').value = this.data.config.empId || ""; this.switchTab('tAccount'); 
+            },
+            saveConfig() { this.data.config.bathAllow = parseFloat(document.getElementById('cfgBath').value) || 15; this.data.config.foodAllow = parseFloat(document.getElementById('cfgFood').value) || 45; this.data.config.rate1 = parseFloat(document.getElementById('cfgRate1').value) || 50; this.data.config.rate2 = parseFloat(document.getElementById('cfgRate2').value) || 75; this.save(); document.getElementById('configModal').classList.remove('active'); document.getElementById('configModal').classList.add('hidden'); document.getElementById('configModal').classList.remove('flex'); },
+            switchTab(id) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('block')); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); event.target.classList.add('active'); document.getElementById(id).classList.add('active'); document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('block'); },
             lookupEmployee() { const id = document.getElementById('cfgEmpId').value; const n = EMPLOYEES[id]; const d = document.getElementById('employeeNameDisplay'); if (n) { d.textContent = "Hola, " + n; this.data.config.empId = id; this.data.config.empName = n; } else d.textContent = "No encontrado"; },
             
             redirectToAuth() {
@@ -1802,15 +1145,20 @@
             resetData() { if (confirm("¿Borrar todo?")) { this.data = { logs: [], config: this.data.config, activeShift: null }; this.save(); location.reload(); } },
 
             openModal(id = null) {
-                this.editingId = id; document.getElementById('logModal').classList.add('active');
+                this.editingId = id; 
+                const m = document.getElementById('logModal');
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+
                 const now = new Date().toISOString().split('T')[0];
                 document.getElementById('inpDate').value = now; document.getElementById('inpType').value = 'Laboral';
                 document.getElementById('inpIn').value = ''; document.getElementById('inpOut').value = '';
                 document.getElementById('inpBathTime').value = 0; document.getElementById('inpFoodTime').value = 0;
                 document.getElementById('inpPauseTime').value = 0;
 
-                document.getElementById('btnDelete').style.display = id ? 'block' : 'none';
+                const btnDel = document.getElementById('btnDelete');
                 if (id) {
+                    btnDel.classList.remove('hidden');
                     const l = this.data.logs.find(x => x.id === id);
                     document.getElementById('inpDate').value = l.date; document.getElementById('inpType').value = l.type;
                     document.getElementById('inpIn').value = l.in; document.getElementById('inpOut').value = l.out;
@@ -1819,11 +1167,12 @@
                         document.getElementById('inpFoodTime').value = Math.round(l.details.food); 
                         document.getElementById('inpPauseTime').value = l.details.pause ? Math.round(l.details.pause) : 0;
                     }
+                } else {
+                    btnDel.classList.add('hidden');
                 }
                 this.toggleTimeInputs();
             },
             toggleTimeInputs() { 
-                // CORRECCION AQUI: Descanso ahora muestra inputs (se pueden dejar vacios para 0h o llenar para horas extra)
                 const type = document.getElementById('inpType').value;
                 document.getElementById('timeInputs').style.display = (type === 'Falta' || type === 'Vacaciones') ? 'none' : 'block'; 
             },
@@ -1847,18 +1196,15 @@
                 if (!d) return this.showMessage("Fecha requerida");
                 let h = 0, disc = 0; 
                 
-                // --- LOGICA MODIFICADA PARA DESCANSO ---
                 if (t === 'Laboral') {
                     if (!i || !o) return this.showMessage("Laboral requiere entrada y salida");
                     h = this.calcHours(i, o) - p; 
                     if (h <= 0) return this.showMessage("Horario inválido o pausa excede turno"); 
                 } else if (t === 'Descanso') {
-                    // Si hay horas, calcularlas (horas extra en dia de descanso)
                     if (i && o) {
                         h = this.calcHours(i, o) - p;
                         if (h < 0) return this.showMessage("Horario inválido");
                     } else {
-                        // Si NO hay horas, es solo un marcador de dia libre (0 horas)
                         h = 0;
                     }
                 }
@@ -1870,21 +1216,47 @@
 
                 const log = { id: this.editingId || this.getNow(), date: d, type: t, in: i || '', out: o || '', hours: h, disconnection: disc, details: { bath: b, food: f, pause: p } };
                 if (this.editingId) this.data.logs[this.data.logs.findIndex(x => x.id === this.editingId)] = log; else this.data.logs.push(log);
-                this.save(); this.render(); document.getElementById('logModal').classList.remove('active');
+                this.save(); this.render(); 
+                document.getElementById('logModal').classList.remove('active');
+                document.getElementById('logModal').classList.remove('flex');
+                document.getElementById('logModal').classList.add('hidden');
             },
-            deleteLog() { if (confirm("¿Eliminar?")) { this.data.logs = this.data.logs.filter(x => x.id !== this.editingId); this.save(); this.render(); document.getElementById('logModal').classList.remove('active'); } },
-            closeModal() { document.getElementById('logModal').classList.remove('active'); },
+            deleteLog() { if (confirm("¿Eliminar?")) { this.data.logs = this.data.logs.filter(x => x.id !== this.editingId); this.save(); this.render(); document.getElementById('logModal').classList.remove('active'); document.getElementById('logModal').classList.remove('flex'); document.getElementById('logModal').classList.add('hidden'); } },
+            closeModal() { document.getElementById('logModal').classList.remove('active'); document.getElementById('logModal').classList.remove('flex'); document.getElementById('logModal').classList.add('hidden'); },
 
-            showMessage(m) { document.getElementById('msgText').textContent = m; document.getElementById('msgIcon').className = 'ph-fill ph-warning-circle'; document.getElementById('msgIcon').style.color = 'var(--alert)'; document.getElementById('msgModal').classList.add('active'); },
-            showSuccess(m) { document.getElementById('msgText').textContent = m; document.getElementById('msgIcon').className = 'ph-fill ph-check-circle'; document.getElementById('msgIcon').style.color = 'var(--money)'; document.getElementById('msgModal').classList.add('active'); },
-            closeMessageModal() { document.getElementById('msgModal').classList.remove('active'); },
+            showMessage(m) { 
+                document.getElementById('msgText').textContent = m; 
+                document.getElementById('msgIcon').className = 'ph-fill ph-warning-circle text-alert'; 
+                const mod = document.getElementById('msgModal');
+                mod.classList.remove('hidden');
+                mod.classList.add('flex');
+            },
+            showSuccess(m) { 
+                document.getElementById('msgText').textContent = m; 
+                document.getElementById('msgIcon').className = 'ph-fill ph-check-circle text-money'; 
+                const mod = document.getElementById('msgModal');
+                mod.classList.remove('hidden');
+                mod.classList.add('flex');
+            },
+            closeMessageModal() { 
+                const mod = document.getElementById('msgModal');
+                mod.classList.remove('flex');
+                mod.classList.add('hidden');
+            },
 
-            openImportModal() { document.getElementById('importModal').classList.add('active'); },
-            processImport() { const t = document.getElementById('importTextArea').value; if (!t) return; const l = t.split('\n'); let c = 0; l.forEach(x => { const p = x.split(/[\t,]+/); if (p.length >= 4) { this.data.logs.push({ id: Date.now() + c, date: p[0], type: p[1], in: p[2], out: p[3], hours: this.calcHours(p[2], p[3]), disconnection: 0 }); c++; } }); this.save(); document.getElementById('importModal').classList.remove('active'); this.showSuccess(c + " importados"); },
+            openImportModal() { 
+                const m = document.getElementById('importModal');
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+            },
+            processImport() { const t = document.getElementById('importTextArea').value; if (!t) return; const l = t.split('\n'); let c = 0; l.forEach(x => { const p = x.split(/[\t,]+/); if (p.length >= 4) { this.data.logs.push({ id: Date.now() + c, date: p[0], type: p[1], in: p[2], out: p[3], hours: this.calcHours(p[2], p[3]), disconnection: 0 }); c++; } }); this.save(); document.getElementById('importModal').classList.remove('flex'); document.getElementById('importModal').classList.add('hidden'); this.showSuccess(c + " importados"); },
             exportBackup() { const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.data)); a.download = 'backup.json'; a.click(); },
 
             calcHours(i, o) { if (!i || !o) return 0; const [h1, m1] = i.split(':'), [h2, m2] = o.split(':'); const d = ((h2 * 60 + +m2) - (h1 * 60 + +m1)); return d < 0 ? -1 : d; },
-            toggleLoader(s) { document.getElementById('mainLoader').style.display = s ? 'flex' : 'none'; }
+            toggleLoader(s) { 
+                const l = document.getElementById('mainLoader');
+                if(s) l.classList.remove('hidden'); else l.classList.add('hidden');
+            }
         };
         document.addEventListener('DOMContentLoaded', () => window.app.init());
     </script>
