@@ -30,6 +30,7 @@
                     },
                     fontFamily: {
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'],
                     }
                 }
             }
@@ -103,7 +104,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .spinner { border: 4px solid var(--border); border-top: 4px solid var(--brand); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
 
-        /* ESTADOS ACTIVOS COMPLEJOS (Difíciles de hacer solo con utilidades puras debido a la lógica JS existente) */
+        /* ESTADOS ACTIVOS COMPLEJOS */
         .g-link.active { color: #fff; border-bottom: 2px solid #fff; padding-bottom: 2px; }
         
         /* Botones de control de tiempo activos */
@@ -151,6 +152,14 @@
             <i class="ph-fill ph-check-circle text-brand"></i> <span>Adherencia</span>
         </div>
         <div class="flex items-center gap-2 shrink-0">
+            <!-- NUEVO: RELOJ REAL CDMX -->
+            <div id="realWorldClock" class="flex flex-col items-end mr-2 px-2 py-0.5 border-r border-border/50">
+                <div class="text-[0.6rem] text-text-mute font-black tracking-wider leading-none mb-0.5 flex items-center gap-1">
+                     <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> CDMX
+                </div>
+                <div class="text-[0.9rem] font-mono font-bold text-text leading-none tabular-nums" id="realClockTime">--:--:--</div>
+            </div>
+
             <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.openExtensionModal()" title="Instalar Extensión"><i class="ph-bold ph-puzzle-piece"></i></button>
             <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.syncData()" title="Sincronizar"><i class="ph-bold ph-arrows-clockwise"></i></button>
             <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.openConfigModal()" title="Menú"><i class="ph-bold ph-list"></i></button>
@@ -489,9 +498,13 @@
 
                 window.addEventListener("online", () => this.syncNetworkTime());
 
+                // Sync loop más robusto
                 setInterval(() => {
                     this.syncNetworkTime();
-                }, 300000);
+                }, 300000); // 5 min
+                
+                // ACTUALIZADOR DEL RELOJ REAL (Header)
+                setInterval(() => this.updateRealClockUI(), 1000);
 
                 document.getElementById('auth-status').classList.remove('hidden');
                 document.getElementById('auth-status').classList.add('flex');
@@ -531,22 +544,22 @@
                 });
             },
 
+            // Lógica "Ingeniosa" para el Sync Time
             async syncNetworkTime(force = false) {
                 if (this.isSyncing) return;
-                
                 const now = Date.now();
-                // Circuit breaker check: Don't sync if we are in the penalty box, unless forced
                 if (!force && now < this.nextSyncAllowed) return;
 
                 this.isSyncing = true;
                 const badge = document.getElementById('networkTimeBadge');
+                const dot = document.getElementById('syncDot'); // El punto rojo/verde del header
                 if (badge) { badge.classList.remove('opacity-0'); badge.style.opacity = '0.5'; }
 
                 const fetchTime = async (url) => {
                     const controller = new AbortController();
                     const id = setTimeout(() => controller.abort(), 4000);
                     try {
-                        const res = await fetch(url, { signal: controller.signal, cache: 'no-store' }); // Disable cache
+                        const res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
                         clearTimeout(id);
                         if (!res.ok) throw new Error("Status " + res.status);
                         return await res.json();
@@ -561,11 +574,11 @@
                     let serverTime = 0;
 
                     try {
-                        // Priority 1: TimeAPI (Timeout is handled better than connection reset)
+                        // Fuente 1: TimeAPI
                         const data = await fetchTime('https://timeapi.io/api/Time/current/zone?timeZone=America/Mexico_City');
                         serverTime = new Date(data.dateTime).getTime();
                     } catch (err1) {
-                        // Priority 2: WorldTimeAPI (Often flaky/resets connection)
+                        // Fuente 2: WorldTimeAPI (Respaldo)
                         const data = await fetchTime('https://worldtimeapi.org/api/timezone/America/Mexico_City');
                         serverTime = new Date(data.datetime).getTime();
                     }
@@ -574,7 +587,7 @@
                     const latency = (end - start) / 2;
                     this.timeOffset = (serverTime + latency) - end;
                     this.lastSync = Date.now();
-                    this.nextSyncAllowed = 0; // Success! Clear penalty
+                    this.nextSyncAllowed = 0; // Éxito, quitamos penalización
                     
                     if(badge) {
                         badge.style.opacity = '1';
@@ -584,20 +597,48 @@
                             if(badge) badge.innerHTML = `<i class="ph-bold ph-globe"></i> Sync`; 
                         }, 5000);
                     }
+                    if (dot) {
+                        dot.classList.remove('bg-red-500');
+                        dot.classList.add('bg-emerald-500');
+                        dot.classList.add('shadow-[0_0_8px_rgba(16,185,129,0.5)]');
+                    }
+
                 } catch (e) {
-                    // Silent Local Fallback with Circuit Breaker
-                    console.log("Time sync failed. Pausing sync attempts for 1 hour to avoid network spam."); 
+                    // Fallback local silencioso
+                    console.log("Time sync failed. Pausing sync attempts."); 
                     this.timeOffset = 0; 
                     this.lastSync = Date.now(); 
-                    this.nextSyncAllowed = Date.now() + 3600000; // 1 hour cool-down
+                    this.nextSyncAllowed = Date.now() + 60000; // Reintentar en 1 min si falló
                     
                     if(badge) { 
                         badge.style.opacity = '1'; 
                         badge.style.color = 'var(--text-mute)';
                         badge.innerHTML = `<i class="ph-bold ph-desktop"></i> PC Time`; 
                     }
+                    if (dot) {
+                        dot.classList.remove('bg-emerald-500');
+                        dot.classList.remove('shadow-[0_0_8px_rgba(16,185,129,0.5)]');
+                        dot.classList.add('bg-red-500');
+                    }
                 } finally {
                     this.isSyncing = false;
+                }
+            },
+
+            // Función dedicada para actualizar el Reloj Real del Header
+            updateRealClockUI() {
+                const now = this.getNow();
+                const clockEl = document.getElementById('realClockTime');
+                if (clockEl) {
+                    // Formato HH:MM:SS
+                    const timeStr = new Date(now).toLocaleTimeString('es-MX', {
+                        timeZone: 'America/Mexico_City',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    });
+                    clockEl.textContent = timeStr;
                 }
             },
 
@@ -1251,7 +1292,6 @@
             },
             deleteLog() { if (confirm("¿Eliminar?")) { this.data.logs = this.data.logs.filter(x => x.id !== this.editingId); this.save(); this.render(); this.closeModalById('logModal'); } },
             
-            // NUEVA FUNCION PARA CERRAR MODALES
             closeModalById(id) {
                 const m = document.getElementById(id);
                 if(m) {
