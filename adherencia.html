@@ -986,4 +986,171 @@
                 document.getElementById('qName').textContent = isQ1 ? 'Q1' : 'Q2';
                 const qLogs = this.data.logs.filter(l => { const x = new Date(l.date + 'T00:00'); return x.getMonth() === m && (isQ1 ? x.getDate() <= 15 : x.getDate() > 15); });
                 const qRes = this.calcStats(qLogs);
-                document.getElementById('qTarget').textContent
+                document.getElementById('qTarget').textContent = this.fmt(qRes.target);
+                document.getElementById('qWorked').textContent = this.fmt(qRes.worked);
+                this.setBadge('qBalance', qRes.bal);
+                document.getElementById('qFails').textContent = qRes.fails;
+
+                const list = document.getElementById('logList'); list.innerHTML = '';
+                const mLogs = this.data.logs.filter(l => new Date(l.date + 'T00:00').getMonth() === m).sort((a, b) => new Date(b.date) - new Date(a.date));
+                mLogs.forEach(l => {
+                    const x = new Date(l.date + 'T00:00');
+                    const net = (l.type === 'Laboral' || l.type === 'Descanso') ? (l.hours - (l.disconnection || 0)) : 0;
+                    const bal = net - ((l.type === 'Laboral' || l.type === 'Falta') ? 480 : 0);
+                    let chips = '';
+                    if (l.details) {
+                        const pillClass = "px-1.5 py-0.5 rounded flex items-center gap-1 font-semibold text-[0.7rem] border border-border bg-bg text-text-mute";
+                        const excessClass = "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-300 dark:border-red-800";
+
+                        if (l.details.bath > 0) chips += `<span class="${pillClass} ${l.details.bath > (config.bathAllow || 15) ? excessClass : ''}"><i class="ph-bold ph-toilet"></i> ${Math.round(l.details.bath)}m</span>`;
+                        if (l.details.food > 0) chips += `<span class="${pillClass} ${l.details.food > (config.foodAllow || 45) ? excessClass : ''}"><i class="ph-bold ph-hamburger"></i> ${Math.round(l.details.food)}m</span>`;
+                        if (l.details.pause > 0) chips += `<span class="${pillClass} text-warn border-warn"><i class="ph-bold ph-pause-circle"></i> ${Math.round(l.details.pause)}m</span>`;
+                    }
+                    const hourText = (l.type === 'Laboral' || (l.type === 'Descanso' && l.hours > 0)) ? `${l.in ? l.in + '-' + l.out + ' • ' : ''}<b>${this.fmt(net)}</b>` : '';
+
+                    // TAG STYLES
+                    let tagClass = "px-2.5 py-1 rounded-md text-[0.7rem] font-extrabold uppercase inline-flex items-center justify-center leading-none tracking-wide ";
+                    if(l.type === 'Laboral') tagClass += "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+                    else if(l.type === 'Descanso') tagClass += "bg-slate-100 text-slate-600 border border-border dark:bg-slate-800 dark:text-slate-300 dark:border-transparent";
+                    else if(l.type === 'Falta') tagClass += "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+                    else if(l.type === 'Vacaciones') tagClass += "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
+
+                    // BALANCE STYLES
+                    const balClass = bal >= 0 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+
+                    const html = `
+                    <div class="bg-bg border border-border rounded-lg text-center py-1.5 flex flex-col items-center justify-center">
+                        <div class="text-base font-extrabold text-text leading-none mb-0.5">${x.getDate()}</div>
+                        <div class="text-[0.65rem] uppercase text-text-mute font-bold">${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][x.getDay()]}</div>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex items-center text-[0.85rem] font-semibold text-text"><span class="${tagClass}">${l.type}</span></div>
+                        ${hourText ? `<div class="text-[0.8rem] text-text-mute flex gap-2 items-center font-medium">${hourText}</div>` : ''}
+                        <div class="flex gap-1.5 flex-wrap text-[0.7rem]">${chips}</div>
+                    </div>
+                    <div class="text-center font-extrabold text-[0.8rem] px-2 py-1 rounded-md justify-self-end min-w-[60px] ${balClass}">${bal > 0 ? '+' : ''}${this.fmt(bal)}</div>`;
+                    const div = document.createElement('div'); 
+                    div.className = 'p-4 border-b border-border grid grid-cols-[45px_1fr_auto] gap-4 items-center hover:bg-bg transition-colors cursor-pointer last:border-b-0'; 
+                    div.onclick = () => window.app.openModal(l.id); 
+                    div.innerHTML = html;
+                    list.appendChild(div);
+                });
+                this.renderCharts(mLogs);
+            },
+
+            renderCharts(logs) {
+                const daysInMonth = new Date(this.date.getFullYear(), this.date.getMonth() + 1, 0).getDate();
+                const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+                const workedData = days.map(d => {
+                    const dailyLogs = logs.filter(l => new Date(l.date + 'T00:00').getDate() === d && (l.type === 'Laboral' || l.type === 'Descanso'));
+                    const dailySum = dailyLogs.reduce((acc, curr) => acc + Math.max(0, (curr.hours - (curr.disconnection || 0))), 0);
+                    return dailySum / 60; 
+                });
+
+                const excessData = days.map(d => {
+                    const dailyLogs = logs.filter(l => new Date(l.date + 'T00:00').getDate() === d);
+                    const dailySum = dailyLogs.reduce((acc, curr) => acc + (curr.disconnection || 0), 0);
+                    return dailySum / 60; 
+                });
+
+                let runningBalance = 0;
+                const trendData = days.map(d => {
+                    const dailyLogs = logs.filter(l => new Date(l.date + 'T00:00').getDate() === d);
+                    
+                    const dailyWorked = dailyLogs.reduce((acc, l) => {
+                         if (l.type === 'Laboral' || l.type === 'Descanso') return acc + (l.hours - (l.disconnection || 0));
+                         return acc;
+                    }, 0);
+
+                    const dailyTarget = dailyLogs.reduce((acc, l) => {
+                         if (l.type === 'Laboral' || l.type === 'Falta') return acc + 480;
+                         return acc;
+                    }, 0);
+                    
+                    const dailyNet = dailyWorked - dailyTarget;
+                    runningBalance += dailyNet;
+                    return runningBalance / 60; 
+                });
+
+
+                let totalWork = 0, totalBath = 0, totalFood = 0;
+                logs.forEach(l => {
+                    if (l.details) { totalBath += l.details.bath || 0; totalFood += l.details.food || 0; }
+                    if (l.type === 'Laboral' || l.type === 'Descanso') {
+                        const rawWork = l.hours - ((l.details?.bath || 0) + (l.details?.food || 0));
+                        totalWork += Math.max(0, rawWork);
+                    }
+                });
+
+                if (chartD) chartD.destroy();
+                if (chartT) chartT.destroy();
+                if (chartTrend) chartTrend.destroy();
+
+                const isRed = this.currentTheme === 'red';
+                const isDark = this.currentTheme === 'dark' || isRed;
+                const textColor = isDark ? '#94a3b8' : '#64748b';
+                const gridColor = isDark ? '#334155' : '#e2e8f0';
+
+                const workColor = isRed ? '#dc2626' : '#2563eb';
+                const excessColor = isRed ? '#7f1d1d' : '#dc2626';
+                const trendColor = '#10b981'; 
+
+                chartD = new Chart(document.getElementById('chartDaily'), {
+                    type: 'bar',
+                    data: {
+                        labels: days,
+                        datasets: [
+                            { label: 'Efectivo (h)', data: workedData, backgroundColor: workColor, borderRadius: 2, stack: 'Stack 0' },
+                            { label: 'Penalización (h)', data: excessData, backgroundColor: excessColor, borderRadius: 2, stack: 'Stack 0' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { 
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) { label += ': '; }
+                                        const val = context.parsed.y;
+                                        const h = Math.floor(val);
+                                        const m = Math.round((val - h) * 60);
+                                        return label + h + "h " + m + "m";
+                                    }
+                                }
+                            },
+                            legend: { position: 'bottom', labels: { color: textColor, boxWidth: 10, font: { size: 10 } } } 
+                        },
+                        scales: {
+                            y: { beginAtZero: true, stacked: true, grid: { color: gridColor }, ticks: { color: textColor } },
+                            x: { stacked: true, grid: { display: false }, ticks: { color: textColor } }
+                        }
+                    }
+                });
+
+                chartTrend = new Chart(document.getElementById('chartTrend'), {
+                    type: 'line',
+                    data: {
+                        labels: days,
+                        datasets: [{
+                            label: 'Saldo Acumulado (h)',
+                            data: trendData,
+                            borderColor: trendColor,
+                            backgroundColor: (ctx) => {
+                                const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 200);
+                                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.5)');
+                                gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+                                return gradient;
+                            },
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 2,
+                            pointHoverRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { 
+                            tooltip: {
+                                callbacks:
