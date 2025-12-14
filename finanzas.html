@@ -458,7 +458,7 @@
                     <div id="netWorthDisplay" class="text-4xl font-black text-white tracking-tighter">Calculando...</div>
                 </div>
                 
-                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 px-1">Línea de Tiempo</h3>
+                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 px-1">Línea de Tiempo (Quincenas)</h3>
                 <div id="historyList" class="space-y-4 pb-20">
                      <!-- Aquí se inyectan las tarjetas de historial -->
                      <div class="text-center py-10 text-zinc-600 italic text-xs">Procesando historial...</div>
@@ -842,7 +842,7 @@
                 });
             },
 
-            // --- LÓGICA DE HISTORIAL CON ALMA ---
+            // --- LÓGICA DE HISTORIAL CON QUINCENAS (CORREGIDO) ---
             renderHistory() {
                 const container = document.getElementById('historyList');
                 if(!this.logs.length) {
@@ -850,15 +850,18 @@
                     return;
                 }
 
-                // 1. Agrupar por mes (YYYY-MM)
+                // 1. Agrupar por mes Y Quincena (YYYY-MM-Q1 o Q2)
                 const groups = {};
                 let netWorth = 0;
 
                 this.logs.forEach(l => {
                     const d = new Date(l.date);
-                    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}`;
+                    // Determinar Q1 (Días 1-15) o Q2 (Días 16+)
+                    const day = d.getDate();
+                    const qLabel = day <= 15 ? 'Q1' : 'Q2';
+                    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${qLabel}`;
                     
-                    if(!groups[k]) groups[k] = { income:0, expense:0, date: d, count:0 };
+                    if(!groups[k]) groups[k] = { income:0, expense:0, date: d, count:0, q: qLabel };
                     
                     if(l.type === 'income') {
                         groups[k].income += l.amount;
@@ -875,12 +878,13 @@
                 nwEl.textContent = UI.fmtMoney(netWorth);
                 nwEl.className = `text-4xl font-black tracking-tighter ${netWorth >= 0 ? 'text-white' : 'text-red-500'}`;
 
-                // 2. Ordenar meses (más reciente primero)
+                // 2. Ordenar grupos (más reciente primero)
+                // Usamos key string comparison que funciona bien (YYYY-MM-Q2 > YYYY-MM-Q1)
                 const sortedKeys = Object.keys(groups).sort((a,b) => b.localeCompare(a));
                 
                 container.innerHTML = '';
                 
-                // 3. Generar HTML con Alma
+                // 3. Generar HTML
                 sortedKeys.forEach(key => {
                     const g = groups[key];
                     const balance = g.income - g.expense;
@@ -889,7 +893,7 @@
                     // Lógica de "Vibe"
                     let vibeIcon = 'ph-mask-happy';
                     let vibeColor = 'text-emerald-400';
-                    let vibeText = 'Excelente mes';
+                    let vibeText = 'Excelente periodo';
                     let barColor = 'bg-emerald-500';
 
                     if (balance < 0) {
@@ -902,20 +906,24 @@
                         vibeIcon = 'ph-star-fill'; vibeColor = 'text-emerald-400'; vibeText = '¡Imparable!'; barColor = 'bg-emerald-500';
                     }
 
-                    // Formato Mes
+                    // Formato Mes + Quincena
                     const monthName = g.date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
                     const capMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                    const qText = g.q === 'Q1' ? '1ª Quincena' : '2ª Quincena';
 
                     // Barra de salud financiera (Income vs Expense visual)
                     const maxVal = Math.max(g.income, g.expense);
-                    const incPct = (g.income / maxVal) * 100;
-                    const expPct = (g.expense / maxVal) * 100;
+                    const incPct = maxVal > 0 ? (g.income / maxVal) * 100 : 0;
+                    const expPct = maxVal > 0 ? (g.expense / maxVal) * 100 : 0;
 
                     container.innerHTML += `
                     <div class="glass p-5 rounded-2xl relative overflow-hidden group hover:bg-zinc-900/40 transition-colors">
                         <div class="flex justify-between items-start mb-4 relative z-10">
                             <div>
-                                <h4 class="text-lg font-bold text-white capitalize">${capMonth}</h4>
+                                <h4 class="text-lg font-bold text-white capitalize flex flex-col md:flex-row md:gap-2">
+                                    <span>${capMonth}</span>
+                                    <span class="text-xs text-zinc-500 font-normal bg-zinc-800/50 px-2 py-0.5 rounded-lg self-start mt-1 md:mt-0">${qText}</span>
+                                </h4>
                                 <div class="flex items-center gap-1.5 mt-1">
                                     <i class="ph-fill ${vibeIcon} ${vibeColor}"></i>
                                     <span class="text-xs font-medium text-zinc-400">${vibeText}</span>
