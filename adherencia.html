@@ -533,16 +533,21 @@
 
             async syncNetworkTime() {
                 if (this.isSyncing) return;
+                
+                // Prevent spamming requests if it failed recently (e.g. within 10 seconds)
+                // unless it's a forced manual sync (which calls this method directly usually, but here it's automatic)
+                const now = Date.now();
+                if (now - this.lastSync < 10000 && this.timeOffset === 0) return; 
+
                 this.isSyncing = true;
                 const badge = document.getElementById('networkTimeBadge');
                 if (badge) { badge.classList.remove('opacity-0'); badge.style.opacity = '0.5'; }
 
-                // Función auxiliar con timeout para evitar cuelgues (4 segundos)
                 const fetchTime = async (url) => {
                     const controller = new AbortController();
                     const id = setTimeout(() => controller.abort(), 4000);
                     try {
-                        const res = await fetch(url, { signal: controller.signal });
+                        const res = await fetch(url, { signal: controller.signal, cache: 'no-store' }); // Disable cache
                         clearTimeout(id);
                         if (!res.ok) throw new Error("Status " + res.status);
                         return await res.json();
@@ -556,14 +561,12 @@
                     const start = Date.now();
                     let serverTime = 0;
 
-                    // INTENTO 1: WorldTimeAPI (Suele ser más rápida y estable)
                     try {
+                        // Priority 1: WorldTimeAPI
                         const data = await fetchTime('https://worldtimeapi.org/api/timezone/America/Mexico_City');
-                        // WorldTimeAPI devuelve 'datetime' y 'unixtime'
                         serverTime = new Date(data.datetime).getTime();
                     } catch (err1) {
-                        console.warn("Primary time API failed, trying backup...", err1);
-                        // INTENTO 2: TimeAPI (La original)
+                        // Priority 2: TimeAPI (Silent fallback)
                         const data = await fetchTime('https://timeapi.io/api/Time/current/zone?timeZone=America/Mexico_City');
                         serverTime = new Date(data.dateTime).getTime();
                     }
@@ -582,8 +585,10 @@
                         }, 5000);
                     }
                 } catch (e) {
-                    console.warn("Time sync failed, using local time fallback.");
+                    // Silent Local Fallback
+                    console.log("Time sync failed, using local time."); // Changed from warn to log
                     this.timeOffset = 0; 
+                    this.lastSync = Date.now(); // Mark as synced (locally) to prevent immediate retry loops
                     if(badge) { 
                         badge.style.opacity = '1'; 
                         badge.style.color = 'var(--text-mute)';
