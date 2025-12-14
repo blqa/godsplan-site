@@ -349,7 +349,7 @@
 
             <div class="mt-4 flex gap-2.5">
                 <button class="flex-1 bg-text text-bg p-3 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.saveConfig()">Guardar Cambios</button>
-                <button class="flex-1 bg-transparent border border-border text-text-mute p-3 rounded-lg font-extrabold cursor-pointer" onclick="document.getElementById('configModal').classList.remove('active')">Cerrar</button>
+                <button class="flex-1 bg-transparent border border-border text-text-mute p-3 rounded-lg font-extrabold cursor-pointer" onclick="window.app.closeModalById('configModal')">Cerrar</button>
             </div>
         </div>
     </div>
@@ -388,7 +388,7 @@
 
             <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-text text-bg mt-4" onclick="window.app.saveLog()">Guardar</button>
             <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer mb-2.5 text-alert border border-alert bg-transparent hidden" id="btnDelete" onclick="window.app.deleteLog()">Eliminar</button>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="document.getElementById('logModal').classList.remove('active')">Cancelar</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="window.app.closeModalById('logModal')">Cancelar</button>
         </div>
     </div>
 
@@ -411,7 +411,7 @@
             <input type="text" id="inpTimerEdit" placeholder="Ej. 3:14" class="text-lg text-center bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text">
             <div class="flex gap-2.5 mt-4">
                 <button class="flex-1 bg-text text-bg p-3 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.saveTimerEdit()">Actualizar</button>
-                <button class="flex-1 bg-transparent border border-border text-text-mute p-3 rounded-lg font-extrabold cursor-pointer" onclick="document.getElementById('timerEditModal').classList.remove('active')">Cancelar</button>
+                <button class="flex-1 bg-transparent border border-border text-text-mute p-3 rounded-lg font-extrabold cursor-pointer" onclick="window.app.closeModalById('timerEditModal')">Cancelar</button>
             </div>
         </div>
     </div>
@@ -428,7 +428,7 @@
                    download>
                     <i class="ph-bold ph-download-simple"></i> Agregar Extensión
                 </a>
-                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="document.getElementById('extensionModal').classList.remove('active')">Cerrar</button>
+                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="window.app.closeModalById('extensionModal')">Cerrar</button>
             </div>
         </div>
     </div>
@@ -438,7 +438,7 @@
         <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border text-center">
             <i id="msgIcon" class="text-[2.5rem] mb-2.5 block"></i>
             <p id="msgText" class="font-bold mb-5 text-text"></p>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-text text-bg" onclick="document.getElementById('msgModal').classList.remove('active')">OK</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-text text-bg" onclick="window.app.closeModalById('msgModal')">OK</button>
         </div>
     </div>
     <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="importModal">
@@ -446,7 +446,7 @@
             <h3 class="text-text font-bold text-lg mb-4">Importar Excel</h3>
             <textarea id="importTextArea" rows="6" class="font-mono text-xs w-full bg-input-bg border border-border p-2.5 rounded-lg text-text mb-4"></textarea>
             <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-text text-bg" onclick="window.app.processImport()">Procesar</button>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="document.getElementById('importModal').classList.remove('active')">Cancelar</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="window.app.closeModalById('importModal')">Cancelar</button>
         </div>
     </div>
 
@@ -1217,12 +1217,18 @@
                 const log = { id: this.editingId || this.getNow(), date: d, type: t, in: i || '', out: o || '', hours: h, disconnection: disc, details: { bath: b, food: f, pause: p } };
                 if (this.editingId) this.data.logs[this.data.logs.findIndex(x => x.id === this.editingId)] = log; else this.data.logs.push(log);
                 this.save(); this.render(); 
-                document.getElementById('logModal').classList.remove('active');
-                document.getElementById('logModal').classList.remove('flex');
-                document.getElementById('logModal').classList.add('hidden');
+                this.closeModalById('logModal');
             },
-            deleteLog() { if (confirm("¿Eliminar?")) { this.data.logs = this.data.logs.filter(x => x.id !== this.editingId); this.save(); this.render(); document.getElementById('logModal').classList.remove('active'); document.getElementById('logModal').classList.remove('flex'); document.getElementById('logModal').classList.add('hidden'); } },
-            closeModal() { document.getElementById('logModal').classList.remove('active'); document.getElementById('logModal').classList.remove('flex'); document.getElementById('logModal').classList.add('hidden'); },
+            deleteLog() { if (confirm("¿Eliminar?")) { this.data.logs = this.data.logs.filter(x => x.id !== this.editingId); this.save(); this.render(); this.closeModalById('logModal'); } },
+            
+            // NUEVA FUNCION PARA CERRAR MODALES
+            closeModalById(id) {
+                const m = document.getElementById(id);
+                if(m) {
+                    m.classList.remove('flex');
+                    m.classList.add('hidden');
+                }
+            },
 
             showMessage(m) { 
                 document.getElementById('msgText').textContent = m; 
@@ -1239,9 +1245,7 @@
                 mod.classList.add('flex');
             },
             closeMessageModal() { 
-                const mod = document.getElementById('msgModal');
-                mod.classList.remove('flex');
-                mod.classList.add('hidden');
+                this.closeModalById('msgModal');
             },
 
             openImportModal() { 
@@ -1249,7 +1253,7 @@
                 m.classList.remove('hidden');
                 m.classList.add('flex');
             },
-            processImport() { const t = document.getElementById('importTextArea').value; if (!t) return; const l = t.split('\n'); let c = 0; l.forEach(x => { const p = x.split(/[\t,]+/); if (p.length >= 4) { this.data.logs.push({ id: Date.now() + c, date: p[0], type: p[1], in: p[2], out: p[3], hours: this.calcHours(p[2], p[3]), disconnection: 0 }); c++; } }); this.save(); document.getElementById('importModal').classList.remove('flex'); document.getElementById('importModal').classList.add('hidden'); this.showSuccess(c + " importados"); },
+            processImport() { const t = document.getElementById('importTextArea').value; if (!t) return; const l = t.split('\n'); let c = 0; l.forEach(x => { const p = x.split(/[\t,]+/); if (p.length >= 4) { this.data.logs.push({ id: Date.now() + c, date: p[0], type: p[1], in: p[2], out: p[3], hours: this.calcHours(p[2], p[3]), disconnection: 0 }); c++; } }); this.save(); this.closeModalById('importModal'); this.showSuccess(c + " importados"); },
             exportBackup() { const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.data)); a.download = 'backup.json'; a.click(); },
 
             calcHours(i, o) { if (!i || !o) return 0; const [h1, m1] = i.split(':'), [h2, m2] = o.split(':'); const d = ((h2 * 60 + +m2) - (h1 * 60 + +m1)); return d < 0 ? -1 : d; },
