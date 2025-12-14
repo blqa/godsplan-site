@@ -463,7 +463,7 @@
                                 <span id="summaryFixed" class="font-bold text-red-400 font-mono text-base">---</span>
                             </div>
                             <div class="flex justify-between items-center text-sm">
-                                <span class="text-zinc-400 text-xs font-bold uppercase">Deudas (Activas)</span>
+                                <span class="text-zinc-400 text-xs font-bold uppercase">Deudas (Activas en Ciclo)</span>
                                 <span id="summaryShortLoans" class="font-bold text-orange-400 font-mono text-base">---</span>
                             </div>
                             <div class="mt-2 text-[10px] text-zinc-500 italic">* Estos montos se restan de tu disponible.</div>
@@ -1032,9 +1032,22 @@
                 });
                 this.updateFixedUI(fixedStatus); // Actualizar UI con checkmarks
 
-                // FIX: Calcular Deudas Activas para restar del disponible
-                // Asumimos que si está en la lista de "Activas", el usuario quiere pagarlas
-                const totalLoans = (this.data.loans || []).reduce((a, b) => a + (parseFloat(b.amount) || 0), 0);
+                // FIX: Calcular Deudas Activas QUE VENCEN EN ESTE CICLO (o antes) para restar del disponible
+                const totalLoans = (this.data.loans || []).reduce((acc, loan) => {
+                    const amount = parseFloat(loan.amount) || 0;
+                    
+                    // Si no tiene fecha, asumimos que es deuda corriente (se resta)
+                    if (!loan.dueDate) return acc + amount;
+                    
+                    // Crear fecha vencimiento (comparable con pEnd)
+                    const [y, m, d] = loan.dueDate.split('-').map(Number);
+                    const due = new Date(y, m-1, d, 23, 59, 59);
+                    
+                    // Si la fecha de vencimiento es menor o igual al fin del periodo actual, la contamos
+                    if (due <= pEnd) return acc + amount;
+                    
+                    return acc;
+                }, 0);
 
                 const baseInc = parseFloat(this.data.income) || 0;
                 const liquidIncome = (baseInc + extraInc);
@@ -1200,10 +1213,23 @@
             renderLoans() {
                 const el = document.getElementById('loansList'); el.innerHTML='';
                 if(!this.data.loans?.length) el.innerHTML = '<div class="text-zinc-700 text-xs text-center py-2 col-span-2">Sin deudas activas</div>';
+                
+                const pEnd = this.currentPeriod ? this.currentPeriod.end : new Date(2100,0,1);
+
                 (this.data.loans || []).forEach((l,i) => {
+                    const [y, m, d] = l.dueDate ? l.dueDate.split('-').map(Number) : [0,0,0];
+                    const due = l.dueDate ? new Date(y, m-1, d, 23, 59, 59) : new Date(0); // If no date, treat as urgent/past
+                    const affectsBudget = !l.dueDate || due <= pEnd;
+                    
+                    const opacityClass = affectsBudget ? '' : 'opacity-50 grayscale';
+                    const badge = affectsBudget ? '' : '<span class="text-[9px] bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded ml-2 border border-zinc-700">Próx. Ciclo</span>';
+
                     el.innerHTML += `
-                    <div onclick="app.openModal('loan', ${i})" class="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center mb-2 active:scale-[0.99]">
-                        <div><div class="font-bold text-sm text-white">${l.name}</div><div class="text-xs text-red-400">Vence: ${l.dueDate||'Sin fecha'}</div></div>
+                    <div onclick="app.openModal('loan', ${i})" class="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center mb-2 active:scale-[0.99] ${opacityClass}">
+                        <div>
+                            <div class="font-bold text-sm text-white flex items-center">${l.name} ${badge}</div>
+                            <div class="text-xs text-red-400">Vence: ${l.dueDate||'Sin fecha'}</div>
+                        </div>
                         <div class="text-right font-bold text-base text-zinc-300">${UI.fmtMoney(l.amount)}</div>
                     </div>`;
                 });
