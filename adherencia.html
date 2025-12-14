@@ -546,7 +546,7 @@
                 });
             },
 
-            // Lógica "Ingeniosa" para el Sync Time
+            // Lógica MEJORADA para el Sync Time (A prueba de firewall de oficina)
             async syncNetworkTime(force = false) {
                 if (this.isSyncing) return;
                 const now = Date.now();
@@ -554,17 +554,22 @@
 
                 this.isSyncing = true;
                 const badge = document.getElementById('networkTimeBadge');
-                const dot = document.getElementById('syncDot'); // El punto rojo/verde del header
+                const dot = document.getElementById('syncDot'); 
                 if (badge) { badge.classList.remove('opacity-0'); badge.style.opacity = '0.5'; }
 
-                const fetchTime = async (url) => {
+                // ESTRATEGIA: Intentar varios métodos hasta que uno funcione
+                // Método 1: API JSON Simple (timeapi.io)
+                // Método 2: API JSON Respaldo (worldtimeapi.org)
+                // Método 3: TRUCO DE SERVIDOR (Bypasea firewall de oficina casi siempre) -> Headers de la propia página
+                
+                const fetchWithTimeout = async (url, options = {}) => {
                     const controller = new AbortController();
-                    const id = setTimeout(() => controller.abort(), 4000);
+                    const id = setTimeout(() => controller.abort(), 5000);
                     try {
-                        const res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+                        const res = await fetch(url, { ...options, signal: controller.signal, cache: 'no-store' });
                         clearTimeout(id);
                         if (!res.ok) throw new Error("Status " + res.status);
-                        return await res.json();
+                        return res;
                     } catch (e) {
                         clearTimeout(id);
                         throw e;
@@ -574,22 +579,39 @@
                 try {
                     const start = Date.now();
                     let serverTime = 0;
+                    let source = "";
 
+                    // INTENTO 1: TimeAPI
                     try {
-                        // Fuente 1: TimeAPI
-                        const data = await fetchTime('https://timeapi.io/api/Time/current/zone?timeZone=America/Mexico_City');
+                        const res = await fetchWithTimeout('https://timeapi.io/api/Time/current/zone?timeZone=America/Mexico_City');
+                        const data = await res.json();
                         serverTime = new Date(data.dateTime).getTime();
+                        source = "TimeAPI";
                     } catch (err1) {
-                        // Fuente 2: WorldTimeAPI (Respaldo)
-                        const data = await fetchTime('https://worldtimeapi.org/api/timezone/America/Mexico_City');
-                        serverTime = new Date(data.datetime).getTime();
+                        // INTENTO 2: WorldTimeAPI
+                        try {
+                            const res = await fetchWithTimeout('https://worldtimeapi.org/api/timezone/America/Mexico_City');
+                            const data = await res.json();
+                            serverTime = new Date(data.datetime).getTime();
+                            source = "WorldTime";
+                        } catch (err2) {
+                            // INTENTO 3: SERVER HEADER FALLBACK (El más robusto para oficinas)
+                            // Hacemos un HEAD request a la propia página. 
+                            // Si la página carga, el servidor responde, y el servidor tiene la hora correcta.
+                            // Esto evita el bloqueo de "sitios desconocidos" del firewall.
+                            const res = await fetchWithTimeout(window.location.href + '?' + start, { method: 'HEAD' });
+                            const dateHeader = res.headers.get('date');
+                            if(!dateHeader) throw new Error("No date header");
+                            serverTime = new Date(dateHeader).getTime();
+                            source = "ServerHeader";
+                        }
                     }
                     
                     const end = Date.now();
                     const latency = (end - start) / 2;
                     this.timeOffset = (serverTime + latency) - end;
                     this.lastSync = Date.now();
-                    this.nextSyncAllowed = 0; // Éxito, quitamos penalización
+                    this.nextSyncAllowed = 0; // Éxito
                     
                     if(badge) {
                         badge.style.opacity = '1';
@@ -604,13 +626,15 @@
                         dot.classList.add('bg-emerald-500');
                         dot.classList.add('shadow-[0_0_8px_rgba(16,185,129,0.5)]');
                     }
+                    console.log(`Time synced via ${source}. Offset: ${this.timeOffset}ms`);
 
                 } catch (e) {
-                    // Fallback local silencioso
-                    console.log("Time sync failed. Pausing sync attempts."); 
-                    this.timeOffset = 0; 
+                    console.log("Time sync failed completely. Using existing offset or local time."); 
+                    // NO resetear offset a 0 si falla, mantener el último bueno si existe.
+                    // Solo resetear si nunca se ha sincronizado y la diferencia es absurda (opcional)
+                    
                     this.lastSync = Date.now(); 
-                    this.nextSyncAllowed = Date.now() + 60000; // Reintentar en 1 min si falló
+                    this.nextSyncAllowed = Date.now() + 60000; // Reintentar en 1 min
                     
                     if(badge) { 
                         badge.style.opacity = '1'; 
@@ -950,7 +974,7 @@
                     id: this.getNow(), 
                     date: logDate, 
                     type: 'Laboral',
-                    in: logIn,       
+                    in: logIn,        
                     out: logOut,    
                     hours: gross, 
                     disconnection: disc, 
