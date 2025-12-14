@@ -455,7 +455,7 @@
                 </div>
             </section>
 
-            <!-- VISTA: SIMULACIÓN (MODIFICADA: DOS TARJETAS + DESGLOSE) -->
+            <!-- VISTA: SIMULACIÓN (MODIFICADA: SUMA TOTAL) -->
             <section id="view-simulation" class="p-4 sm:p-0 hidden fade-in max-w-2xl mx-auto pb-24">
                 <h2 class="text-2xl font-black text-white mb-1">Simulador Mensual</h2>
                 <p class="text-zinc-500 text-xs mb-6">Proyección mensual real (Ingreso Total - Fijos Mensuales).</p>
@@ -506,6 +506,12 @@
                             <div class="text-center text-[10px] text-zinc-600 py-2 italic">Sin ingresos extra este mes</div>
                         </div>
                     </div>
+                    
+                    <!-- NEW: TOTAL INGRESOS REALES (SUMA) -->
+                    <div class="flex justify-between items-center px-4 py-3 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
+                         <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Total Ingresos Reales</span>
+                         <span class="text-base font-bold text-white" id="simTotalIncomeSum">---</span>
+                    </div>
 
                     <!-- Separator -->
                     <div class="flex items-center gap-4 py-2">
@@ -523,16 +529,6 @@
                      <div class="flex justify-between items-center px-4 py-2">
                         <span class="text-xs text-zinc-500">Total Fijos Mensuales</span>
                         <span class="text-sm font-bold text-red-400" id="simTotalFixed">---</span>
-                    </div>
-                </div>
-                
-                <!-- Chart Context -->
-                <div class="mt-8 pt-8 border-t border-zinc-800">
-                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Proyección Patrimonio (6 Meses)</h3>
-                    <div class="glass rounded-2xl p-4">
-                         <div class="chart-container h-[200px]">
-                            <canvas id="simulationChart"></canvas>
-                        </div>
                     </div>
                 </div>
             </section>
@@ -1459,6 +1455,8 @@
                 }
 
                 const totalMonthlyIncome = monthlyIncome + extraMonthIncome;
+                document.getElementById('simTotalIncomeSum').textContent = UI.fmtMoney(totalMonthlyIncome);
+
                 const fixedList = this.data.fixed || [];
                 const totalFixed = fixedList.reduce((a,b) => a + b.amount, 0);
                 
@@ -1487,43 +1485,6 @@
                         `;
                     });
                 }
-                
-                // --- Chart Proyección ---
-                const estimatedVar = totalMonthlyIncome * 0.4; // 40% gasto variable estimado
-                const projectedMonthlySavings = freeMoney - estimatedVar;
-                
-                let currentBal = 0;
-                const projData = [];
-                for(let i=0; i<6; i++) {
-                    currentBal += projectedMonthlySavings;
-                    projData.push(currentBal);
-                }
-                
-                if(this.charts.simulation) this.charts.simulation.destroy();
-                this.charts.simulation = new Chart(document.getElementById('simulationChart'), {
-                    type: 'line',
-                    data: {
-                        labels: months,
-                        datasets: [{
-                            label: 'Crecimiento Estimado',
-                            data: projData,
-                            borderColor: '#a855f7',
-                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 4,
-                            pointBackgroundColor: '#fff'
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: { 
-                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#71717a', font: {size: 10} } }, 
-                            x: { grid: { display: false }, ticks: { color: '#71717a', font: {size: 10} } } 
-                        }
-                    }
-                });
             },
 
             // --- ACTIONS ---
@@ -1738,7 +1699,7 @@
                 
                 if(v === 'simulation') {
                     this.updateSimulation();
-                    setTimeout(() => this.charts.simulation.resize(), 100);
+                    // setTimeout(() => this.charts.simulation.resize(), 100); // Chart removed
                 }
             },
             scrollToChart() { document.getElementById('chartSection').classList.remove('hidden'); document.getElementById('chartSection').scrollIntoView({behavior:'smooth'}); },
