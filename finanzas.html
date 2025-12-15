@@ -149,7 +149,7 @@
             max-height: 85dvh; 
             border-top-left-radius: 32px; border-top-right-radius: 32px;
             border-top: 1px solid #27272a; 
-            padding: 20px 24px; /* Padding un poco más ajustado */
+            padding: 20px 24px;
             overflow-y: auto; transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             padding-bottom: calc(40px + var(--sab));
@@ -159,10 +159,12 @@
         @media (min-width: 768px) {
             #modalOverlay { align-items: center; padding: 20px; }
             #modalSheet {
-                width: 100%; max-width: 480px; border-radius: 24px;
+                width: 100%; max-width: 360px; /* MUY COMPACTO EN PC */
+                border-radius: 20px;
                 border: 1px solid rgba(255,255,255,0.1);
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-                max-height: 85vh; padding-bottom: 24px;
+                max-height: 85vh; 
+                padding: 20px;
                 transform: scale(0.95); opacity: 0;
                 transition: all 0.2s ease-out;
             }
@@ -622,41 +624,41 @@
 
             <!-- Form Transacción -->
             <div id="formTransaction" class="hidden pb-4">
-                <div class="relative mb-8">
+                <div class="relative mb-8 md:mb-2">
                     <span class="absolute left-1/2 -translate-x-[calc(50%+60px)] top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none">$</span>
-                    <!-- FIX TAMAÑO TEXTO: Reducido a 5xl en móvil, 6xl en desktop -->
-                    <input type="number" id="txAmount" inputmode="decimal" class="bg-transparent text-center text-5xl md:text-6xl font-black text-white w-full border-none outline-none focus:ring-0 p-0 placeholder-zinc-800 h-16" placeholder="0">
+                    <!-- REDUCCIÓN AGRESIVA PC: text-3xl y h-10 -->
+                    <input type="number" id="txAmount" inputmode="decimal" class="bg-transparent text-center text-5xl md:text-3xl font-black text-white w-full border-none outline-none focus:ring-0 p-0 placeholder-zinc-800 h-16 md:h-10" placeholder="0">
                 </div>
-                <div class="mb-6">
-                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-2 block">Categoría</label>
-                    <div id="categoryChips" class="flex flex-wrap gap-2.5 no-scrollbar overflow-x-auto pb-2"></div>
+                <div class="mb-6 md:mb-1">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-2 md:mb-1 block">Categoría</label>
+                    <div id="categoryChips" class="flex flex-wrap gap-2.5 md:gap-1.5 no-scrollbar overflow-x-auto pb-2"></div>
                 </div>
-                <div class="mb-4">
+                <div class="mb-4 md:mb-2">
                     <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Fecha</label>
-                    <input type="date" id="txDate" class="input-modern w-full p-4 text-center h-14 font-bold cursor-pointer">
+                    <input type="date" id="txDate" class="input-modern w-full p-4 text-center h-14 md:h-9 md:text-sm font-bold cursor-pointer">
                 </div>
-                <input type="text" id="txDesc" class="input-modern w-full p-4 mb-6 text-center placeholder-zinc-600 h-14" placeholder="Nota opcional...">
-                <button id="btnSaveTx" onclick="app.saveTransaction()" class="w-full bg-white text-black py-4 rounded-2xl font-black text-lg hover:bg-zinc-200 transition-colors active:scale-95 shadow-lg shadow-white/10 h-16">GUARDAR</button>
+                <input type="text" id="txDesc" class="input-modern w-full p-4 mb-6 md:mb-3 text-center placeholder-zinc-600 h-14 md:h-9 md:text-sm" placeholder="Nota opcional...">
+                <button id="btnSaveTx" onclick="app.saveTransaction()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black text-lg hover:bg-zinc-200 transition-colors active:scale-95 shadow-lg shadow-white/10 h-16 md:h-10 md:text-sm">GUARDAR</button>
                 <button id="btnDeleteTx" onclick="app.deleteTxConfirm()" class="w-full mt-4 text-red-500 py-3 font-bold text-xs hidden opacity-70 hover:opacity-100">ELIMINAR TRANSACCIÓN</button>
             </div>
 
             <!-- Form Gasto Fijo -->
-            <div id="formFixed" class="hidden space-y-4 pb-4">
-                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Nombre</label><input type="text" id="fixName" class="input-modern w-full p-4 h-14" placeholder="Ej: Netflix"></div>
+            <div id="formFixed" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Nombre</label><input type="text" id="fixName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Netflix"></div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label><input type="number" id="fixAmount" inputmode="decimal" class="input-modern w-full p-4 h-14" placeholder="$0.00"></div>
-                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Día Pago</label><input type="number" id="fixDay" inputmode="numeric" class="input-modern w-full p-4 h-14 text-center" placeholder="1-31"></div>
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label><input type="number" id="fixAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Día Pago</label><input type="number" id="fixDay" inputmode="numeric" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm text-center" placeholder="1-31"></div>
                 </div>
-                <button onclick="app.saveFixed()" class="w-full bg-white text-black py-4 rounded-2xl font-black mt-4 h-16 hover:bg-zinc-200">GUARDAR FIJO</button>
+                <button onclick="app.saveFixed()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR FIJO</button>
                 <button id="btnDeleteFix" onclick="app.deleteFixedConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
             </div>
             
             <!-- Form Deuda -->
-            <div id="formLoan" class="hidden space-y-4 pb-4">
-                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Concepto</label><input type="text" id="loanName" class="input-modern w-full p-4 h-14" placeholder="Ej: Visa"></div>
-                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto Pendiente</label><input type="number" id="loanAmount" inputmode="decimal" class="input-modern w-full p-4 h-14" placeholder="$0.00"></div>
-                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha Límite</label><input type="date" id="loanDueDate" class="input-modern w-full p-4 h-14 cursor-pointer"></div>
-                <button onclick="app.saveLoan()" class="w-full bg-white text-black py-4 rounded-2xl font-black mt-4 h-16 hover:bg-zinc-200">GUARDAR DEUDA</button>
+            <div id="formLoan" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Concepto</label><input type="text" id="loanName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Visa"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto Pendiente</label><input type="number" id="loanAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha Límite</label><input type="date" id="loanDueDate" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm cursor-pointer"></div>
+                <button onclick="app.saveLoan()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR DEUDA</button>
                 <button id="btnDeleteLoan" onclick="app.deleteLoanConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">LIQUIDAR / BORRAR</button>
             </div>
             
@@ -664,12 +666,12 @@
             <div id="formConfig" class="hidden space-y-4 pb-4">
                 <p class="text-zinc-400 text-xs text-center mb-4">Define cómo y cuándo recibes tus ingresos.</p>
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center hover:bg-zinc-800 transition-colors h-32 flex flex-col items-center justify-center active:scale-95">
+                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center hover:bg-zinc-800 transition-colors h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
                         <i class="ph-bold ph-calendar-check text-3xl text-emerald-500 mb-2"></i>
                         <div class="font-bold text-sm text-white">Quincenal</div>
                         <div class="text-[10px] text-zinc-500 mt-1">2 Pagos al mes</div>
                     </button>
-                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center hover:bg-zinc-800 transition-colors h-32 flex flex-col items-center justify-center active:scale-95">
+                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center hover:bg-zinc-800 transition-colors h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
                         <i class="ph-bold ph-calendar text-3xl text-blue-500 mb-2"></i>
                         <div class="font-bold text-sm text-white">Mensual</div>
                         <div class="text-[10px] text-zinc-500 mt-1">Pago único (Día 1)</div>
@@ -690,7 +692,7 @@
                         <label for="adhToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-800 cursor-pointer"></label>
                     </div>
                 </div>
-                <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 rounded-2xl font-black mt-6 h-16 hover:bg-zinc-200">APLICAR CONFIGURACIÓN</button>
+                <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-6 h-16 md:h-10 md:text-sm hover:bg-zinc-200">APLICAR CONFIGURACIÓN</button>
             </div>
         </div>
     </div>
@@ -1556,8 +1558,8 @@
             
             setCycleMode(mode) {
                 this.tempCycle = mode;
-                document.getElementById('btnCycleBi').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 flex flex-col items-center justify-center active:scale-95 ${mode==='biweekly' ? 'border-emerald-500 bg-emerald-500/10' : 'border-zinc-700'}`;
-                document.getElementById('btnCycleMo').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 flex flex-col items-center justify-center active:scale-95 ${mode==='monthly' ? 'border-blue-500 bg-blue-500/10' : 'border-zinc-700'}`;
+                document.getElementById('btnCycleBi').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95 ${mode==='biweekly' ? 'border-emerald-500 bg-emerald-500/10' : 'border-zinc-700'}`;
+                document.getElementById('btnCycleMo').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95 ${mode==='monthly' ? 'border-blue-500 bg-blue-500/10' : 'border-zinc-700'}`;
                 
                 const div = document.getElementById('customStartDayDiv');
                 div.classList.remove('hidden');
