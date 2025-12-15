@@ -436,14 +436,14 @@
             <section id="view-simulation" class="p-4 sm:p-0 hidden fade-in max-w-4xl mx-auto pb-24">
                 <div class="max-w-2xl mx-auto mb-10">
                     <h2 class="text-2xl font-black text-white mb-1">Simulador Mensual</h2>
-                    <p class="text-zinc-500 text-xs mb-6">Proyección mensual real (Ingreso Total - Fijos Mensuales).</p>
+                    <p class="text-zinc-500 text-xs mb-6">Proyección mes calendario (Ingresos - Fijos - Deudas Mes).</p>
 
                     <!-- RESULTADO PRINCIPAL -->
                     <div class="glass-highlight rounded-3xl p-6 text-center mb-6 relative overflow-hidden">
                         <div class="relative z-10">
                             <div class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Flujo Libre Mensual</div>
                             <div class="text-5xl font-black text-white tracking-tight" id="simFreeMoney">---</div>
-                            <div class="text-xs text-zinc-500 mt-2">Dinero real disponible tras pagar TODO en el mes</div>
+                            <div class="text-xs text-zinc-500 mt-2">Disponible real tras cubrir Fijos y Deudas del Mes</div>
                         </div>
                         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
                     </div>
@@ -494,7 +494,7 @@
                         <!-- Separator -->
                         <div class="flex items-center gap-4 py-2">
                             <div class="h-px bg-zinc-800 flex-1"></div>
-                            <span class="text-[10px] text-zinc-500 font-bold uppercase">Menos Gastos Fijos (Mes)</span>
+                            <span class="text-[10px] text-zinc-500 font-bold uppercase">MENOS GASTOS Y OBLIGACIONES</span>
                             <div class="h-px bg-zinc-800 flex-1"></div>
                         </div>
 
@@ -504,16 +504,27 @@
                         </div>
                         
                         <!-- Total Fijos Summary -->
-                         <div class="flex justify-between items-center px-4 py-2">
+                         <div class="flex justify-between items-center px-4 py-2 border-b border-zinc-800 pb-4 mb-2">
                             <span class="text-xs text-zinc-500">Total Fijos Mensuales</span>
                             <span class="text-sm font-bold text-red-400" id="simTotalFixed">---</span>
                         </div>
+                        
+                        <!-- NUEVA SECCION: DEUDAS DEL MES -->
+                        <h4 class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider pl-2 mb-2">Deudas a Pagar (Este Mes)</h4>
+                        <div id="simLoansList" class="space-y-2">
+                            <!-- Items injected by JS -->
+                        </div>
+                         <div class="flex justify-between items-center px-4 py-2">
+                            <span class="text-xs text-zinc-500">Total Deudas Mes</span>
+                            <span class="text-sm font-bold text-orange-400" id="simTotalLoans">---</span>
+                        </div>
+
                     </div>
                 </div>
 
                 <!-- SECCIÓN DE ANÁLISIS MOVIDA AQUÍ -->
                 <div class="border-t border-zinc-800 pt-8 mt-8">
-                     <div class="md:flex md:justify-between md:items-end mb-6">
+                      <div class="md:flex md:justify-between md:items-end mb-6">
                         <div>
                             <h2 class="text-xl font-bold text-white mb-1">Análisis Financiero</h2>
                             <p class="text-zinc-500 text-xs">Desglose detallado del ciclo actual.</p>
@@ -1077,11 +1088,6 @@
                         date: new Date().toISOString()
                     });
                     
-                    // Optional: Clear amount after import? 
-                    // Let's keep it for now or user can clear manually. 
-                    // If user wants to clear: 
-                    // await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { extraPayAmount: 0 });
-                    
                     UI.toast('Dinero sumado a billetera', 'success');
                 }
             },
@@ -1353,7 +1359,6 @@
             
             // --- NUEVA LÓGICA DE SIMULACIÓN (CORREGIDA) ---
             updateSimulation() {
-                const months = ['Mes 1', 'Mes 2', 'Mes 3', 'Mes 4', 'Mes 5', 'Mes 6'];
                 let monthlyIncome = parseFloat(this.data.income) || 0;
                 
                 // Si es quincenal, el ingreso mensual es Q1 + Q2 (o Q1 * 2 si Q2 está vacío)
@@ -1407,14 +1412,28 @@
                 const fixedList = this.data.fixed || [];
                 const totalFixed = fixedList.reduce((a,b) => a + b.amount, 0);
                 
-                const freeMoney = totalMonthlyIncome - totalFixed;
+                // --- NUEVO: CALCULO DE DEUDAS DEL MES (COHERENCIA) ---
+                // Filtramos prestamos que vencen este mes
+                const loansDueThisMonth = (this.data.loans || []).filter(l => {
+                    if (!l.dueDate) return false;
+                    const [y, m, d] = l.dueDate.split('-').map(Number);
+                    // Creamos fecha para comparar mes y año
+                    const dueDate = new Date(y, m - 1, d);
+                    return dueDate.getMonth() === now.getMonth() && dueDate.getFullYear() === now.getFullYear();
+                });
+
+                const totalLoansDue = loansDueThisMonth.reduce((a, b) => a + b.amount, 0);
+                
+                // FORMULA CORREGIDA: Ingreso Total - Fijos - Deudas Mes
+                const freeMoney = totalMonthlyIncome - totalFixed - totalLoansDue;
                 
                 document.getElementById('simFreeMoney').textContent = UI.fmtMoney(freeMoney);
                 document.getElementById('simTotalFixed').textContent = '-' + UI.fmtMoney(totalFixed);
+                document.getElementById('simTotalLoans').textContent = '-' + UI.fmtMoney(totalLoansDue);
                 
+                // Render List Fijos
                 const listEl = document.getElementById('simFixedList');
                 listEl.innerHTML = '';
-                
                 if (fixedList.length === 0) {
                     listEl.innerHTML = '<div class="text-center text-zinc-600 text-xs py-2 italic">Sin gastos fijos configurados</div>';
                 } else {
@@ -1428,6 +1447,28 @@
                                 <span class="text-xs font-bold text-zinc-300">${f.name}</span>
                             </div>
                             <span class="text-xs font-mono text-red-400">-${UI.fmtMoney(f.amount)}</span>
+                        </div>
+                        `;
+                    });
+                }
+
+                // Render List Deudas (Nuevo)
+                const loanListEl = document.getElementById('simLoansList');
+                loanListEl.innerHTML = '';
+                if (loansDueThisMonth.length === 0) {
+                     loanListEl.innerHTML = '<div class="text-center text-zinc-600 text-xs py-2 italic">Sin deudas venciendo este mes</div>';
+                } else {
+                    loansDueThisMonth.forEach(l => {
+                        loanListEl.innerHTML += `
+                        <div class="flex justify-between items-center p-3 rounded-xl bg-orange-900/10 border border-orange-500/20">
+                            <div class="flex items-center gap-3">
+                                <i class="ph-bold ph-warning text-orange-500"></i>
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold text-zinc-300">${l.name}</span>
+                                    <span class="text-[10px] text-zinc-500">Vence: ${l.dueDate}</span>
+                                </div>
+                            </div>
+                            <span class="text-xs font-mono text-orange-400">-${UI.fmtMoney(l.amount)}</span>
                         </div>
                         `;
                     });
