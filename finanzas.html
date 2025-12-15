@@ -258,144 +258,179 @@
                 </div>
             </div>
 
-            <!-- VISTA: BILLETERA -->
-            <section id="view-balance" class="p-4 sm:p-0 fade-in">
-                
-                <!-- Layout Grid para Desktop -->
-                <div class="grid grid-cols-1 md:grid-cols-12 md:gap-8 items-start">
-                    
-                    <!-- Columna Izquierda (Resumen) -->
-                    <div class="md:col-span-5 lg:col-span-4 md:sticky md:top-4">
-                        <!-- Header Periodo -->
-                        <div class="flex justify-between items-end mb-4 px-1">
-                            <div onclick="app.openModal('config')" class="cursor-pointer group py-2">
-                                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mb-1 group-hover:text-red-500 transition-colors">CICLO ACTUAL <i class="ph-bold ph-gear inline align-middle ml-1"></i></p>
-                                <h2 class="text-base font-bold text-white flex items-center gap-2" id="periodDates">Cargando...</h2>
-                            </div>
-                            <div id="daysLeftBadge" class="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full font-mono font-bold whitespace-nowrap shadow-[0_0_10px_rgba(239,68,68,0.1)]">
-                                -- Días
-                            </div>
-                        </div>
-
-                        <!-- TARJETA PRINCIPAL (Daily Budget) -->
-                        <div id="mainCard" class="glass rounded-[2rem] p-6 relative overflow-hidden group mb-6 transition-all active:scale-[0.98] md:hover:scale-[1.01] md:active:scale-100 shadow-2xl shadow-black/50">
-                            <!-- Fondo dinámico (se vuelve rojo en overbudget) -->
-                            <div id="mainCardBg" class="absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 rounded-full blur-3xl transition-colors duration-500"></div>
-                            
-                            <div class="relative z-10">
-                                <div class="flex justify-between items-start mb-2">
-                                    <span id="labelDailyState" class="text-xs font-bold text-zinc-400 uppercase tracking-widest transition-colors">Disponible Hoy</span>
-                                    <button onclick="app.togglePrivacy()" class="text-zinc-600 hover:text-white transition-colors p-2 -mr-2 -mt-2">
-                                       <i id="eyeIcon" class="ph ph-eye text-lg"></i>
-                                    </button>
-                                </div>
-                                <!-- Valor principal (Saldo de hoy) -->
-                                <div class="text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2 break-all relative leading-none transition-colors" id="dailyFreeContainer">
-                                    <span id="dailyFree">---</span>
-                                    <div id="dailyFreeBlur" class="hidden absolute inset-0 bg-zinc-900/50 backdrop-blur-md rounded-lg z-20 flex items-center justify-center">
-                                        <i class="ph-fill ph-lock-key text-zinc-600 text-3xl"></i>
-                                    </div>
-                                </div>
-
-                                <!-- Subtítulos de desglose -->
-                                <div class="flex items-center gap-3 mb-6 font-mono text-xs">
-                                    <div class="text-zinc-500">
-                                        Límite: <span id="valDailyLimit" class="text-zinc-300 font-bold">---</span>
-                                    </div>
-                                    <div class="w-1 h-1 bg-zinc-700 rounded-full"></div>
-                                    <div class="text-zinc-500">
-                                        Gastado: <span id="valTodaySpent" class="text-red-400 font-bold">---</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
-                                    <div>
-                                        <span class="block text-[10px] text-zinc-500 uppercase font-bold mb-1">Restante Total</span>
-                                        <span class="text-lg font-bold text-zinc-200" id="totalFree">---</span>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="block text-[10px] text-zinc-500 uppercase font-bold mb-1">Total Gastado</span>
-                                        <span class="text-lg font-bold text-red-400" id="cycleSpent">---</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Barra de progreso -->
-                            <div class="absolute bottom-0 left-0 h-1.5 bg-zinc-800 w-full">
-                                <div id="periodProgress" class="h-full bg-gradient-to-r from-red-600 to-orange-600 shadow-[0_0_10px_rgba(239,68,68,0.5)] w-0 transition-all duration-1000 ease-out"></div>
-                            </div>
-                        </div>
-
-                        <!-- WIDGET HORAS EXTRAS -->
-                        <div id="adherenceCard" class="hidden mb-6 relative overflow-hidden rounded-[2rem] border border-emerald-900/30 bg-emerald-950/10 p-5 group transition-all">
-                             
-                             <!-- Switch Simulación -->
-                             <div class="absolute top-4 right-4 z-20 flex items-center gap-2">
-                                <span class="text-[9px] font-bold text-emerald-500/50 uppercase tracking-widest">Simular</span>
-                                <div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
-                                    <input type="checkbox" name="toggle" id="simToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer border-emerald-900/50 transition-all duration-300" onclick="app.toggleSimulation()"/>
-                                    <label for="simToggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-emerald-900/30 cursor-pointer"></label>
-                                </div>
-                             </div>
-
-                             <div class="flex justify-between items-start mb-3 relative z-10">
-                                 <div>
-                                    <div class="text-[10px] text-emerald-400 font-black uppercase tracking-widest mb-1 flex items-center gap-1">
-                                        <i class="ph-fill ph-clock-countdown"></i> EXTRA
-                                    </div>
-                                    <!-- CAMBIO: INPUT MANUAL -->
-                                    <div class="relative flex items-center group focus-within:border-emerald-500/50 border-b border-transparent transition-colors mt-1">
-                                        <span class="text-emerald-500 text-xl font-bold mr-1">$</span>
-                                        <input type="number" id="manualExtraPay" inputmode="decimal" class="bg-transparent text-2xl font-bold text-white w-full focus:outline-none placeholder-emerald-500/30 font-mono" placeholder="0.00" onblur="app.saveExtraPayValue(this.value)">
-                                    </div>
-                                 </div>
-                                 <div class="text-right mt-7">
-                                     <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">COBRO</div>
-                                     <input type="date" id="extraPayDateInput" onchange="app.saveExtraPayDate(this.value)" class="bg-emerald-900/30 text-white font-bold text-sm px-2 py-1 rounded-md border border-emerald-500/20 text-center w-28 focus:outline-none focus:border-emerald-500 cursor-pointer">
-                                     <div class="text-[10px] text-zinc-500 mt-1" id="daysToTuesday">-- días</div>
-                                 </div>
-                             </div>
-                             
-                             <button id="btnImportExtras" onclick="app.importExtraMoney()" class="w-full bg-emerald-600/20 hover:bg-emerald-500 text-emerald-300 hover:text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider border border-emerald-500/30 transition-all flex items-center justify-center gap-2 relative z-10">
-                                 <i class="ph-bold ph-download-simple"></i> Sumar a Billetera
-                             </button>
-
-                             <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors"></div>
-                        </div>
-
-                        <!-- ACCIONES RÁPIDAS -->
-                        <div class="grid grid-cols-2 gap-3 mb-6">
-                            <button onclick="app.openModal('extra')" class="glass-highlight h-14 rounded-2xl text-emerald-500 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 md:hover:scale-105 hover:bg-emerald-500/10 border-transparent hover:border-emerald-500/30">
-                                <i class="ph-bold ph-arrow-down-left text-lg"></i> INGRESO
-                            </button>
-                            <button onclick="app.switchView('analysis')" class="md:hidden glass-highlight h-14 rounded-2xl text-zinc-400 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-white/5 hover:text-white">
-                                <i class="ph-bold ph-chart-line-up text-lg"></i> ANÁLISIS
-                            </button>
-                            <button onclick="app.openModal('expense')" class="hidden md:flex glass-highlight h-14 rounded-2xl text-white font-bold text-xs items-center justify-center gap-2 transition-all hover:scale-105 hover:bg-red-600 hover:border-red-500 bg-red-600/10 border-red-600/30">
-                                <i class="ph-bold ph-minus text-lg"></i> GASTO
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Columna Derecha (Lista Transacciones) -->
-                    <div class="md:col-span-7 lg:col-span-8">
-                        <div class="mt-2 md:mt-0">
-                            <div class="flex justify-between items-center mb-4 px-1 md:bg-zinc-900/30 md:p-3 md:rounded-xl md:border md:border-white/5">
-                                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest hidden md:block">Movimientos Recientes</h3>
-                                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest md:hidden">Actividad</h3>
-                                <div class="relative w-36 md:w-64 transition-all focus-within:w-full md:focus-within:w-64">
-                                     <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
-                                     <input type="text" id="searchTx" placeholder="Buscar..." onkeyup="app.filterTransactions()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-zinc-600 placeholder-zinc-700 transition-colors">
-                                </div>
-                            </div>
-                            
-                            <div id="transactionsList" class="space-y-3 min-h-[100px] pb-24 md:pb-0">
-                                <div class="text-center py-10 text-zinc-600 animate-pulse">Sincronizando...</div>
-                            </div>
-                        </div>
-                    </div>
-
+<!-- ========================================== -->
+<!--            VISTA PRINCIPAL: BILLETERA      -->
+<!-- ========================================== -->
+<section id="view-balance" class="p-4 sm:p-0 fade-in">
+    
+    <!-- Grid Principal (1 Columna en Móvil, 12 en Desktop) -->
+    <div class="grid grid-cols-1 md:grid-cols-12 md:gap-8 items-start">
+        
+        <!-- ========================================== -->
+        <!--      COLUMNA IZQUIERDA (DASHBOARD)         -->
+        <!-- ========================================== -->
+        <div class="md:col-span-5 lg:col-span-4 md:sticky md:top-4">
+            
+            <!-- 1. HEADER DEL PERIODO (Ciclo y Días Restantes) -->
+            <div class="flex justify-between items-end mb-4 px-1">
+                <!-- Info Ciclo -->
+                <div onclick="app.openModal('config')" class="cursor-pointer group py-2">
+                    <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mb-1 group-hover:text-red-500 transition-colors">
+                        CICLO ACTUAL <i class="ph-bold ph-gear inline align-middle ml-1"></i>
+                    </p>
+                    <h2 class="text-base font-bold text-white flex items-center gap-2" id="periodDates">
+                        Cargando...
+                    </h2>
                 </div>
-            </section>
+                <!-- Badge Días -->
+                <div id="daysLeftBadge" class="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full font-mono font-bold whitespace-nowrap shadow-[0_0_10px_rgba(239,68,68,0.1)]">
+                    -- Días
+                </div>
+            </div>
+
+            <!-- 2. TARJETA PRINCIPAL (Presupuesto Diario) -->
+            <div id="mainCard" class="glass rounded-[2rem] p-6 relative overflow-hidden group mb-6 transition-all active:scale-[0.98] md:hover:scale-[1.01] md:active:scale-100 shadow-2xl shadow-black/50">
+                
+                <!-- Fondo dinámico (Efecto Overbudget) -->
+                <div id="mainCardBg" class="absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 rounded-full blur-3xl transition-colors duration-500"></div>
+                
+                <div class="relative z-10">
+                    <!-- Cabecera Tarjeta -->
+                    <div class="flex justify-between items-start mb-2">
+                        <span id="labelDailyState" class="text-xs font-bold text-zinc-400 uppercase tracking-widest transition-colors">
+                            Disponible Hoy
+                        </span>
+                        <button onclick="app.togglePrivacy()" class="text-zinc-600 hover:text-white transition-colors p-2 -mr-2 -mt-2">
+                           <i id="eyeIcon" class="ph ph-eye text-lg"></i>
+                        </button>
+                    </div>
+
+                    <!-- Valor Grande (Saldo Hoy) -->
+                    <div class="text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2 break-all relative leading-none transition-colors" id="dailyFreeContainer">
+                        <span id="dailyFree">---</span>
+                        <!-- Blur de Privacidad -->
+                        <div id="dailyFreeBlur" class="hidden absolute inset-0 bg-zinc-900/50 backdrop-blur-md rounded-lg z-20 flex items-center justify-center">
+                            <i class="ph-fill ph-lock-key text-zinc-600 text-3xl"></i>
+                        </div>
+                    </div>
+
+                    <!-- Desglose (Límite vs Gastado) -->
+                    <div class="flex items-center gap-3 mb-6 font-mono text-xs">
+                        <div class="text-zinc-500">
+                            Límite: <span id="valDailyLimit" class="text-zinc-300 font-bold">---</span>
+                        </div>
+                        <div class="w-1 h-1 bg-zinc-700 rounded-full"></div>
+                        <div class="text-zinc-500">
+                            Gastado: <span id="valTodaySpent" class="text-red-400 font-bold">---</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Footer Tarjeta (Totales) -->
+                    <div class="grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
+                        <div>
+                            <span class="block text-[10px] text-zinc-500 uppercase font-bold mb-1">Restante Total</span>
+                            <span class="text-lg font-bold text-zinc-200" id="totalFree">---</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-[10px] text-zinc-500 uppercase font-bold mb-1">Total Gastado</span>
+                            <span class="text-lg font-bold text-red-400" id="cycleSpent">---</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra de Progreso Inferior -->
+                <div class="absolute bottom-0 left-0 h-1.5 bg-zinc-800 w-full">
+                    <div id="periodProgress" class="h-full bg-gradient-to-r from-red-600 to-orange-600 shadow-[0_0_10px_rgba(239,68,68,0.5)] w-0 transition-all duration-1000 ease-out"></div>
+                </div>
+            </div>
+
+            <!-- 3. WIDGET HORAS EXTRAS (Oculto por defecto) -->
+            <div id="adherenceCard" class="hidden mb-6 relative overflow-hidden rounded-[2rem] border border-emerald-900/30 bg-emerald-950/10 p-5 group transition-all">
+                 
+                 <!-- Toggle Simulación -->
+                 <div class="absolute top-4 right-4 z-20 flex items-center gap-2">
+                    <span class="text-[9px] font-bold text-emerald-500/50 uppercase tracking-widest">Simular</span>
+                    <div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="simToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer border-emerald-900/50 transition-all duration-300" onclick="app.toggleSimulation()"/>
+                        <label for="simToggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-emerald-900/30 cursor-pointer"></label>
+                    </div>
+                 </div>
+
+                 <!-- Contenido Widget Extra -->
+                 <div class="flex justify-between items-start mb-3 relative z-10">
+                     <!-- Input Monto -->
+                     <div>
+                        <div class="text-[10px] text-emerald-400 font-black uppercase tracking-widest mb-1 flex items-center gap-1">
+                            <i class="ph-fill ph-clock-countdown"></i> EXTRA
+                        </div>
+                        <div class="relative flex items-center group focus-within:border-emerald-500/50 border-b border-transparent transition-colors mt-1">
+                            <span class="text-emerald-500 text-xl font-bold mr-1">$</span>
+                            <input type="number" id="manualExtraPay" inputmode="decimal" class="bg-transparent text-2xl font-bold text-white w-full focus:outline-none placeholder-emerald-500/30 font-mono" placeholder="0.00" onblur="app.saveExtraPayValue(this.value)">
+                        </div>
+                     </div>
+                     <!-- Input Fecha -->
+                     <div class="text-right mt-7">
+                         <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">COBRO</div>
+                         <input type="date" id="extraPayDateInput" onchange="app.saveExtraPayDate(this.value)" class="bg-emerald-900/30 text-white font-bold text-sm px-2 py-1 rounded-md border border-emerald-500/20 text-center w-28 focus:outline-none focus:border-emerald-500 cursor-pointer">
+                         <div class="text-[10px] text-zinc-500 mt-1" id="daysToTuesday">-- días</div>
+                     </div>
+                 </div>
+                 
+                 <!-- Botón Importar -->
+                 <button id="btnImportExtras" onclick="app.importExtraMoney()" class="w-full bg-emerald-600/20 hover:bg-emerald-500 text-emerald-300 hover:text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider border border-emerald-500/30 transition-all flex items-center justify-center gap-2 relative z-10">
+                     <i class="ph-bold ph-download-simple"></i> Sumar a Billetera
+                 </button>
+
+                 <!-- Decoración Fondo -->
+                 <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors"></div>
+            </div>
+
+            <!-- 4. BOTONES DE ACCIÓN RÁPIDA -->
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <!-- Ingreso Extra -->
+                <button onclick="app.openModal('extra')" class="glass-highlight h-14 rounded-2xl text-emerald-500 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 md:hover:scale-105 hover:bg-emerald-500/10 border-transparent hover:border-emerald-500/30">
+                    <i class="ph-bold ph-arrow-down-left text-lg"></i> INGRESO
+                </button>
+                
+                <!-- Análisis (Solo Móvil) -->
+                <button onclick="app.switchView('analysis')" class="md:hidden glass-highlight h-14 rounded-2xl text-zinc-400 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-white/5 hover:text-white">
+                    <i class="ph-bold ph-chart-line-up text-lg"></i> ANÁLISIS
+                </button>
+                
+                <!-- Gasto Rápido (Solo Desktop) -->
+                <button onclick="app.openModal('expense')" class="hidden md:flex glass-highlight h-14 rounded-2xl text-white font-bold text-xs items-center justify-center gap-2 transition-all hover:scale-105 hover:bg-red-600 hover:border-red-500 bg-red-600/10 border-red-600/30">
+                    <i class="ph-bold ph-minus text-lg"></i> GASTO
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!--    COLUMNA DERECHA (LISTA MOVIMIENTOS)     -->
+        <!-- ========================================== -->
+        <div class="md:col-span-7 lg:col-span-8">
+            <div class="mt-2 md:mt-0">
+                
+                <!-- Barra de Búsqueda y Título -->
+                <div class="flex justify-between items-center mb-4 px-1 md:bg-zinc-900/30 md:p-3 md:rounded-xl md:border md:border-white/5">
+                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest hidden md:block">Movimientos Recientes</h3>
+                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest md:hidden">Actividad</h3>
+                    
+                    <div class="relative w-36 md:w-64 transition-all focus-within:w-full md:focus-within:w-64">
+                         <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
+                         <input type="text" id="searchTx" placeholder="Buscar..." onkeyup="app.filterTransactions()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-zinc-600 placeholder-zinc-700 transition-colors">
+                    </div>
+                </div>
+                
+                <!-- Contenedor de la Lista -->
+                <div id="transactionsList" class="space-y-3 min-h-[100px] pb-24 md:pb-0">
+                    <div class="text-center py-10 text-zinc-600 animate-pulse">Sincronizando...</div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
 
             <!-- VISTA: ANÁLISIS -->
             <section id="view-analysis" class="p-4 sm:p-0 hidden fade-in max-w-4xl mx-auto">
