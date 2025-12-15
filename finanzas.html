@@ -860,6 +860,7 @@
                 }
 
                 const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                const now = new Date(); // Get current date
 
                 keys.forEach(key => {
                     const data = this.historyData[key];
@@ -867,32 +868,46 @@
                     const monthName = monthNames[data.month];
                     const isPositive = balance >= 0;
 
+                    // CHECK IF CURRENT MONTH
+                    const isCurrent = data.month === now.getMonth() && data.year === now.getFullYear();
+                    
+                    const statusText = isCurrent ? 'EN CURSO' : 'CERRADO';
+                    const statusColor = isCurrent ? 'text-emerald-400' : 'text-zinc-500';
+                    const statusIcon = isCurrent ? '<div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block mr-1"></div>' : '';
+                    const borderClass = isCurrent ? 'border-emerald-500/30 bg-emerald-900/5' : 'border-zinc-800 hover:bg-zinc-800/50';
+
                     grid.innerHTML += `
-                    <div class="glass p-6 rounded-3xl hover:bg-zinc-800/50 transition-colors cursor-pointer group border border-zinc-800" onclick="app.showHistoryDetail('${key}')">
-                        <div class="flex justify-between items-start mb-4">
+                    <div class="glass p-6 rounded-3xl transition-all cursor-pointer group border ${borderClass} relative overflow-hidden" onclick="app.showHistoryDetail('${key}')">
+                        ${isCurrent ? '<div class="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-bl-full -mr-8 -mt-8 z-0"></div>' : ''}
+                        
+                        <div class="flex justify-between items-start mb-4 relative z-10">
                             <div>
-                                <h3 class="text-lg font-bold text-white capitalize">${monthName} ${data.year}</h3>
-                                <p class="text-xs text-zinc-500 font-bold uppercase tracking-wider">CERRADO</p>
+                                <h3 class="text-lg font-bold text-white capitalize flex items-center gap-2">
+                                    ${monthName} ${data.year}
+                                </h3>
+                                <p class="text-[10px] ${statusColor} font-bold uppercase tracking-widest mt-1">
+                                    ${statusIcon} ${statusText}
+                                </p>
                             </div>
-                            <div class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors">
+                            <div class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors border border-zinc-800">
                                 <i class="ph-bold ph-caret-right"></i>
                             </div>
                         </div>
                         
-                        <div class="space-y-2 mb-4">
+                        <div class="space-y-2 mb-4 relative z-10">
                             <div class="flex justify-between text-xs">
                                 <span class="text-zinc-400">Percibido</span>
-                                <span class="text-emerald-500 font-bold">+${UI.fmtMoney(data.income)}</span>
+                                <span class="text-emerald-500 font-bold font-mono">+${UI.fmtMoney(data.income)}</span>
                             </div>
                             <div class="flex justify-between text-xs">
                                 <span class="text-zinc-400">Gastado</span>
-                                <span class="text-red-500 font-bold">-${UI.fmtMoney(data.expense)}</span>
+                                <span class="text-red-500 font-bold font-mono">-${UI.fmtMoney(data.expense)}</span>
                             </div>
                         </div>
                         
-                        <div class="pt-3 border-t border-white/5 flex justify-between items-center">
-                            <span class="text-xs font-bold text-zinc-300">Balance Final</span>
-                            <span class="text-lg font-black ${isPositive ? 'text-white' : 'text-red-500'}">${UI.fmtMoney(balance)}</span>
+                        <div class="pt-3 border-t border-white/5 flex justify-between items-center relative z-10">
+                            <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">${isCurrent ? 'Balance Actual' : 'Balance Final'}</span>
+                            <span class="text-lg font-black ${isPositive ? 'text-white' : 'text-red-500'} tracking-tight">${UI.fmtMoney(balance)}</span>
                         </div>
                     </div>
                     `;
