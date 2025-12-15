@@ -85,6 +85,15 @@
         .glass-highlight { background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.08); }
         .glass-purple { background: linear-gradient(145deg, rgba(147, 51, 234, 0.1) 0%, rgba(147, 51, 234, 0.02) 100%); border: 1px solid rgba(147, 51, 234, 0.2); }
         
+        /* Nav Mobile */
+        .glass-nav { 
+            background: rgba(5, 5, 5, 0.95); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px); 
+            border-top: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: var(--sab);
+        }
+
         /* Nav Global Links CSS */
         .g-links { display: flex; align-items: center; gap: 20px; overflow-x: auto; }
         .g-link { 
@@ -132,9 +141,8 @@
             opacity: 0; pointer-events: none;
             transition: opacity 0.3s ease;
             display: flex;
-            align-items: center; 
+            align-items: flex-end; 
             justify-content: center;
-            padding: 20px;
         }
 
         #modalOverlay.is-open {
@@ -144,20 +152,32 @@
         #modalSheet {
             background: #121212;
             width: 100%;
-            max-width: 480px; 
-            border-radius: 24px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            max-height: 85vh; 
+            max-height: 90vh;
+            border-top-left-radius: 32px; border-top-right-radius: 32px;
+            border-top: 1px solid #27272a;
             padding: 24px;
             overflow-y: auto;
-            transform: scale(0.95); 
-            opacity: 0;
-            transition: all 0.2s ease-out;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            padding-bottom: calc(40px + var(--sab));
         }
 
         #modalOverlay.is-open #modalSheet {
-            transform: scale(1); opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (min-width: 768px) {
+            #modalOverlay { align-items: center; padding: 20px; }
+            #modalSheet {
+                width: 100%; max-width: 480px; border-radius: 24px;
+                border: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                max-height: 85vh; padding-bottom: 24px;
+                transform: scale(0.95); opacity: 0;
+                transition: all 0.2s ease-out;
+            }
+            #modalOverlay.is-open #modalSheet { transform: scale(1); opacity: 1; }
+            main { padding-bottom: 20px !important; }
         }
 
         /* Utilities */
@@ -178,7 +198,7 @@
         @media print {
             @page { margin: 0 !important; size: auto; }
             html, body { background-color: #000000 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; font-family: sans-serif; }
-            #global-nav, #fabContainer, #app-content, #toast-container, #modalOverlay, #confirmDialog, #authModal { display: none !important; }
+            #global-nav, #fabContainer, .glass-nav, #app-content, #toast-container, #modalOverlay, #confirmDialog, #authModal { display: none !important; }
             #print-area { display: block !important; position: relative !important; width: 100% !important; background-color: #000000 !important; color: #e5e5e5 !important; padding: 15mm !important; box-sizing: border-box; }
             .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #ef4444 !important; padding-bottom: 20px; margin-bottom: 30px; }
             .print-logo { color: #ffffff !important; font-size: 32px; font-weight: 900; display: flex; align-items: center; gap: 10px; letter-spacing: -1px; }
@@ -223,15 +243,17 @@
     </nav>
 
     <!-- CONTENEDOR PRINCIPAL -->
-    <main id="app-content" class="flex-1 overflow-y-auto pb-10 relative scroll-smooth overflow-x-hidden md:px-6">
+    <main id="app-content" class="flex-1 overflow-y-auto pb-36 relative scroll-smooth overflow-x-hidden md:px-6">
         
         <div class="w-full max-w-lg md:max-w-6xl mx-auto h-full pt-4 md:pt-8">
 
-            <!-- SUB-NAV DESKTOP (AHORA VISIBLE SIEMPRE) -->
-            <div class="flex justify-center mb-8 fade-in">
+            <!-- SUB-NAV DESKTOP -->
+            <div class="hidden md:flex justify-center mb-8 fade-in">
                 <div class="bg-zinc-900/80 border border-white/10 p-1.5 rounded-full flex items-center gap-1 shadow-lg backdrop-blur-sm">
                     <button onclick="app.switchView('balance')" class="nav-link-desk active px-5" data-view="balance">Billetera</button>
                     <button onclick="app.switchView('analysis')" class="nav-link-desk px-5" data-view="analysis">Análisis</button>
+                    <button onclick="app.switchView('simulation')" class="nav-link-desk px-5" data-view="simulation">Simulación</button>
+                    <button onclick="app.switchView('history')" class="nav-link-desk px-5" data-view="history">Historial</button>
                     <button onclick="app.switchView('plan')" class="nav-link-desk px-5" data-view="plan">Planificación</button>
                 </div>
             </div>
@@ -240,7 +262,7 @@
             <section id="view-balance" class="p-4 sm:p-0 fade-in">
                 
                 <!-- Layout Grid para Desktop -->
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+                <div class="grid grid-cols-1 md:grid-cols-12 md:gap-8 items-start">
                     
                     <!-- Columna Izquierda (Resumen) -->
                     <div class="md:col-span-5 lg:col-span-4 md:sticky md:top-4">
@@ -257,7 +279,7 @@
 
                         <!-- TARJETA PRINCIPAL (Daily Budget) -->
                         <div id="mainCard" class="glass rounded-[2rem] p-6 relative overflow-hidden group mb-6 transition-all active:scale-[0.98] md:hover:scale-[1.01] md:active:scale-100 shadow-2xl shadow-black/50">
-                            <!-- Fondo dinámico -->
+                            <!-- Fondo dinámico (se vuelve rojo en overbudget) -->
                             <div id="mainCardBg" class="absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 rounded-full blur-3xl transition-colors duration-500"></div>
                             
                             <div class="relative z-10">
@@ -267,15 +289,15 @@
                                        <i id="eyeIcon" class="ph ph-eye text-lg"></i>
                                     </button>
                                 </div>
-                                <!-- Valor principal -->
-                                <div class="text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2 break-all relative leading-none transition-colors" id="dailyFreeContainer">
+                                <!-- Valor principal (Saldo de hoy) -->
+                                <div class="text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2 break-all relative leading-none transition-colors" id="dailyFreeContainer">
                                     <span id="dailyFree">---</span>
                                     <div id="dailyFreeBlur" class="hidden absolute inset-0 bg-zinc-900/50 backdrop-blur-md rounded-lg z-20 flex items-center justify-center">
                                         <i class="ph-fill ph-lock-key text-zinc-600 text-3xl"></i>
                                     </div>
                                 </div>
 
-                                <!-- Subtítulos -->
+                                <!-- Subtítulos de desglose -->
                                 <div class="flex items-center gap-3 mb-6 font-mono text-xs">
                                     <div class="text-zinc-500">
                                         Límite: <span id="valDailyLimit" class="text-zinc-300 font-bold">---</span>
@@ -303,8 +325,8 @@
                             </div>
                         </div>
 
-                        <!-- WIDGET HORAS EXTRAS (VISIBLE SIEMPRE AHORA) -->
-                        <div id="adherenceCard" class="mb-6 relative overflow-hidden rounded-[2rem] border border-emerald-900/30 bg-emerald-950/10 p-5 group transition-all">
+                        <!-- WIDGET HORAS EXTRAS -->
+                        <div id="adherenceCard" class="hidden mb-6 relative overflow-hidden rounded-[2rem] border border-emerald-900/30 bg-emerald-950/10 p-5 group transition-all">
                              
                              <!-- Switch Simulación -->
                              <div class="absolute top-4 right-4 z-20 flex items-center gap-2">
@@ -337,12 +359,15 @@
                              <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors"></div>
                         </div>
 
-                        <!-- ACCIONES RÁPIDAS (LIMPIEZA MÓVIL) -->
+                        <!-- ACCIONES RÁPIDAS -->
                         <div class="grid grid-cols-2 gap-3 mb-6">
-                            <button onclick="app.openModal('extra')" class="glass-highlight h-14 rounded-2xl text-emerald-500 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 hover:scale-105 hover:bg-emerald-500/10 border-transparent hover:border-emerald-500/30">
+                            <button onclick="app.openModal('extra')" class="glass-highlight h-14 rounded-2xl text-emerald-500 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 md:hover:scale-105 hover:bg-emerald-500/10 border-transparent hover:border-emerald-500/30">
                                 <i class="ph-bold ph-arrow-down-left text-lg"></i> INGRESO
                             </button>
-                            <button onclick="app.openModal('expense')" class="glass-highlight h-14 rounded-2xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all hover:scale-105 hover:bg-red-600 hover:border-red-500 bg-red-600/10 border-red-600/30">
+                            <button onclick="app.switchView('analysis')" class="md:hidden glass-highlight h-14 rounded-2xl text-zinc-400 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-white/5 hover:text-white">
+                                <i class="ph-bold ph-chart-line-up text-lg"></i> ANÁLISIS
+                            </button>
+                            <button onclick="app.openModal('expense')" class="hidden md:flex glass-highlight h-14 rounded-2xl text-white font-bold text-xs items-center justify-center gap-2 transition-all hover:scale-105 hover:bg-red-600 hover:border-red-500 bg-red-600/10 border-red-600/30">
                                 <i class="ph-bold ph-minus text-lg"></i> GASTO
                             </button>
                         </div>
@@ -351,15 +376,16 @@
                     <!-- Columna Derecha (Lista Transacciones) -->
                     <div class="md:col-span-7 lg:col-span-8">
                         <div class="mt-2 md:mt-0">
-                            <div class="flex justify-between items-center mb-4 px-1 bg-zinc-900/30 p-3 rounded-xl border border-white/5">
-                                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Movimientos Recientes</h3>
-                                <div class="relative w-48 transition-all focus-within:w-64">
+                            <div class="flex justify-between items-center mb-4 px-1 md:bg-zinc-900/30 md:p-3 md:rounded-xl md:border md:border-white/5">
+                                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest hidden md:block">Movimientos Recientes</h3>
+                                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest md:hidden">Actividad</h3>
+                                <div class="relative w-36 md:w-64 transition-all focus-within:w-full md:focus-within:w-64">
                                      <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
                                      <input type="text" id="searchTx" placeholder="Buscar..." onkeyup="app.filterTransactions()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-zinc-600 placeholder-zinc-700 transition-colors">
                                 </div>
                             </div>
                             
-                            <div id="transactionsList" class="space-y-2 min-h-[100px] pb-0">
+                            <div id="transactionsList" class="space-y-3 min-h-[100px] pb-24 md:pb-0">
                                 <div class="text-center py-10 text-zinc-600 animate-pulse">Sincronizando...</div>
                             </div>
                         </div>
@@ -370,12 +396,12 @@
 
             <!-- VISTA: ANÁLISIS -->
             <section id="view-analysis" class="p-4 sm:p-0 hidden fade-in max-w-4xl mx-auto">
-                 <div class="flex justify-between items-end mb-6">
+                 <div class="md:flex md:justify-between md:items-end mb-6">
                      <div>
                          <h2 class="text-2xl font-black text-white mb-1">Análisis Financiero</h2>
                          <p class="text-zinc-500 text-xs">Desglose detallado del ciclo actual.</p>
                      </div>
-                     <div class="flex gap-2">
+                     <div class="flex gap-2 mt-4 md:mt-0">
                          <button onclick="app.generateReport()" class="text-zinc-400 hover:text-white text-xs px-4 py-2 font-bold flex items-center gap-2 border border-zinc-800 rounded-lg hover:bg-zinc-800 transition-colors group">
                             <i class="ph-bold ph-printer group-hover:text-red-500"></i> PRINT
                          </button>
@@ -390,7 +416,7 @@
                  </div>
 
                 <!-- METRICAS RAPIDAS -->
-                <div class="grid grid-cols-4 gap-3 mb-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                     <div class="glass p-5 rounded-2xl">
                         <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Promedio Diario</div>
                         <div class="text-xl font-bold text-white" id="statDailyAvg">---</div>
@@ -399,18 +425,18 @@
                         <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Mayor Gasto</div>
                         <div class="text-xl font-bold text-white truncate" id="statMaxCat">---</div>
                     </div>
-                     <div class="glass p-5 rounded-2xl">
+                     <div class="glass p-5 rounded-2xl hidden md:block">
                         <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Total Ingresos</div>
                         <div class="text-xl font-bold text-emerald-500 truncate" id="statTotalInc">---</div>
                     </div>
-                     <div class="glass p-5 rounded-2xl">
+                     <div class="glass p-5 rounded-2xl hidden md:block">
                         <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Total Gastos</div>
                         <div class="text-xl font-bold text-red-500 truncate" id="statTotalExp">---</div>
                     </div>
                 </div>
 
                 <!-- CHART SECTION -->
-                <div id="chartSection" class="grid grid-cols-2 gap-6 mb-6">
+                <div id="chartSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <!-- Burn down Chart -->
                     <div class="glass rounded-3xl p-5 relative">
                         <h3 class="text-center text-xs font-bold text-zinc-500 mb-4 tracking-widest">TENDENCIA DEL CICLO</h3>
@@ -429,12 +455,105 @@
                 </div>
             </section>
 
+            <!-- VISTA: SIMULACIÓN -->
+            <section id="view-simulation" class="p-4 sm:p-0 hidden fade-in max-w-2xl mx-auto pb-24">
+                <h2 class="text-2xl font-black text-white mb-1">Simulador Mensual</h2>
+                <p class="text-zinc-500 text-xs mb-6">Proyección mensual real (Ingreso Total - Fijos Mensuales).</p>
+
+                <!-- RESULTADO PRINCIPAL -->
+                <div class="glass-highlight rounded-3xl p-6 text-center mb-6 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <div class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Flujo Libre Mensual</div>
+                        <div class="text-5xl font-black text-white tracking-tight" id="simFreeMoney">---</div>
+                        <div class="text-xs text-zinc-500 mt-2">Dinero real disponible tras pagar TODO en el mes</div>
+                    </div>
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
+                </div>
+
+                <!-- DESGLOSE -->
+                <div class="space-y-4">
+                    <!-- TARJETA 1: Ingreso Base (Salario) -->
+                    <div class="flex justify-between items-center p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                <i class="ph-bold ph-money text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-white">Salario Base</div>
+                                <div class="text-[10px] text-zinc-500" id="simIncomeDesc">Calculado según tu ciclo</div>
+                            </div>
+                        </div>
+                        <div class="font-bold text-emerald-400" id="simBaseIncomeVal">---</div>
+                    </div>
+
+                    <!-- TARJETA 2: Ingresos Adicionales (Con Desglose) -->
+                    <div class="rounded-2xl bg-zinc-900/50 border border-zinc-800 overflow-hidden">
+                        <div class="flex justify-between items-center p-4 border-b border-zinc-800/50 bg-zinc-900/30">
+                             <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                    <i class="ph-bold ph-trend-up text-xl"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-bold text-white">Ingresos Adicionales</div>
+                                    <div class="text-[10px] text-zinc-500">Extras detectados este mes</div>
+                                </div>
+                            </div>
+                             <div class="font-bold text-blue-400" id="simTotalExtraVal">---</div>
+                        </div>
+                        <!-- Lista Desglose de Extras -->
+                        <div id="simExtraList" class="p-2 space-y-1">
+                            <!-- Items injected by JS -->
+                            <div class="text-center text-[10px] text-zinc-600 py-2 italic">Sin ingresos extra este mes</div>
+                        </div>
+                    </div>
+                    
+                    <!-- NEW: TOTAL INGRESOS REALES (SUMA) -->
+                    <div class="flex justify-between items-center px-4 py-3 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
+                         <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Total Ingresos Reales</span>
+                         <span class="text-base font-bold text-white" id="simTotalIncomeSum">---</span>
+                    </div>
+
+                    <!-- Separator -->
+                    <div class="flex items-center gap-4 py-2">
+                        <div class="h-px bg-zinc-800 flex-1"></div>
+                        <span class="text-[10px] text-zinc-500 font-bold uppercase">Menos Gastos Fijos (Mes)</span>
+                        <div class="h-px bg-zinc-800 flex-1"></div>
+                    </div>
+
+                    <!-- Lista de Fijos -->
+                    <div id="simFixedList" class="space-y-2">
+                        <!-- Items injected by JS -->
+                    </div>
+                    
+                    <!-- Total Fijos Summary -->
+                     <div class="flex justify-between items-center px-4 py-2">
+                        <span class="text-xs text-zinc-500">Total Fijos Mensuales</span>
+                        <span class="text-sm font-bold text-red-400" id="simTotalFixed">---</span>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- VISTA: HISTORIAL -->
+            <section id="view-history" class="p-4 sm:p-0 hidden fade-in max-w-2xl mx-auto">
+                <div class="mb-8 text-center">
+                    <div class="inline-block px-4 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-400 mb-2">
+                         PATRIMONIO NETO ACUMULADO
+                    </div>
+                    <div id="netWorthDisplay" class="text-4xl font-black text-white tracking-tighter">Calculando...</div>
+                </div>
+                
+                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 px-1">Línea de Tiempo (Quincenas)</h3>
+                <div id="historyList" class="space-y-4 pb-20">
+                     <div class="text-center py-10 text-zinc-600 italic text-xs">Procesando historial...</div>
+                </div>
+            </section>
+
             <!-- VISTA: PLAN (CONFIG) -->
             <section id="view-plan" class="p-4 sm:p-0 hidden fade-in max-w-2xl mx-auto">
                 <h2 class="text-2xl font-black text-white mb-1">Estrategia</h2>
-                <p class="text-zinc-500 text-xs mb-6">Administra tus fijos y deudas.</p>
+                <p class="text-zinc-500 text-xs mb-6">Administra tus fijos, deudas y metas.</p>
                 
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <!-- RESUMEN DE OBLIGACIONES -->
                         <div class="glass-highlight rounded-2xl p-5 mb-6 relative overflow-hidden">
@@ -494,6 +613,17 @@
                     </div>
                 </div>
                 
+                <!-- METAS DE AHORRO -->
+                 <div class="mb-8">
+                    <div class="flex justify-between items-center mb-4 px-1 border-b border-white/5 pb-2">
+                        <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2"><i class="ph-fill ph-piggy-bank text-pink-500 text-base"></i> Metas Ahorro</span>
+                        <button onclick="app.openModal('goal')" class="bg-zinc-800 text-zinc-300 w-8 h-8 rounded-full hover:bg-white hover:text-black transition-colors flex items-center justify-center active:scale-90">
+                            <i class="ph-bold ph-plus text-sm"></i>
+                        </button>
+                    </div>
+                    <div id="goalsList" class="space-y-3 grid md:grid-cols-2 md:gap-4 md:space-y-0"></div>
+                </div>
+                
                 <!-- GASTOS FIJOS -->
                 <div class="mb-8">
                     <div class="flex justify-between items-center mb-4 px-1 border-b border-white/5 pb-2">
@@ -502,7 +632,7 @@
                             <i class="ph-bold ph-plus text-sm"></i>
                         </button>
                     </div>
-                    <div id="fixedExpensesList" class="space-y-2 grid grid-cols-2 gap-4"></div>
+                    <div id="fixedExpensesList" class="space-y-2 grid md:grid-cols-2 md:gap-4 md:space-y-0"></div>
                 </div>
                 
                 <!-- DEUDAS -->
@@ -513,7 +643,7 @@
                             <i class="ph-bold ph-plus text-sm"></i>
                         </button>
                     </div>
-                    <div id="loansList" class="space-y-2 grid grid-cols-2 gap-4"></div>
+                    <div id="loansList" class="space-y-2 grid md:grid-cols-2 md:gap-4 md:space-y-0"></div>
                 </div>
             </section>
         
@@ -524,9 +654,55 @@
     <!-- ÁREA DE IMPRESIÓN (OCULTO EN PANTALLA, VISIBLE EN PRINT) -->
     <div id="print-area"></div>
     
-    <!-- MODAL -->
+    <!-- FAB (NUEVO GASTO) - SOLO MÓVIL -->
+    <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40">
+        <button onclick="app.openModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
+            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
+            <i class="ph-bold ph-plus text-3xl group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
+        </button>
+    </div>
+
+    <!-- NAV INFERIOR - MÓVIL (GRID DE 5) -->
+    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-5 z-50">
+        <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance')">
+            <div class="relative p-1">
+                <i class="ph-fill ph-wallet text-xl group-[.active]:text-white transition-colors duration-300"></i>
+            </div>
+            <span class="text-[9px] font-bold group-[.active]:text-white transition-colors">Balance</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('analysis')">
+            <div class="relative p-1">
+                <i class="ph-fill ph-chart-pie-slice text-xl group-[.active]:text-white transition-colors duration-300"></i>
+            </div>
+            <span class="text-[9px] font-bold group-[.active]:text-white transition-colors">Análisis</span>
+        </button>
+         <!-- NUEVO BOTÓN SIMULACIÓN -->
+         <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('simulation')">
+            <div class="relative p-1">
+                <i class="ph-fill ph-crystal-ball text-xl group-[.active]:text-purple-400 transition-colors duration-300"></i>
+            </div>
+            <span class="text-[9px] font-bold group-[.active]:text-purple-400 transition-colors">Simular</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('history')">
+            <div class="relative p-1">
+                <i class="ph-fill ph-scroll text-xl group-[.active]:text-white transition-colors duration-300"></i>
+            </div>
+            <span class="text-[9px] font-bold group-[.active]:text-white transition-colors">Historial</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('plan')">
+            <div class="relative p-1">
+                <i class="ph-fill ph-sliders-horizontal text-xl group-[.active]:text-white transition-colors duration-300"></i>
+            </div>
+            <span class="text-[9px] font-bold group-[.active]:text-white transition-colors">Plan</span>
+        </button>
+    </div>
+
+    <!-- MODAL (ADAPTATIVO) -->
     <div id="modalOverlay" onclick="if(event.target === this) app.closeModal()">
         <div id="modalSheet">
+            <!-- Handle solo para móvil -->
+            <div class="md:hidden w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0"></div>
+            
             <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#121212] z-10 pb-2 border-b border-transparent">
                 <h3 class="text-xl font-bold text-white" id="modalTitle">Nuevo</h3>
                 <button onclick="app.closeModal()" class="w-10 h-10 rounded-full bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 transition-colors active:scale-90"><i class="ph-bold ph-x text-lg"></i></button>
@@ -565,6 +741,15 @@
                 <button id="btnDeleteFix" onclick="app.deleteFixedConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
             </div>
             
+            <!-- Form Goal (Ahorro) -->
+            <div id="formGoal" class="hidden space-y-4 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Meta (Ej: Coche, Viaje)</label><input type="text" id="goalName" class="input-modern w-full p-4 h-14" placeholder="Nombre..."></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Objetivo ($)</label><input type="number" id="goalTarget" inputmode="decimal" class="input-modern w-full p-4 h-14" placeholder="$0.00"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Ahorrado Actualmente ($)</label><input type="number" id="goalSaved" inputmode="decimal" class="input-modern w-full p-4 h-14" placeholder="$0.00"></div>
+                <button onclick="app.saveGoal()" class="w-full bg-pink-500 text-white py-4 rounded-2xl font-black mt-4 shadow-[0_4px_20px_rgba(236,72,153,0.4)] h-16 hover:bg-pink-400">GUARDAR META</button>
+                <button id="btnDeleteGoal" onclick="app.deleteGoalConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
+            </div>
+
             <!-- Form Deuda -->
             <div id="formLoan" class="hidden space-y-4 pb-4">
                 <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Concepto</label><input type="text" id="loanName" class="input-modern w-full p-4 h-14" placeholder="Ej: Visa"></div>
@@ -688,7 +873,7 @@
         // --- APP LOGIC ---
         const app = window.app = {
             user: null, 
-            data: { income: 0, incomeQ2: 0, fixed: [], loans: [], cycle: 'biweekly', startDay: 1, enableAdherence: true }, 
+            data: { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true }, 
             logs: [], adhData: null,
             currentPeriod: null, 
             privacyMode: false,
@@ -696,6 +881,7 @@
             charts: {},
             printCharts: {},
             pendingExtraPay: 0, 
+            isSimulating: false, 
 
             async init() {
                 if(!auth) return;
@@ -729,13 +915,13 @@
                 
                 onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
-                        this.data = { income: 0, incomeQ2: 0, fixed: [], loans: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, ...snap.data() };
+                        this.data = { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, ...snap.data() };
                         document.getElementById('inpIncome').value = this.data.income || '';
                         document.getElementById('inpIncomeQ2').value = this.data.incomeQ2 || '';
                         document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
                         
                         this.renderPlanInputs();
-                        this.renderFixed(); this.renderLoans();
+                        this.renderFixed(); this.renderLoans(); this.renderGoals();
                         this.calcPeriod();
                         
                         if (this.adhData) this.calcAdherencePay();
@@ -745,7 +931,7 @@
                 const q = query(logsRef, orderBy('date', 'desc'), limit(1000));
                 onSnapshot(q, (snap) => {
                     this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
-                    this.renderTransactions(); this.calcBalance(); this.renderCharts(); this.renderAnalysisMetrics();
+                    this.renderTransactions(); this.calcBalance(); this.renderCharts(); this.renderAnalysisMetrics(); this.renderHistory();
                 });
 
                 const adhRef = doc(db, 'godsPlanData', uid);
@@ -770,14 +956,116 @@
                     lbl1.textContent = 'Ingreso Mensual Base';
                 }
             },
-            
-            toggleSimulation() {
-                const check = document.getElementById('simToggle');
-                if (check.checked) {
-                    UI.toast('Modo Simulación: Activado', 'info');
-                } else {
-                    UI.toast('Modo Simulación: Desactivado', 'info');
+
+            // --- LÓGICA DE HISTORIAL ---
+            renderHistory() {
+                const container = document.getElementById('historyList');
+                if(!this.logs.length) {
+                    container.innerHTML = '<div class="text-center py-10 text-zinc-600">Aún no hay historia que contar.</div>';
+                    return;
                 }
+
+                // Configuración de Ingreso Base
+                const baseIncome = parseFloat(this.data.income) || 0;
+                const baseIncomeQ2 = parseFloat(this.data.incomeQ2) || baseIncome; // Default to base if empty
+                const cycleMode = this.data.cycle || 'biweekly';
+
+                // 1. Agrupar por mes Y Quincena
+                const groups = {};
+                let loggedNetWorth = 0; // Solo logs reales
+
+                this.logs.forEach(l => {
+                    const d = new Date(l.date);
+                    // Q1: 1-15, Q2: 16-31
+                    const day = d.getDate();
+                    const qLabel = day <= 15 ? 'Q1' : 'Q2';
+                    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${qLabel}`;
+                    
+                    if(!groups[k]) groups[k] = { income:0, expense:0, date: d, count:0, q: qLabel, realIncomeLogs: 0 };
+                    
+                    if(l.type === 'income') {
+                        groups[k].income += l.amount;
+                        groups[k].realIncomeLogs += l.amount;
+                        loggedNetWorth += l.amount;
+                    } else {
+                        groups[k].expense += l.amount;
+                        loggedNetWorth -= l.amount;
+                    }
+                    groups[k].count++;
+                });
+
+                const nwEl = document.getElementById('netWorthDisplay');
+                nwEl.textContent = UI.fmtMoney(loggedNetWorth); 
+                nwEl.className = `text-4xl font-black tracking-tighter ${loggedNetWorth >= 0 ? 'text-white' : 'text-red-500'}`;
+
+                const sortedKeys = Object.keys(groups).sort((a,b) => b.localeCompare(a));
+                container.innerHTML = '';
+                
+                sortedKeys.forEach(key => {
+                    const g = groups[key];
+                    
+                    // --- INYECCIÓN DE INGRESO BASE ---
+                    let periodBaseIncome = 0;
+                    if (cycleMode === 'biweekly') {
+                        periodBaseIncome = g.q === 'Q1' ? baseIncome : baseIncomeQ2;
+                    } else {
+                        // Mensual: solo sumar en la primera quincena
+                        if (g.q === 'Q1') periodBaseIncome = baseIncome;
+                    }
+
+                    const totalPeriodIncome = g.income + periodBaseIncome;
+                    const balance = totalPeriodIncome - g.expense;
+                    const savingsRate = totalPeriodIncome > 0 ? ((totalPeriodIncome - g.expense) / totalPeriodIncome) * 100 : 0;
+                    
+                    // Lógica de "Vibe"
+                    let vibeIcon = 'ph-mask-happy'; let vibeColor = 'text-emerald-400'; let vibeText = 'Excelente periodo'; let barColor = 'bg-emerald-500';
+
+                    if (balance < 0) { vibeIcon = 'ph-mask-sad'; vibeColor = 'text-red-500'; vibeText = 'Gasto excesivo'; barColor = 'bg-red-500'; } 
+                    else if (savingsRate < 10) { vibeIcon = 'ph-mask-sad'; vibeColor = 'text-orange-400'; vibeText = 'Ahorro bajo'; barColor = 'bg-orange-500'; } 
+                    else if (savingsRate < 30) { vibeIcon = 'ph-smiley'; vibeColor = 'text-yellow-400'; vibeText = 'Buen equilibrio'; barColor = 'bg-yellow-400'; } 
+                    else { vibeIcon = 'ph-star-fill'; vibeColor = 'text-emerald-400'; vibeText = '¡Imparable!'; barColor = 'bg-emerald-500'; }
+
+                    const monthName = g.date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+                    const capMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                    const qText = g.q === 'Q1' ? '1ª Quincena' : '2ª Quincena';
+
+                    const maxVal = Math.max(totalPeriodIncome, g.expense);
+                    const incPct = maxVal > 0 ? (totalPeriodIncome / maxVal) * 100 : 0;
+                    const expPct = maxVal > 0 ? (g.expense / maxVal) * 100 : 0;
+
+                    container.innerHTML += `
+                    <div class="glass p-5 rounded-2xl relative overflow-hidden group hover:bg-zinc-900/40 transition-colors">
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <div>
+                                <h4 class="text-lg font-bold text-white capitalize flex flex-col md:flex-row md:gap-2">
+                                    <span>${capMonth}</span>
+                                    <span class="text-xs text-zinc-500 font-normal bg-zinc-800/50 px-2 py-0.5 rounded-lg self-start mt-1 md:mt-0">${qText}</span>
+                                </h4>
+                                <div class="flex items-center gap-1.5 mt-1">
+                                    <i class="ph-fill ${vibeIcon} ${vibeColor}"></i>
+                                    <span class="text-xs font-medium text-zinc-400">${vibeText}</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs font-bold text-zinc-500 uppercase">Balance</div>
+                                <div class="text-xl font-bold ${balance >= 0 ? 'text-white' : 'text-red-500'}">${balance >=0 ? '+':''}${UI.fmtMoney(balance)}</div>
+                            </div>
+                        </div>
+                        <div class="space-y-2 mb-4 relative z-10">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] w-12 text-zinc-500 font-bold">IN</span>
+                                <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-emerald-500/80 rounded-full" style="width: ${incPct}%"></div></div>
+                                <span class="text-[10px] w-16 text-right text-emerald-400 font-mono">${UI.fmtMoney(totalPeriodIncome)}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] w-12 text-zinc-500 font-bold">OUT</span>
+                                <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-red-500/80 rounded-full" style="width: ${expPct}%"></div></div>
+                                <span class="text-[10px] w-16 text-right text-red-400 font-mono">${UI.fmtMoney(g.expense)}</span>
+                            </div>
+                        </div>
+                        <div class="absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-10 ${barColor}"></div>
+                    </div>`;
+                });
             },
 
             // --- ADHERENCIA ---
@@ -801,12 +1089,15 @@
                 
                 this.pendingExtraPay = Math.round(pay);
 
-                // Siempre actualizamos el valor, no ocultamos la tarjeta si es 0
-                document.getElementById('extraPayValue').textContent = UI.fmtMoney(this.pendingExtraPay);
-                const hours = Math.floor(bal / 60);
-                const mins = Math.floor(bal % 60);
-                document.getElementById('extraPayHours').textContent = `${hours}h ${mins}m acumulados`;
-                
+                if (this.pendingExtraPay > 0) {
+                    card.classList.remove('hidden');
+                    document.getElementById('extraPayValue').textContent = UI.fmtMoney(this.pendingExtraPay);
+                    const hours = Math.floor(bal / 60);
+                    const mins = Math.floor(bal % 60);
+                    document.getElementById('extraPayHours').textContent = `${hours}h ${mins}m acumulados`;
+                } else {
+                    card.classList.add('hidden');
+                }
                 this.resolvePayDate();
             },
 
@@ -838,6 +1129,11 @@
             toggleAdherenceModule() {
                 const isEnabled = document.getElementById('adhToggle').checked;
                 updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { enableAdherence: isEnabled });
+            },
+
+            toggleSimulation() {
+                this.isSimulating = document.getElementById('simToggle').checked;
+                this.calcBalance();
             },
 
             async importExtraMoney() {
@@ -898,7 +1194,7 @@
                 let totalSpentInCycle = 0; let extraInc = 0;
                 periodLogs.forEach(l => { if(l.type === 'income') extraInc += l.amount; else totalSpentInCycle += l.amount; });
 
-                if (this.pendingExtraPay > 0) { extraInc += this.pendingExtraPay; }
+                if (this.isSimulating && this.pendingExtraPay > 0) { extraInc += this.pendingExtraPay; }
 
                 let fixedReserve = 0;
                 const fixedStatus = []; 
@@ -959,7 +1255,11 @@
                 const labelState = document.getElementById('labelDailyState');
                 const cardBg = document.getElementById('mainCardBg');
                 
-                if (balanceToday < 0) {
+                if (this.isSimulating) {
+                    dailyEl.textContent = UI.fmtMoney(balanceToday); dailyEl.className = 'text-emerald-400 font-black animate-pulse'; 
+                    labelState.textContent = 'SIMULACIÓN ACTIVADA'; labelState.className = 'text-xs font-black text-emerald-500 uppercase tracking-widest';
+                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-emerald-600/20 rounded-full blur-3xl transition-colors duration-500 animate-pulse-green';
+                } else if (balanceToday < 0) {
                     dailyEl.textContent = UI.fmtMoney(balanceToday); dailyEl.className = 'text-red-500 animate-pulse font-black'; 
                     labelState.textContent = 'EXCEDIDO HOY'; labelState.className = 'text-xs font-black text-red-500 uppercase tracking-widest';
                     cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/50 rounded-full blur-3xl transition-colors duration-500 animate-pulse-red';
@@ -1054,6 +1354,14 @@
                 });
             },
             
+            renderGoals() {
+                const el = document.getElementById('goalsList'); el.innerHTML='';
+                (this.data.goals || []).forEach((g,i) => {
+                    const pct = Math.min(100, Math.round((g.saved / g.target) * 100));
+                    el.innerHTML += `<div onclick="app.openModal('goal', ${i})" class="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer hover:border-pink-500/30 transition-colors mb-2"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-white">${g.name}</span><span class="text-[10px] text-pink-400 font-bold">${UI.fmtMoney(g.saved)} / ${UI.fmtMoney(g.target)}</span></div><div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-pink-500 transition-all" style="width: ${pct}%"></div></div></div>`;
+                });
+            },
+            
             // --- CHARTS & METRICS ---
             renderCharts() {
                 if(!this.logs.length) { document.getElementById('chartSection').classList.add('hidden'); return; }
@@ -1096,6 +1404,89 @@
                 document.getElementById('statTotalExp').textContent = UI.fmtMoney(totalSpent);
             },
             
+            // --- NUEVA LÓGICA DE SIMULACIÓN (CORREGIDA) ---
+            updateSimulation() {
+                const months = ['Mes 1', 'Mes 2', 'Mes 3', 'Mes 4', 'Mes 5', 'Mes 6'];
+                let monthlyIncome = parseFloat(this.data.income) || 0;
+                
+                // Si es quincenal, el ingreso mensual es Q1 + Q2 (o Q1 * 2 si Q2 está vacío)
+                if (this.data.cycle === 'biweekly') {
+                    const q1 = monthlyIncome;
+                    const q2 = parseFloat(this.data.incomeQ2) || q1; // Fallback a Q1 si Q2 es 0
+                    monthlyIncome = q1 + q2;
+                    document.getElementById('simIncomeDesc').textContent = 'Suma de ambas quincenas';
+                } else {
+                    document.getElementById('simIncomeDesc').textContent = 'Ingreso único mensual';
+                }
+                
+                // Actualizar Tarjeta 1 (Salario Base)
+                document.getElementById('simBaseIncomeVal').textContent = UI.fmtMoney(monthlyIncome);
+
+                // --- CALCULAR INGRESOS EXTRAS ---
+                const now = new Date();
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                
+                const extraLogs = this.logs.filter(l => 
+                    l.type === 'income' && 
+                    new Date(l.date) >= startOfMonth && 
+                    new Date(l.date) <= endOfMonth
+                );
+                
+                const extraMonthIncome = extraLogs.reduce((a, b) => a + b.amount, 0);
+                
+                // Actualizar Tarjeta 2 (Extras + Desglose)
+                document.getElementById('simTotalExtraVal').textContent = '+' + UI.fmtMoney(extraMonthIncome);
+                
+                const extraListEl = document.getElementById('simExtraList');
+                extraListEl.innerHTML = '';
+                
+                if (extraLogs.length === 0) {
+                    extraListEl.innerHTML = '<div class="text-center text-[10px] text-zinc-600 py-2 italic">Sin ingresos extra este mes</div>';
+                } else {
+                    extraLogs.forEach(l => {
+                        extraListEl.innerHTML += `
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-zinc-400 truncate max-w-[70%]">${l.desc || l.category}</span>
+                            <span class="text-emerald-500 font-mono">+${UI.fmtMoney(l.amount)}</span>
+                        </div>
+                        `;
+                    });
+                }
+
+                const totalMonthlyIncome = monthlyIncome + extraMonthIncome;
+                document.getElementById('simTotalIncomeSum').textContent = UI.fmtMoney(totalMonthlyIncome);
+
+                const fixedList = this.data.fixed || [];
+                const totalFixed = fixedList.reduce((a,b) => a + b.amount, 0);
+                
+                const freeMoney = totalMonthlyIncome - totalFixed;
+                
+                document.getElementById('simFreeMoney').textContent = UI.fmtMoney(freeMoney);
+                document.getElementById('simTotalFixed').textContent = '-' + UI.fmtMoney(totalFixed);
+                
+                const listEl = document.getElementById('simFixedList');
+                listEl.innerHTML = '';
+                
+                if (fixedList.length === 0) {
+                    listEl.innerHTML = '<div class="text-center text-zinc-600 text-xs py-2 italic">Sin gastos fijos configurados</div>';
+                } else {
+                    fixedList.forEach(f => {
+                        listEl.innerHTML += `
+                        <div class="flex justify-between items-center p-3 rounded-xl bg-zinc-900/30 border border-zinc-800/50">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 font-bold text-xs">
+                                    ${f.day}
+                                </div>
+                                <span class="text-xs font-bold text-zinc-300">${f.name}</span>
+                            </div>
+                            <span class="text-xs font-mono text-red-400">-${UI.fmtMoney(f.amount)}</span>
+                        </div>
+                        `;
+                    });
+                }
+            },
+
             // --- ACTIONS ---
             openModal(type, id=null) {
                 this.modalType = type; this.editId = id;
@@ -1142,6 +1533,12 @@
                     const l = id !== null ? this.data.loans[id] : {};
                     document.getElementById('loanName').value = l.name||''; document.getElementById('loanAmount').value=l.amount||''; document.getElementById('loanDueDate').value=l.dueDate||'';
                     document.getElementById('btnDeleteLoan').classList.toggle('hidden', id===null);
+                }
+                else if (type === 'goal') {
+                    document.getElementById('formGoal').classList.remove('hidden'); title.textContent = 'Meta de Ahorro';
+                    const g = id !== null ? this.data.goals[id] : {};
+                    document.getElementById('goalName').value=g.name||''; document.getElementById('goalTarget').value=g.target||''; document.getElementById('goalSaved').value=g.saved||'';
+                    document.getElementById('btnDeleteGoal').classList.toggle('hidden', id===null);
                 }
                 else if (type === 'config') {
                     document.getElementById('formConfig').classList.remove('hidden'); title.textContent = 'Configuración Ciclo';
@@ -1218,6 +1615,14 @@
                 this.closeModal();
             },
             
+            async saveGoal() {
+                const arr = [...(this.data.goals||[])];
+                const item = { name: document.getElementById('goalName').value, target: parseFloat(document.getElementById('goalTarget').value), saved: parseFloat(document.getElementById('goalSaved').value) };
+                if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{goals:arr});
+                this.closeModal();
+            },
+            
             async saveConfig() {
                 const inc = parseFloat(document.getElementById('inpIncome').value);
                 const incQ2 = parseFloat(document.getElementById('inpIncomeQ2').value);
@@ -1254,6 +1659,7 @@
             async deleteTxConfirm() { if(await UI.confirm('Borrar','¿Eliminar esta transacción?')) { await deleteDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'transactions',this.editId)); this.closeModal(); } },
             async deleteFixedConfirm() { if(await UI.confirm('Borrar','¿Eliminar gasto fijo?')) { const arr=this.data.fixed.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{fixed:arr}); this.closeModal(); } },
             async deleteLoanConfirm() { if(await UI.confirm('Liquidar','¿Marcar como pagado y borrar?')) { const arr=this.data.loans.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{loans:arr}); this.closeModal(); } },
+            async deleteGoalConfirm() { if(await UI.confirm('Borrar','¿Eliminar meta?')) { const arr=this.data.goals.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{goals:arr}); this.closeModal(); } },
             
             async resetData() {
                  if(await UI.confirm('RESETEO TOTAL','¿Estás seguro? Se borrará TODO.')) {
@@ -1269,7 +1675,9 @@
             switchView(v) {
                 document.getElementById('view-balance').classList.add('hidden'); 
                 document.getElementById('view-analysis').classList.add('hidden');
+                document.getElementById('view-history').classList.add('hidden');
                 document.getElementById('view-plan').classList.add('hidden');
+                document.getElementById('view-simulation').classList.add('hidden');
                 
                 document.getElementById('view-'+v).classList.remove('hidden');
                 document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
@@ -1280,13 +1688,18 @@
                     b.classList.toggle('active', b.dataset.view === v);
                 });
                 
-                // Fab removal logic handled by just removing the fab entirely
+                document.getElementById('fabContainer').classList.toggle('scale-0', v !== 'balance');
                 
                 if(v === 'analysis' && this.charts.donut) {
                     setTimeout(() => {
                         this.charts.donut.resize();
                         this.charts.line.resize();
                     }, 100);
+                }
+                
+                if(v === 'simulation') {
+                    this.updateSimulation();
+                    // setTimeout(() => this.charts.simulation.resize(), 100); // Chart removed
                 }
             },
             scrollToChart() { document.getElementById('chartSection').classList.remove('hidden'); document.getElementById('chartSection').scrollIntoView({behavior:'smooth'}); },
