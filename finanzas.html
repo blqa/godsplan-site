@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#050505">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>God's Plan | Ultimate</title>
+    <title>God's Plan | Finanzas</title>
     
     <!-- LIBRERIAS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,13 +18,13 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         window.firebaseImports = {
             initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
             GoogleAuthProvider, 
             getFirestore, doc, onSnapshot, collection, query, orderBy, 
-            limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc, serverTimestamp
+            limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc
         };
     </script>
     
@@ -83,6 +83,9 @@
         /* Glassmorphism */
         .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
         .glass-highlight { background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.08); }
+        .glass-purple { background: linear-gradient(145deg, rgba(147, 51, 234, 0.1) 0%, rgba(147, 51, 234, 0.02) 100%); border: 1px solid rgba(147, 51, 234, 0.2); }
+        
+        /* Nav Mobile */
         .glass-nav { 
             background: rgba(5, 5, 5, 0.95); 
             backdrop-filter: blur(20px); 
@@ -108,8 +111,13 @@
         .input-modern:focus { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); outline: none; background: #18181b; }
         
         /* Toggle Switch */
-        .toggle-checkbox:checked { right: 0; border-color: #10b981; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #10b981;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #10b981;
+        }
         
         /* Chips */
         .chip { transition: all 0.2s; user-select: none; white-space: nowrap; }
@@ -119,62 +127,118 @@
         #toast-container { position: fixed; top: calc(20px + var(--sat)); left: 50%; transform: translateX(-50%); z-index: 2000; pointer-events: none; width: 90%; max-width: 400px; }
         .toast { background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; border: 1px solid #333; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 10px; animation: fadeIn 0.3s forwards; pointer-events: auto; }
         
-        /* Modales */
+        /* Layout */
+        #global-nav { position: sticky; top: 0; z-index: 1000; }
+        .g-logo { color: #fff; font-weight: 800; text-decoration: none; font-size: 1.1rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; position: relative; z-index: 1001; cursor: pointer; white-space: nowrap; }
+        
+        /* =========================================
+           SISTEMA DE MODALES (CORREGIDO PC/MÓVIL)
+           ========================================= */
         #modalOverlay {
             position: fixed; inset: 0; 
             background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
             z-index: 1100;
             opacity: 0; pointer-events: none;
             transition: opacity 0.3s ease;
-            display: flex; align-items: flex-end; justify-content: center;
+            display: flex;
+            align-items: flex-end; 
+            justify-content: center;
         }
-        #modalOverlay.is-open { opacity: 1; pointer-events: auto; }
+
+        #modalOverlay.is-open {
+            opacity: 1; pointer-events: auto;
+        }
+
         #modalSheet {
-            background: #121212; width: 100%; max-height: 90vh;
+            background: #121212;
+            width: 100%;
+            max-height: 90vh;
             border-top-left-radius: 32px; border-top-right-radius: 32px;
-            border-top: 1px solid #27272a; padding: 24px;
-            overflow-y: auto; transform: translateY(100%);
+            border-top: 1px solid #27272a;
+            padding: 24px;
+            overflow-y: auto;
+            transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             padding-bottom: calc(40px + var(--sab));
         }
-        #modalOverlay.is-open #modalSheet { transform: translateY(0); }
+
+        #modalOverlay.is-open #modalSheet {
+            transform: translateY(0);
+        }
 
         @media (min-width: 768px) {
             #modalOverlay { align-items: center; padding: 20px; }
-            #modalSheet { width: 100%; max-width: 480px; border-radius: 24px; max-height: 85vh; transform: scale(0.95); opacity: 0; transition: all 0.2s ease-out; }
+            #modalSheet {
+                width: 100%; max-width: 480px; border-radius: 24px;
+                border: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                max-height: 85vh; padding-bottom: 24px;
+                transform: scale(0.95); opacity: 0;
+                transition: all 0.2s ease-out;
+            }
             #modalOverlay.is-open #modalSheet { transform: scale(1); opacity: 1; }
+            main { padding-bottom: 20px !important; }
         }
 
         /* Utilities */
+        .text-xxs { font-size: 10px; }
         .chart-container { position: relative; width: 100%; height: 200px; }
-        .nav-link-desk { color: #71717a; padding: 6px 16px; border-radius: 99px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s; }
+        
+        .nav-link-desk {
+            color: #71717a; padding: 6px 16px; border-radius: 99px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s;
+        }
         .nav-link-desk:hover { color: white; background: rgba(255,255,255,0.05); }
         .nav-link-desk.active { color: white; background: #27272a; }
+
         .custom-dialog { background-color: #121212; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 340px; width: 90%; }
+        .modal-auth { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-auth.active { display: flex; }
+
+        /* Estilos de Impresión */
+        @media print {
+            @page { margin: 0 !important; size: auto; }
+            html, body { background-color: #000000 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; font-family: sans-serif; }
+            #global-nav, #fabContainer, .glass-nav, #app-content, #toast-container, #modalOverlay, #confirmDialog, #authModal { display: none !important; }
+            #print-area { display: block !important; position: relative !important; width: 100% !important; background-color: #000000 !important; color: #e5e5e5 !important; padding: 15mm !important; box-sizing: border-box; }
+            .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #ef4444 !important; padding-bottom: 20px; margin-bottom: 30px; }
+            .print-logo { color: #ffffff !important; font-size: 32px; font-weight: 900; display: flex; align-items: center; gap: 10px; letter-spacing: -1px; }
+            .logo-accent { color: #ef4444 !important; }
+            .print-meta { text-align: right; color: #a1a1aa !important; font-size: 14px; }
+            .print-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+            .print-card { background-color: #050505 !important; border: 2px solid #7f1d1d !important; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: center; }
+            .print-label { font-size: 12px; text-transform: uppercase; color: #ef4444 !important; font-weight: 800; margin-bottom: 5px; letter-spacing: 1px; }
+            .print-val { font-size: 24px; font-weight: 900; color: #ffffff !important; }
+            .print-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 20px; }
+            .print-table th { text-align: left; color: #ef4444 !important; text-transform: uppercase; font-weight: 900; padding: 10px; border-bottom: 2px solid #7f1d1d !important; font-size: 12px; }
+            .print-table td { padding: 10px; border-bottom: 1px solid #280505 !important; color: #d4d4d8 !important; font-size: 12px; }
+            .print-table tr:nth-child(even) td { background-color: #0f0202 !important; }
+            .print-footer { margin-top: 50px; border-top: 1px solid #450a0a !important; padding-top: 20px; text-align: center; color: #52525b !important; font-size: 10px; font-weight: bold; }
+            .print-card, tr { page-break-inside: avoid; }
+        }
+        #print-area { display: none; }
         
-        /* Ticket Style for Reports */
-        .ticket-edge { 
-            position: absolute; bottom: -6px; left: 0; width: 100%; height: 12px; 
-            background-image: radial-gradient(circle, transparent 70%, #18181b 70%);
-            background-size: 20px 20px; background-position: top center; background-repeat: repeat-x; transform: rotate(180deg);
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px; width: 16px; border-radius: 50%;
+            background: #ffffff; cursor: pointer; margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer;
+            background: #27272a; border-radius: 2px;
         }
     </style>
 </head>
 <body class="flex flex-col overflow-hidden text-sm sm:text-base bg-[#050505] text-[#e5e5e5]">
 
-    <!-- NAV SUPERIOR (Global - RESTAURADA) -->
+    <!-- NAV SUPERIOR (Global) -->
     <nav id="global-nav" class="h-14 bg-black border-b border-white/5 flex items-center justify-between px-5 shrink-0 z-50">
-        <a href="/" class="flex items-center gap-2 text-white font-black text-lg tracking-tight decoration-none"><i class="ph-bold ph-circles-three-plus text-red-500 text-lg"></i> God's Plan</a>
-        <div class="g-links no-scrollbar hidden md:flex">
+        <a href="/" class="g-logo"><i class="ph-bold ph-circles-three-plus text-lg text-red-500"></i> God's Plan</a>
+        <div class="g-links no-scrollbar">
             <a href="/adherencia.html" class="g-link">ADHERENCIA</a>
             <a href="/chat.html" class="g-link">CHAT</a>
             <a href="#" class="g-link active">FINANZAS</a>
             <a href="/cuenta.html" class="g-link">CUENTA</a>
-        </div>
-        <div class="flex items-center gap-3">
-             <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-zinc-800 transition-colors duration-500" title="Estado"></div>
-             <!-- Mobile Menu Icon (Solo decorativo en esta demo) -->
-             <i class="ph-bold ph-list text-zinc-500 md:hidden"></i>
+            <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-zinc-800 ml-1 flex-shrink-0 transition-all duration-500" title="Estado"></div>
         </div>
     </nav>
 
@@ -182,22 +246,6 @@
     <main id="app-content" class="flex-1 overflow-y-auto pb-36 relative scroll-smooth overflow-x-hidden md:px-6">
         
         <div class="w-full max-w-lg md:max-w-6xl mx-auto h-full pt-4 md:pt-8">
-
-             <!-- ALERTA DE CIERRE INTELIGENTE (NUEVO) -->
-            <div id="closureAlert" class="hidden mx-4 md:mx-0 mb-6 bg-gradient-to-r from-amber-900/40 to-amber-800/20 border border-amber-700/50 rounded-2xl p-4 flex items-center justify-between animate-fade-in">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 animate-pulse-slow">
-                        <i class="ph-fill ph-warning-circle text-xl"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-amber-200 text-sm">Ciclo Finalizado</h4>
-                        <p class="text-[10px] text-amber-400/80">Cierra tu mes/quincena para guardar el reporte.</p>
-                    </div>
-                </div>
-                <button onclick="app.openClosureModal()" class="bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-lg shadow-amber-900/20">
-                    Cerrar
-                </button>
-            </div>
 
             <!-- SUB-NAV DESKTOP -->
             <div class="hidden md:flex justify-center mb-8 fade-in">
@@ -212,9 +260,11 @@
 
             <!-- VISTA: BILLETERA -->
             <section id="view-balance" class="p-4 sm:p-0 fade-in">
+                
+                <!-- Layout Grid para Desktop -->
                 <div class="grid grid-cols-1 md:grid-cols-12 md:gap-8 items-start">
                     
-                    <!-- Columna Izquierda -->
+                    <!-- Columna Izquierda (Resumen) -->
                     <div class="md:col-span-5 lg:col-span-4 md:sticky md:top-4">
                         <!-- Header Periodo -->
                         <div class="flex justify-between items-end mb-4 px-1">
@@ -227,24 +277,37 @@
                             </div>
                         </div>
 
-                        <!-- TARJETA PRINCIPAL -->
+                        <!-- TARJETA PRINCIPAL (Daily Budget) -->
                         <div id="mainCard" class="glass rounded-[2rem] p-6 relative overflow-hidden group mb-6 transition-all active:scale-[0.98] md:hover:scale-[1.01] md:active:scale-100 shadow-2xl shadow-black/50">
+                            <!-- Fondo dinámico (se vuelve rojo en overbudget) -->
                             <div id="mainCardBg" class="absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 rounded-full blur-3xl transition-colors duration-500"></div>
                             
                             <div class="relative z-10">
                                 <div class="flex justify-between items-start mb-2">
                                     <span id="labelDailyState" class="text-xs font-bold text-zinc-400 uppercase tracking-widest transition-colors">Disponible Hoy</span>
-                                    <button onclick="app.togglePrivacy()" class="text-zinc-600 hover:text-white transition-colors p-2 -mr-2 -mt-2"><i id="eyeIcon" class="ph ph-eye text-lg"></i></button>
+                                    <button onclick="app.togglePrivacy()" class="text-zinc-600 hover:text-white transition-colors p-2 -mr-2 -mt-2">
+                                       <i id="eyeIcon" class="ph ph-eye text-lg"></i>
+                                    </button>
                                 </div>
+                                <!-- Valor principal (Saldo de hoy) -->
                                 <div class="text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2 break-all relative leading-none transition-colors" id="dailyFreeContainer">
                                     <span id="dailyFree">---</span>
-                                    <div id="dailyFreeBlur" class="hidden absolute inset-0 bg-zinc-900/50 backdrop-blur-md rounded-lg z-20 flex items-center justify-center"><i class="ph-fill ph-lock-key text-zinc-600 text-3xl"></i></div>
+                                    <div id="dailyFreeBlur" class="hidden absolute inset-0 bg-zinc-900/50 backdrop-blur-md rounded-lg z-20 flex items-center justify-center">
+                                        <i class="ph-fill ph-lock-key text-zinc-600 text-3xl"></i>
+                                    </div>
                                 </div>
+
+                                <!-- Subtítulos de desglose -->
                                 <div class="flex items-center gap-3 mb-6 font-mono text-xs">
-                                    <div class="text-zinc-500">Límite: <span id="valDailyLimit" class="text-zinc-300 font-bold">---</span></div>
+                                    <div class="text-zinc-500">
+                                        Límite: <span id="valDailyLimit" class="text-zinc-300 font-bold">---</span>
+                                    </div>
                                     <div class="w-1 h-1 bg-zinc-700 rounded-full"></div>
-                                    <div class="text-zinc-500">Gastado: <span id="valTodaySpent" class="text-red-400 font-bold">---</span></div>
+                                    <div class="text-zinc-500">
+                                        Gastado: <span id="valTodaySpent" class="text-red-400 font-bold">---</span>
+                                    </div>
                                 </div>
+                                
                                 <div class="grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
                                     <div>
                                         <span class="block text-[10px] text-zinc-500 uppercase font-bold mb-1">Restante Total</span>
@@ -256,13 +319,16 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- Barra de progreso -->
                             <div class="absolute bottom-0 left-0 h-1.5 bg-zinc-800 w-full">
                                 <div id="periodProgress" class="h-full bg-gradient-to-r from-red-600 to-orange-600 shadow-[0_0_10px_rgba(239,68,68,0.5)] w-0 transition-all duration-1000 ease-out"></div>
                             </div>
                         </div>
 
-                         <!-- WIDGET HORAS EXTRAS (RESTAURADO) -->
+                        <!-- WIDGET HORAS EXTRAS -->
                         <div id="adherenceCard" class="hidden mb-6 relative overflow-hidden rounded-[2rem] border border-emerald-900/30 bg-emerald-950/10 p-5 group transition-all">
+                             
+                             <!-- Switch Simulación -->
                              <div class="absolute top-4 right-4 z-20 flex items-center gap-2">
                                 <span class="text-[9px] font-bold text-emerald-500/50 uppercase tracking-widest">Simular</span>
                                 <div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
@@ -270,9 +336,13 @@
                                     <label for="simToggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-emerald-900/30 cursor-pointer"></label>
                                 </div>
                              </div>
+
                              <div class="flex justify-between items-start mb-3 relative z-10">
                                  <div>
-                                    <div class="text-[10px] text-emerald-400 font-black uppercase tracking-widest mb-1 flex items-center gap-1"><i class="ph-fill ph-clock-countdown"></i> EXTRA</div>
+                                    <div class="text-[10px] text-emerald-400 font-black uppercase tracking-widest mb-1 flex items-center gap-1">
+                                        <i class="ph-fill ph-clock-countdown"></i> EXTRA
+                                    </div>
+                                    <!-- CAMBIO: INPUT MANUAL -->
                                     <div class="relative flex items-center group focus-within:border-emerald-500/50 border-b border-transparent transition-colors mt-1">
                                         <span class="text-emerald-500 text-xl font-bold mr-1">$</span>
                                         <input type="number" id="manualExtraPay" inputmode="decimal" class="bg-transparent text-2xl font-bold text-white w-full focus:outline-none placeholder-emerald-500/30 font-mono" placeholder="0.00" onblur="app.saveExtraPayValue(this.value)">
@@ -284,9 +354,11 @@
                                      <div class="text-[10px] text-zinc-500 mt-1" id="daysToTuesday">-- días</div>
                                  </div>
                              </div>
+                             
                              <button id="btnImportExtras" onclick="app.importExtraMoney()" class="w-full bg-emerald-600/20 hover:bg-emerald-500 text-emerald-300 hover:text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider border border-emerald-500/30 transition-all flex items-center justify-center gap-2 relative z-10">
                                  <i class="ph-bold ph-download-simple"></i> Sumar a Billetera
                              </button>
+
                              <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors"></div>
                         </div>
 
@@ -306,206 +378,334 @@
 
                     <!-- Columna Derecha (Lista Transacciones) -->
                     <div class="md:col-span-7 lg:col-span-8">
-                         <div class="flex justify-between items-center mb-4 px-1 md:bg-zinc-900/30 md:p-3 md:rounded-xl md:border md:border-white/5">
-                            <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest hidden md:block">Movimientos Recientes</h3>
-                            <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest md:hidden">Actividad</h3>
-                            <div class="relative w-36 md:w-64">
-                                <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
-                                <input type="text" id="searchTx" placeholder="Buscar..." onkeyup="app.filterTransactions()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-zinc-600 placeholder-zinc-700">
+                        <div class="mt-2 md:mt-0">
+                            <div class="flex justify-between items-center mb-4 px-1 md:bg-zinc-900/30 md:p-3 md:rounded-xl md:border md:border-white/5">
+                                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest hidden md:block">Movimientos Recientes</h3>
+                                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest md:hidden">Actividad</h3>
+                                <div class="relative w-36 md:w-64 transition-all focus-within:w-full md:focus-within:w-64">
+                                     <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
+                                     <input type="text" id="searchTx" placeholder="Buscar..." onkeyup="app.filterTransactions()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-zinc-600 placeholder-zinc-700 transition-colors">
+                                </div>
+                            </div>
+                            
+                            <div id="transactionsList" class="space-y-3 min-h-[100px] pb-24 md:pb-0">
+                                <div class="text-center py-10 text-zinc-600 animate-pulse">Sincronizando...</div>
                             </div>
                         </div>
-                        <div id="transactionsList" class="space-y-3 min-h-[100px] pb-24 md:pb-0">
-                            <div class="text-center py-10 text-zinc-600 animate-pulse">Sincronizando...</div>
-                        </div>
                     </div>
+
                 </div>
             </section>
 
-             <!-- VISTA: ANÁLISIS (Gráficas) -->
+            <!-- VISTA: ANÁLISIS -->
             <section id="view-analysis" class="p-4 sm:p-0 hidden fade-in max-w-4xl mx-auto">
-                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                 <div class="md:flex md:justify-between md:items-end mb-6">
+                     <div>
+                         <h2 class="text-2xl font-black text-white mb-1">Análisis Financiero</h2>
+                         <p class="text-zinc-500 text-xs">Desglose detallado del ciclo actual.</p>
+                     </div>
+                     <div class="flex gap-2 mt-4 md:mt-0">
+                         <button onclick="app.generateReport()" class="text-zinc-400 hover:text-white text-xs px-4 py-2 font-bold flex items-center gap-2 border border-zinc-800 rounded-lg hover:bg-zinc-800 transition-colors group">
+                            <i class="ph-bold ph-printer group-hover:text-red-500"></i> PRINT
+                         </button>
+                         <button onclick="app.exportCSV()" class="text-emerald-500 hover:text-emerald-400 text-xs px-4 py-2 font-bold flex items-center gap-2 border border-emerald-900/30 bg-emerald-900/10 rounded-lg hover:bg-emerald-900/20 transition-colors">
+                            <i class="ph-bold ph-export"></i> Exp
+                         </button>
+                         <button onclick="app.importCSV()" class="text-blue-500 hover:text-blue-400 text-xs px-4 py-2 font-bold flex items-center gap-2 border border-blue-900/30 bg-blue-900/10 rounded-lg hover:bg-blue-900/20 transition-colors">
+                            <i class="ph-bold ph-download"></i> Imp
+                         </button>
+                         <input type="file" id="csvInput" accept=".csv" class="hidden" onchange="app.processCSV(this)">
+                     </div>
+                 </div>
+
+                <!-- METRICAS RAPIDAS -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                     <div class="glass p-5 rounded-2xl">
                         <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Promedio Diario</div>
                         <div class="text-xl font-bold text-white" id="statDailyAvg">---</div>
                     </div>
                     <div class="glass p-5 rounded-2xl">
-                        <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Mayor Categoría</div>
+                        <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Mayor Gasto</div>
                         <div class="text-xl font-bold text-white truncate" id="statMaxCat">---</div>
                     </div>
-                 </div>
+                     <div class="glass p-5 rounded-2xl hidden md:block">
+                        <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Total Ingresos</div>
+                        <div class="text-xl font-bold text-emerald-500 truncate" id="statTotalInc">---</div>
+                    </div>
+                     <div class="glass p-5 rounded-2xl hidden md:block">
+                        <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Total Gastos</div>
+                        <div class="text-xl font-bold text-red-500 truncate" id="statTotalExp">---</div>
+                    </div>
+                </div>
+
+                <!-- CHART SECTION -->
                 <div id="chartSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Burn down Chart -->
                     <div class="glass rounded-3xl p-5 relative">
                         <h3 class="text-center text-xs font-bold text-zinc-500 mb-4 tracking-widest">TENDENCIA DEL CICLO</h3>
-                        <div class="chart-container"><canvas id="trendChart"></canvas></div>
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
                     </div>
+
+                    <!-- Donut Chart -->
                     <div class="glass rounded-3xl p-5">
                         <h3 class="text-center text-xs font-bold text-zinc-500 mb-4 tracking-widest">DISTRIBUCIÓN</h3>
-                        <div class="chart-container"><canvas id="expenseChart"></canvas></div>
+                        <div class="chart-container">
+                            <canvas id="expenseChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </section>
 
-             <!-- VISTA: SIMULACIÓN (RESTAURADA) -->
+            <!-- VISTA: SIMULACIÓN -->
             <section id="view-simulation" class="p-4 sm:p-0 hidden fade-in max-w-2xl mx-auto pb-24">
                 <h2 class="text-2xl font-black text-white mb-1">Simulador Mensual</h2>
-                <p class="text-zinc-500 text-xs mb-6">Proyección real (Ingreso - Fijos).</p>
+                <p class="text-zinc-500 text-xs mb-6">Proyección mensual real (Ingreso Total - Fijos Mensuales).</p>
 
                 <!-- RESULTADO PRINCIPAL -->
                 <div class="glass-highlight rounded-3xl p-6 text-center mb-6 relative overflow-hidden">
                     <div class="relative z-10">
                         <div class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Flujo Libre Mensual</div>
                         <div class="text-5xl font-black text-white tracking-tight" id="simFreeMoney">---</div>
-                        <div class="text-xs text-zinc-500 mt-2">Dinero disponible tras pagar TODO</div>
+                        <div class="text-xs text-zinc-500 mt-2">Dinero real disponible tras pagar TODO en el mes</div>
                     </div>
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
                 </div>
 
+                <!-- DESGLOSE -->
                 <div class="space-y-4">
+                    <!-- TARJETA 1: Ingreso Base (Salario) -->
                     <div class="flex justify-between items-center p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500"><i class="ph-bold ph-money text-xl"></i></div>
-                            <div><div class="text-sm font-bold text-white">Salario Base</div></div>
+                            <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                <i class="ph-bold ph-money text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-white">Salario Base</div>
+                                <div class="text-[10px] text-zinc-500" id="simIncomeDesc">Calculado según tu ciclo</div>
+                            </div>
                         </div>
                         <div class="font-bold text-emerald-400" id="simBaseIncomeVal">---</div>
                     </div>
+
+                    <!-- TARJETA 2: Ingresos Adicionales (Con Desglose) -->
                     <div class="rounded-2xl bg-zinc-900/50 border border-zinc-800 overflow-hidden">
                         <div class="flex justify-between items-center p-4 border-b border-zinc-800/50 bg-zinc-900/30">
                              <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500"><i class="ph-bold ph-trend-up text-xl"></i></div>
-                                <div><div class="text-sm font-bold text-white">Ingresos Adicionales</div></div>
+                                <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                    <i class="ph-bold ph-trend-up text-xl"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-bold text-white">Ingresos Adicionales</div>
+                                    <div class="text-[10px] text-zinc-500">Extras detectados este mes</div>
+                                </div>
                             </div>
                              <div class="font-bold text-blue-400" id="simTotalExtraVal">---</div>
                         </div>
-                        <div id="simExtraList" class="p-2 space-y-1"></div>
+                        <!-- Lista Desglose de Extras -->
+                        <div id="simExtraList" class="p-2 space-y-1">
+                            <!-- Items injected by JS -->
+                            <div class="text-center text-[10px] text-zinc-600 py-2 italic">Sin ingresos extra este mes</div>
+                        </div>
                     </div>
-                     <div class="flex justify-between items-center px-4 py-3 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
-                          <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Total Ingresos Reales</span>
-                          <span class="text-base font-bold text-white" id="simTotalIncomeSum">---</span>
-                     </div>
-                     <div class="flex items-center gap-4 py-2"><div class="h-px bg-zinc-800 flex-1"></div><span class="text-[10px] text-zinc-500 font-bold uppercase">Menos Gastos Fijos</span><div class="h-px bg-zinc-800 flex-1"></div></div>
-                     <div id="simFixedList" class="space-y-2"></div>
-                      <div class="flex justify-between items-center px-4 py-2"><span class="text-xs text-zinc-500">Total Fijos Mensuales</span><span class="text-sm font-bold text-red-400" id="simTotalFixed">---</span></div>
+                    
+                    <!-- NEW: TOTAL INGRESOS REALES (SUMA) -->
+                    <div class="flex justify-between items-center px-4 py-3 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
+                         <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Total Ingresos Reales</span>
+                         <span class="text-base font-bold text-white" id="simTotalIncomeSum">---</span>
+                    </div>
+
+                    <!-- Separator -->
+                    <div class="flex items-center gap-4 py-2">
+                        <div class="h-px bg-zinc-800 flex-1"></div>
+                        <span class="text-[10px] text-zinc-500 font-bold uppercase">Menos Gastos Fijos (Mes)</span>
+                        <div class="h-px bg-zinc-800 flex-1"></div>
+                    </div>
+
+                    <!-- Lista de Fijos -->
+                    <div id="simFixedList" class="space-y-2">
+                        <!-- Items injected by JS -->
+                    </div>
+                    
+                    <!-- Total Fijos Summary -->
+                     <div class="flex justify-between items-center px-4 py-2">
+                        <span class="text-xs text-zinc-500">Total Fijos Mensuales</span>
+                        <span class="text-sm font-bold text-red-400" id="simTotalFixed">---</span>
+                    </div>
                 </div>
             </section>
-
-            <!-- VISTA: HISTORIAL (MEJORADA CON REPORTES) -->
-            <section id="view-history" class="p-4 sm:p-0 hidden fade-in max-w-4xl mx-auto">
-                 <div class="mb-6 text-center md:text-left">
-                    <h2 class="text-2xl font-black text-white mb-1">Historial Inteligente</h2>
-                    <p class="text-zinc-500 text-xs">Reportes cerrados y línea de tiempo.</p>
-                </div>
-
-                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Ciclos Cerrados (Reportes)</h3>
-                <div id="reportsList" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                     <div class="text-center col-span-full py-4 text-zinc-600 italic text-xs">Sin reportes cerrados aún.</div>
+            
+            <!-- VISTA: HISTORIAL -->
+            <section id="view-history" class="p-4 sm:p-0 hidden fade-in max-w-2xl mx-auto">
+                <div class="mb-8 text-center">
+                    <div class="inline-block px-4 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-400 mb-2">
+                         PATRIMONIO NETO ACUMULADO
+                    </div>
+                    <div id="netWorthDisplay" class="text-4xl font-black text-white tracking-tighter">Calculando...</div>
                 </div>
                 
-                 <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Línea de Tiempo (Quincenas)</h3>
-                <div id="historyList" class="space-y-4 pb-20"></div>
+                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 px-1">Línea de Tiempo (Quincenas)</h3>
+                <div id="historyList" class="space-y-4 pb-20">
+                     <div class="text-center py-10 text-zinc-600 italic text-xs">Procesando historial...</div>
+                </div>
             </section>
 
-            <!-- VISTA: PLAN (CONFIG COMPLETA) -->
+            <!-- VISTA: PLAN (CONFIG) -->
             <section id="view-plan" class="p-4 sm:p-0 hidden fade-in max-w-2xl mx-auto">
-                <div class="glass-highlight rounded-2xl p-5 mb-6">
-                    <div class="flex justify-between items-center text-sm mb-3">
-                        <span class="text-zinc-400 text-xs font-bold uppercase">Gastos Fijos</span>
-                        <span id="summaryFixed" class="font-bold text-red-400 font-mono text-base">---</span>
-                    </div>
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-zinc-400 text-xs font-bold uppercase">Deudas (Ciclo)</span>
-                        <span id="summaryShortLoans" class="font-bold text-orange-400 font-mono text-base">---</span>
-                    </div>
-                </div>
+                <h2 class="text-2xl font-black text-white mb-1">Estrategia</h2>
+                <p class="text-zinc-500 text-xs mb-6">Administra tus fijos, deudas y metas.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <!-- RESUMEN DE OBLIGACIONES -->
+                        <div class="glass-highlight rounded-2xl p-5 mb-6 relative overflow-hidden">
+                            <div class="absolute right-0 top-0 w-24 h-full bg-gradient-to-l from-[#050505] to-transparent pointer-events-none"></div>
+                            <div class="flex justify-between items-center text-sm mb-3">
+                                <span class="text-zinc-400 text-xs font-bold uppercase">Gastos Fijos</span>
+                                <span id="summaryFixed" class="font-bold text-red-400 font-mono text-base">---</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-zinc-400 text-xs font-bold uppercase">Deudas (Activas en Ciclo)</span>
+                                <span id="summaryShortLoans" class="font-bold text-orange-400 font-mono text-base">---</span>
+                            </div>
+                            <div class="mt-2 text-[10px] text-zinc-500 italic">* Estos montos se restan de tu disponible.</div>
+                        </div>
 
-                <!-- Config Inputs -->
-                <div class="bg-[#09090b] border border-zinc-800 p-5 rounded-2xl mb-8">
-                    <div class="mb-4">
-                        <label class="text-emerald-500 text-[10px] font-black uppercase tracking-wider mb-2 block">Ingreso Base</label>
-                        <div class="relative flex items-center">
-                            <span class="absolute left-0 text-2xl text-zinc-600 font-light pl-2">$</span>
-                            <input type="number" id="inpIncome" class="bg-transparent text-3xl font-bold text-white w-full focus:outline-none placeholder-zinc-800 pl-8 h-10" placeholder="0.00" onblur="app.saveConfig()">
+                        <!-- INGRESOS CONFIG -->
+                        <div class="bg-[#09090b] border border-zinc-800 p-5 rounded-2xl mb-8 shadow-inner transition-colors">
+                            <div class="mb-4">
+                                <label class="text-emerald-500 text-xxs font-black uppercase tracking-wider mb-2 block" id="lblIncome1">Ingreso Base (Por Ciclo)</label>
+                                <div class="relative flex items-center group focus-within:border-zinc-600">
+                                    <span class="absolute left-0 top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none group-focus-within:text-emerald-500 transition-colors">$</span>
+                                    <input type="number" id="inpIncome" inputmode="decimal" class="bg-transparent text-3xl font-bold text-white w-full focus:outline-none placeholder-zinc-800 pl-6 h-10" placeholder="0.00" onblur="app.saveConfig()">
+                                </div>
+                            </div>
+                            
+                            <!-- Campo Opcional Q2 -->
+                            <div id="divIncomeQ2" class="hidden border-t border-zinc-800 pt-4">
+                                <label class="text-emerald-500 text-xxs font-black uppercase tracking-wider mb-2 block">Ingreso 2da Quincena (Opcional)</label>
+                                <div class="relative flex items-center group focus-within:border-zinc-600">
+                                    <span class="absolute left-0 top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none group-focus-within:text-emerald-500 transition-colors">$</span>
+                                    <input type="number" id="inpIncomeQ2" inputmode="decimal" class="bg-transparent text-2xl font-bold text-white w-full focus:outline-none placeholder-zinc-700 pl-6 h-10" placeholder="Mismo monto..." onblur="app.saveConfig()">
+                                </div>
+                                <p class="text-[9px] text-zinc-600 mt-1">Si se deja vacío, se asume igual al ingreso base.</p>
+                            </div>
                         </div>
                     </div>
-                    <div id="divIncomeQ2" class="border-t border-zinc-800 pt-4 mt-4 hidden">
-                         <label class="text-emerald-500 text-[10px] font-black uppercase tracking-wider mb-2 block">Ingreso 2da Quincena</label>
-                        <input type="number" id="inpIncomeQ2" class="bg-transparent text-2xl font-bold text-white w-full focus:outline-none placeholder-zinc-800" placeholder="Igual al base..." onblur="app.saveConfig()">
-                    </div>
-                </div>
-
-                <!-- Account -->
-                <div class="bg-zinc-900/30 rounded-xl p-4 border border-zinc-800/50 mb-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center"><i class="ph-fill ph-user text-white"></i></div>
-                            <div><div id="userName" class="text-base font-bold text-white">Usuario</div><div class="text-[10px] text-emerald-500 font-bold">Sincronizado</div></div>
+                    
+                    <div>
+                         <!-- CUENTA -->
+                        <div class="bg-zinc-900/30 rounded-xl p-4 border border-zinc-800/50 mb-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-zinc-700 to-zinc-600 flex items-center justify-center shadow-lg">
+                                        <i class="ph-fill ph-user text-white text-base"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <div id="userName" class="text-base font-bold text-white">Usuario</div>
+                                        <div id="userStatusText" class="text-[10px] text-zinc-500">Desconectado</div>
+                                    </div>
+                                </div>
+                                <button id="btnLogout" onclick="app.logout()" class="text-zinc-500 hover:text-red-500 transition-colors p-3 hover:bg-zinc-800 rounded-full" title="Salir"><i class="ph-bold ph-sign-out text-xl"></i></button>
+                            </div>
+                            <button onclick="app.resetData()" class="w-full text-xs text-zinc-600 hover:text-red-500 py-3 font-bold flex items-center justify-center gap-2 transition-colors border border-zinc-800 hover:border-red-900/50 rounded-lg hover:bg-red-900/10">
+                                <i class="ph-bold ph-trash text-lg"></i> RESETEAR DATOS
+                            </button>
                         </div>
-                        <button onclick="app.logout()" class="text-zinc-500 hover:text-red-500 p-3"><i class="ph-bold ph-sign-out text-xl"></i></button>
                     </div>
-                    <button onclick="app.resetData()" class="w-full text-xs text-zinc-600 hover:text-red-500 py-3 font-bold border border-zinc-800 rounded-lg hover:bg-red-900/10">RESETEAR DATOS</button>
                 </div>
-
-                <!-- Lists -->
-                <div class="mb-8">
+                
+                <!-- METAS DE AHORRO -->
+                 <div class="mb-8">
                     <div class="flex justify-between items-center mb-4 px-1 border-b border-white/5 pb-2">
-                        <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2"><i class="ph-fill ph-piggy-bank text-pink-500"></i> Metas</span>
-                        <button onclick="app.openModal('goal')" class="bg-zinc-800 w-8 h-8 rounded-full flex items-center justify-center"><i class="ph-bold ph-plus text-sm"></i></button>
+                        <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2"><i class="ph-fill ph-piggy-bank text-pink-500 text-base"></i> Metas Ahorro</span>
+                        <button onclick="app.openModal('goal')" class="bg-zinc-800 text-zinc-300 w-8 h-8 rounded-full hover:bg-white hover:text-black transition-colors flex items-center justify-center active:scale-90">
+                            <i class="ph-bold ph-plus text-sm"></i>
+                        </button>
                     </div>
                     <div id="goalsList" class="space-y-3 grid md:grid-cols-2 md:gap-4 md:space-y-0"></div>
                 </div>
-                 <div class="mb-8">
+                
+                <!-- GASTOS FIJOS -->
+                <div class="mb-8">
                     <div class="flex justify-between items-center mb-4 px-1 border-b border-white/5 pb-2">
                         <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Gastos Fijos</span>
-                        <button onclick="app.openModal('fixed')" class="bg-zinc-800 w-8 h-8 rounded-full flex items-center justify-center"><i class="ph-bold ph-plus text-sm"></i></button>
+                        <button onclick="app.openModal('fixed')" class="bg-zinc-800 text-zinc-300 w-8 h-8 rounded-full hover:bg-white hover:text-black transition-colors flex items-center justify-center active:scale-90">
+                            <i class="ph-bold ph-plus text-sm"></i>
+                        </button>
                     </div>
                     <div id="fixedExpensesList" class="space-y-2 grid md:grid-cols-2 md:gap-4 md:space-y-0"></div>
                 </div>
+                
+                <!-- DEUDAS -->
                 <div class="mb-8">
                     <div class="flex justify-between items-center mb-4 px-1 border-b border-white/5 pb-2">
-                        <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Deudas</span>
-                        <button onclick="app.openModal('loan')" class="bg-zinc-800 w-8 h-8 rounded-full flex items-center justify-center"><i class="ph-bold ph-plus text-sm"></i></button>
+                        <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Deudas Activas</span>
+                        <button onclick="app.openModal('loan')" class="bg-zinc-800 text-zinc-300 w-8 h-8 rounded-full hover:bg-white hover:text-black transition-colors flex items-center justify-center active:scale-90">
+                            <i class="ph-bold ph-plus text-sm"></i>
+                        </button>
                     </div>
                     <div id="loansList" class="space-y-2 grid md:grid-cols-2 md:gap-4 md:space-y-0"></div>
                 </div>
             </section>
         
         </div>
+
     </main>
     
-    <!-- FAB (NUEVO GASTO) - SOLO MÓVIL (RESTAURADO) -->
+    <!-- ÁREA DE IMPRESIÓN (OCULTO EN PANTALLA, VISIBLE EN PRINT) -->
+    <div id="print-area"></div>
+    
+    <!-- FAB (NUEVO GASTO) - SOLO MÓVIL -->
     <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40">
         <button onclick="app.openModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
             <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
-            <i class="ph-bold ph-plus text-3xl relative z-10"></i>
+            <i class="ph-bold ph-plus text-3xl group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
         </button>
     </div>
 
     <!-- NAV INFERIOR - MÓVIL (GRID DE 5) -->
     <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-5 z-50">
         <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance')">
-            <i class="ph-fill ph-wallet text-xl group-[.active]:text-white transition-colors"></i>
+            <div class="relative p-1">
+                <i class="ph-fill ph-wallet text-xl group-[.active]:text-white transition-colors duration-300"></i>
+            </div>
             <span class="text-[9px] font-bold group-[.active]:text-white transition-colors">Balance</span>
         </button>
         <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('analysis')">
-            <i class="ph-fill ph-chart-pie-slice text-xl group-[.active]:text-white transition-colors"></i>
+            <div class="relative p-1">
+                <i class="ph-fill ph-chart-pie-slice text-xl group-[.active]:text-white transition-colors duration-300"></i>
+            </div>
             <span class="text-[9px] font-bold group-[.active]:text-white transition-colors">Análisis</span>
         </button>
+         <!-- NUEVO BOTÓN SIMULACIÓN -->
          <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('simulation')">
-            <i class="ph-fill ph-crystal-ball text-xl group-[.active]:text-purple-400 transition-colors"></i>
+            <div class="relative p-1">
+                <i class="ph-fill ph-crystal-ball text-xl group-[.active]:text-purple-400 transition-colors duration-300"></i>
+            </div>
             <span class="text-[9px] font-bold group-[.active]:text-purple-400 transition-colors">Simular</span>
         </button>
         <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('history')">
-            <i class="ph-fill ph-scroll text-xl group-[.active]:text-white transition-colors"></i>
+            <div class="relative p-1">
+                <i class="ph-fill ph-scroll text-xl group-[.active]:text-white transition-colors duration-300"></i>
+            </div>
             <span class="text-[9px] font-bold group-[.active]:text-white transition-colors">Historial</span>
         </button>
         <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('plan')">
-            <i class="ph-fill ph-sliders-horizontal text-xl group-[.active]:text-white transition-colors"></i>
+            <div class="relative p-1">
+                <i class="ph-fill ph-sliders-horizontal text-xl group-[.active]:text-white transition-colors duration-300"></i>
+            </div>
             <span class="text-[9px] font-bold group-[.active]:text-white transition-colors">Plan</span>
         </button>
     </div>
 
-    <!-- MODAL PRINCIPAL -->
+    <!-- MODAL (ADAPTATIVO) -->
     <div id="modalOverlay" onclick="if(event.target === this) app.closeModal()">
         <div id="modalSheet">
+            <!-- Handle solo para móvil -->
+            <div class="md:hidden w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0"></div>
+            
             <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#121212] z-10 pb-2 border-b border-transparent">
                 <h3 class="text-xl font-bold text-white" id="modalTitle">Nuevo</h3>
                 <button onclick="app.closeModal()" class="w-10 h-10 rounded-full bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 transition-colors active:scale-90"><i class="ph-bold ph-x text-lg"></i></button>
@@ -517,10 +717,19 @@
                     <span class="absolute left-1/2 -translate-x-[calc(50%+60px)] top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none">$</span>
                     <input type="number" id="txAmount" inputmode="decimal" class="bg-transparent text-center text-6xl font-black text-white w-full border-none outline-none focus:ring-0 p-0 placeholder-zinc-800 h-16" placeholder="0">
                 </div>
-                <div class="mb-6"><div id="categoryChips" class="flex flex-wrap gap-2.5 no-scrollbar overflow-x-auto pb-2"></div></div>
-                <input type="date" id="txDate" class="input-modern w-full p-4 mb-4 text-center h-14 font-bold">
+                
+                <div class="mb-6">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-2 block">Categoría</label>
+                    <div id="categoryChips" class="flex flex-wrap gap-2.5 no-scrollbar overflow-x-auto pb-2"></div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Fecha</label>
+                    <input type="date" id="txDate" class="input-modern w-full p-4 text-center h-14 font-bold cursor-pointer">
+                </div>
+                
                 <input type="text" id="txDesc" class="input-modern w-full p-4 mb-6 text-center placeholder-zinc-600 h-14" placeholder="Nota opcional...">
-                <button onclick="app.saveTransaction()" class="w-full bg-white text-black py-4 rounded-2xl font-black text-lg hover:bg-zinc-200 transition-colors h-16">GUARDAR</button>
+                <button id="btnSaveTx" onclick="app.saveTransaction()" class="w-full bg-white text-black py-4 rounded-2xl font-black text-lg hover:bg-zinc-200 transition-colors active:scale-95 shadow-lg shadow-white/10 h-16">GUARDAR</button>
                 <button id="btnDeleteTx" onclick="app.deleteTxConfirm()" class="w-full mt-4 text-red-500 py-3 font-bold text-xs hidden opacity-70 hover:opacity-100">ELIMINAR TRANSACCIÓN</button>
             </div>
 
@@ -528,97 +737,111 @@
             <div id="formFixed" class="hidden space-y-4 pb-4">
                 <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Nombre</label><input type="text" id="fixName" class="input-modern w-full p-4 h-14" placeholder="Ej: Netflix"></div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label><input type="number" id="fixAmount" class="input-modern w-full p-4 h-14" placeholder="$0.00"></div>
-                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Día Pago</label><input type="number" id="fixDay" class="input-modern w-full p-4 h-14 text-center" placeholder="1-31"></div>
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label><input type="number" id="fixAmount" inputmode="decimal" class="input-modern w-full p-4 h-14" placeholder="$0.00"></div>
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Día Pago</label><input type="number" id="fixDay" inputmode="numeric" class="input-modern w-full p-4 h-14 text-center" placeholder="1-31"></div>
                 </div>
-                <button onclick="app.saveFixed()" class="w-full bg-white text-black py-4 rounded-2xl font-black mt-4 h-16">GUARDAR FIJO</button>
+                <button onclick="app.saveFixed()" class="w-full bg-white text-black py-4 rounded-2xl font-black mt-4 h-16 hover:bg-zinc-200">GUARDAR FIJO</button>
                 <button id="btnDeleteFix" onclick="app.deleteFixedConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
             </div>
             
-            <!-- Form Goal -->
-             <div id="formGoal" class="hidden space-y-4 pb-4">
-                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Meta</label><input type="text" id="goalName" class="input-modern w-full p-4 h-14" placeholder="Nombre..."></div>
-                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Objetivo</label><input type="number" id="goalTarget" class="input-modern w-full p-4 h-14" placeholder="$0.00"></div>
-                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Ahorrado</label><input type="number" id="goalSaved" class="input-modern w-full p-4 h-14" placeholder="$0.00"></div>
-                <button onclick="app.saveGoal()" class="w-full bg-pink-500 text-white py-4 rounded-2xl font-black mt-4 h-16">GUARDAR META</button>
+            <!-- Form Goal (Ahorro) -->
+            <div id="formGoal" class="hidden space-y-4 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Meta (Ej: Coche, Viaje)</label><input type="text" id="goalName" class="input-modern w-full p-4 h-14" placeholder="Nombre..."></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Objetivo ($)</label><input type="number" id="goalTarget" inputmode="decimal" class="input-modern w-full p-4 h-14" placeholder="$0.00"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Ahorrado Actualmente ($)</label><input type="number" id="goalSaved" inputmode="decimal" class="input-modern w-full p-4 h-14" placeholder="$0.00"></div>
+                <button onclick="app.saveGoal()" class="w-full bg-pink-500 text-white py-4 rounded-2xl font-black mt-4 shadow-[0_4px_20px_rgba(236,72,153,0.4)] h-16 hover:bg-pink-400">GUARDAR META</button>
                 <button id="btnDeleteGoal" onclick="app.deleteGoalConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
             </div>
 
-            <!-- Form Loan -->
+            <!-- Form Deuda -->
             <div id="formLoan" class="hidden space-y-4 pb-4">
-                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Deuda</label><input type="text" id="loanName" class="input-modern w-full p-4 h-14" placeholder="Ej: Visa"></div>
-                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label><input type="number" id="loanAmount" class="input-modern w-full p-4 h-14" placeholder="$0.00"></div>
-                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha Límite</label><input type="date" id="loanDueDate" class="input-modern w-full p-4 h-14"></div>
-                <button onclick="app.saveLoan()" class="w-full bg-white text-black py-4 rounded-2xl font-black mt-4 h-16">GUARDAR DEUDA</button>
-                <button id="btnDeleteLoan" onclick="app.deleteLoanConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">BORRAR</button>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Concepto</label><input type="text" id="loanName" class="input-modern w-full p-4 h-14" placeholder="Ej: Visa"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto Pendiente</label><input type="number" id="loanAmount" inputmode="decimal" class="input-modern w-full p-4 h-14" placeholder="$0.00"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha Límite</label><input type="date" id="loanDueDate" class="input-modern w-full p-4 h-14 cursor-pointer"></div>
+                <button onclick="app.saveLoan()" class="w-full bg-white text-black py-4 rounded-2xl font-black mt-4 h-16 hover:bg-zinc-200">GUARDAR DEUDA</button>
+                <button id="btnDeleteLoan" onclick="app.deleteLoanConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">LIQUIDAR / BORRAR</button>
             </div>
             
-            <!-- Config Ciclo -->
+            <!-- Configuración Ciclo -->
             <div id="formConfig" class="hidden space-y-4 pb-4">
-                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center w-full h-32 flex flex-col items-center justify-center">
-                        <i class="ph-bold ph-calendar-check text-3xl text-emerald-500 mb-2"></i><span class="font-bold text-sm text-white">Quincenal</span>
+                <p class="text-zinc-400 text-xs text-center mb-4">Define cómo y cuándo recibes tus ingresos.</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center hover:bg-zinc-800 transition-colors h-32 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar-check text-3xl text-emerald-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Quincenal</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">2 Pagos al mes</div>
                     </button>
-                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center w-full h-32 flex flex-col items-center justify-center">
-                        <i class="ph-bold ph-calendar text-3xl text-blue-500 mb-2"></i><span class="font-bold text-sm text-white">Mensual</span>
+                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center hover:bg-zinc-800 transition-colors h-32 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar text-3xl text-blue-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Mensual</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">Pago único (Día 1)</div>
                     </button>
                 </div>
-                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Día de Inicio</label><input type="number" id="configStartDay" class="input-modern w-full p-4 text-center" value="1"></div>
-                <!-- Toggle Adherence -->
+                
+                 <div id="customStartDayDiv" class="hidden mt-6">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block" id="lblStartDay">Día de Inicio</label>
+                    <input type="number" id="configStartDay" class="input-modern w-full p-4 mt-1 text-center" placeholder="Día del mes (ej: 1, 5, 15)" value="1" min="1" max="28">
+                    <p class="text-[10px] text-zinc-600 mt-2 text-center">Si eliges 10, tus cortes serán 10 y 25.</p>
+                </div>
+                
+                <!-- Toggle Adherencia -->
                 <div class="mt-6 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
-                    <div><div class="text-sm font-bold text-white">Adherencia</div><div class="text-[10px] text-zinc-500">Panel de horas extras</div></div>
+                    <div>
+                        <div class="text-sm font-bold text-white">Módulo Adherencia</div>
+                        <div class="text-[10px] text-zinc-500">Mostrar panel de horas extras</div>
+                    </div>
                     <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
-                        <input type="checkbox" id="adhToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300" onclick="app.toggleAdherenceModule()"/>
+                        <input type="checkbox" name="toggleAdh" id="adhToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300" onclick="app.toggleAdherenceModule()"/>
                         <label for="adhToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-800 cursor-pointer"></label>
                     </div>
                 </div>
-                <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 rounded-2xl font-black mt-6 h-16">APLICAR</button>
+                
+                <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 rounded-2xl font-black mt-6 h-16 hover:bg-zinc-200">APLICAR CONFIGURACIÓN</button>
             </div>
 
-            <!-- MODAL DE CIERRE (CLOSURE) -->
-            <div id="formClosure" class="hidden pb-4">
-                <div class="text-center mb-6">
-                    <div class="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
-                        <i class="ph-fill ph-check-circle text-emerald-500 text-4xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-white">Cierre de Ciclo</h3>
-                    <p class="text-zinc-500 text-xs mt-1" id="closurePeriodName">---</p>
-                </div>
-                <div class="bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 mb-6 space-y-3">
-                    <div class="flex justify-between items-center"><span class="text-zinc-400 text-xs">Ingresos</span><span id="closureInc" class="text-emerald-400 font-bold font-mono">---</span></div>
-                    <div class="flex justify-between items-center"><span class="text-zinc-400 text-xs">Gastos</span><span id="closureExp" class="text-red-400 font-bold font-mono">---</span></div>
-                    <div class="w-full h-px bg-zinc-800"></div>
-                    <div class="flex justify-between items-center"><span class="text-white font-bold text-sm">Balance Final</span><span id="closureBal" class="text-white font-black text-lg font-mono">---</span></div>
-                </div>
-                <button onclick="app.executeClosure()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black py-4 rounded-2xl font-black text-lg transition-colors h-16 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                    CONFIRMAR CIERRE
-                </button>
-            </div>
         </div>
     </div>
     
     <!-- AUTH BLOCKER -->
-    <div class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[2000] hidden flex items-center justify-center" id="authModal">
+    <div class="modal-auth" id="authModal">
         <div class="custom-dialog rounded-2xl p-8 text-center bg-[#121212] border border-zinc-800">
-            <i class="ph-fill ph-lock-key text-red-500 text-4xl mb-4"></i>
+            <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="ph-fill ph-lock-key text-red-500 text-2xl"></i>
+            </div>
             <h2 class="text-xl font-bold text-white mb-2">Autenticación</h2>
-            <button class="w-full bg-white text-black py-4 rounded-xl font-bold mt-6 h-14" onclick="window.app.redirectToAuth()">Entrar</button>
+            <p class="text-xs text-zinc-500 mb-6 leading-relaxed">Inicia sesión para sincronizar tus finanzas en todos tus dispositivos.</p>
+            <button class="w-full bg-white text-black py-4 rounded-xl font-bold hover:bg-zinc-200 transition-colors h-14" onclick="window.app.redirectToAuth()">Iniciar Sesión</button>
         </div>
     </div>
     
-    <!-- TOAST -->
-    <div id="toast-container"></div>
-    <!-- CONFIRM -->
+    <!-- CONFIRMATION DIALOG -->
     <div id="confirmDialog" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[1200] hidden flex items-center justify-center opacity-0 transition-opacity p-5">
         <div class="custom-dialog rounded-3xl p-6 bg-[#121212] border border-zinc-800 transform scale-95 transition-transform duration-200 w-full max-w-xs" id="confirmBox">
             <h4 id="confirmTitle" class="text-lg font-bold text-white mb-2">Confirmar</h4>
             <p id="confirmMessage" class="text-zinc-400 text-sm mb-8 leading-relaxed">¿Estás seguro?</p>
-            <div class="flex justify-end gap-3"><button id="confirmCancel" class="text-zinc-400 text-xs font-bold px-4 py-3 rounded-xl bg-zinc-900">Cancelar</button><button id="confirmAction" class="bg-red-600 text-white text-xs font-bold px-4 py-3 rounded-xl">Aceptar</button></div>
+            <div class="flex justify-end gap-3">
+                <button id="confirmCancel" class="text-zinc-400 text-xs font-bold px-4 py-3 rounded-xl hover:bg-zinc-800 transition-colors uppercase tracking-wider flex-1 bg-zinc-900">Cancelar</button>
+                <button id="confirmAction" class="bg-red-600 text-white text-xs font-bold px-4 py-3 rounded-xl hover:bg-red-700 transition-colors uppercase tracking-wider shadow-lg shadow-red-900/20 flex-1">Aceptar</button>
+            </div>
         </div>
     </div>
 
+    <!-- TOAST -->
+    <div id="toast-container"></div>
+
     <!-- LOGIC -->
-    <script>
+    <script type="module">
+        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } = window.firebaseImports;
+        
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-ultimate-v3';
+        const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
+        let firebaseConfig = fallbackConfig;
+        try { if (typeof __firebase_config !== 'undefined' && __firebase_config) firebaseConfig = JSON.parse(__firebase_config); } catch(e) {}
+        
+        let fbApp, auth, db;
+        try { fbApp = initializeApp(firebaseConfig); auth = getAuth(fbApp); db = getFirestore(fbApp); } catch(e) { console.error(e); }
+
+        // --- HELPERS ---
         const UI = {
             toast(msg, type='info') {
                 const con = document.getElementById('toast-container'); const el = document.createElement('div'); el.className = 'toast';
@@ -638,7 +861,7 @@
             }
         };
 
-        const Categories = [
+        const DefaultCategories = [
             { id: 'Comida', icon: 'ph-hamburger', color: 'text-orange-400' }, 
             { id: 'Transporte', icon: 'ph-car', color: 'text-blue-400' },
             { id: 'Ocio', icon: 'ph-popcorn', color: 'text-purple-400' }, 
@@ -650,80 +873,281 @@
             { id: 'Otro', icon: 'ph-dots-three-circle', color: 'text-gray-400' }
         ];
 
-        window.app = {
+        // --- APP LOGIC ---
+        const app = window.app = {
             user: null, 
-            data: { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, lastClosedDate: null, loans: [], goals: [], enableAdherence: true, extraPayAmount: 0 }, 
-            logs: [], reports: [],
+            data: { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 }, 
+            logs: [], adhData: null,
             currentPeriod: null, 
-            pendingClosure: null,
+            privacyMode: false,
+            searchQuery: '',
             charts: {},
-            isSimulating: false,
+            printCharts: {},
+            pendingExtraPay: 0, 
+            isSimulating: false, 
 
             async init() {
-                const { initializeApp, getAuth, onAuthStateChanged, signInAnonymously, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, serverTimestamp } = window.firebaseImports;
-                
-                const firebaseConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
-                const fbApp = initializeApp(firebaseConfig);
-                this.auth = getAuth(fbApp);
-                this.db = getFirestore(fbApp);
-                this.APP_ID = 'gods-plan-smart-v1';
-
-                onAuthStateChanged(this.auth, async (u) => {
+                if(!auth) return;
+                onAuthStateChanged(auth, async (u) => {
                     if (u) {
-                        this.user = u;
-                        document.getElementById('authModal').classList.add('hidden');
-                        document.getElementById('syncStatus').classList.add('bg-emerald-500');
-                        document.getElementById('userName').textContent = u.displayName || 'Usuario';
+                        this.user = u; this.updateUserUI();
+                        document.getElementById('authModal').classList.remove('active');
                         this.setupListeners();
                     } else {
-                         signInAnonymously(this.auth);
+                        const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                        if(token) await signInWithCustomToken(auth, token); else document.getElementById('authModal').classList.add('active');
                     }
                 });
+            },
+
+            redirectToAuth() { window.location.href = '/'; },
+            logout() { if(confirm("¿Salir?")) signOut(auth).then(() => window.location.reload()); },
+            
+            updateUserUI() {
+                document.getElementById('userName').textContent = this.user.displayName || 'Usuario';
+                document.getElementById('userStatusText').textContent = 'Sincronizado'; document.getElementById('userStatusText').className = 'text-[10px] text-emerald-500 font-bold';
+                document.getElementById('syncStatus').classList.add('bg-emerald-500');
             },
 
             setupListeners() {
-                const { doc, onSnapshot, collection, query, orderBy, limit, setDoc } = window.firebaseImports;
                 const uid = this.user.uid;
                 
-                // 1. Config
-                onSnapshot(doc(this.db, 'artifacts', this.APP_ID, 'users', uid, 'data', 'financials'), (snap) => {
+                // Listener Finanzas (Usuario)
+                const userRef = doc(db, 'artifacts', APP_ID, 'users', uid, 'data', 'financials');
+                const logsRef = collection(db, 'artifacts', APP_ID, 'users', uid, 'transactions');
+                
+                onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
-                        this.data = { income: 0, fixed: [], cycle: 'biweekly', startDay: 1, lastClosedDate: null, loans: [], goals: [], enableAdherence: true, extraPayAmount: 0, ...snap.data() };
-                        this.renderConfigUI();
+                        this.data = { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
+                        document.getElementById('inpIncome').value = this.data.income || '';
+                        document.getElementById('inpIncomeQ2').value = this.data.incomeQ2 || '';
+                        document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
+                        
+                        // NEW: Update manual input from stored data
+                        document.getElementById('manualExtraPay').value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
+                        
+                        this.renderPlanInputs();
+                        this.renderFixed(); this.renderLoans(); this.renderGoals();
                         this.calcPeriod();
-                    } else {
-                        setDoc(doc(this.db, 'artifacts', this.APP_ID, 'users', uid, 'data', 'financials'), { income: 0 });
-                    }
+                        this.renderAdherenceCard(); // Renamed function
+                    } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
                 });
 
-                // 2. Transactions
-                const q = query(collection(this.db, 'artifacts', this.APP_ID, 'users', uid, 'transactions'), orderBy('date', 'desc'), limit(500));
+                const q = query(logsRef, orderBy('date', 'desc'), limit(1000));
                 onSnapshot(q, (snap) => {
-                    this.logs = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    this.refreshUI();
+                    this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
+                    this.renderTransactions(); this.calcBalance(); this.renderCharts(); this.renderAnalysisMetrics(); this.renderHistory();
+                });
+            },
+            
+            renderPlanInputs() {
+                const isBi = this.data.cycle === 'biweekly';
+                const divQ2 = document.getElementById('divIncomeQ2');
+                const lbl1 = document.getElementById('lblIncome1');
+                
+                if (isBi) {
+                    divQ2.classList.remove('hidden');
+                    lbl1.textContent = 'Ingreso 1ra Quincena (Q1)';
+                } else {
+                    divQ2.classList.add('hidden');
+                    lbl1.textContent = 'Ingreso Mensual Base';
+                }
+            },
+
+            // --- LÓGICA DE HISTORIAL ---
+            renderHistory() {
+                const container = document.getElementById('historyList');
+                if(!this.logs.length) {
+                    container.innerHTML = '<div class="text-center py-10 text-zinc-600">Aún no hay historia que contar.</div>';
+                    return;
+                }
+
+                // Configuración de Ingreso Base
+                const baseIncome = parseFloat(this.data.income) || 0;
+                const baseIncomeQ2 = parseFloat(this.data.incomeQ2) || baseIncome; // Default to base if empty
+                const cycleMode = this.data.cycle || 'biweekly';
+
+                // 1. Agrupar por mes Y Quincena
+                const groups = {};
+                let loggedNetWorth = 0; // Solo logs reales
+
+                this.logs.forEach(l => {
+                    const d = new Date(l.date);
+                    // Q1: 1-15, Q2: 16-31
+                    const day = d.getDate();
+                    const qLabel = day <= 15 ? 'Q1' : 'Q2';
+                    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${qLabel}`;
+                    
+                    if(!groups[k]) groups[k] = { income:0, expense:0, date: d, count:0, q: qLabel, realIncomeLogs: 0 };
+                    
+                    if(l.type === 'income') {
+                        groups[k].income += l.amount;
+                        groups[k].realIncomeLogs += l.amount;
+                        loggedNetWorth += l.amount;
+                    } else {
+                        groups[k].expense += l.amount;
+                        loggedNetWorth -= l.amount;
+                    }
+                    groups[k].count++;
                 });
 
-                // 3. Reports
-                const rQ = query(collection(this.db, 'artifacts', this.APP_ID, 'users', uid, 'reports'), orderBy('periodEnd', 'desc'));
-                onSnapshot(rQ, (snap) => {
-                    this.reports = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    this.renderReportsList();
-                    this.checkForClosure();
+                const nwEl = document.getElementById('netWorthDisplay');
+                nwEl.textContent = UI.fmtMoney(loggedNetWorth); 
+                nwEl.className = `text-4xl font-black tracking-tighter ${loggedNetWorth >= 0 ? 'text-white' : 'text-red-500'}`;
+
+                const sortedKeys = Object.keys(groups).sort((a,b) => b.localeCompare(a));
+                container.innerHTML = '';
+                
+                sortedKeys.forEach(key => {
+                    const g = groups[key];
+                    
+                    // --- INYECCIÓN DE INGRESO BASE ---
+                    let periodBaseIncome = 0;
+                    if (cycleMode === 'biweekly') {
+                        periodBaseIncome = g.q === 'Q1' ? baseIncome : baseIncomeQ2;
+                    } else {
+                        // Mensual: solo sumar en la primera quincena
+                        if (g.q === 'Q1') periodBaseIncome = baseIncome;
+                    }
+
+                    const totalPeriodIncome = g.income + periodBaseIncome;
+                    const balance = totalPeriodIncome - g.expense;
+                    const savingsRate = totalPeriodIncome > 0 ? ((totalPeriodIncome - g.expense) / totalPeriodIncome) * 100 : 0;
+                    
+                    // Lógica de "Vibe"
+                    let vibeIcon = 'ph-mask-happy'; let vibeColor = 'text-emerald-400'; let vibeText = 'Excelente periodo'; let barColor = 'bg-emerald-500';
+
+                    if (balance < 0) { vibeIcon = 'ph-mask-sad'; vibeColor = 'text-red-500'; vibeText = 'Gasto excesivo'; barColor = 'bg-red-500'; } 
+                    else if (savingsRate < 10) { vibeIcon = 'ph-mask-sad'; vibeColor = 'text-orange-400'; vibeText = 'Ahorro bajo'; barColor = 'bg-orange-500'; } 
+                    else if (savingsRate < 30) { vibeIcon = 'ph-smiley'; vibeColor = 'text-yellow-400'; vibeText = 'Buen equilibrio'; barColor = 'bg-yellow-400'; } 
+                    else { vibeIcon = 'ph-star-fill'; vibeColor = 'text-emerald-400'; vibeText = '¡Imparable!'; barColor = 'bg-emerald-500'; }
+
+                    const monthName = g.date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+                    const capMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                    const qText = g.q === 'Q1' ? '1ª Quincena' : '2ª Quincena';
+
+                    const maxVal = Math.max(totalPeriodIncome, g.expense);
+                    const incPct = maxVal > 0 ? (totalPeriodIncome / maxVal) * 100 : 0;
+                    const expPct = maxVal > 0 ? (g.expense / maxVal) * 100 : 0;
+
+                    container.innerHTML += `
+                    <div class="glass p-5 rounded-2xl relative overflow-hidden group hover:bg-zinc-900/40 transition-colors">
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <div>
+                                <h4 class="text-lg font-bold text-white capitalize flex flex-col md:flex-row md:gap-2">
+                                    <span>${capMonth}</span>
+                                    <span class="text-xs text-zinc-500 font-normal bg-zinc-800/50 px-2 py-0.5 rounded-lg self-start mt-1 md:mt-0">${qText}</span>
+                                </h4>
+                                <div class="flex items-center gap-1.5 mt-1">
+                                    <i class="ph-fill ${vibeIcon} ${vibeColor}"></i>
+                                    <span class="text-xs font-medium text-zinc-400">${vibeText}</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs font-bold text-zinc-500 uppercase">Balance</div>
+                                <div class="text-xl font-bold ${balance >= 0 ? 'text-white' : 'text-red-500'}">${balance >=0 ? '+':''}${UI.fmtMoney(balance)}</div>
+                            </div>
+                        </div>
+                        <div class="space-y-2 mb-4 relative z-10">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] w-12 text-zinc-500 font-bold">IN</span>
+                                <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-emerald-500/80 rounded-full" style="width: ${incPct}%"></div></div>
+                                <span class="text-[10px] w-16 text-right text-emerald-400 font-mono">${UI.fmtMoney(totalPeriodIncome)}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] w-12 text-zinc-500 font-bold">OUT</span>
+                                <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-red-500/80 rounded-full" style="width: ${expPct}%"></div></div>
+                                <span class="text-[10px] w-16 text-right text-red-400 font-mono">${UI.fmtMoney(g.expense)}</span>
+                            </div>
+                        </div>
+                        <div class="absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-10 ${barColor}"></div>
+                    </div>`;
                 });
             },
 
-            refreshUI() {
-                this.calcPeriod();
-                this.renderTransactions();
-                this.renderHistoryTimeline();
-                this.updateCharts();
+            // --- ADHERENCIA ---
+            renderAdherenceCard() {
+                const card = document.getElementById('adherenceCard');
+                if (this.data.enableAdherence === false) { card.classList.add('hidden'); return; }
+                
+                card.classList.remove('hidden');
+                this.pendingExtraPay = this.data.extraPayAmount || 0;
+                
+                // Date Logic
+                this.resolvePayDate();
             },
 
+            resolvePayDate() {
+                if (this.data.nextExtraPayDate) {
+                    const savedDate = new Date(this.data.nextExtraPayDate + 'T12:00:00');
+                    const now = new Date();
+                    const daysDiff = Math.ceil((savedDate - now) / (1000 * 60 * 60 * 24));
+                    document.getElementById('extraPayDateInput').value = this.data.nextExtraPayDate;
+                    document.getElementById('daysToTuesday').textContent = daysDiff === 0 ? '¡Es Hoy!' : (daysDiff < 0 ? 'Pasado' : `Faltan ${daysDiff} días`);
+                } else {
+                    const now = new Date(); const resultDate = new Date();
+                    const diff = 2 - now.getDay() + 7; 
+                    resultDate.setDate(now.getDate() + (diff % 7 === 0 ? 0 : (2 - now.getDay() + 7) % 7));
+                    if (resultDate <= now) resultDate.setDate(resultDate.getDate() + 7);
+                    
+                    const dateStr = resultDate.toISOString().split('T')[0];
+                    document.getElementById('extraPayDateInput').value = dateStr;
+                    const daysDiff = Math.ceil((resultDate - now) / (1000 * 60 * 60 * 24));
+                    document.getElementById('daysToTuesday').textContent = `Faltan ${daysDiff} días`;
+                }
+            },
+
+            async saveExtraPayDate(val) {
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { nextExtraPayDate: val });
+                this.resolvePayDate();
+            },
+            
+            async saveExtraPayValue(val) {
+                const amount = parseFloat(val) || 0;
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { extraPayAmount: amount });
+                // We don't toast here to avoid spamming while typing/blurring
+                this.calcBalance(); // Update simulation if active
+            },
+
+            toggleAdherenceModule() {
+                const isEnabled = document.getElementById('adhToggle').checked;
+                updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { enableAdherence: isEnabled });
+            },
+
+            toggleSimulation() {
+                this.isSimulating = document.getElementById('simToggle').checked;
+                this.calcBalance();
+            },
+
+            async importExtraMoney() {
+                const amount = this.data.extraPayAmount || 0;
+                if (amount <= 0) return UI.toast('Monto debe ser mayor a 0', 'error');
+                
+                if (await UI.confirm('Importar Dinero', `¿Registrar ingreso de ${UI.fmtMoney(amount)}?`)) {
+                    await addDoc(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions'), {
+                        amount: amount, 
+                        desc: `Cobro Extra`, 
+                        category: 'Otro', 
+                        type: 'income', 
+                        date: new Date().toISOString()
+                    });
+                    
+                    // Optional: Clear amount after import? 
+                    // Let's keep it for now or user can clear manually. 
+                    // If user wants to clear: 
+                    // await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { extraPayAmount: 0 });
+                    
+                    UI.toast('Dinero sumado a billetera', 'success');
+                }
+            },
+
+            getWeek(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); var y = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); return Math.ceil((((d - y) / 86400000) + 1) / 7); },
+
+            // --- DATE & PERIOD LOGIC ---
             calcPeriod() {
-                const now = new Date();
-                const d = now.getDate(); const m = now.getMonth(); const y = now.getFullYear();
-                const startDay = this.data.startDay || 1;
+                const now = new Date(); const d = now.getDate(); const m = now.getMonth(); const y = now.getFullYear();
                 let start, end;
+                const startDay = this.data.startDay || 1; 
 
                 if (this.data.cycle === 'monthly') {
                     if (d >= startDay) { start = new Date(y, m, startDay); end = new Date(y, m + 1, startDay - 1); }
@@ -737,306 +1161,699 @@
                         else { start = new Date(y, m - 1, midDay); end = new Date(y, m, startDay - 1); }
                     }
                 }
+                
                 start.setHours(0,0,0,0); end.setHours(23,59,59,999);
-                
+                const totalMs = end - start; const elapsed = now - start;
+                const progress = Math.min(100, Math.max(0, (elapsed / totalMs) * 100));
                 const daysLeft = Math.ceil((end - now) / (86400000));
-                const progress = Math.min(100, Math.max(0, ((now - start) / (end - start)) * 100));
-
-                this.currentPeriod = { start, end, daysLeft: Math.max(1, daysLeft) };
                 
-                document.getElementById('periodDates').textContent = `${start.getDate()} ${start.toLocaleString('es',{month:'short'})} - ${end.getDate()} ${end.toLocaleString('es',{month:'short'})}`;
-                document.getElementById('daysLeftBadge').textContent = `${daysLeft} días`;
+                this.currentPeriod = { start, end, daysLeft: Math.max(1, daysLeft), progress };
+                document.getElementById('periodDates').innerHTML = `<span class="text-zinc-400 text-sm font-normal">${start.getDate()} ${start.toLocaleString('es',{month:'short'})}</span> <i class="ph-bold ph-arrow-right text-zinc-600 text-xs"></i> <span class="text-white text-sm">${end.getDate()} ${end.toLocaleString('es',{month:'short'})}</span>`;
+                document.getElementById('daysLeftBadge').textContent = `Faltan ${this.currentPeriod.daysLeft} días para la quincena`;
                 document.getElementById('periodProgress').style.width = `${progress}%`;
                 
                 this.calcBalance();
-                this.checkForClosure();
-                this.renderAdherence();
             },
 
-            checkForClosure() {
-                if (!this.currentPeriod) return;
-                const lastReport = this.reports[0];
-                const currentStartMs = this.currentPeriod.start.getTime();
-                
-                if (!lastReport || new Date(lastReport.periodEnd).getTime() < (currentStartMs - 1000)) {
-                    let prevStart, prevEnd;
-                    prevEnd = new Date(this.currentPeriod.start);
-                    prevEnd.setDate(prevEnd.getDate() - 1);
-                    prevEnd.setHours(23,59,59,999);
-                    
-                    prevStart = new Date(prevEnd);
-                    if(this.data.cycle === 'biweekly') prevStart.setDate(prevStart.getDate() - 14);
-                    else prevStart.setMonth(prevStart.getMonth() - 1);
-                    
-                    const hasLogs = this.logs.some(l => {
-                        const t = new Date(l.date).getTime();
-                        return t >= prevStart.getTime() && t <= prevEnd.getTime();
-                    });
-
-                    if (hasLogs) {
-                        this.pendingClosure = { start: prevStart, end: prevEnd };
-                        document.getElementById('closureAlert').classList.remove('hidden');
-                    } else {
-                         document.getElementById('closureAlert').classList.add('hidden');
-                    }
-                } else {
-                    document.getElementById('closureAlert').classList.add('hidden');
-                }
-            },
-
+            // --- CORE FINANCIAL MATH ---
             calcBalance() {
-                const pStart = this.currentPeriod.start; const pEnd = this.currentPeriod.end;
+                if(!this.currentPeriod) return;
+                
+                const pStart = this.currentPeriod.start;
+                const pEnd = this.currentPeriod.end;
                 const periodLogs = this.logs.filter(l => { const d = new Date(l.date); return d >= pStart && d <= pEnd; });
+
                 const todayStr = new Date().toDateString();
                 const todaySpent = periodLogs.filter(l => l.type === 'expense' && new Date(l.date).toDateString() === todayStr).reduce((a, b) => a + b.amount, 0);
 
-                let totalSpent = 0; let extraInc = 0;
-                periodLogs.forEach(l => { if(l.type === 'income') extraInc += l.amount; else totalSpent += l.amount; });
+                let totalSpentInCycle = 0; let extraInc = 0;
+                periodLogs.forEach(l => { if(l.type === 'income') extraInc += l.amount; else totalSpentInCycle += l.amount; });
 
-                if (this.isSimulating) extraInc += (this.data.extraPayAmount || 0);
+                // Use manual extra pay amount for simulation
+                if (this.isSimulating) { 
+                    extraInc += (this.data.extraPayAmount || 0); 
+                }
 
-                const fixedTotal = (this.data.fixed || []).reduce((a,b)=>a+b.amount,0);
-                const totalLoans = (this.data.loans||[]).filter(l => !l.dueDate || new Date(l.dueDate) <= pEnd).reduce((a,b)=>a+b.amount,0);
+                let fixedReserve = 0;
+                const fixedStatus = []; 
 
+                (this.data.fixed || []).forEach(f => {
+                    const day = parseInt(f.day); let triggers = false;
+                    const dateInMonth = new Date(pStart.getFullYear(), pStart.getMonth(), day);
+                    const dateNextMonth = new Date(pStart.getFullYear(), pStart.getMonth() + 1, day);
+                    const datePrevMonth = new Date(pStart.getFullYear(), pStart.getMonth() - 1, day);
+
+                    if (dateInMonth >= pStart && dateInMonth <= pEnd) triggers = true;
+                    if (dateNextMonth >= pStart && dateNextMonth <= pEnd) triggers = true;
+                    if (datePrevMonth >= pStart && datePrevMonth <= pEnd) triggers = true;
+
+                    if (triggers) {
+                        const isPaid = periodLogs.some(l => 
+                            (l.meta_related_fixed && l.meta_related_fixed === f.name) || 
+                            (l.type === 'expense' && (l.desc || '').toLowerCase().includes(f.name.toLowerCase()) && l.amount > 0)
+                        );
+                        fixedStatus.push({ name: f.name, paid: isPaid });
+                        if (!isPaid) fixedReserve += (parseFloat(f.amount) || 0);
+                    } else {
+                         fixedStatus.push({ name: f.name, paid: 'n/a' });
+                    }
+                });
+                this.updateFixedUI(fixedStatus);
+
+                const totalLoans = (this.data.loans || []).reduce((acc, loan) => {
+                    const amount = parseFloat(loan.amount) || 0;
+                    if (!loan.dueDate) return acc + amount;
+                    const [y, m, d] = loan.dueDate.split('-').map(Number);
+                    const due = new Date(y, m-1, d, 23, 59, 59);
+                    if (due <= pEnd) return acc + amount;
+                    return acc;
+                }, 0);
+
+                // --- DETERMINAR INGRESO DEL CICLO (Q1 vs Q2) ---
                 let baseInc = parseFloat(this.data.income) || 0;
-                if(this.data.cycle === 'biweekly' && this.data.incomeQ2 && this.currentPeriod.start.getDate() > 10) baseInc = parseFloat(this.data.incomeQ2);
+                if (this.data.cycle === 'biweekly') {
+                    // Start Day of current period tells us if we are in Q1 or Q2
+                    const periodStartDay = this.currentPeriod.start.getDate();
+                    // Q2 usually starts around day 15 or 16 depending on startDay
+                    const triggerQ2 = (this.data.startDay || 1) + 14; 
+                    if (periodStartDay >= triggerQ2) {
+                        // We are in Q2
+                        baseInc = parseFloat(this.data.incomeQ2) || baseInc; // Use Q2 income or fallback to Q1
+                    }
+                }
 
-                const totalIncome = baseInc + extraInc;
-                const remaining = totalIncome - fixedTotal - totalLoans - totalSpent;
-                const dailyLimit = (remaining + todaySpent) / this.currentPeriod.daysLeft;
-                const availableToday = dailyLimit - todaySpent;
+                const liquidIncome = (baseInc + extraInc);
+                const remainingTotal = liquidIncome - fixedReserve - totalLoans - totalSpentInCycle;
+                const daysLeft = this.currentPeriod.daysLeft;
+                const virtualAvailableStartOfDay = remainingTotal + todaySpent;
+                const dailyLimit = virtualAvailableStartOfDay / daysLeft;
+                const balanceToday = dailyLimit - todaySpent;
 
-                document.getElementById('dailyFree').textContent = UI.fmtMoney(availableToday);
-                document.getElementById('dailyFree').className = availableToday < 0 ? 'text-red-500 font-black' : (this.isSimulating ? 'text-emerald-400 font-black' : 'text-white');
+                const dailyEl = document.getElementById('dailyFree');
+                const labelState = document.getElementById('labelDailyState');
+                const cardBg = document.getElementById('mainCardBg');
+                
+                if (this.isSimulating) {
+                    dailyEl.textContent = UI.fmtMoney(balanceToday); dailyEl.className = 'text-emerald-400 font-black animate-pulse'; 
+                    labelState.textContent = 'SIMULACIÓN ACTIVADA'; labelState.className = 'text-xs font-black text-emerald-500 uppercase tracking-widest';
+                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-emerald-600/20 rounded-full blur-3xl transition-colors duration-500 animate-pulse-green';
+                } else if (balanceToday < 0) {
+                    dailyEl.textContent = UI.fmtMoney(balanceToday); dailyEl.className = 'text-red-500 animate-pulse font-black'; 
+                    labelState.textContent = 'EXCEDIDO HOY'; labelState.className = 'text-xs font-black text-red-500 uppercase tracking-widest';
+                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/50 rounded-full blur-3xl transition-colors duration-500 animate-pulse-red';
+                } else {
+                    dailyEl.textContent = UI.fmtMoney(balanceToday); dailyEl.className = 'text-white';
+                    labelState.textContent = 'DISPONIBLE HOY'; labelState.className = 'text-xs font-bold text-zinc-400 uppercase tracking-widest';
+                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 rounded-full blur-3xl transition-colors duration-500';
+                }
+
                 document.getElementById('valDailyLimit').textContent = UI.fmtMoney(dailyLimit);
                 document.getElementById('valTodaySpent').textContent = UI.fmtMoney(todaySpent);
-                document.getElementById('totalFree').textContent = UI.fmtMoney(remaining);
-                document.getElementById('cycleSpent').textContent = UI.fmtMoney(totalSpent);
-                document.getElementById('summaryFixed').textContent = UI.fmtMoney(fixedTotal);
+                document.getElementById('totalFree').textContent = UI.fmtMoney(remainingTotal);
+                document.getElementById('totalFree').className = remainingTotal < 0 ? 'text-lg font-bold text-red-500' : 'text-lg font-bold text-zinc-200';
+                
+                document.getElementById('cycleSpent').textContent = `-${UI.fmtMoney(totalSpentInCycle)}`;
+                document.getElementById('summaryFixed').textContent = UI.fmtMoney(fixedReserve);
                 document.getElementById('summaryShortLoans').textContent = UI.fmtMoney(totalLoans);
-                document.getElementById('statDailyAvg').textContent = UI.fmtMoney(totalSpent / Math.max(1, (new Date().getDate() - pStart.getDate() + 1)));
-
-                // Update Simulation View
-                document.getElementById('simFreeMoney').textContent = UI.fmtMoney(remaining + totalSpent); // Before spent in this view logic usually? No, free money implies net.
-                // Actually simulation view implies "Monthly" projection usually. Let's stick to current period for consistency.
-                document.getElementById('simBaseIncomeVal').textContent = UI.fmtMoney(baseInc);
-                document.getElementById('simTotalExtraVal').textContent = UI.fmtMoney(extraInc);
-                document.getElementById('simTotalIncomeSum').textContent = UI.fmtMoney(totalIncome);
-                document.getElementById('simTotalFixed').textContent = UI.fmtMoney(fixedTotal + totalLoans);
-                
-                // Sim Extras List
-                const exList = document.getElementById('simExtraList'); exList.innerHTML = '';
-                if(this.data.extraPayAmount > 0) exList.innerHTML += `<div class="flex justify-between text-xs text-emerald-400"><span>Simulado</span><span>+${UI.fmtMoney(this.data.extraPayAmount)}</span></div>`;
-                periodLogs.filter(l=>l.type==='income').forEach(l=> exList.innerHTML += `<div class="flex justify-between text-xs text-zinc-400"><span>${l.desc||l.category}</span><span>+${UI.fmtMoney(l.amount)}</span></div>`);
-                
-                // Sim Fixed List
-                const fixList = document.getElementById('simFixedList'); fixList.innerHTML = '';
-                (this.data.fixed||[]).forEach(f => fixList.innerHTML += `<div class="flex justify-between text-xs text-zinc-400"><span>${f.name}</span><span>-${UI.fmtMoney(f.amount)}</span></div>`);
-                 (this.data.loans||[]).forEach(f => fixList.innerHTML += `<div class="flex justify-between text-xs text-orange-400"><span>Deuda: ${f.name}</span><span>-${UI.fmtMoney(f.amount)}</span></div>`);
             },
             
-            toggleSimulation() { this.isSimulating = document.getElementById('simToggle').checked; this.calcBalance(); },
-            
-            // --- CLOSURE ---
-            openClosureModal() {
-                if(!this.pendingClosure) return;
-                const { start, end } = this.pendingClosure;
-                const logs = this.logs.filter(l => { const t = new Date(l.date).getTime(); return t >= start.getTime() && t <= end.getTime(); });
-                
-                let baseInc = parseFloat(this.data.income) || 0;
-                if(this.data.cycle === 'biweekly' && this.data.incomeQ2 && start.getDate() > 10) baseInc = parseFloat(this.data.incomeQ2);
-                
-                const extraInc = logs.filter(l=>l.type==='income').reduce((a,b)=>a+b.amount,0);
-                const totalInc = baseInc + extraInc;
-                const expenses = logs.filter(l=>l.type==='expense').reduce((a,b)=>a+b.amount,0);
-                const fixed = (this.data.fixed || []).reduce((a,b)=>a+b.amount,0);
-                 const loans = (this.data.loans || []).reduce((a,b)=>a+b.amount,0);
-                const balance = totalInc - fixed - loans - expenses;
-
-                document.getElementById('closurePeriodName').textContent = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-                document.getElementById('closureInc').textContent = UI.fmtMoney(totalInc);
-                document.getElementById('closureExp').textContent = UI.fmtMoney(expenses + fixed + loans);
-                document.getElementById('closureBal').textContent = UI.fmtMoney(balance);
-                
-                this.closureData = { 
-                    periodStart: start.toISOString(), periodEnd: end.toISOString(),
-                    totalIncome: totalInc, totalExpenses: expenses + fixed + loans, balance: balance,
-                    savingsRate: Math.round((balance / totalInc) * 100), txCount: logs.length
-                };
-                this.openModal('closure');
+            togglePrivacy() {
+                this.privacyMode = !this.privacyMode;
+                const blur = document.getElementById('dailyFreeBlur'); const icon = document.getElementById('eyeIcon');
+                if(this.privacyMode) { blur.classList.remove('hidden'); icon.className = 'ph-fill ph-eye-slash text-lg'; }
+                else { blur.classList.add('hidden'); icon.className = 'ph ph-eye text-lg'; }
             },
 
-            async executeClosure() {
-                if(!this.closureData) return;
-                const { addDoc, collection, updateDoc, doc } = window.firebaseImports;
-                let score = 70;
-                if(this.closureData.balance > 0) score += 10;
-                if(this.closureData.savingsRate > 10) score += 10;
-                if(this.closureData.savingsRate > 20) score += 10;
-                if(this.closureData.balance < 0) score = Math.max(0, score - 30);
-                
-                await addDoc(collection(this.db, 'artifacts', this.APP_ID, 'users', this.user.uid, 'reports'), { ...this.closureData, score: score, createdAt: new Date().toISOString() });
-                await updateDoc(doc(this.db, 'artifacts', this.APP_ID, 'users', this.user.uid, 'data', 'financials'), { lastClosedDate: this.closureData.periodEnd });
-                UI.toast(`Score: ${score}/100`, 'success'); this.closeModal(); this.switchView('history');
-            },
-
-            renderReportsList() {
-                const el = document.getElementById('reportsList');
-                if(!this.reports.length) return; 
-                el.innerHTML = this.reports.map(r => {
-                    const dateObj = new Date(r.periodEnd);
-                    const color = r.score >= 80 ? 'text-emerald-400' : 'text-zinc-400';
-                    return `
-                    <div class="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-4 overflow-hidden group hover:bg-zinc-800 transition-colors">
-                        <div class="ticket-edge"></div>
-                        <div class="flex justify-between items-start">
-                            <div><h4 class="text-white font-bold capitalize text-sm">${dateObj.toLocaleString('es',{month:'long'})} ${dateObj.getFullYear()}</h4><p class="text-[10px] text-zinc-500">${new Date(r.periodStart).getDate()} - ${new Date(r.periodEnd).getDate()}</p></div>
-                            <div class="text-right"><div class="text-xl font-black ${color}">${r.score}</div><div class="text-[9px] text-zinc-600 font-bold uppercase">Score</div></div>
-                        </div>
-                    </div>`;
-                }).join('');
-            },
-            
-            renderHistoryTimeline() {
-                 const container = document.getElementById('historyList');
-                 if(!this.logs.length) { container.innerHTML = '<div class="text-center py-10 text-zinc-600">Sin historial</div>'; return; }
-                 const groups = {};
-                 this.logs.forEach(l => {
-                    const d = new Date(l.date); const k = `${d.getFullYear()}-${d.getMonth()}`;
-                    if(!groups[k]) groups[k] = { logs:[], total:0, month: d.toLocaleString('es',{month:'long'}) };
-                    groups[k].logs.push(l);
-                    if(l.type==='expense') groups[k].total += l.amount;
-                 });
-                 container.innerHTML = Object.keys(groups).sort().reverse().map(k => {
-                     const g = groups[k];
-                     return `<div class="mb-4"><h4 class="text-zinc-500 font-bold text-xs uppercase mb-2 ml-1 capitalize">${g.month}</h4>
-                     ${g.logs.map(l => `<div class="flex justify-between p-3 bg-zinc-900/50 rounded-xl mb-1 border border-transparent hover:border-zinc-800"><span class="text-xs text-zinc-300">${l.desc||l.category}</span><span class="text-xs ${l.type==='income'?'text-emerald-500':'text-zinc-400'}">${UI.fmtMoney(l.amount)}</span></div>`).join('')}</div>`;
-                 }).join('');
-            },
-
-            // --- STANDARD ---
+            // --- RENDERING ---
             renderTransactions() {
                 const list = document.getElementById('transactionsList'); list.innerHTML = '';
-                const pStart = this.currentPeriod.start; const pEnd = this.currentPeriod.end;
-                const queryStr = (document.getElementById('searchTx').value || '').toLowerCase();
-                const visibleLogs = this.logs.filter(l => {
-                    const d = new Date(l.date); const inPeriod = d >= pStart && d <= pEnd;
-                    const matches = !queryStr || (l.desc||'').toLowerCase().includes(queryStr);
-                    return inPeriod && matches;
-                });
-                if(!visibleLogs.length) { list.innerHTML = `<div class="text-center py-6 text-zinc-600 text-xs italic">Sin movimientos en este ciclo.</div>`; return; }
-                visibleLogs.forEach(l => {
+                let visibleLogs = this.logs;
+                if(this.searchQuery) {
+                    const q = this.searchQuery.toLowerCase();
+                    visibleLogs = visibleLogs.filter(l => (l.desc||'').toLowerCase().includes(q) || (l.category||'').toLowerCase().includes(q) || l.amount.toString().includes(q));
+                }
+                if(!visibleLogs.length) { list.innerHTML = `<div class="text-center py-6 text-zinc-600 text-xs italic">No hay movimientos.</div>`; return; }
+                const cats = DefaultCategories;
+                visibleLogs.slice(0,50).forEach(l => {
                     const isInc = l.type === 'income';
-                    const cat = Categories.find(c=>c.id === l.category) || {icon:'ph-question',color:'text-gray-500'};
+                    const cat = cats.find(c=>c.id === l.category) || {icon:'ph-question',color:'text-gray-500'};
+                    const icon = isInc ? 'ph-arrow-down-left' : cat.icon;
+                    const color = isInc ? 'text-emerald-500' : cat.color;
+                    const isFixedLink = l.meta_related_fixed ? '<i class="ph-bold ph-link text-zinc-600 ml-1" title="Vinculado a Gasto Fijo"></i>' : '';
+                    
                     list.innerHTML += `
                     <div onclick="app.openModal('${isInc?'extra':'expense'}','${l.id}')" class="flex justify-between items-center p-3 rounded-2xl hover:bg-zinc-900/50 transition-colors cursor-pointer border border-transparent hover:border-zinc-800 group active:scale-[0.99] active:bg-zinc-900 md:bg-zinc-900/20 md:mb-2">
-                        <div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 md:bg-black"><i class="ph-fill ${isInc?'ph-arrow-down-left text-emerald-500':cat.icon + ' ' + cat.color} text-lg"></i></div><div><h4 class="font-bold text-zinc-300 text-sm">${l.desc || l.category}</h4><p class="text-[10px] text-zinc-500">${new Date(l.date).toLocaleDateString()}</p></div></div><span class="font-bold text-sm ${isInc?'text-emerald-500':'text-zinc-300'}">${isInc?'+':'-'}${UI.fmtMoney(l.amount)}</span>
+                        <div class="flex items-center gap-4 overflow-hidden">
+                            <div class="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform md:bg-black"><i class="ph-fill ${icon} ${color} text-xl"></i></div>
+                            <div class="min-w-0"><h4 class="font-bold text-zinc-300 text-sm truncate flex items-center">${l.desc || l.category || 'Movimiento'} ${isFixedLink}</h4><p class="text-xs text-zinc-500">${new Date(l.date).toLocaleDateString()}</p></div>
+                        </div>
+                        <span class="font-bold text-base ${isInc?'text-emerald-500':'text-zinc-300'} whitespace-nowrap">${isInc?'+':'-'}${UI.fmtMoney(l.amount)}</span>
+                    </div>`;
+                });
+            },
+
+            renderFixed() {
+                const el = document.getElementById('fixedExpensesList'); el.innerHTML='';
+                (this.data.fixed || []).sort((a,b)=>a.day-b.day).forEach((f,i) => {
+                    el.innerHTML += `
+                    <div class="fixed-item-row flex items-center justify-between p-3.5 bg-zinc-900/50 border border-zinc-800 rounded-2xl mb-2 active:scale-[0.99] transition-transform" data-name="${f.name}">
+                        <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="app.openModal('fixed', ${i})">
+                            <div class="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center font-bold text-xs text-zinc-400 relative">${f.day}<div class="status-dot absolute -top-1 -right-1 w-3 h-3 bg-zinc-700 rounded-full border-2 border-[#050505] hidden"></div></div>
+                            <div class="min-w-0"><div class="font-bold text-sm text-zinc-200 truncate">${f.name}</div><div class="text-xs text-zinc-500">${UI.fmtMoney(f.amount)}</div></div>
+                        </div>
+                        <button onclick="app.payFixed(${i})" class="bg-zinc-800 hover:bg-red-600 hover:text-white text-zinc-400 text-[10px] font-bold px-3 py-2 rounded-lg transition-colors ml-2" title="Registrar Pago Hoy">PAGAR</button>
                     </div>`;
                 });
             },
             
-            updateCharts() {
-                if(!this.logs.length) return;
-                const pStart = this.currentPeriod.start; const pEnd = this.currentPeriod.end;
-                const plogs = this.logs.filter(l => l.type==='expense' && new Date(l.date) >= pStart && new Date(l.date) <= pEnd);
-                const cats = {}; plogs.forEach(l=>cats[l.category]=(cats[l.category]||0)+l.amount);
-                if(this.charts.donut) this.charts.donut.destroy();
-                this.charts.donut = new Chart(document.getElementById('expenseChart'), { type: 'doughnut', data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#f87171','#fb923c','#fbbf24','#34d399','#60a5fa','#818cf8','#c084fc','#f472b6'], borderWidth:0 }] }, options: { responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{position:'right',labels:{color:'#71717a',boxWidth:10,font:{size:10}}}} } });
-                const days = []; const accum = []; let sum = 0;
-                for(let d=new Date(pStart); d<=pEnd; d.setDate(d.getDate()+1)) { days.push(d.getDate()); const dailySum = plogs.filter(l=>new Date(l.date).toDateString()===d.toDateString()).reduce((a,b)=>a+b.amount,0); sum += dailySum; accum.push(sum); }
-                if(this.charts.line) this.charts.line.destroy();
-                this.charts.line = new Chart(document.getElementById('trendChart'), { type:'line', data:{labels:days,datasets:[{label:'Gasto',data:accum,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.1)',fill:true,tension:0.4,pointRadius:0}]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#52525b'}},y:{display:false}}} });
-            },
-
-            // --- HELPERS (Adherence, Forms, etc.) ---
-            renderAdherence() {
-                const card = document.getElementById('adherenceCard');
-                if (this.data.enableAdherence === false) { card.classList.add('hidden'); return; }
-                card.classList.remove('hidden');
-                document.getElementById('manualExtraPay').value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
-            },
-            async saveExtraPayValue(val) { await window.firebaseImports.updateDoc(window.firebaseImports.doc(this.db,'artifacts',this.APP_ID,'users',this.user.uid,'data','financials'), { extraPayAmount: parseFloat(val)||0 }); },
-            async importExtraMoney() { if(confirm('¿Importar?')) { const {addDoc,collection} = window.firebaseImports; await addDoc(collection(this.db,'artifacts',this.APP_ID,'users',this.user.uid,'transactions'), { amount: this.data.extraPayAmount, desc:'Cobro Extra', category:'Otro', type:'income', date:new Date().toISOString() }); UI.toast('Importado','success'); } },
-            toggleAdherenceModule() { const isEnabled = document.getElementById('adhToggle').checked; window.firebaseImports.updateDoc(window.firebaseImports.doc(this.db,'artifacts',this.APP_ID,'users',this.user.uid,'data','financials'), { enableAdherence: isEnabled }); },
-
-            // --- VIEW MGMT ---
-            switchView(v) {
-                ['balance','reports','analysis','plan','simulation','history'].forEach(id => {
-                    const el = document.getElementById('view-'+id); if(el) el.classList.add('hidden');
-                    document.querySelectorAll(`[data-view="${id}"]`).forEach(e=>e.classList.remove('active'));
+            updateFixedUI(statusArray) {
+                const rows = document.querySelectorAll('.fixed-item-row');
+                rows.forEach(row => {
+                    const name = row.dataset.name; const status = statusArray.find(s => s.name === name);
+                    const dot = row.querySelector('.status-dot'); const btn = row.querySelector('button');
+                    
+                    if (status && status.paid === true) { dot.classList.remove('hidden', 'bg-zinc-700'); dot.classList.add('bg-emerald-500'); btn.classList.add('opacity-50', 'pointer-events-none'); btn.textContent = 'LISTO'; } 
+                    else if (status && status.paid === false) { dot.classList.remove('hidden', 'bg-emerald-500'); dot.classList.add('bg-zinc-700'); btn.classList.remove('opacity-50', 'pointer-events-none'); btn.textContent = 'PAGAR'; } 
+                    else { dot.classList.add('hidden'); }
                 });
-                document.getElementById('view-'+v).classList.remove('hidden');
-                document.querySelectorAll(`[data-view="${v}"]`).forEach(e=>e.classList.add('active'));
-                if(v === 'analysis') setTimeout(() => { this.charts.donut.resize(); this.charts.line.resize(); }, 100);
+            },
+            
+            renderLoans() {
+                const el = document.getElementById('loansList'); el.innerHTML='';
+                if(!this.data.loans?.length) el.innerHTML = '<div class="text-zinc-700 text-xs text-center py-2 col-span-2">Sin deudas activas</div>';
+                const pEnd = this.currentPeriod ? this.currentPeriod.end : new Date(2100,0,1);
+                (this.data.loans || []).forEach((l,i) => {
+                    const [y, m, d] = l.dueDate ? l.dueDate.split('-').map(Number) : [0,0,0];
+                    const due = l.dueDate ? new Date(y, m-1, d, 23, 59, 59) : new Date(0); 
+                    const affectsBudget = !l.dueDate || due <= pEnd;
+                    const opacityClass = affectsBudget ? '' : 'opacity-50 grayscale';
+                    const badge = affectsBudget ? '' : '<span class="text-[9px] bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded ml-2 border border-zinc-700">Próx. Ciclo</span>';
+                    el.innerHTML += `<div onclick="app.openModal('loan', ${i})" class="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center mb-2 active:scale-[0.99] ${opacityClass}"><div><div class="font-bold text-sm text-white flex items-center">${l.name} ${badge}</div><div class="text-xs text-red-400">Vence: ${l.dueDate||'Sin fecha'}</div></div><div class="text-right font-bold text-base text-zinc-300">${UI.fmtMoney(l.amount)}</div></div>`;
+                });
+            },
+            
+            renderGoals() {
+                const el = document.getElementById('goalsList'); el.innerHTML='';
+                (this.data.goals || []).forEach((g,i) => {
+                    const pct = Math.min(100, Math.round((g.saved / g.target) * 100));
+                    el.innerHTML += `<div onclick="app.openModal('goal', ${i})" class="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer hover:border-pink-500/30 transition-colors mb-2"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-white">${g.name}</span><span class="text-[10px] text-pink-400 font-bold">${UI.fmtMoney(g.saved)} / ${UI.fmtMoney(g.target)}</span></div><div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-pink-500 transition-all" style="width: ${pct}%"></div></div></div>`;
+                });
+            },
+            
+            // --- CHARTS & METRICS ---
+            renderCharts() {
+                if(!this.logs.length) { document.getElementById('chartSection').classList.add('hidden'); return; }
+                document.getElementById('chartSection').classList.remove('hidden');
+                
+                const pStart = this.currentPeriod.start; const pEnd = this.currentPeriod.end;
+                const periodLogs = this.logs.filter(l => l.type === 'expense' && new Date(l.date).getTime() >= pStart.getTime() && new Date(l.date).getTime() <= pEnd.getTime());
+                
+                const cats = {}; periodLogs.forEach(l => { cats[l.category] = (cats[l.category]||0) + l.amount; });
+                if(this.charts.donut) this.charts.donut.destroy();
+                this.charts.donut = new Chart(document.getElementById('expenseChart'), { type: 'doughnut', data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#fb923c','#60a5fa','#c084fc','#facc15','#ec4899','#f87171','#34d399','#818cf8','#9ca3af'], borderWidth:0 }] }, options: { responsive:true, maintainAspectRatio:false, cutout:'75%', plugins:{ legend:{position:'right',labels:{color:'#71717a',font:{size:10,family:'Plus Jakarta Sans'},boxWidth:8,usePointStyle:true}} } } });
+
+                const days = []; const dailySpending = {}; const currentDay = new Date(pStart);
+                while (currentDay <= pEnd) { const key = currentDay.getDate() + '/' + (currentDay.getMonth()+1); days.push(key); dailySpending[key] = 0; currentDay.setDate(currentDay.getDate() + 1); }
+                periodLogs.forEach(l => { const d = new Date(l.date); const key = d.getDate() + '/' + (d.getMonth()+1); if(dailySpending[key] !== undefined) dailySpending[key] += l.amount; });
+
+                const dataPoints = []; let accum = 0; days.forEach(d => { accum += dailySpending[d]; dataPoints.push(accum); });
+                
+                const totalBudget = (this.data.income || 0) - (this.data.fixed||[]).reduce((a,b)=>a+b.amount,0); 
+                const idealPoints = days.map((_, i) => (totalBudget / days.length) * (i + 1));
+
+                if(this.charts.line) this.charts.line.destroy();
+                this.charts.line = new Chart(document.getElementById('trendChart'), { type: 'line', data: { labels: days.filter((_,i) => i % 2 === 0), datasets: [ { label: 'Gasto Acumulado', data: dataPoints, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.3, fill: true, pointRadius: 2 }, { label: 'Límite Ideal', data: idealPoints, borderColor: '#3f3f46', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, tension: 0.1 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false, grid: { display: false } }, x: { grid: { display: false }, ticks: { color: '#52525b', font: { size: 9 } } } } } });
             },
 
-            // --- MODALS & LISTS (Goals/Loans/Fixed) ---
+            renderAnalysisMetrics() {
+                if(!this.logs.length || !this.currentPeriod) return;
+                const pStart = this.currentPeriod.start; const pEnd = this.currentPeriod.end;
+                const periodLogs = this.logs.filter(l => l.type === 'expense' && new Date(l.date).getTime() >= pStart.getTime() && new Date(l.date).getTime() <= pEnd.getTime());
+                const totalSpent = periodLogs.reduce((a,b)=>a+b.amount,0);
+                const dayDiff = Math.max(1, Math.ceil((new Date() - pStart) / (1000 * 60 * 60 * 24)));
+                const avg = totalSpent / dayDiff;
+                document.getElementById('statDailyAvg').textContent = UI.fmtMoney(avg);
+                const cats = {}; periodLogs.forEach(l => { cats[l.category] = (cats[l.category]||0) + l.amount; });
+                const maxCat = Object.keys(cats).reduce((a, b) => cats[a] > cats[b] ? a : b, '---');
+                document.getElementById('statMaxCat').textContent = maxCat;
+                const income = this.logs.filter(l => l.type === 'income' && new Date(l.date).getTime() >= pStart.getTime() && new Date(l.date).getTime() <= pEnd.getTime());
+                const totalInc = income.reduce((a,b)=>a+b.amount,0) + (this.data.income || 0);
+                document.getElementById('statTotalInc').textContent = UI.fmtMoney(totalInc);
+                document.getElementById('statTotalExp').textContent = UI.fmtMoney(totalSpent);
+            },
+            
+            // --- NUEVA LÓGICA DE SIMULACIÓN (CORREGIDA) ---
+            updateSimulation() {
+                const months = ['Mes 1', 'Mes 2', 'Mes 3', 'Mes 4', 'Mes 5', 'Mes 6'];
+                let monthlyIncome = parseFloat(this.data.income) || 0;
+                
+                // Si es quincenal, el ingreso mensual es Q1 + Q2 (o Q1 * 2 si Q2 está vacío)
+                if (this.data.cycle === 'biweekly') {
+                    const q1 = monthlyIncome;
+                    const q2 = parseFloat(this.data.incomeQ2) || q1; // Fallback a Q1 si Q2 es 0
+                    monthlyIncome = q1 + q2;
+                    document.getElementById('simIncomeDesc').textContent = 'Suma de ambas quincenas';
+                } else {
+                    document.getElementById('simIncomeDesc').textContent = 'Ingreso único mensual';
+                }
+                
+                // Actualizar Tarjeta 1 (Salario Base)
+                document.getElementById('simBaseIncomeVal').textContent = UI.fmtMoney(monthlyIncome);
+
+                // --- CALCULAR INGRESOS EXTRAS ---
+                const now = new Date();
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                
+                const extraLogs = this.logs.filter(l => 
+                    l.type === 'income' && 
+                    new Date(l.date) >= startOfMonth && 
+                    new Date(l.date) <= endOfMonth
+                );
+                
+                const extraMonthIncome = extraLogs.reduce((a, b) => a + b.amount, 0);
+                
+                // Actualizar Tarjeta 2 (Extras + Desglose)
+                document.getElementById('simTotalExtraVal').textContent = '+' + UI.fmtMoney(extraMonthIncome);
+                
+                const extraListEl = document.getElementById('simExtraList');
+                extraListEl.innerHTML = '';
+                
+                if (extraLogs.length === 0) {
+                    extraListEl.innerHTML = '<div class="text-center text-[10px] text-zinc-600 py-2 italic">Sin ingresos extra este mes</div>';
+                } else {
+                    extraLogs.forEach(l => {
+                        extraListEl.innerHTML += `
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-zinc-400 truncate max-w-[70%]">${l.desc || l.category}</span>
+                            <span class="text-emerald-500 font-mono">+${UI.fmtMoney(l.amount)}</span>
+                        </div>
+                        `;
+                    });
+                }
+
+                const totalMonthlyIncome = monthlyIncome + extraMonthIncome;
+                document.getElementById('simTotalIncomeSum').textContent = UI.fmtMoney(totalMonthlyIncome);
+
+                const fixedList = this.data.fixed || [];
+                const totalFixed = fixedList.reduce((a,b) => a + b.amount, 0);
+                
+                const freeMoney = totalMonthlyIncome - totalFixed;
+                
+                document.getElementById('simFreeMoney').textContent = UI.fmtMoney(freeMoney);
+                document.getElementById('simTotalFixed').textContent = '-' + UI.fmtMoney(totalFixed);
+                
+                const listEl = document.getElementById('simFixedList');
+                listEl.innerHTML = '';
+                
+                if (fixedList.length === 0) {
+                    listEl.innerHTML = '<div class="text-center text-zinc-600 text-xs py-2 italic">Sin gastos fijos configurados</div>';
+                } else {
+                    fixedList.forEach(f => {
+                        listEl.innerHTML += `
+                        <div class="flex justify-between items-center p-3 rounded-xl bg-zinc-900/30 border border-zinc-800/50">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 font-bold text-xs">
+                                    ${f.day}
+                                </div>
+                                <span class="text-xs font-bold text-zinc-300">${f.name}</span>
+                            </div>
+                            <span class="text-xs font-mono text-red-400">-${UI.fmtMoney(f.amount)}</span>
+                        </div>
+                        `;
+                    });
+                }
+            },
+
+            // --- ACTIONS ---
             openModal(type, id=null) {
                 this.modalType = type; this.editId = id;
-                document.querySelectorAll('#modalSheet > div[id^="form"]').forEach(d=>d.classList.add('hidden'));
+                document.querySelectorAll('#modalSheet > div[id^="form"]').forEach(d => d.classList.add('hidden'));
                 document.getElementById('modalOverlay').classList.add('is-open');
+                const title = document.getElementById('modalTitle');
                 
-                if(type==='closure') document.getElementById('formClosure').classList.remove('hidden');
-                else if(type==='expense'||type==='extra') {
+                if(type === 'expense' || type === 'extra') {
                     document.getElementById('formTransaction').classList.remove('hidden');
-                    document.getElementById('modalTitle').textContent = type==='expense'?'Gasto':'Ingreso';
-                    document.getElementById('categoryChips').innerHTML = Categories.map(c => `<div onclick="app.selCat(this)" class="chip bg-zinc-900 px-4 py-2 rounded-full text-xs font-bold text-zinc-400 cursor-pointer border border-zinc-800 flex items-center gap-2"><i class="ph-fill ${c.icon} ${c.color}"></i>${c.id}</div>`).join('');
-                    const l = id ? this.logs.find(x=>x.id===id) : null;
-                    document.getElementById('txAmount').value = l ? l.amount : ''; document.getElementById('txDesc').value = l ? l.desc : ''; document.getElementById('txDate').value = l ? new Date(l.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-                    if(l) setTimeout(()=>document.querySelectorAll('.chip').forEach(c=>{if(c.textContent.includes(l.category))c.classList.add('active')}),50);
-                    else if(type==='expense') setTimeout(()=>document.querySelector('.chip').classList.add('active'),50);
-                    document.getElementById('btnDeleteTx').classList.toggle('hidden', !l);
-                } else if(type==='fixed') { document.getElementById('formFixed').classList.remove('hidden'); this.renderFixedList(); }
-                else if(type==='config') { document.getElementById('formConfig').classList.remove('hidden'); this.renderConfigUI(); }
-                else if(type==='goal') { document.getElementById('formGoal').classList.remove('hidden'); const g = id!==null ? this.data.goals[id] : {}; document.getElementById('goalName').value=g.name||''; document.getElementById('goalTarget').value=g.target||''; document.getElementById('goalSaved').value=g.saved||''; document.getElementById('btnDeleteGoal').classList.toggle('hidden', id===null); }
-                else if(type==='loan') { document.getElementById('formLoan').classList.remove('hidden'); const l = id!==null ? this.data.loans[id] : {}; document.getElementById('loanName').value=l.name||''; document.getElementById('loanAmount').value=l.amount||''; document.getElementById('loanDueDate').value=l.dueDate||''; document.getElementById('btnDeleteLoan').classList.toggle('hidden', id===null); }
+                    title.textContent = type === 'expense' ? 'Registrar Gasto' : 'Ingreso Extra';
+                    const chips = document.getElementById('categoryChips');
+                    chips.innerHTML = DefaultCategories.map(c => `
+                        <div onclick="app.selCat(this)" class="chip bg-zinc-900 px-5 py-3 rounded-full text-xs font-bold text-zinc-400 cursor-pointer border border-zinc-800 hover:border-zinc-600 flex items-center gap-2 transition-all">
+                            <i class="ph-fill ${c.icon} ${c.color} text-lg"></i>
+                            <span>${c.id}</span>
+                        </div>
+                    `).join('');
+                    const log = id ? this.logs.find(l=>l.id===id) : null;
+                    document.getElementById('txAmount').value = log ? log.amount : '';
+                    document.getElementById('txDesc').value = log ? log.desc : '';
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('txDate').value = log ? new Date(log.date).toISOString().split('T')[0] : today;
+                    document.getElementById('btnDeleteTx').classList.toggle('hidden', !log);
+                    
+                    if(log) { 
+                        setTimeout(()=> { 
+                            Array.from(chips.children).find(c => {
+                                const span = c.querySelector('span');
+                                return span && span.textContent.trim() === log.category;
+                            })?.classList.add('active');
+                        }, 50); 
+                    } else if (type === 'expense') {
+                         setTimeout(()=> { chips.children[0]?.classList.add('active') }, 50);
+                    }
+                } 
+                else if (type === 'fixed') {
+                    document.getElementById('formFixed').classList.remove('hidden'); title.textContent = 'Gasto Fijo';
+                    const f = id !== null ? this.data.fixed[id] : {};
+                    document.getElementById('fixName').value = f.name||''; document.getElementById('fixAmount').value=f.amount||''; document.getElementById('fixDay').value=f.day||'';
+                    document.getElementById('btnDeleteFix').classList.toggle('hidden', id===null);
+                }
+                else if (type === 'loan') {
+                    document.getElementById('formLoan').classList.remove('hidden'); title.textContent = 'Deuda';
+                    const l = id !== null ? this.data.loans[id] : {};
+                    document.getElementById('loanName').value = l.name||''; document.getElementById('loanAmount').value=l.amount||''; document.getElementById('loanDueDate').value=l.dueDate||'';
+                    document.getElementById('btnDeleteLoan').classList.toggle('hidden', id===null);
+                }
+                else if (type === 'goal') {
+                    document.getElementById('formGoal').classList.remove('hidden'); title.textContent = 'Meta de Ahorro';
+                    const g = id !== null ? this.data.goals[id] : {};
+                    document.getElementById('goalName').value=g.name||''; document.getElementById('goalTarget').value=g.target||''; document.getElementById('goalSaved').value=g.saved||'';
+                    document.getElementById('btnDeleteGoal').classList.toggle('hidden', id===null);
+                }
+                else if (type === 'config') {
+                    document.getElementById('formConfig').classList.remove('hidden'); title.textContent = 'Configuración Ciclo';
+                    const currentMode = this.data.cycle || 'biweekly';
+                    this.setCycleMode(currentMode);
+                    document.getElementById('configStartDay').value = this.data.startDay || 1;
+                }
             },
-            closeModal() { document.getElementById('modalOverlay').classList.remove('is-open'); },
+            
+            closeModal() {
+                document.getElementById('modalOverlay').classList.remove('is-open');
+            },
+            
             selCat(el) { document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); },
             
             async saveTransaction() {
-                const { addDoc, collection, updateDoc, doc } = window.firebaseImports;
                 const amt = parseFloat(document.getElementById('txAmount').value);
-                if(!amt) return UI.toast('Monto requerido', 'error');
-                const cat = document.querySelector('.chip.active')?.textContent || 'Otro';
-                const payload = { amount: amt, category: cat, desc: document.getElementById('txDesc').value, type: this.modalType==='extra'?'income':'expense', date: new Date(document.getElementById('txDate').value + 'T12:00:00').toISOString() };
-                if(this.editId) await updateDoc(doc(this.db, 'artifacts', this.APP_ID, 'users', this.user.uid, 'transactions', this.editId), payload);
-                else await addDoc(collection(this.db, 'artifacts', this.APP_ID, 'users', this.user.uid, 'transactions'), payload);
-                this.closeModal(); UI.toast('Guardado', 'success');
+                const desc = document.getElementById('txDesc').value;
+                const catEl = document.querySelector('.chip.active');
+                const cat = catEl ? catEl.innerText.trim() : 'Otro';
+                const dateVal = document.getElementById('txDate').value;
+                
+                if(!amt) return UI.toast('Ingresa un monto','error');
+                if(!dateVal) return UI.toast('Fecha requerida','error');
+
+                const [y, m, d] = dateVal.split('-').map(Number);
+                const finalDate = new Date(y, m-1, d, new Date().getHours(), new Date().getMinutes());
+
+                const payload = { 
+                    amount: amt, 
+                    desc, 
+                    category: cat, 
+                    type: this.modalType === 'extra'?'income':'expense', 
+                    date: finalDate.toISOString() 
+                };
+                
+                const ref = collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions');
+                
+                if(this.editId) await updateDoc(doc(ref, this.editId), payload);
+                else await addDoc(ref, payload);
+                
+                UI.toast('Guardado','success'); this.closeModal();
             },
-            async deleteTxConfirm() { if(await UI.confirm('Borrar', '¿Eliminar?')) { await window.firebaseImports.deleteDoc(window.firebaseImports.doc(this.db, 'artifacts', this.APP_ID, 'users', this.user.uid, 'transactions', this.editId)); this.closeModal(); } },
-
-            renderFixedList() { const c = document.getElementById('fixedListContainer'); c.innerHTML=''; (this.data.fixed||[]).forEach((f,i) => c.innerHTML += `<div class="flex justify-between items-center bg-zinc-900 p-3 rounded-xl border border-zinc-800 mb-2"><div class="text-xs font-bold text-white">${f.name} <span class="text-zinc-500 font-normal ml-1">Day ${f.day}</span></div><div class="flex items-center gap-3"><span class="text-red-400 font-mono text-xs">${UI.fmtMoney(f.amount)}</span><button onclick="app.delFixed(${i})" class="text-zinc-600 hover:text-red-500"><i class="ph-bold ph-trash"></i></button></div></div>`); },
-            async saveFixed() { const arr = [...(this.data.fixed||[])]; arr.push({ name: document.getElementById('fixName').value, amount: parseFloat(document.getElementById('fixAmount').value), day: parseInt(document.getElementById('fixDay').value) }); await window.firebaseImports.updateDoc(window.firebaseImports.doc(this.db, 'artifacts', this.APP_ID, 'users', this.user.uid, 'data', 'financials'), { fixed: arr }); document.getElementById('fixName').value=''; document.getElementById('fixAmount').value=''; this.renderFixedList(); },
-            async delFixed(i) { const arr = this.data.fixed.filter((_,idx)=>idx!==i); await window.firebaseImports.updateDoc(window.firebaseImports.doc(this.db, 'artifacts', this.APP_ID, 'users', this.user.uid, 'data', 'financials'), { fixed: arr }); this.renderFixedList(); },
-
-            async saveGoal() { const arr = [...(this.data.goals||[])]; const item = { name: document.getElementById('goalName').value, target: parseFloat(document.getElementById('goalTarget').value), saved: parseFloat(document.getElementById('goalSaved').value) }; if(this.editId!==null) arr[this.editId]=item; else arr.push(item); await window.firebaseImports.updateDoc(window.firebaseImports.doc(this.db,'artifacts',this.APP_ID,'users',this.user.uid,'data','financials'),{goals:arr}); this.closeModal(); this.renderPlanLists(); },
-            async deleteGoalConfirm() { if(await UI.confirm('Borrar','¿Eliminar?')) { const arr=this.data.goals.filter((_,i)=>i!==this.editId); await window.firebaseImports.updateDoc(window.firebaseImports.doc(this.db,'artifacts',this.APP_ID,'users',this.user.uid,'data','financials'),{goals:arr}); this.closeModal(); this.renderPlanLists(); } },
-
-            async saveLoan() { const arr = [...(this.data.loans||[])]; const item = { name: document.getElementById('loanName').value, amount: parseFloat(document.getElementById('loanAmount').value), dueDate: document.getElementById('loanDueDate').value }; if(this.editId!==null) arr[this.editId]=item; else arr.push(item); await window.firebaseImports.updateDoc(window.firebaseImports.doc(this.db,'artifacts',this.APP_ID,'users',this.user.uid,'data','financials'),{loans:arr}); this.closeModal(); this.renderPlanLists(); },
-            async deleteLoanConfirm() { if(await UI.confirm('Borrar','¿Eliminar?')) { const arr=this.data.loans.filter((_,i)=>i!==this.editId); await window.firebaseImports.updateDoc(window.firebaseImports.doc(this.db,'artifacts',this.APP_ID,'users',this.user.uid,'data','financials'),{loans:arr}); this.closeModal(); this.renderPlanLists(); } },
-
-            renderConfigUI() { 
-                document.getElementById('inpIncome').value = this.data.income; document.getElementById('inpIncomeQ2').value = this.data.incomeQ2 || ''; 
-                this.setCycleMode(this.data.cycle || 'biweekly'); document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
-                this.renderPlanLists();
-            },
-            setCycleMode(m) { this.tempCycle = m; document.getElementById('btnCycleBi').className = `border p-4 rounded-2xl text-center w-full h-32 flex flex-col items-center justify-center transition-all ${m==='biweekly'?'border-emerald-500 bg-emerald-500/10 text-emerald-500':'border-zinc-700 text-zinc-500'}`; document.getElementById('btnCycleMo').className = `border p-4 rounded-2xl text-center w-full h-32 flex flex-col items-center justify-center transition-all ${m==='monthly'?'border-blue-500 bg-blue-500/10 text-blue-500':'border-zinc-700 text-zinc-500'}`; document.getElementById('configStartDay').value = this.data.startDay; },
-            async saveConfig() { await window.firebaseImports.updateDoc(window.firebaseImports.doc(this.db, 'artifacts', this.APP_ID, 'users', this.user.uid, 'data', 'financials'), { income: parseFloat(document.getElementById('inpIncome').value)||0, incomeQ2: parseFloat(document.getElementById('inpIncomeQ2').value)||0 }); },
-            async saveCycleConfig() { await window.firebaseImports.updateDoc(window.firebaseImports.doc(this.db, 'artifacts', this.APP_ID, 'users', this.user.uid, 'data', 'financials'), { cycle: this.tempCycle, startDay: parseInt(document.getElementById('configStartDay').value) }); this.closeModal(); },
             
-            renderPlanLists() {
-                 const gEl = document.getElementById('goalsList'); gEl.innerHTML='';
-                 (this.data.goals||[]).forEach((g,i) => { const pct = Math.min(100,Math.round((g.saved/g.target)*100)); gEl.innerHTML+=`<div onclick="app.openModal('goal',${i})" class="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-white">${g.name}</span><span class="text-[10px] text-pink-400 font-bold">${UI.fmtMoney(g.saved)} / ${UI.fmtMoney(g.target)}</span></div><div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-pink-500" style="width:${pct}%"></div></div></div>`});
-                 const lEl = document.getElementById('loansList'); lEl.innerHTML='';
-                 (this.data.loans||[]).forEach((l,i) => lEl.innerHTML+=`<div onclick="app.openModal('loan',${i})" class="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer flex justify-between items-center"><div><div class="font-bold text-sm text-white">${l.name}</div><div class="text-xs text-red-400">${l.dueDate||'Sin fecha'}</div></div><div class="font-bold text-base text-zinc-300">${UI.fmtMoney(l.amount)}</div></div>`);
-                 const fEl = document.getElementById('fixedExpensesList'); fEl.innerHTML='';
-                 (this.data.fixed||[]).forEach((f,i) => fEl.innerHTML+=`<div onclick="app.openModal('fixed',${i})" class="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl cursor-pointer flex justify-between items-center"><div><div class="font-bold text-sm text-white">${f.name}</div><div class="text-xs text-zinc-500">Día ${f.day}</div></div><div class="font-bold text-base text-red-400">${UI.fmtMoney(f.amount)}</div></div>`);
+            async saveFixed() {
+                const arr = [...(this.data.fixed||[])];
+                const item = { name: document.getElementById('fixName').value, amount: parseFloat(document.getElementById('fixAmount').value), day: parseInt(document.getElementById('fixDay').value) };
+                if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{fixed:arr});
+                this.closeModal(); UI.toast('Fijo guardado','success');
             },
-            togglePrivacy() { document.getElementById('dailyFreeBlur').classList.toggle('hidden'); document.getElementById('eyeIcon').classList.toggle('ph-eye-slash'); },
-            async resetData() { if(await UI.confirm('Resetear', '¿Borrar todo?')) { const {writeBatch,collection,getDocs,doc} = window.firebaseImports; const batch = writeBatch(this.db); batch.set(doc(this.db,'artifacts',this.APP_ID,'users',this.user.uid,'data','financials'), {income:0,fixed:[],loans:[],goals:[]}); const q = await getDocs(collection(this.db,'artifacts',this.APP_ID,'users',this.user.uid,'transactions')); q.forEach(d => batch.delete(d.ref)); const r = await getDocs(collection(this.db,'artifacts',this.APP_ID,'users',this.user.uid,'reports')); r.forEach(d => batch.delete(d.ref)); await batch.commit(); window.location.reload(); } },
-            logout() { window.location.reload(); }
+            
+            async payFixed(idx) {
+                const f = this.data.fixed[idx];
+                if(await UI.confirm('Pagar Fijo', `¿Registrar pago de ${f.name} por ${UI.fmtMoney(f.amount)}?`)) {
+                    // FIX: Metadata para enlace robusto
+                    await addDoc(collection(db,'artifacts',APP_ID,'users',this.user.uid,'transactions'), {
+                        amount: parseFloat(f.amount), 
+                        desc: `Pago Fijo: ${f.name}`, 
+                        category: 'Servicios', 
+                        type: 'expense', 
+                        date: new Date().toISOString(),
+                        meta_related_fixed: f.name // ENLACE CLAVE
+                    });
+                    UI.toast('Pago registrado','success');
+                }
+            },
+            
+            async saveLoan() {
+                const arr = [...(this.data.loans||[])];
+                const item = { name: document.getElementById('loanName').value, amount: parseFloat(document.getElementById('loanAmount').value), dueDate: document.getElementById('loanDueDate').value };
+                if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{loans:arr});
+                this.closeModal();
+            },
+            
+            async saveGoal() {
+                const arr = [...(this.data.goals||[])];
+                const item = { name: document.getElementById('goalName').value, target: parseFloat(document.getElementById('goalTarget').value), saved: parseFloat(document.getElementById('goalSaved').value) };
+                if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{goals:arr});
+                this.closeModal();
+            },
+            
+            async saveConfig() {
+                const inc = parseFloat(document.getElementById('inpIncome').value);
+                const incQ2 = parseFloat(document.getElementById('inpIncomeQ2').value);
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{income:inc, incomeQ2: incQ2});
+                UI.toast('Ingresos actualizados','success');
+            },
+            
+            setCycleMode(mode) {
+                this.tempCycle = mode;
+                document.getElementById('btnCycleBi').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 flex flex-col items-center justify-center active:scale-95 ${mode==='biweekly' ? 'border-emerald-500 bg-emerald-500/10' : 'border-zinc-700'}`;
+                document.getElementById('btnCycleMo').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 flex flex-col items-center justify-center active:scale-95 ${mode==='monthly' ? 'border-blue-500 bg-blue-500/10' : 'border-zinc-700'}`;
+                
+                const div = document.getElementById('customStartDayDiv');
+                div.classList.remove('hidden');
+                
+                const lbl = document.getElementById('lblStartDay');
+                if(mode === 'biweekly') {
+                    lbl.textContent = 'Día Inicio 1er Periodo';
+                    div.querySelector('p').textContent = 'El segundo periodo iniciará 15 días después.';
+                } else {
+                    lbl.textContent = 'Día de Corte / Inicio Mes';
+                    div.querySelector('p').textContent = 'Tu mes financiero iniciará en este día.';
+                }
+            },
+            
+            async saveCycleConfig() {
+                const mode = this.tempCycle || this.data.cycle || 'biweekly';
+                const startDay = parseInt(document.getElementById('configStartDay').value) || 1;
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{cycle: mode, startDay: startDay});
+                UI.toast('Ciclo actualizado','success'); this.closeModal();
+            },
+
+            // --- DELETIONS ---
+            async deleteTxConfirm() { if(await UI.confirm('Borrar','¿Eliminar esta transacción?')) { await deleteDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'transactions',this.editId)); this.closeModal(); } },
+            async deleteFixedConfirm() { if(await UI.confirm('Borrar','¿Eliminar gasto fijo?')) { const arr=this.data.fixed.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{fixed:arr}); this.closeModal(); } },
+            async deleteLoanConfirm() { if(await UI.confirm('Liquidar','¿Marcar como pagado y borrar?')) { const arr=this.data.loans.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{loans:arr}); this.closeModal(); } },
+            async deleteGoalConfirm() { if(await UI.confirm('Borrar','¿Eliminar meta?')) { const arr=this.data.goals.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{goals:arr}); this.closeModal(); } },
+            
+            async resetData() {
+                 if(await UI.confirm('RESETEO TOTAL','¿Estás seguro? Se borrará TODO.')) {
+                      const uid = this.user.uid; const batch = writeBatch(db);
+                      batch.set(doc(db,'artifacts',APP_ID,'users',uid,'data','financials'), {income:0,fixed:[],loans:[],goals:[], categories:[]});
+                      const q = await getDocs(collection(db,'artifacts',APP_ID,'users',uid,'transactions'));
+                      q.forEach(d => batch.delete(d.ref));
+                      await batch.commit(); window.location.reload();
+                 }
+            },
+            
+            // --- UI HELPERS ---
+            switchView(v) {
+                document.getElementById('view-balance').classList.add('hidden'); 
+                document.getElementById('view-analysis').classList.add('hidden');
+                document.getElementById('view-history').classList.add('hidden');
+                document.getElementById('view-plan').classList.add('hidden');
+                document.getElementById('view-simulation').classList.add('hidden');
+                
+                document.getElementById('view-'+v).classList.remove('hidden');
+                document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+                
+                if(event && event.currentTarget) event.currentTarget.classList.add('active');
+                
+                document.querySelectorAll('.nav-link-desk').forEach(b => {
+                    b.classList.toggle('active', b.dataset.view === v);
+                });
+                
+                document.getElementById('fabContainer').classList.toggle('scale-0', v !== 'balance');
+                
+                if(v === 'analysis' && this.charts.donut) {
+                    setTimeout(() => {
+                        this.charts.donut.resize();
+                        this.charts.line.resize();
+                    }, 100);
+                }
+                
+                if(v === 'simulation') {
+                    this.updateSimulation();
+                    // setTimeout(() => this.charts.simulation.resize(), 100); // Chart removed
+                }
+            },
+            scrollToChart() { document.getElementById('chartSection').classList.remove('hidden'); document.getElementById('chartSection').scrollIntoView({behavior:'smooth'}); },
+            filterTransactions() { this.searchQuery = document.getElementById('searchTx').value; this.renderTransactions(); },
+            
+            generateReport() {
+                if(!this.currentPeriod) return UI.toast('Espera un momento...','error');
+                
+                // Filtrar datos
+                const logs = this.logs.filter(l => { const t = new Date(l.date).getTime(); return t >= this.currentPeriod.start.getTime() && t <= this.currentPeriod.end.getTime(); });
+                const inc = logs.filter(l=>l.type==='income').reduce((a,b)=>a+b.amount,0);
+                const exp = logs.filter(l=>l.type==='expense').reduce((a,b)=>a+b.amount,0);
+                const totalIncome = this.data.income + inc;
+                const balance = totalIncome - exp;
+                
+                // Construir HTML en #print-area (Hidden on screen, Visible on Print)
+                const printArea = document.getElementById('print-area');
+                
+                printArea.innerHTML = `
+                <div class="print-header">
+                    <div class="print-logo">
+                        GOD'S <span class="logo-accent">PLAN</span>
+                    </div>
+                    <div class="print-meta">
+                        <p>ESTADO DE CUENTA MENSUAL</p>
+                        <p>ID: #GP-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000 + 1000)}</p>
+                        <p>FECHA: ${new Date().toLocaleDateString('es-MX', {day: '2-digit', month:'short', year:'numeric'}).toUpperCase()}</p>
+                    </div>
+                </div>
+
+                <div class="print-grid">
+                    <div class="print-card">
+                        <div class="print-label">Ingresos Totales</div>
+                        <div class="print-val">${UI.fmtMoney(totalIncome)}</div>
+                    </div>
+                    <div class="print-card">
+                        <div class="print-label">Gastos Totales</div>
+                        <div class="print-val text-red-500">${UI.fmtMoney(exp)}</div>
+                    </div>
+                    <div class="print-card">
+                        <div class="print-label">Saldo al Momento</div>
+                        <div class="print-val">${UI.fmtMoney(balance)}</div>
+                    </div>
+                </div>
+
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>Concepto</th>
+                            <th>Categoría</th>
+                            <th>Tipo</th>
+                            <th>Fecha</th>
+                            <th style="text-align: right;">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>${logs.slice(0, 100).map(l=>`
+                        <tr>
+                            <td>${l.desc||'Sin descripción'}</td>
+                            <td>${l.category}</td>
+                            <td>${l.type==='income'?'INGRESO':'GASTO'}</td>
+                            <td>${new Date(l.date).toLocaleDateString()}</td>
+                            <td style="text-align:right;color:${l.type==='income'?'#34d399':'#ef4444'}">${l.type==='income'?'+':'-'} ${UI.fmtMoney(l.amount)}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+
+                <div class="print-footer">
+                    <p>CONFIDENCIAL - GENERADO POR SISTEMA GOD'S PLAN</p>
+                    <p>Fin del reporte</p>
+                </div>
+                `;
+
+                setTimeout(() => window.print(), 100);
+            },
+
+            exportCSV() {
+                if(!this.logs.length) return UI.toast('Sin datos para exportar', 'error');
+                let csv = 'Fecha,Tipo,Categoria,Descripcion,Monto\n';
+                this.logs.forEach(l => {
+                    const dateStr = new Date(l.date).toISOString().split('T')[0]; 
+                    csv += `${dateStr},${l.type},${l.category},"${l.desc||''}",${l.amount}\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", "gods_plan_export.csv");
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            },
+            
+            importCSV() {
+                document.getElementById('csvInput').click();
+            },
+            
+            async processCSV(input) {
+                const file = input.files[0];
+                if(!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const text = e.target.result;
+                    const rows = text.split('\n');
+                    const batch = writeBatch(db);
+                    let count = 0;
+                    
+                    for(let i=1; i<rows.length; i++) {
+                        const row = rows[i].trim();
+                        if(!row) continue;
+                        const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || row.split(',');
+                        
+                        if(cols.length >= 5) {
+                            let dateStr = cols[0].replace(/"/g, '');
+                            const type = cols[1].replace(/"/g, '');
+                            const category = cols[2].replace(/"/g, '');
+                            const desc = cols[3].replace(/"/g, '');
+                            const amount = parseFloat(cols[4]);
+                            
+                            if(amount && type) {
+                                let finalDate = new Date();
+                                if(dateStr.includes('-')) {
+                                    const [y,m,d] = dateStr.split('-').map(Number);
+                                    finalDate = new Date(y, m-1, d, 12, 0, 0);
+                                } else if (dateStr.includes('/')) {
+                                    const [d,m,y] = dateStr.split('/').map(Number);
+                                    finalDate = new Date(y, m-1, d, 12, 0, 0);
+                                }
+
+                                const ref = doc(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions'));
+                                batch.set(ref, {
+                                    amount: Math.abs(amount),
+                                    desc: desc,
+                                    category: category || 'Importado',
+                                    type: type.toLowerCase().includes('income') || type.toLowerCase().includes('ingreso') ? 'income' : 'expense',
+                                    date: finalDate.toISOString()
+                                });
+                                count++;
+                            }
+                        }
+                    }
+                    
+                    if(count > 0) {
+                        await batch.commit();
+                        UI.toast(`${count} registros importados`, 'success');
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        UI.toast('No se pudieron leer registros', 'error');
+                    }
+                    input.value = ''; 
+                };
+                reader.readAsText(file);
+            }
         };
+
         document.addEventListener('DOMContentLoaded', () => window.app.init());
     </script>
 </body>
