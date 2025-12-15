@@ -342,8 +342,11 @@
                                     <div class="text-[10px] text-emerald-400 font-black uppercase tracking-widest mb-1 flex items-center gap-1">
                                         <i class="ph-fill ph-clock-countdown"></i> NÓMINA EXTRA
                                     </div>
-                                    <div class="text-white font-bold text-2xl tracking-tight" id="extraPayValue">Calculando...</div>
-                                    <div class="text-[10px] text-emerald-500/70 mt-1 font-mono" id="extraPayHours">0h 00m acumulados</div>
+                                    <!-- CAMBIO: INPUT MANUAL -->
+                                    <div class="relative flex items-center group focus-within:border-emerald-500/50 border-b border-transparent transition-colors mt-1">
+                                        <span class="text-emerald-500 text-xl font-bold mr-1">$</span>
+                                        <input type="number" id="manualExtraPay" inputmode="decimal" class="bg-transparent text-2xl font-bold text-white w-full focus:outline-none placeholder-emerald-500/30 font-mono" placeholder="0.00" onblur="app.saveExtraPayValue(this.value)">
+                                    </div>
                                  </div>
                                  <div class="text-right mt-7">
                                      <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1">COBRO</div>
@@ -873,7 +876,7 @@
         // --- APP LOGIC ---
         const app = window.app = {
             user: null, 
-            data: { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true }, 
+            data: { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 }, 
             logs: [], adhData: null,
             currentPeriod: null, 
             privacyMode: false,
@@ -915,16 +918,18 @@
                 
                 onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
-                        this.data = { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, ...snap.data() };
+                        this.data = { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
                         document.getElementById('inpIncome').value = this.data.income || '';
                         document.getElementById('inpIncomeQ2').value = this.data.incomeQ2 || '';
                         document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
                         
+                        // NEW: Update manual input from stored data
+                        document.getElementById('manualExtraPay').value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
+                        
                         this.renderPlanInputs();
                         this.renderFixed(); this.renderLoans(); this.renderGoals();
                         this.calcPeriod();
-                        
-                        if (this.adhData) this.calcAdherencePay();
+                        this.renderAdherenceCard(); // Renamed function
                     } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
                 });
 
@@ -932,14 +937,6 @@
                 onSnapshot(q, (snap) => {
                     this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
                     this.renderTransactions(); this.calcBalance(); this.renderCharts(); this.renderAnalysisMetrics(); this.renderHistory();
-                });
-
-                const adhRef = doc(db, 'godsPlanData', uid);
-                onSnapshot(adhRef, (snap) => {
-                    if (snap.exists()) {
-                        this.adhData = snap.data();
-                        this.calcAdherencePay(); 
-                    }
                 });
             },
             
@@ -1069,35 +1066,14 @@
             },
 
             // --- ADHERENCIA ---
-            calcAdherencePay() {
+            renderAdherenceCard() {
                 const card = document.getElementById('adherenceCard');
                 if (this.data.enableAdherence === false) { card.classList.add('hidden'); return; }
-                if (!this.adhData || !this.adhData.logs) return;
                 
-                const d = new Date(); const currentWeek = this.getWeek(d); const currentYear = d.getFullYear();
-                const wLogs = this.adhData.logs.filter(l => this.getWeek(new Date(l.date + 'T00:00')) === currentWeek && new Date(l.date).getFullYear() === currentYear);
-
-                let t = 0, w = 0; 
-                wLogs.forEach(l => { 
-                    t += (l.type === 'Laboral' || l.type === 'Falta') ? 480 : 0; 
-                    w += (l.type === 'Laboral' || l.type === 'Descanso') ? (l.hours - (l.disconnection || 0)) : 0; 
-                }); 
-                const bal = w - t;
-                const config = this.adhData.config || {}; 
-                let pay = 0, he = Math.floor(bal / 60); 
-                if (bal > 0) pay = (he <= 12) ? he * (config.rate1 || 50) : (12 * (config.rate1 || 50)) + ((he - 12) * (config.rate1 || 50));
+                card.classList.remove('hidden');
+                this.pendingExtraPay = this.data.extraPayAmount || 0;
                 
-                this.pendingExtraPay = Math.round(pay);
-
-                if (this.pendingExtraPay > 0) {
-                    card.classList.remove('hidden');
-                    document.getElementById('extraPayValue').textContent = UI.fmtMoney(this.pendingExtraPay);
-                    const hours = Math.floor(bal / 60);
-                    const mins = Math.floor(bal % 60);
-                    document.getElementById('extraPayHours').textContent = `${hours}h ${mins}m acumulados`;
-                } else {
-                    card.classList.add('hidden');
-                }
+                // Date Logic
                 this.resolvePayDate();
             },
 
@@ -1125,6 +1101,13 @@
                 await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { nextExtraPayDate: val });
                 this.resolvePayDate();
             },
+            
+            async saveExtraPayValue(val) {
+                const amount = parseFloat(val) || 0;
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { extraPayAmount: amount });
+                // We don't toast here to avoid spamming while typing/blurring
+                this.calcBalance(); // Update simulation if active
+            },
 
             toggleAdherenceModule() {
                 const isEnabled = document.getElementById('adhToggle').checked;
@@ -1137,11 +1120,23 @@
             },
 
             async importExtraMoney() {
-                if (this.pendingExtraPay <= 0) return;
-                if (await UI.confirm('Importar Dinero', `¿Registrar ingreso de ${UI.fmtMoney(this.pendingExtraPay)} por horas extras?`)) {
+                const amount = this.data.extraPayAmount || 0;
+                if (amount <= 0) return UI.toast('Monto debe ser mayor a 0', 'error');
+                
+                if (await UI.confirm('Importar Dinero', `¿Registrar ingreso de ${UI.fmtMoney(amount)}?`)) {
                     await addDoc(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions'), {
-                        amount: this.pendingExtraPay, desc: `Cobro Horas Extras (Semana ${this.getWeek(new Date())})`, category: 'Otro', type: 'income', date: new Date().toISOString()
+                        amount: amount, 
+                        desc: `Cobro Nómina Extra`, 
+                        category: 'Otro', 
+                        type: 'income', 
+                        date: new Date().toISOString()
                     });
+                    
+                    // Optional: Clear amount after import? 
+                    // Let's keep it for now or user can clear manually. 
+                    // If user wants to clear: 
+                    // await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { extraPayAmount: 0 });
+                    
                     UI.toast('Dinero sumado a billetera', 'success');
                 }
             },
@@ -1194,7 +1189,10 @@
                 let totalSpentInCycle = 0; let extraInc = 0;
                 periodLogs.forEach(l => { if(l.type === 'income') extraInc += l.amount; else totalSpentInCycle += l.amount; });
 
-                if (this.isSimulating && this.pendingExtraPay > 0) { extraInc += this.pendingExtraPay; }
+                // Use manual extra pay amount for simulation
+                if (this.isSimulating) { 
+                    extraInc += (this.data.extraPayAmount || 0); 
+                }
 
                 let fixedReserve = 0;
                 const fixedStatus = []; 
