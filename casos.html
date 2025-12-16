@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>God's Plan | Casos</title>
+    <title>God's Plan | Sala de Guerra (Casos)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,10 +11,6 @@
     <!-- Fuentes e Iconos -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!-- Date-fns -->
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/index.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/locale/es/index.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -396,6 +392,20 @@
 
         // --- APP LOGIC ---
         window.app = {
+            // Utilidad para tiempos relativos (reemplaza date-fns)
+            getTimeAgo: (dateInput) => {
+                if (!dateInput) return 'Desconocido';
+                const date = new Date(dateInput);
+                const now = new Date();
+                const diffInSeconds = Math.floor((now - date) / 1000);
+                
+                if (diffInSeconds < 60) return 'Hace un momento';
+                if (diffInSeconds < 3600) return `Hace ${Math.floor(diffInSeconds / 60)} min`;
+                if (diffInSeconds < 86400) return `Hace ${Math.floor(diffInSeconds / 3600)} h`;
+                if (diffInSeconds < 604800) return `Hace ${Math.floor(diffInSeconds / 86400)} días`;
+                return date.toLocaleDateString();
+            },
+
             toggleImportModal: () => {
                 const modal = document.getElementById('import-modal');
                 const content = document.getElementById('modal-content');
@@ -514,7 +524,7 @@
                     const borderClass = isSw ? 'group-hover:border-neonBlue/50' : 'group-hover:border-neonYellow/50';
                     
                     let timeText = 'Recién';
-                    if (c.createdAt) { try { timeText = dateFns.formatDistance(c.createdAt.toDate(), now, { addSuffix: true, locale: dateFns.locale.es }); } catch(e) {} }
+                    if (c.createdAt) { try { timeText = window.app.getTimeAgo(c.createdAt.toDate()); } catch(e) {} }
 
                     // --- GENERADOR DE TELÉFONOS ---
                     const renderPhoneRow = (label, phone, icon) => {
@@ -547,7 +557,7 @@
                         <div class="mb-2 last:mb-0 bg-white/5 p-2 rounded border border-white/5">
                             <div class="flex justify-between items-center mb-1">
                                 <span class="text-[10px] font-bold text-brand uppercase">${com.author}</span>
-                                <span class="text-[8px] text-zinc-600">${dateFns.formatDistance(new Date(com.createdAt), now, {locale: dateFns.locale.es})}</span>
+                                <span class="text-[8px] text-zinc-600">${window.app.getTimeAgo(com.createdAt)}</span>
                             </div>
                             <p class="text-xs text-zinc-300 leading-tight">${com.text}</p>
                         </div>
