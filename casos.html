@@ -2,13 +2,19 @@
 <html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>God's Plan | Sala de Guerra (Casos)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>God's Plan | Casos</title>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Fuentes e Iconos -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Date-fns para manejo de tiempo relativo -->
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/locale/es/index.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -16,12 +22,21 @@
                 extend: {
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: {
-                        brand: '#E70000',
+                        brand: '#E70000',     /* Rojo Ferrari */
+                        brandDark: '#990000',
                         dark: '#050505',
-                        glass: 'rgba(255, 255, 255, 0.05)'
+                        panel: '#111111',
+                        neonBlue: '#00F0FF',
+                        neonYellow: '#FFE600'
                     },
                     animation: {
-                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 1, boxShadow: '0 0 10px rgba(231,0,0,0.5)' },
+                            '50%': { opacity: .8, boxShadow: '0 0 20px rgba(231,0,0,0.8)' },
+                        }
                     }
                 }
             }
@@ -31,354 +46,422 @@
     <style>
         body { 
             background-color: #050505; 
-            color: white; 
+            color: #e5e5e5; 
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
         } 
-        /* Scrollbar personalizada */
-        ::-webkit-scrollbar { width: 8px; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #E70000; }
 
-        /* Estilos Base God's Plan */
         .glass-panel {
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(12px);
+            background: rgba(20, 20, 20, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
-        .btn-action {
-            background: linear-gradient(135deg, #E70000 0%, #990000 100%);
-            transition: all 0.2s;
-        }
-        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(231, 0, 0, 0.4); }
-        .btn-action:active { transform: translateY(0); }
 
-        /* Estados de las tarjetas */
-        .case-card { border-left: 4px solid #E70000; }
-        .case-card.taken { border-left-color: #444; opacity: 0.7; filter: grayscale(0.8); }
-        .case-card.taken:hover { filter: grayscale(0); opacity: 1; }
-        .case-card.smartwatch { border-left-color: #00E7FF; }
-        
-        /* Modal */
-        .modal-bg { background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); }
+        .btn-primary {
+            background: linear-gradient(135deg, #E70000 0%, #b30000 100%);
+            box-shadow: 0 4px 15px rgba(231, 0, 0, 0.3);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(231, 0, 0, 0.5); filter: brightness(1.1); }
+        .btn-primary:active { transform: translateY(1px); }
+
+        .card-enter { animation: slideIn 0.3s ease-out forwards; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Toast Notification */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { pointer-events: auto; background: #1a1a1a; border-left: 4px solid #E70000; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 12px; font-size: 0.9rem; animation: toastIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); max-width: 300px; }
+        .toast.success { border-left-color: #10B981; }
+        .toast.error { border-left-color: #EF4444; }
+        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+
+        /* Mobile Adjustments */
+        .tap-target { min-height: 44px; min-width: 44px; }
     </style>
 </head>
 <body>
 
-    <!-- FONDO -->
-    <div class="fixed inset-0 z-[-1]">
-        <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,_#1a0505_0%,_#000000_80%)]"></div>
-        <div class="absolute top-[-20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-brand/10 blur-[100px] animate-pulse-fast"></div>
+    <!-- BACKGROUND FX -->
+    <div class="fixed inset-0 z-[-1] pointer-events-none">
+        <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_-20%,_#220505_0%,_#000000_60%)]"></div>
+        <div class="absolute bottom-0 right-0 w-[800px] h-[800px] bg-brand/5 blur-[120px] rounded-full mix-blend-screen"></div>
     </div>
 
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
     <!-- HEADER -->
-    <header class="h-16 bg-black/80 border-b border-white/10 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-6">
-        <a href="/" class="flex items-center gap-3 font-black tracking-wider text-white hover:text-brand transition-colors">
-            <i class="ph-bold ph-caret-left"></i>
-            VOLVER AL HUB
-        </a>
+    <header class="h-16 md:h-20 bg-black/80 border-b border-white/5 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-4 md:px-8">
         <div class="flex items-center gap-4">
-            <div id="user-pill" class="hidden md:flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
-                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span id="current-user-name" class="text-xs font-bold uppercase tracking-wider text-zinc-300">Verificando...</span>
+            <div class="w-8 h-8 md:w-10 md:h-10 bg-brand rounded-lg flex items-center justify-center shadow-lg shadow-brand/20">
+                <i class="ph-bold ph-shield-check text-white text-lg md:text-xl"></i>
             </div>
-            <button onclick="window.app.toggleImportModal()" class="btn-action text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                <i class="ph-bold ph-plus-circle"></i> Nuevo Caso
+            <div>
+                <h1 class="font-black text-lg md:text-xl tracking-tighter leading-none text-white">GOD'S PLAN</h1>
+                <p class="text-[10px] md:text-xs font-bold text-zinc-500 tracking-[0.2em] uppercase">Casos v2.0</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 md:gap-4">
+            <!-- User Status -->
+            <div class="hidden md:flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/5">
+                <div class="relative">
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
+                    <div class="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></div>
+                </div>
+                <span id="user-display" class="text-xs font-bold uppercase tracking-wider text-zinc-300">Conectado</span>
+            </div>
+            
+            <!-- Import Button -->
+            <button onclick="window.app.toggleImportModal()" class="btn-primary text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+                <i class="ph-bold ph-plus"></i> <span class="hidden md:inline">Nuevo Caso</span>
             </button>
         </div>
     </header>
 
-    <!-- MAIN CONTENT -->
-    <main class="flex-grow p-4 md:p-8 max-w-[1600px] mx-auto w-full">
+    <!-- MAIN DASHBOARD -->
+    <main class="flex-grow p-4 md:p-8 max-w-[1800px] mx-auto w-full">
         
-        <!-- ESTADÍSTICAS RÁPIDAS -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="glass-panel p-4 rounded-xl flex flex-col">
-                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Pendientes</span>
-                <span id="stat-pending" class="text-2xl font-black text-white">0</span>
+        <!-- DASHBOARD STATS -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8">
+            <!-- Stat Card -->
+            <div class="glass-panel p-4 md:p-5 rounded-2xl flex flex-col relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="ph-fill ph-stack text-4xl text-white"></i>
+                </div>
+                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">Pendientes</span>
+                <span id="stat-pending" class="text-3xl md:text-4xl font-black text-white tracking-tight">0</span>
+                <div class="h-1 w-full bg-zinc-800 mt-3 rounded-full overflow-hidden">
+                    <div id="bar-pending" class="h-full bg-white w-0 transition-all duration-1000"></div>
+                </div>
             </div>
-            <div class="glass-panel p-4 rounded-xl flex flex-col">
-                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">En Proceso</span>
-                <span id="stat-progress" class="text-2xl font-black text-brand">0</span>
+
+            <!-- Stat Card -->
+            <div class="glass-panel p-4 md:p-5 rounded-2xl flex flex-col relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="ph-fill ph-fire text-4xl text-brand"></i>
+                </div>
+                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">En Proceso</span>
+                <span id="stat-progress" class="text-3xl md:text-4xl font-black text-brand tracking-tight">0</span>
+                <div class="h-1 w-full bg-zinc-800 mt-3 rounded-full overflow-hidden">
+                    <div id="bar-progress" class="h-full bg-brand w-0 transition-all duration-1000"></div>
+                </div>
             </div>
-            <div class="glass-panel p-4 rounded-xl flex flex-col">
-                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Smartwatches</span>
-                <span id="stat-sw" class="text-2xl font-black text-[#00E7FF]">0</span>
+
+            <!-- Stat Card -->
+            <div class="glass-panel p-4 md:p-5 rounded-2xl flex flex-col relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="ph-fill ph-watch text-4xl text-neonBlue"></i>
+                </div>
+                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">Smartwatch</span>
+                <span id="stat-sw" class="text-3xl md:text-4xl font-black text-neonBlue tracking-tight">0</span>
+                <div class="h-1 w-full bg-zinc-800 mt-3 rounded-full overflow-hidden">
+                    <div id="bar-sw" class="h-full bg-neonBlue w-0 transition-all duration-1000"></div>
+                </div>
             </div>
-            <div class="glass-panel p-4 rounded-xl flex flex-col">
-                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Generales</span>
-                <span id="stat-gen" class="text-2xl font-black text-yellow-500">0</span>
+
+            <!-- Stat Card -->
+            <div class="glass-panel p-4 md:p-5 rounded-2xl flex flex-col relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="ph-fill ph-globe text-4xl text-neonYellow"></i>
+                </div>
+                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">General</span>
+                <span id="stat-gen" class="text-3xl md:text-4xl font-black text-neonYellow tracking-tight">0</span>
+                <div class="h-1 w-full bg-zinc-800 mt-3 rounded-full overflow-hidden">
+                    <div id="bar-gen" class="h-full bg-neonYellow w-0 transition-all duration-1000"></div>
+                </div>
             </div>
         </div>
 
-        <!-- FILTROS -->
-        <div class="flex flex-wrap gap-2 mb-6">
-            <button onclick="window.app.filter('all')" class="bg-white/10 hover:bg-white/20 px-4 py-1.5 rounded-full text-xs font-bold transition-all border border-transparent focus:border-brand">TODOS</button>
-            <button onclick="window.app.filter('smartwatch')" class="bg-[#00E7FF]/10 hover:bg-[#00E7FF]/20 text-[#00E7FF] px-4 py-1.5 rounded-full text-xs font-bold transition-all border border-transparent focus:border-[#00E7FF]">SMARTWATCH</button>
-            <button onclick="window.app.filter('general')" class="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 px-4 py-1.5 rounded-full text-xs font-bold transition-all border border-transparent focus:border-yellow-500">GENERALES</button>
-            <div class="flex-grow"></div>
-            <button onclick="window.app.clearCompleted()" class="text-zinc-500 hover:text-red-500 text-xs font-bold flex items-center gap-1 transition-colors">
-                <i class="ph-bold ph-trash"></i> Limpiar Completados
-            </button>
+        <!-- CONTROL BAR (Filter & Search) -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sticky top-20 z-40 bg-[#050505]/90 p-2 rounded-2xl backdrop-blur-sm border border-white/5">
+            
+            <!-- Filters -->
+            <div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+                <button onclick="window.app.setFilter('all')" id="btn-filter-all" class="px-4 py-2 rounded-xl text-xs font-bold uppercase bg-white text-black shadow-lg shadow-white/10 transition-all hover:scale-105 whitespace-nowrap">
+                    Todos
+                </button>
+                <button onclick="window.app.setFilter('my')" id="btn-filter-my" class="px-4 py-2 rounded-xl text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-white hover:border-zinc-600 transition-all whitespace-nowrap flex items-center gap-2">
+                    <i class="ph-bold ph-user"></i> Mis Casos
+                </button>
+                <button onclick="window.app.setFilter('smartwatch')" id="btn-filter-sw" class="px-4 py-2 rounded-xl text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-neonBlue hover:border-neonBlue/50 transition-all whitespace-nowrap">
+                    Smartwatch
+                </button>
+                <button onclick="window.app.setFilter('general')" id="btn-filter-gen" class="px-4 py-2 rounded-xl text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-neonYellow hover:border-neonYellow/50 transition-all whitespace-nowrap">
+                    General
+                </button>
+            </div>
+
+            <!-- Search -->
+            <div class="relative w-full md:w-80">
+                <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                <input type="text" id="search-input" onkeyup="window.app.handleSearch(this.value)" placeholder="Buscar cliente, teléfono..." 
+                    class="w-full bg-zinc-900/80 border border-zinc-800 focus:border-brand focus:ring-1 focus:ring-brand text-white text-sm rounded-xl pl-10 pr-4 py-2.5 outline-none transition-all placeholder-zinc-600">
+            </div>
         </div>
 
-        <!-- GRID DE CASOS -->
-        <div id="cases-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            <!-- Loading State -->
-            <div class="col-span-full flex flex-col items-center justify-center py-20 text-zinc-600">
-                <i class="ph-bold ph-spinner animate-spin text-4xl mb-4"></i>
-                <p class="text-sm font-mono">SINCRONIZANDO BASE DE DATOS...</p>
+        <!-- CASES GRID -->
+        <div id="cases-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
+            <!-- Loading Skeleton -->
+            <div class="col-span-full flex flex-col items-center justify-center py-20 opacity-50">
+                <div class="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p class="text-sm font-mono text-zinc-500 animate-pulse">SINCRONIZANDO BASE DE DATOS...</p>
             </div>
         </div>
 
     </main>
 
-    <!-- MODAL DE IMPORTACIÓN ACTUALIZADO -->
-    <div id="import-modal" class="fixed inset-0 z-[100] modal-bg hidden flex items-center justify-center p-4">
-        <div class="bg-[#0a0a0a] border border-white/10 w-full max-w-2xl rounded-2xl shadow-2xl transform transition-all scale-100 flex flex-col overflow-hidden max-h-[90vh]">
-            
-            <!-- Modal Header -->
-            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-[#111]">
-                <div>
-                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                        <i class="ph-bold ph-clipboard-text text-brand"></i> Importación Manual
-                    </h3>
-                    <p class="text-zinc-500 text-xs mt-1">Pega el texto y selecciona qué tipo de casos son.</p>
-                </div>
-                <button onclick="window.app.toggleImportModal()" class="text-zinc-500 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg">
-                    <i class="ph-bold ph-x text-xl"></i>
+    <!-- IMPORT MODAL -->
+    <div id="import-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-2xl rounded-2xl shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]" id="modal-content">
+            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="ph-fill ph-files text-brand"></i> Importar Lotes
+                </h3>
+                <button onclick="window.app.toggleImportModal()" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+                    <i class="ph-bold ph-x text-lg"></i>
                 </button>
             </div>
             
-            <!-- Modal Body -->
-            <div class="p-6 flex-grow overflow-y-auto">
-                <div class="mb-4">
-                    <label class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 block">1. Pega los casos aquí:</label>
-                    <textarea id="raw-input" class="w-full h-40 bg-black border border-zinc-800 rounded-xl p-4 text-sm font-mono text-zinc-300 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/50 resize-none transition-all placeholder-zinc-700" placeholder="Ejemplo: 5541811889 MARIO... &#10;o&#10;J. JESUS GONZALEZ..."></textarea>
-                    <div class="flex justify-between mt-2">
-                        <span class="text-[10px] text-zinc-600">Se separará automáticamente por 'plis' o saltos de línea.</span>
-                        <button onclick="document.getElementById('raw-input').value=''" class="text-[10px] text-red-500 hover:text-red-400 font-bold uppercase">Borrar Todo</button>
-                    </div>
-                </div>
-
-                <div class="border-t border-white/5 pt-4">
-                    <label class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3 block">2. Selecciona el Tipo para Procesar:</label>
+            <div class="p-6 overflow-y-auto">
+                <textarea id="raw-input" class="w-full h-48 bg-black/50 border border-zinc-700 rounded-xl p-4 text-sm font-mono text-zinc-300 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/50 resize-none mb-4" 
+                    placeholder="Pega aquí los casos...&#10;Formato ejemplo:&#10;5512345678 JUAN PEREZ...&#10;o&#10;JUAN PEREZ 5512345678..."></textarea>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button onclick="window.app.processInput('smartwatch')" class="group p-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-neonBlue hover:bg-neonBlue/5 transition-all text-left">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="ph-fill ph-watch text-neonBlue text-xl"></i>
+                            <span class="font-bold text-white">Smartwatch</span>
+                        </div>
+                        <p class="text-[10px] text-zinc-500">Detectar relojes y accesorios</p>
+                    </button>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <!-- Botón Smartwatch -->
-                        <button onclick="window.app.processInput('smartwatch')" class="group relative overflow-hidden rounded-xl border border-zinc-800 hover:border-[#00E7FF] bg-zinc-900 p-4 text-left transition-all hover:bg-zinc-900/50">
-                            <div class="relative z-10 flex flex-col gap-1">
-                                <div class="flex items-center gap-2 text-[#00E7FF]">
-                                    <i class="ph-bold ph-watch text-xl"></i>
-                                    <span class="font-bold uppercase tracking-wider text-sm">Smartwatch</span>
-                                </div>
-                                <p class="text-[10px] text-zinc-500 group-hover:text-zinc-300">Formato: Teléfono primero <br> (55... Nombre Producto)</p>
-                            </div>
-                            <div class="absolute inset-0 bg-gradient-to-br from-[#00E7FF]/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
-                        </button>
-
-                        <!-- Botón General -->
-                        <button onclick="window.app.processInput('general')" class="group relative overflow-hidden rounded-xl border border-zinc-800 hover:border-yellow-500 bg-zinc-900 p-4 text-left transition-all hover:bg-zinc-900/50">
-                            <div class="relative z-10 flex flex-col gap-1">
-                                <div class="flex items-center gap-2 text-yellow-500">
-                                    <i class="ph-bold ph-globe text-xl"></i>
-                                    <span class="font-bold uppercase tracking-wider text-sm">General / Internet</span>
-                                </div>
-                                <p class="text-[10px] text-zinc-500 group-hover:text-zinc-300">Formato: Nombre primero <br> (Nombre ... Tel ... Desc)</p>
-                            </div>
-                            <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
-                        </button>
-                    </div>
+                    <button onclick="window.app.processInput('general')" class="group p-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-neonYellow hover:bg-neonYellow/5 transition-all text-left">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="ph-fill ph-globe text-neonYellow text-xl"></i>
+                            <span class="font-bold text-white">General / Internet</span>
+                        </div>
+                        <p class="text-[10px] text-zinc-500">Detectar leads generales</p>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- LOGICA FIREBASE Y APP -->
+    <!-- FIREBASE & LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN (Corregida con API Key real de God's Plan)
-        const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
-        let firebaseConfig = fallbackConfig;
-        
-        try { 
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
-                if (envConfig && envConfig.apiKey) firebaseConfig = envConfig;
-            } 
-        } catch(e) {}
-
+        // Configuración Firebase (Segura)
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan';
         
         let currentUser = null;
-        let casesUnsubscribe = null;
         let allCases = [];
+        let filterType = 'all';
+        let searchQuery = '';
 
-        // --- AUTH (Lógica Corregida) ---
-        async function initAuth() {
-            // Solo usamos el token si estamos en el entorno Canvas de inicio
-            const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            if (initialToken) {
-                try {
-                    await signInWithCustomToken(auth, initialToken);
-                } catch (e) {
-                    console.error("Token Auth Error", e);
-                }
-            }
-            // ELIMINADO: signInAnonymously(). 
-            // Esto evita crear un usuario "Agente" si ya existe una sesión válida en el navegador.
-        }
-        
+        // --- UTILS ---
+        const showToast = (msg, type = 'success') => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'} text-xl"></i>
+                <span class="font-bold text-sm">${msg}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'toastOut 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        const copyToClipboard = (text) => {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(`Copiado: ${text}`, 'success');
+            }).catch(() => showToast('Error al copiar', 'error'));
+        };
+
+        // --- AUTH ---
+        const initAuth = async () => {
+            const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            if (token) await signInWithCustomToken(auth, token);
+            else await signInAnonymously(auth);
+        };
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Usuario autenticado (viene de index.html o login previo)
                 currentUser = user;
-                
-                // Intentar obtener el nombre real, el email o fallback a ID
-                const displayName = user.displayName || (user.email ? user.email.split('@')[0] : null) || 'Invitado';
-                
-                document.getElementById('current-user-name').textContent = displayName.toUpperCase();
-                initRealtimeListener();
-            } else {
-                // NO AUTENTICADO -> REDIRIGIR AL LOGIN
-                // Esto cumple con "si no estás logeado, te bote"
-                console.log("No user detected, redirecting to login...");
-                window.location.href = '/'; 
+                const name = user.displayName || user.email?.split('@')[0] || 'Agente';
+                document.getElementById('user-display').textContent = name;
+                initListeners();
             }
         });
-
         initAuth();
 
-        // --- FIRESTORE ---
-        function initRealtimeListener() {
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // --- FIRESTORE LISTENERS ---
+        const initListeners = () => {
             const q = collection(db, 'artifacts', appId, 'public', 'data', 'cases');
             
-            casesUnsubscribe = onSnapshot(q, (snapshot) => {
+            onSnapshot(q, (snapshot) => {
                 allCases = [];
+                let stats = { pending: 0, progress: 0, sw: 0, gen: 0 };
+                
                 snapshot.forEach(doc => {
-                    allCases.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    const k = { id: doc.id, ...data };
+                    allCases.push(k);
+                    
+                    // Stats Calculation
+                    if (k.status === 'open') {
+                        stats.pending++;
+                        if (k.type === 'smartwatch') stats.sw++;
+                        if (k.type === 'general') stats.gen++;
+                    } else if (k.status === 'taken') {
+                        stats.progress++;
+                    }
                 });
-                allCases.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                // Sort: Open first, then by date desc
+                allCases.sort((a, b) => {
+                    if (a.status === 'open' && b.status !== 'open') return -1;
+                    if (a.status !== 'open' && b.status === 'open') return 1;
+                    const timeA = a.createdAt?.seconds || 0;
+                    const timeB = b.createdAt?.seconds || 0;
+                    return timeB - timeA;
+                });
+
+                updateStatsUI(stats);
                 window.app.renderCases();
-                updateStats();
             }, (error) => {
-                console.error("Error fetching cases:", error);
+                console.error("Error BD:", error);
+                showToast("Error de conexión con la base de datos", "error");
             });
-        }
+        };
 
-        function updateStats() {
-            const pending = allCases.filter(c => c.status === 'open').length;
-            const progress = allCases.filter(c => c.status === 'taken').length;
-            const sw = allCases.filter(c => c.type === 'smartwatch' && c.status === 'open').length;
-            const gen = allCases.filter(c => c.type === 'general' && c.status === 'open').length;
+        const updateStatsUI = (s) => {
+            // Animate Numbers
+            const update = (id, val, barId, color, max) => {
+                const el = document.getElementById(id);
+                el.textContent = val;
+                const bar = document.getElementById(barId);
+                const pct = max > 0 ? (val / max) * 100 : 0;
+                bar.style.width = `${Math.min(pct * 1.5, 100)}%`; // Fake scale for visuals
+            };
+            const total = s.pending + s.progress;
+            update('stat-pending', s.pending, 'bar-pending', 'white', total);
+            update('stat-progress', s.progress, 'bar-progress', '#E70000', total);
+            update('stat-sw', s.sw, 'bar-sw', '#00F0FF', s.pending);
+            update('stat-gen', s.gen, 'bar-gen', '#FFE600', s.pending);
+        };
 
-            document.getElementById('stat-pending').textContent = pending;
-            document.getElementById('stat-progress').textContent = progress;
-            document.getElementById('stat-sw').textContent = sw;
-            document.getElementById('stat-gen').textContent = gen;
-        }
-
-        // --- LÓGICA DE LA APP ---
+        // --- APP LOGIC ---
         window.app = {
-            currentFilter: 'all',
-
             toggleImportModal: () => {
                 const modal = document.getElementById('import-modal');
-                modal.classList.toggle('hidden');
-                if(!modal.classList.contains('hidden')) document.getElementById('raw-input').focus();
+                const content = document.getElementById('modal-content');
+                
+                if (modal.classList.contains('hidden')) {
+                    modal.classList.remove('hidden');
+                    // Small delay for animation
+                    requestAnimationFrame(() => {
+                        modal.classList.remove('opacity-0');
+                        content.classList.remove('scale-95');
+                    });
+                    document.getElementById('raw-input').focus();
+                } else {
+                    modal.classList.add('opacity-0');
+                    content.classList.add('scale-95');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
+                }
             },
 
-            // --- LÓGICA DE IMPORTACIÓN ---
-            processInput: async (forcedType) => {
-                const rawText = document.getElementById('raw-input').value;
-                if (!rawText.trim()) return;
-
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                const casesRef = collection(db, 'artifacts', appId, 'public', 'data', 'cases');
-
-                // Lógica de separación flexible:
-                let chunks = [];
-                if (rawText.toLowerCase().includes('plis')) {
-                    chunks = rawText.split(/plis/i).map(c => c.trim()).filter(c => c.length > 5);
-                } else {
-                    chunks = rawText.split(/\n+/).map(c => c.trim()).filter(c => c.length > 5);
+            processInput: async (type) => {
+                const input = document.getElementById('raw-input').value;
+                if (!input.trim()) {
+                    showToast("El campo está vacío", "error");
+                    return;
                 }
 
+                // Smart Splitting Logic
+                const chunks = input.split(/(?:plis|\n)/i).map(c => c.trim()).filter(c => c.length > 5);
                 let count = 0;
-
-                for (const chunk of chunks) {
-                    let clientName = '';
-                    let phones = [];
-                    let description = chunk;
-
-                    // Extraer teléfonos (10 dígitos)
+                
+                const batchPromises = chunks.map(async (chunk) => {
+                    // Extract Phone
                     const phoneRegex = /\b\d{10}\b/g;
-                    const foundPhones = chunk.match(phoneRegex) || [];
-                    phones = foundPhones;
-
-                    // --- EXTRACCIÓN ---
-                    if (forcedType === 'smartwatch') {
-                        let textWithoutFirstPhone = chunk;
-                        if (phones.length > 0) {
-                            textWithoutFirstPhone = chunk.replace(phones[0], '').trim();
-                        }
-                        const nameMatch = textWithoutFirstPhone.split(/(Apple|Huawei|Samsung|Watch)/i)[0];
-                        clientName = nameMatch.trim();
-
+                    const phones = chunk.match(phoneRegex) || [];
+                    
+                    // Basic Name Extraction Heuristic
+                    let name = "Cliente Desconocido";
+                    if (phones.length > 0) {
+                        const parts = chunk.split(phones[0]);
+                        // Usually name is before phone in copy-pastes
+                        if (parts[0].length > 3) name = parts[0]; 
+                        else if (parts[1] && parts[1].length > 3) name = parts[1].substring(0, 30);
                     } else {
-                        if (phones.length > 0) {
-                            const firstPhoneIndex = chunk.indexOf(phones[0]);
-                            if (firstPhoneIndex > 0) {
-                                clientName = chunk.substring(0, firstPhoneIndex).trim();
-                            } else {
-                                clientName = chunk.split(' ').slice(1, 5).join(' '); 
-                            }
-                        } else {
-                            clientName = chunk.split(' ').slice(0, 4).join(' ');
-                        }
+                        name = chunk.substring(0, 20) + "...";
                     }
 
-                    // --- LIMPIEZA FINAL DE NOMBRE ---
-                    clientName = clientName
-                        .replace(/NAVEGACION/i, '')
-                        .replace(/NOMBRE-/i, '')
-                        .replace(/CONTACTO/i, '')
-                        .replace(/[:.-]/g, ' ') 
-                        .trim();
-                    
-                    if (!clientName || clientName.length < 3) clientName = "Cliente (Sin Nombre Detectado)";
+                    // Clean Name
+                    name = name.replace(/[:.-]/g, ' ').replace(/NOMBRE|TELEFONO|PEDIDO/gi, '').trim();
+                    if (!name) name = "Cliente Sin Nombre";
 
-                    // Guardar en Firestore
-                    await addDoc(casesRef, {
-                        type: forcedType,
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'cases'), {
+                        type,
                         rawText: chunk,
-                        clientName: clientName.toUpperCase(),
+                        clientName: name.toUpperCase(),
                         phones,
-                        description,
-                        status: 'open', 
+                        description: chunk,
+                        status: 'open',
                         assignedTo: null,
-                        takenAt: null,
                         createdAt: serverTimestamp()
                     });
                     count++;
-                }
+                });
 
+                await Promise.all(batchPromises);
+                showToast(`${count} casos importados correctamente`, 'success');
                 document.getElementById('raw-input').value = '';
                 window.app.toggleImportModal();
             },
 
-            filter: (type) => {
-                window.app.currentFilter = type;
+            setFilter: (f) => {
+                filterType = f;
+                // Update Buttons Visuals
+                ['all', 'my', 'sw', 'gen'].forEach(key => {
+                    const btn = document.getElementById(`btn-filter-${key}`);
+                    if (key === f) {
+                        btn.className = "px-4 py-2 rounded-xl text-xs font-bold uppercase bg-white text-black shadow-lg shadow-white/10 transition-all scale-105 whitespace-nowrap flex items-center gap-2";
+                    } else {
+                        btn.className = "px-4 py-2 rounded-xl text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-white hover:border-zinc-600 transition-all whitespace-nowrap flex items-center gap-2";
+                    }
+                });
+                window.app.renderCases();
+            },
+
+            handleSearch: (val) => {
+                searchQuery = val.toLowerCase();
                 window.app.renderCases();
             },
 
@@ -386,113 +469,187 @@
                 const grid = document.getElementById('cases-grid');
                 grid.innerHTML = '';
 
-                let filtered = allCases;
-                if (window.app.currentFilter !== 'all') {
-                    filtered = allCases.filter(c => c.type === window.app.currentFilter);
+                let filtered = allCases.filter(c => c.status !== 'closed');
+
+                // Apply Logic Filters
+                if (filterType === 'my' && currentUser) {
+                    filtered = filtered.filter(c => c.assignedTo?.uid === currentUser.uid);
+                } else if (filterType !== 'all' && filterType !== 'my') {
+                    filtered = filtered.filter(c => c.type === filterType);
                 }
-                
-                filtered = filtered.filter(c => c.status !== 'closed');
+
+                // Apply Search
+                if (searchQuery) {
+                    filtered = filtered.filter(c => 
+                        c.clientName.toLowerCase().includes(searchQuery) || 
+                        c.phones.some(p => p.includes(searchQuery)) ||
+                        c.description.toLowerCase().includes(searchQuery)
+                    );
+                }
 
                 if (filtered.length === 0) {
-                    grid.innerHTML = `<div class="col-span-full text-center text-zinc-600 py-10 font-bold uppercase tracking-widest">No hay casos activos</div>`;
+                    grid.innerHTML = `
+                        <div class="col-span-full text-center py-20">
+                            <i class="ph-duotone ph-magnifying-glass text-4xl text-zinc-700 mb-3"></i>
+                            <p class="text-zinc-500 font-bold uppercase text-xs tracking-widest">No se encontraron casos</p>
+                        </div>
+                    `;
                     return;
                 }
 
+                const now = new Date();
+
                 filtered.forEach(c => {
                     const isTaken = c.status === 'taken';
-                    const isSmartwatch = c.type === 'smartwatch';
-                    const typeColor = isSmartwatch ? 'text-[#00E7FF]' : 'text-yellow-500';
+                    const isMine = isTaken && c.assignedTo?.uid === currentUser?.uid;
+                    const isSw = c.type === 'smartwatch';
+                    const colorClass = isSw ? 'text-neonBlue' : 'text-neonYellow';
+                    const bgGlow = isSw ? 'group-hover:shadow-[0_0_30px_rgba(0,240,255,0.15)]' : 'group-hover:shadow-[0_0_30px_rgba(255,230,0,0.15)]';
+                    const borderClass = isSw ? 'group-hover:border-neonBlue/50' : 'group-hover:border-neonYellow/50';
                     
-                    // Botón de Acción
-                    let actionButton = '';
+                    // Time Ago Logic
+                    let timeText = 'Recién';
+                    if (c.createdAt) {
+                        try {
+                            // Firestore Timestamp to Date
+                            const date = c.createdAt.toDate();
+                            timeText = dateFns.formatDistance(date, now, { addSuffix: true, locale: dateFns.locale.es });
+                        } catch(e) {}
+                    }
+
+                    // Phone Buttons Logic
+                    let phonesHtml = '';
+                    if (c.phones && c.phones.length > 0) {
+                        phonesHtml = c.phones.map(p => {
+                            // Clean phone for whatsapp (MX format assumption, can be generic)
+                            const wpNumber = p.length === 10 ? `52${p}` : p; 
+                            return `
+                                <div class="flex items-center gap-1 mb-2">
+                                    <button onclick="window.app.copy('${p}')" class="flex-grow flex items-center gap-2 bg-black/40 hover:bg-white/10 border border-white/5 rounded-lg px-3 py-2 text-xs font-mono transition-colors group/btn">
+                                        <i class="ph-bold ph-copy text-zinc-500 group-hover/btn:text-white"></i>
+                                        <span class="text-zinc-300 group-hover/btn:text-white font-bold tracking-wider">${p}</span>
+                                    </button>
+                                    <a href="https://wa.me/${wpNumber}" target="_blank" class="w-9 h-9 flex items-center justify-center rounded-lg bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-white border border-[#25D366]/20 transition-all">
+                                        <i class="ph-bold ph-whatsapp-logo text-lg"></i>
+                                    </a>
+                                    <a href="tel:${p}" class="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white text-white hover:text-black border border-white/10 transition-all">
+                                        <i class="ph-bold ph-phone text-lg"></i>
+                                    </a>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        phonesHtml = `<div class="text-xs text-zinc-600 italic py-1"><i class="ph-bold ph-warning"></i> Sin número detectado</div>`;
+                    }
+
+                    // Card Action Area
+                    let actionArea = '';
                     if (!isTaken) {
-                        actionButton = `
-                            <button onclick="window.app.takeCase('${c.id}')" class="w-full mt-4 bg-white/5 hover:bg-brand border border-white/10 hover:border-brand text-white py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 group">
-                                <i class="ph-bold ph-hand-grabbing group-hover:scale-110 transition-transform"></i> Tomar Caso
+                        actionArea = `
+                            <button onclick="window.app.takeCase('${c.id}')" class="w-full mt-2 btn-primary text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 group/act overflow-hidden relative">
+                                <div class="absolute inset-0 bg-white/20 translate-y-full group-hover/act:translate-y-0 transition-transform duration-300"></div>
+                                <i class="ph-bold ph-hand-grabbing text-lg relative z-10"></i> <span class="relative z-10">Tomar Caso</span>
                             </button>
                         `;
                     } else {
-                        const isMe = c.assignedTo?.uid === currentUser.uid;
-                        actionButton = `
-                            <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                        actionArea = `
+                            <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold">
-                                        ${c.assignedTo?.name?.charAt(0) || '?'}
+                                    <div class="w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[10px] font-bold text-zinc-300">
+                                        ${c.assignedTo?.name?.charAt(0) || 'A'}
                                     </div>
-                                    <span class="text-xs text-zinc-400 font-mono">Tomado por <span class="text-white font-bold">${c.assignedTo?.name?.split(' ')[0]}</span></span>
+                                    <div class="flex flex-col">
+                                        <span class="text-[10px] text-zinc-500 font-bold uppercase">Agente</span>
+                                        <span class="text-xs font-bold text-white leading-none">${c.assignedTo?.name?.split(' ')[0]}</span>
+                                    </div>
                                 </div>
-                                ${isMe ? `
-                                    <button onclick="window.app.closeCase('${c.id}')" class="text-xs text-green-500 hover:text-green-400 font-bold uppercase flex items-center gap-1">
+                                ${isMine ? `
+                                    <button onclick="window.app.closeCase('${c.id}')" class="bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all flex items-center gap-1">
                                         <i class="ph-bold ph-check"></i> Cerrar
                                     </button>
-                                ` : ''}
+                                ` : `<i class="ph-fill ph-lock-key text-zinc-600 text-xl" title="Bloqueado por otro agente"></i>`}
                             </div>
                         `;
                     }
 
-                    // Renderizar Teléfonos clickeables
-                    const phonesHtml = c.phones.map(p => 
-                        `<a href="tel:${p}" class="inline-block bg-black/40 text-zinc-300 hover:text-white hover:bg-brand/20 px-2 py-1 rounded text-xs font-mono mr-1 mb-1 border border-white/5 transition-colors"><i class="ph-bold ph-phone"></i> ${p}</a>`
-                    ).join('');
-
-                    const html = `
-                        <div class="glass-panel p-6 rounded-xl relative overflow-hidden group hover:shadow-2xl transition-all ${isTaken ? 'opacity-60 grayscale-[0.5] hover:grayscale-0 hover:opacity-100' : ''}">
-                            <!-- Indicador de Tipo -->
-                            <div class="absolute top-0 left-0 bottom-0 w-1 ${isSmartwatch ? 'bg-[#00E7FF]' : 'bg-yellow-500'}"></div>
+                    // HTML Construction
+                    const card = document.createElement('div');
+                    card.className = `glass-panel rounded-xl p-0 overflow-hidden relative group transition-all duration-300 hover:-translate-y-1 ${borderClass} ${bgGlow} card-enter ${isTaken ? 'opacity-70 grayscale-[0.8] hover:grayscale-0 hover:opacity-100' : ''}`;
+                    card.innerHTML = `
+                        <!-- Color Strip -->
+                        <div class="absolute left-0 top-0 bottom-0 w-1 ${isSw ? 'bg-neonBlue' : 'bg-neonYellow'}"></div>
+                        
+                        <div class="p-5 pl-6">
+                            <!-- Header -->
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <span class="inline-block py-0.5 px-2 rounded text-[10px] font-bold uppercase tracking-widest border ${isSw ? 'border-neonBlue/30 bg-neonBlue/10 text-neonBlue' : 'border-neonYellow/30 bg-neonYellow/10 text-neonYellow'} mb-1">
+                                        ${isSw ? 'Smartwatch' : 'General'}
+                                    </span>
+                                    <h3 class="font-bold text-white text-lg leading-tight line-clamp-1" title="${c.clientName}">${c.clientName}</h3>
+                                </div>
+                                ${!isTaken ? `
+                                    <button onclick="window.app.deleteCase('${c.id}')" class="text-zinc-600 hover:text-red-500 p-1 transition-colors"><i class="ph-bold ph-trash"></i></button>
+                                ` : ''}
+                            </div>
                             
-                            <div class="flex justify-between items-start mb-3 pl-3">
-                                <span class="text-[10px] font-bold uppercase tracking-widest ${typeColor} border border-white/10 px-2 py-0.5 rounded bg-black/20">
-                                    ${isSmartwatch ? 'Smartwatch' : 'General'}
-                                </span>
-                                ${!isTaken ? `<button onclick="window.app.deleteCase('${c.id}')" class="text-zinc-600 hover:text-red-500 transition-colors"><i class="ph-bold ph-trash"></i></button>` : ''}
+                            <!-- Time -->
+                            <div class="flex items-center gap-1 text-[10px] text-zinc-500 font-mono mb-4">
+                                <i class="ph-bold ph-clock"></i> ${timeText}
                             </div>
 
-                            <h3 class="text-lg font-bold text-white mb-1 pl-3 truncate leading-tight" title="${c.clientName}">${c.clientName}</h3>
-                            
-                            <div class="pl-3 mb-4">
-                                ${phonesHtml || '<span class="text-xs text-red-500">Sin número</span>'}
+                            <!-- Phones -->
+                            <div class="mb-4">
+                                ${phonesHtml}
                             </div>
 
-                            <div class="bg-black/30 p-3 rounded-lg border border-white/5 text-xs text-zinc-400 font-mono h-24 overflow-y-auto mb-2 custom-scroll ml-3">
+                            <!-- Description -->
+                            <div class="bg-[#050505]/50 border border-white/5 rounded-lg p-3 text-xs text-zinc-400 font-mono h-20 overflow-y-auto custom-scroll mb-1">
                                 ${c.description}
                             </div>
 
-                            <div class="pl-3">
-                                ${actionButton}
-                            </div>
+                            <!-- Actions -->
+                            ${actionArea}
                         </div>
                     `;
-                    grid.innerHTML += html;
+                    grid.appendChild(card);
                 });
             },
 
+            // --- ACTIONS ---
+            copy: (text) => copyToClipboard(text),
+            
             takeCase: async (id) => {
                 if (!currentUser) return;
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'cases', id);
-                await updateDoc(ref, {
-                    status: 'taken',
-                    assignedTo: { uid: currentUser.uid, name: currentUser.displayName || 'Agente' },
-                    takenAt: serverTimestamp()
-                });
+                try {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), {
+                        status: 'taken',
+                        assignedTo: { uid: currentUser.uid, name: currentUser.displayName || 'Agente' },
+                        takenAt: serverTimestamp()
+                    });
+                    showToast('Caso tomado con éxito');
+                } catch(e) { showToast('Error al tomar caso', 'error'); }
             },
 
             closeCase: async (id) => {
-                if (!confirm("¿Ya terminaste este caso? Se archivará.")) return;
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'cases', id);
-                await updateDoc(ref, { status: 'closed' });
+                if(!confirm("¿Confirmar venta/cierre del caso?")) return;
+                try {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), { status: 'closed' });
+                    showToast('Caso cerrado y archivado');
+                } catch(e) { showToast('Error al cerrar', 'error'); }
             },
 
             deleteCase: async (id) => {
-                if (!confirm("¿Eliminar este caso?")) return;
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'cases', id);
-                await deleteDoc(ref);
-            },
-            
-            clearCompleted: async () => { alert("Función administrativa."); }
+                if(!confirm("¿Eliminar caso permanentemente?")) return;
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id));
+                    showToast('Caso eliminado');
+                } catch(e) { showToast('Error al eliminar', 'error'); }
+            }
         };
+
+        // Expose utils
+        window.app.copy = copyToClipboard;
     </script>
 </body>
 </html>
