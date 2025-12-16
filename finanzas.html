@@ -124,8 +124,6 @@
             <div class="hidden md:flex justify-center mb-8 fade-in">
                 <div class="bg-zinc-900/80 border border-white/10 p-1.5 rounded-full flex items-center gap-1 shadow-lg backdrop-blur-sm">
                     <button onclick="app.switchView('balance')" class="nav-link-desk active px-5" data-view="balance">Billetera</button>
-                    <button onclick="app.switchView('simulation')" class="nav-link-desk px-5" data-view="simulation">Simulación</button>
-                    <button onclick="app.switchView('history')" class="nav-link-desk px-5" data-view="history">Historial</button>
                     <button onclick="app.switchView('plan')" class="nav-link-desk px-5" data-view="plan">Planificación</button>
                 </div>
             </div>
@@ -177,16 +175,6 @@
                                         </button>
                                     </div>
 
-                                    <div class="flex justify-between items-center mb-4">
-                                        <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-2"><i class="ph-fill ph-magic-wand"></i> Simulador & Extras</div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-[9px] font-bold text-zinc-500 uppercase">Simular</span>
-                                            <div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
-                                                <input type="checkbox" name="toggle" id="simToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-600 transition-all duration-300" onclick="app.toggleSimulation()"/>
-                                                <label for="simToggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-zinc-800 cursor-pointer"></label>
-                                            </div>
-                                        </div>
-                                    </div>
                                     <div class="grid grid-cols-2 gap-3 mb-4">
                                         <div>
                                             <label class="text-[9px] text-zinc-600 font-bold uppercase block mb-1">Monto Extra</label>
@@ -260,145 +248,6 @@
                             <div id="transactionsList" class="space-y-3 min-h-[100px] pb-24 md:pb-0">
                                 <div class="text-center py-10 text-zinc-600 animate-pulse">Sincronizando...</div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- VISTA: HISTORIAL -->
-            <section id="view-history" class="p-4 sm:p-0 hidden fade-in max-w-5xl mx-auto pb-24">
-                <div class="mb-6 flex justify-between items-end">
-                    <div>
-                        <h2 class="text-2xl font-black text-white mb-1">Historial Mensual</h2>
-                        <p class="text-zinc-500 text-xs">Cierres automáticos por periodo.</p>
-                    </div>
-                    <button onclick="app.generateReport()" class="bg-zinc-800 hover:bg-zinc-700 text-white text-xs px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors">
-                        <i class="ph-bold ph-printer"></i> Imprimir Todo
-                    </button>
-                </div>
-
-                <div id="historyGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="text-center col-span-full py-12 text-zinc-600">Calculando historial...</div>
-                </div>
-
-                <div id="historyDetailSection" class="hidden mt-10 border-t border-zinc-800 pt-8 animate-slide-up">
-                    <div class="flex items-center gap-4 mb-6">
-                        <button onclick="document.getElementById('historyDetailSection').classList.add('hidden')" class="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center hover:bg-zinc-800 text-zinc-400"><i class="ph-bold ph-arrow-left"></i></button>
-                        <div>
-                            <h3 class="text-xl font-bold text-white" id="histDetailTitle">Detalle Mes</h3>
-                            <p class="text-xs text-zinc-500">Listado completo de movimientos</p>
-                        </div>
-                    </div>
-                    
-                    <div id="histDetailList" class="space-y-3"></div>
-                </div>
-            </section>
-
-            <!-- VISTA: SIMULACION / ANALISIS -->
-            <section id="view-simulation" class="p-4 sm:p-0 hidden fade-in max-w-4xl mx-auto pb-24">
-                <div class="max-w-2xl mx-auto mb-10">
-                    <h2 class="text-2xl font-black text-white mb-1">Simulador Mensual</h2>
-                    <p class="text-zinc-500 text-xs mb-6">Proyección mes calendario (Ingresos - Fijos - Deudas Mes).</p>
-
-                    <div class="glass-highlight rounded-3xl p-6 text-center mb-6 relative overflow-hidden">
-                        <div class="relative z-10">
-                            <div class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Flujo Libre Mensual</div>
-                            <div class="text-5xl font-black text-white tracking-tight" id="simFreeMoney">---</div>
-                            <div class="text-xs text-zinc-500 mt-2">Disponible real tras cubrir Fijos y Deudas del Mes</div>
-                        </div>
-                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-red-900"></div>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500"><i class="ph-bold ph-money text-xl"></i></div>
-                                <div><div class="text-sm font-bold text-white">Salario Base</div><div class="text-[10px] text-zinc-500" id="simIncomeDesc">Calculado según tu ciclo</div></div>
-                            </div>
-                            <div class="font-bold text-emerald-400" id="simBaseIncomeVal">---</div>
-                        </div>
-
-                        <div class="rounded-2xl bg-zinc-900/50 border border-zinc-800 overflow-hidden">
-                            <div class="flex justify-between items-center p-4 border-b border-zinc-800/50 bg-zinc-900/30">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500"><i class="ph-bold ph-trend-up text-xl"></i></div>
-                                    <div><div class="text-sm font-bold text-white">Ingresos Adicionales</div><div class="text-[10px] text-zinc-500">Extras detectados este mes</div></div>
-                                </div>
-                                <div class="font-bold text-blue-400" id="simTotalExtraVal">---</div>
-                            </div>
-                            <div id="simExtraList" class="p-2 space-y-1"></div>
-                        </div>
-                        
-                        <div class="flex justify-between items-center px-4 py-3 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
-                            <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Total Ingresos Reales</span>
-                            <span class="text-base font-bold text-white" id="simTotalIncomeSum">---</span>
-                        </div>
-
-                        <div class="flex items-center gap-4 py-2">
-                            <div class="h-px bg-zinc-800 flex-1"></div>
-                            <span class="text-[10px] text-zinc-500 font-bold uppercase">MENOS GASTOS Y OBLIGACIONES</span>
-                            <div class="h-px bg-zinc-800 flex-1"></div>
-                        </div>
-
-                        <div id="simFixedList" class="space-y-2"></div>
-                        <div class="flex justify-between items-center px-4 py-2 border-b border-zinc-800 pb-4 mb-2">
-                            <span class="text-xs text-zinc-500">Total Fijos Mensuales</span>
-                            <span class="sm font-bold text-red-400" id="simTotalFixed">---</span>
-                        </div>
-                        
-                        <h4 class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider pl-2 mb-2">Deudas a Pagar (Este Mes)</h4>
-                        <div id="simLoansList" class="space-y-2"></div>
-                        <div class="flex justify-between items-center px-4 py-2">
-                            <span class="text-xs text-zinc-500">Total Deudas Mes</span>
-                            <span class="text-sm font-bold text-orange-400" id="simTotalLoans">---</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="border-t border-zinc-800 pt-8 mt-8">
-                    <div class="md:flex md:justify-between md:items-end mb-6">
-                        <div>
-                            <h2 class="text-xl font-bold text-white mb-1">Análisis Financiero</h2>
-                            <p class="text-zinc-500 text-xs">Desglose detallado del ciclo actual.</p>
-                        </div>
-                        <div class="flex gap-2 mt-4 md:mt-0">
-                            <button onclick="app.exportCSV()" class="text-emerald-500 hover:text-emerald-400 text-xs px-4 py-2 font-bold flex items-center gap-2 border border-emerald-900/30 bg-emerald-900/10 rounded-lg hover:bg-emerald-900/20 transition-colors">
-                                <i class="ph-bold ph-export"></i> Exp
-                            </button>
-                            <button onclick="app.importCSV()" class="text-blue-500 hover:text-blue-400 text-xs px-4 py-2 font-bold flex items-center gap-2 border border-blue-900/30 bg-blue-900/10 rounded-lg hover:bg-blue-900/20 transition-colors">
-                                <i class="ph-bold ph-download"></i> Imp
-                            </button>
-                            <input type="file" id="csvInput" accept=".csv" class="hidden" onchange="app.processCSV(this)">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                        <div class="glass p-5 rounded-2xl">
-                            <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Promedio Diario</div>
-                            <div class="text-xl font-bold text-white" id="statDailyAvg">---</div>
-                        </div>
-                        <div class="glass p-5 rounded-2xl">
-                            <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Mayor Gasto</div>
-                            <div class="text-xl font-bold text-white truncate" id="statMaxCat">---</div>
-                        </div>
-                        <div class="glass p-5 rounded-2xl hidden md:block">
-                            <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Total Ingresos</div>
-                            <div class="text-xl font-bold text-emerald-500 truncate" id="statTotalInc">---</div>
-                        </div>
-                        <div class="glass p-5 rounded-2xl hidden md:block">
-                            <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Total Gastos</div>
-                            <div class="text-xl font-bold text-red-500 truncate" id="statTotalExp">---</div>
-                        </div>
-                    </div>
-
-                    <div id="chartSection" class="grid grid-cols-2 md:grid-cols-2 gap-6 mb-6">
-                        <div class="glass rounded-3xl p-5 relative">
-                            <h3 class="text-center text-xs font-bold text-zinc-500 mb-4 tracking-widest">TENDENCIA DEL CICLO</h3>
-                            <div class="chart-container"><canvas id="trendChart"></canvas></div>
-                        </div>
-                        <div class="glass rounded-3xl p-5">
-                            <h3 class="text-center text-xs font-bold text-zinc-500 mb-4 tracking-widest">DISTRIBUCIÓN</h3>
-                            <div class="chart-container"><canvas id="expenseChart"></canvas></div>
                         </div>
                     </div>
                 </div>
@@ -516,19 +365,11 @@
         </button>
     </div>
 
-    <!-- NAV INFERIOR - MÓVIL (GRID DE 4) -->
-    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-4 z-50 pb-2">
+    <!-- NAV INFERIOR - MÓVIL (GRID DE 2) -->
+    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-2 z-50 pb-2">
         <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance', this)">
             <div class="relative p-1"><i class="ph-fill ph-wallet text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
             <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Balance</span>
-        </button>
-        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('simulation', this)">
-            <div class="relative p-1"><i class="ph-fill ph-chart-line-up text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
-            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Simular</span>
-        </button>
-        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('history', this)">
-            <div class="relative p-1"><i class="ph-fill ph-clock-counter-clockwise text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
-            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Historial</span>
         </button>
         <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('plan', this)">
             <div class="relative p-1"><i class="ph-fill ph-sliders-horizontal text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
@@ -756,6 +597,7 @@
             
             // --- HISTORY LOGIC ---
             processHistory() {
+                // Keep data logic but do not render grid as element is gone
                 this.historyData = {};
                 this.logs.forEach(log => {
                     const d = new Date(log.date);
@@ -769,86 +611,18 @@
                     else this.historyData[key].expense += log.amount;
                     this.historyData[key].txs.push(log);
                 });
-                this.renderHistoryGrid();
+                // Guard against missing element
+                if (document.getElementById('historyGrid')) this.renderHistoryGrid();
             },
 
             renderHistoryGrid() {
-                const grid = document.getElementById('historyGrid'); grid.innerHTML = '';
-                const keys = Object.keys(this.historyData).sort((a, b) => b.localeCompare(a));
-                const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-                const now = new Date();
-
-                if (keys.length === 0) { grid.innerHTML = '<div class="col-span-full text-center py-12 text-zinc-600 italic">No hay historial disponible</div>'; return; }
-
-                keys.forEach(key => {
-                    const data = this.historyData[key];
-                    const balance = data.income - data.expense;
-                    const monthName = monthNames[data.month];
-                    const isPositive = balance >= 0;
-                    const isCurrent = data.month === now.getMonth() && data.year === now.getFullYear();
-                    const statusText = isCurrent ? 'EN CURSO' : 'CERRADO';
-                    const statusColor = isCurrent ? 'text-emerald-400' : 'text-zinc-500';
-                    const statusIcon = isCurrent ? '<div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block mr-1"></div>' : '';
-                    const borderClass = isCurrent ? 'border-emerald-500/30 bg-emerald-900/5' : 'border-zinc-800 hover:bg-zinc-800/50';
-
-                    grid.innerHTML += `
-                    <div class="glass p-6 rounded-3xl transition-all cursor-pointer group border ${borderClass} relative overflow-hidden" onclick="app.showHistoryDetail('${key}')">
-                        ${isCurrent ? '<div class="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-bl-full -mr-8 -mt-8 z-0"></div>' : ''}
-                        
-                        <div class="flex justify-between items-start mb-4 relative z-10">
-                            <div>
-                                <h3 class="text-lg font-bold text-white capitalize flex items-center gap-2">${monthName} ${data.year}</h3>
-                                <p class="text-[10px] ${statusColor} font-bold uppercase tracking-widest mt-1">${statusIcon} ${statusText}</p>
-                            </div>
-                            <div class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors border border-zinc-800"><i class="ph-bold ph-caret-right"></i></div>
-                        </div>
-                        
-                        <div class="space-y-2 mb-4 relative z-10">
-                            <div class="flex justify-between text-xs">
-                                <span class="text-zinc-400">Percibido</span>
-                                <span class="text-emerald-500 font-bold font-mono">+${UI.fmtMoney(data.income)}</span>
-                            </div>
-                            <div class="flex justify-between text-xs">
-                                <span class="text-zinc-400">Gastado</span>
-                                <span class="text-red-500 font-bold font-mono">-${UI.fmtMoney(data.expense)}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="pt-3 border-t border-white/5 flex justify-between items-center relative z-10">
-                            <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">${isCurrent ? 'Balance Actual' : 'Balance Final'}</span>
-                            <span class="text-lg font-black ${isPositive ? 'text-white' : 'text-red-500'} tracking-tight">${UI.fmtMoney(balance)}</span>
-                        </div>
-                    </div>
-                    `;
-                });
+                // DEPRECATED in Lite Version
+                return;
             },
 
             showHistoryDetail(key) {
-                const data = this.historyData[key]; if (!data) return;
-                const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-                document.getElementById('histDetailTitle').textContent = `${monthNames[data.month]} ${data.year}`;
-                
-                const list = document.getElementById('histDetailList'); list.innerHTML = '';
-                const sortedTxs = data.txs.sort((a,b) => new Date(b.date) - new Date(a.date));
-
-                sortedTxs.forEach(l => {
-                    const isInc = l.type === 'income';
-                    list.innerHTML += `
-                    <div class="flex justify-between items-center p-3 rounded-xl bg-zinc-900/30 border border-zinc-800">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs text-zinc-400">${new Date(l.date).getDate()}</div>
-                            <div class="min-w-0">
-                                <div class="text-sm font-bold text-zinc-300 truncate">${l.desc || l.category}</div>
-                                <div class="text-[10px] text-zinc-500 uppercase">${l.category}</div>
-                            </div>
-                        </div>
-                        <span class="font-bold text-sm ${isInc?'text-emerald-500':'text-zinc-400'}">${isInc?'+':'-'}${UI.fmtMoney(l.amount)}</span>
-                    </div>
-                    `;
-                });
-
-                document.getElementById('historyDetailSection').classList.remove('hidden');
-                setTimeout(() => { document.getElementById('historyDetailSection').scrollIntoView({behavior: 'smooth'}); }, 100);
+                // DEPRECATED in Lite Version
+                return;
             },
 
             renderPlanInputs() {
@@ -922,7 +696,7 @@
             },
 
             toggleSimulation() {
-                this.isSimulating = document.getElementById('simToggle').checked;
+                // NO-OP in Lite Version
                 this.calcBalance();
             },
 
@@ -988,7 +762,8 @@
                 let totalSpentInCycle = 0; let extraInc = 0;
                 periodLogs.forEach(l => { if(l.type === 'income') extraInc += l.amount; else totalSpentInCycle += l.amount; });
 
-                if (this.isSimulating) { extraInc += (this.data.extraPayAmount || 0); }
+                // No simulation in Lite
+                // if (this.isSimulating) { extraInc += (this.data.extraPayAmount || 0); }
 
                 let fixedReserve = 0;
                 const fixedStatus = []; 
@@ -999,7 +774,6 @@
                     const dateNextMonth = new Date(pStart.getFullYear(), pStart.getMonth() + 1, day);
                     const datePrevMonth = new Date(pStart.getFullYear(), pStart.getMonth() - 1, day);
 
-                    // Revisa si la fecha de pago Fija cae en el período actual (mes actual, siguiente o anterior)
                     if (dateInMonth >= pStart && dateInMonth <= pEnd) triggers = true;
                     if (dateNextMonth >= pStart && dateNextMonth <= pEnd) triggers = true;
                     if (datePrevMonth >= pStart && datePrevMonth <= pEnd) triggers = true;
@@ -1016,14 +790,9 @@
 
                 const totalLoans = (this.data.loans || []).reduce((acc, loan) => {
                     const amount = parseFloat(loan.amount) || 0;
-                    // CORRECCIÓN: Si no hay fecha de vencimiento, no debe considerarse una obligación de ciclo.
                     if (!loan.dueDate) return acc; 
-                    
                     const [y, m, d] = loan.dueDate.split('-').map(Number);
-                    // Usar 999ms para asegurar que la fecha sea al final del día.
                     const due = new Date(y, m - 1, d, 23, 59, 59, 999); 
-                    
-                    // Solo cuenta las deudas que vencen DENTRO del período actual
                     if (due >= pStart && due <= pEnd) { 
                         return acc + amount;
                     }
@@ -1050,11 +819,7 @@
                 const labelState = document.getElementById('labelDailyState');
                 const cardBg = document.getElementById('mainCardBg');
                 
-                if (this.isSimulating) {
-                    dailyEl.textContent = UI.fmtMoney(balanceToday); dailyEl.className = 'text-emerald-400 font-black animate-pulse'; 
-                    labelState.textContent = 'SIMULACIÓN ACTIVADA'; labelState.className = 'text-xs font-black text-emerald-500 uppercase tracking-widest';
-                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-emerald-600/20 rounded-full blur-3xl transition-colors duration-500 animate-pulse-green';
-                } else if (balanceToday < 0) {
+                if (balanceToday < 0) {
                     dailyEl.textContent = UI.fmtMoney(balanceToday); dailyEl.className = 'text-red-500 animate-pulse font-black'; 
                     labelState.textContent = 'EXCEDIDO HOY'; labelState.className = 'text-xs font-black text-red-500 uppercase tracking-widest';
                     cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/50 rounded-full blur-3xl transition-colors duration-500 animate-pulse-red';
@@ -1243,155 +1008,19 @@
             
             // --- CHARTS & METRICS ---
             renderCharts() {
-                if(!this.logs.length) { document.getElementById('chartSection').classList.add('hidden'); return; }
-                document.getElementById('chartSection').classList.remove('hidden');
-                
-                const { start: pStart, end: pEnd } = this.currentPeriod;
-                const periodLogs = this.logs.filter(l => l.type === 'expense' && new Date(l.date).getTime() >= pStart.getTime() && new Date(l.date).getTime() <= pEnd.getTime());
-                
-                // Donut Chart
-                const cats = {}; periodLogs.forEach(l => { cats[l.category] = (cats[l.category]||0) + l.amount; });
-                if(this.charts.donut) this.charts.donut.destroy();
-                this.charts.donut = new Chart(document.getElementById('expenseChart'), { type: 'doughnut', data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#fb923c','#60a5fa','#c084fc','#facc15','#ec4899','#f87171','#34d399','#818cf8','#9ca3af'], borderWidth:0 }] }, options: { responsive:true, maintainAspectRatio:false, cutout:'75%', plugins:{ legend:{position:'right',labels:{color:'#71717a',font:{size:10,family:'Plus Jakarta Sans'},boxWidth:8,usePointStyle:true}} } } });
-
-                // Line Chart
-                const days = []; const dailySpending = {}; const currentDay = new Date(pStart);
-                while (currentDay <= pEnd) { const key = currentDay.getDate() + '/' + (currentDay.getMonth()+1); days.push(key); dailySpending[key] = 0; currentDay.setDate(currentDay.getDate() + 1); }
-                periodLogs.forEach(l => { const d = new Date(l.date); const key = d.getDate() + '/' + (d.getMonth()+1); if(dailySpending[key] !== undefined) dailySpending[key] += l.amount; });
-
-                const dataPoints = []; let accum = 0; days.forEach(d => { accum += dailySpending[d]; dataPoints.push(accum); });
-                
-                const totalIncome = (this.data.income || 0) + (this.data.incomeQ2 || 0);
-                const totalFixed = (this.data.fixed||[]).reduce((a,b)=>a+b.amount,0);
-                const totalLoans = (this.data.loans || []).reduce((acc, loan) => {
-                    const amount = parseFloat(loan.amount) || 0;
-                    const [y, m, d] = loan.dueDate.split('-').map(Number);
-                    const due = new Date(y, m-1, d, 23, 59, 59);
-                    if (due >= pStart && due <= pEnd) return acc + amount;
-                    return acc;
-                }, 0);
-                
-                const totalBudget = totalIncome - totalFixed - totalLoans;
-                const idealPoints = days.map((_, i) => (totalBudget / days.length) * (i + 1));
-
-                if(this.charts.line) this.charts.line.destroy();
-                this.charts.line = new Chart(document.getElementById('trendChart'), { type: 'line', data: { labels: days.filter((_,i) => i % 2 === 0), datasets: [ { label: 'Gasto Acumulado', data: dataPoints, borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.3, fill: true, pointRadius: 2 }, { label: 'Límite Ideal', data: idealPoints, borderColor: '#3f3f46', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, tension: 0.1 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false, grid: { display: false } }, x: { grid: { display: false }, ticks: { color: '#52525b', font: { size: 9 } } } } } });
+                // Charts removed in Lite version
+                return;
             },
 
             renderAnalysisMetrics() {
-                if(!this.logs.length || !this.currentPeriod) return;
-                const { start: pStart } = this.currentPeriod;
-                const periodLogs = this.logs.filter(l => new Date(l.date).getTime() >= pStart.getTime());
-                const expenseLogs = periodLogs.filter(l => l.type === 'expense');
-                const incomeLogs = periodLogs.filter(l => l.type === 'income');
-                
-                const totalSpent = expenseLogs.reduce((a,b)=>a+b.amount,0);
-                const dayDiff = Math.max(1, Math.ceil((new Date() - pStart) / (1000 * 60 * 60 * 24)));
-                const avg = totalSpent / dayDiff;
-                document.getElementById('statDailyAvg').textContent = UI.fmtMoney(avg);
-                
-                const cats = {}; expenseLogs.forEach(l => { cats[l.category] = (cats[l.category]||0) + l.amount; });
-                const maxCat = Object.keys(cats).reduce((a, b) => (cats[a] > cats[b] ? a : b), '---');
-                document.getElementById('statMaxCat').textContent = maxCat;
-                
-                const totalInc = incomeLogs.reduce((a,b)=>a+b.amount,0) + (this.data.income || 0);
-                document.getElementById('statTotalInc').textContent = UI.fmtMoney(totalInc);
-                document.getElementById('statTotalExp').textContent = UI.fmtMoney(totalSpent);
+                // Analysis metrics removed in Lite version
+                return;
             },
             
             // --- ACTUALIZACION SIMULACION ---
             updateSimulation() {
-                let monthlyIncome = parseFloat(this.data.income) || 0;
-                
-                if (this.data.cycle === 'biweekly') {
-                    const q1 = monthlyIncome;
-                    const q2 = parseFloat(this.data.incomeQ2) || q1;
-                    monthlyIncome = q1 + q2;
-                    document.getElementById('simIncomeDesc').textContent = 'Suma de ambas quincenas';
-                } else {
-                    document.getElementById('simIncomeDesc').textContent = 'Ingreso único mensual';
-                }
-                
-                document.getElementById('simBaseIncomeVal').textContent = UI.fmtMoney(monthlyIncome);
-
-                const now = new Date();
-                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-                
-                const extraLogs = this.logs.filter(l => l.type === 'income' && new Date(l.date) >= startOfMonth && new Date(l.date) <= endOfMonth);
-                const extraMonthIncome = extraLogs.reduce((a, b) => a + b.amount, 0);
-                document.getElementById('simTotalExtraVal').textContent = '+' + UI.fmtMoney(extraMonthIncome);
-                
-                const extraListEl = document.getElementById('simExtraList'); extraListEl.innerHTML = '';
-                if (extraLogs.length === 0) {
-                    extraListEl.innerHTML = '<div class="text-center text-[10px] text-zinc-600 py-2 italic">Sin ingresos extra este mes</div>';
-                } else {
-                    extraLogs.forEach(l => {
-                        extraListEl.innerHTML += `
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="text-zinc-400 truncate max-w-[70%]">${l.desc || l.category}</span>
-                            <span class="text-emerald-500 font-mono">+${UI.fmtMoney(l.amount)}</span>
-                        </div>
-                        `;
-                    });
-                }
-
-                const totalMonthlyIncome = monthlyIncome + extraMonthIncome;
-                document.getElementById('simTotalIncomeSum').textContent = UI.fmtMoney(totalMonthlyIncome);
-
-                const fixedList = this.data.fixed || [];
-                const totalFixed = fixedList.reduce((a,b) => a + b.amount, 0);
-                
-                const loansDueThisMonth = (this.data.loans || []).filter(l => {
-                    if (!l.dueDate) return false;
-                    const [y, m, d] = l.dueDate.split('-').map(Number);
-                    const dueDate = new Date(y, m - 1, d);
-                    return dueDate.getMonth() === now.getMonth() && dueDate.getFullYear() === now.getFullYear();
-                });
-
-                const totalLoansDue = loansDueThisMonth.reduce((a, b) => a + b.amount, 0);
-                const freeMoney = totalMonthlyIncome - totalFixed - totalLoansDue;
-                
-                document.getElementById('simFreeMoney').textContent = UI.fmtMoney(freeMoney);
-                document.getElementById('simTotalFixed').textContent = '-' + UI.fmtMoney(totalFixed);
-                document.getElementById('simTotalLoans').textContent = '-' + UI.fmtMoney(totalLoansDue);
-                
-                const listEl = document.getElementById('simFixedList'); listEl.innerHTML = '';
-                if (fixedList.length === 0) {
-                    listEl.innerHTML = '<div class="text-center text-zinc-600 text-xs py-2 italic">Sin gastos fijos configurados</div>';
-                } else {
-                    fixedList.forEach(f => {
-                        listEl.innerHTML += `
-                        <div class="flex justify-between items-center p-3 rounded-xl bg-zinc-900/30 border border-zinc-800/50">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 font-bold text-xs">${f.day}</div>
-                                <span class="text-xs font-bold text-zinc-300">${f.name}</span>
-                            </div>
-                            <span class="text-xs font-mono text-red-400">-${UI.fmtMoney(f.amount)}</span>
-                        </div>
-                        `;
-                    });
-                }
-
-                const loanListEl = document.getElementById('simLoansList'); loanListEl.innerHTML = '';
-                if (loansDueThisMonth.length === 0) {
-                     loanListEl.innerHTML = '<div class="text-center text-zinc-600 text-xs py-2 italic">Sin deudas venciendo este mes</div>';
-                } else {
-                    loansDueThisMonth.forEach(l => {
-                        loanListEl.innerHTML += `
-                        <div class="flex justify-between items-center p-3 rounded-xl bg-orange-900/10 border border-orange-500/20">
-                            <div class="flex items-center gap-3">
-                                <i class="ph-bold ph-warning text-orange-500"></i>
-                                <div class="flex flex-col">
-                                    <span class="text-xs font-bold text-zinc-300">${l.name}</span>
-                                    <span class="text-[10px] text-zinc-500">Vence: ${l.dueDate}</span>
-                                </div>
-                            </div>
-                            <span class="text-xs font-mono text-orange-400">-${UI.fmtMoney(l.amount)}</span>
-                        </div>
-                        `;
-                    });
-                }
+                // Simulation logic removed in Lite version
+                return;
             },
 
             // --- ACTIONS ---
@@ -1585,7 +1214,9 @@
             // --- UI HELPERS ---
             switchView(v) {
                 document.querySelectorAll('section[id^="view-"]').forEach(s => s.classList.add('hidden'));
-                document.getElementById('view-'+v).classList.remove('hidden');
+                const target = document.getElementById('view-'+v);
+                if(target) target.classList.remove('hidden');
+                
                 document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
                 
                 if(event && event.currentTarget) event.currentTarget.classList.add('active');
@@ -1595,174 +1226,11 @@
                 });
                 
                 document.getElementById('fabContainer').classList.toggle('scale-0', v !== 'balance');
-                
-                if(v === 'simulation') {
-                    this.updateSimulation();
-                    if(this.charts.donut) {
-                        setTimeout(() => {
-                            this.charts.donut.resize();
-                            this.charts.line.resize();
-                        }, 100);
-                    }
-                }
             },
             
             filterTransactions() { 
                 this.searchQuery = document.getElementById('searchTx').value; 
                 this.renderTransactions(); 
-            },
-            
-            generateReport() {
-                if(!this.currentPeriod) return UI.toast('Espera un momento...','error');
-                
-                const logs = this.logs.filter(l => { const t = new Date(l.date).getTime(); return t >= this.currentPeriod.start.getTime() && t <= this.currentPeriod.end.getTime(); });
-                const inc = logs.filter(l=>l.type==='income').reduce((a,b)=>a+b.amount,0);
-                const exp = logs.filter(l=>l.type==='expense').reduce((a,b)=>a+b.amount,0);
-                const totalIncome = this.data.income + inc;
-                const balance = totalIncome - exp;
-                
-                const printArea = document.getElementById('print-area');
-                
-                printArea.innerHTML = `
-                <style>
-                    body * { visibility: hidden; }
-                    #print-area, #print-area * { visibility: visible; }
-                    #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 30px; color: #000; font-family: sans-serif; }
-                    .print-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-                    .print-logo { font-size: 24px; font-weight: bold; }
-                    .logo-accent { color: #dc2626; }
-                    .print-meta p { font-size: 10px; text-align: right; }
-                    .print-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-                    .print-card { background: #f0f0f0; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
-                    .print-label { font-size: 10px; color: #555; text-transform: uppercase; }
-                    .print-val { font-size: 16px; font-weight: bold; color: #000; }
-                    .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 11px; }
-                    .print-table th, .print-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    .print-table th { background-color: #eee; }
-                    .text-red-500 { color: #ef4444; }
-                    .print-footer { margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; text-align: center; font-size: 8px; }
-                </style>
-                <div class="print-header">
-                    <div class="print-logo">GOD'S <span class="logo-accent">PLAN</span></div>
-                    <div class="print-meta">
-                        <p>ESTADO DE CUENTA</p>
-                        <p>USUARIO: ${this.user.displayName || 'ANÓNIMO'}</p>
-                        <p>PERIODO: ${this.currentPeriod.start.toLocaleDateString()} - ${this.currentPeriod.end.toLocaleDateString()}</p>
-                    </div>
-                </div>
-
-                <div class="print-grid">
-                    <div class="print-card">
-                        <div class="print-label">Ingresos Totales</div>
-                        <div class="print-val">${UI.fmtMoney(totalIncome)}</div>
-                    </div>
-                    <div class="print-card">
-                        <div class="print-label">Gastos Totales</div>
-                        <div class="print-val text-red-500">${UI.fmtMoney(exp)}</div>
-                    </div>
-                    <div class="print-card">
-                        <div class="print-label">Balance Neto</div>
-                        <div class="print-val" style="color:${balance >= 0 ? '#10b981' : '#ef4444'}">${UI.fmtMoney(balance)}</div>
-                    </div>
-                </div>
-
-                <h3 style="margin-top: 20px; font-size: 14px; font-weight: bold;">MOVIMIENTOS (Máx. 100)</h3>
-                <table class="print-table">
-                    <thead>
-                        <tr><th>Concepto</th><th>Categoría</th><th>Tipo</th><th>Fecha</th><th style="text-align: right;">Monto</th></tr>
-                    </thead>
-                    <tbody>${logs.slice(0, 100).map(l=>`
-                        <tr>
-                            <td>${l.desc||'Sin descripción'}</td>
-                            <td>${l.category}</td>
-                            <td>${l.type==='income'?'INGRESO':'GASTO'}</td>
-                            <td>${new Date(l.date).toLocaleDateString()}</td>
-                            <td style="text-align:right;color:${l.type==='income'?'#10b981':'#ef4444'}">${l.type==='income'?'+':'-'} ${UI.fmtMoney(l.amount)}</td>
-                        </tr>`).join('')}
-                    </tbody>
-                </table>
-                <div class="print-footer"><p>CONFIDENCIAL - GENERADO POR SISTEMA GOD'S PLAN</p></div>
-                `;
-
-                setTimeout(() => window.print(), 100);
-            },
-
-            exportCSV() {
-                if(!this.logs.length) return UI.toast('Sin datos para exportar', 'error');
-                let csv = 'Fecha,Tipo,Categoria,Descripcion,Monto\n';
-                this.logs.forEach(l => {
-                    const dateStr = new Date(l.date).toISOString().split('T')[0]; 
-                    csv += `${dateStr},${l.type},${l.category},"${l.desc?.replace(/"/g, '""')||''}",${l.amount}\n`;
-                });
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.setAttribute("href", url);
-                link.setAttribute("download", "gods_plan_export.csv");
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            },
-            
-            importCSV() { document.getElementById('csvInput').click(); },
-            
-            async processCSV(input) {
-                const file = input.files[0];
-                if(!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const text = e.target.result;
-                    const rows = text.split('\n');
-                    const batch = writeBatch(db);
-                    let count = 0;
-                    
-                    for(let i=1; i<rows.length; i++) {
-                        const row = rows[i].trim();
-                        if(!row) continue;
-                        const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || row.split(',');
-                        
-                        if(cols.length >= 5) {
-                            const dateStr = cols[0].replace(/"/g, '');
-                            const type = cols[1].replace(/"/g, '');
-                            const category = cols[2].replace(/"/g, '');
-                            const desc = cols[3]?.replace(/"/g, '') || '';
-                            const amount = parseFloat(cols[4]);
-                            
-                            if(amount && type) {
-                                let finalDate = new Date();
-                                if(dateStr.includes('-')) {
-                                    const [y,m,d] = dateStr.split('-').map(Number);
-                                    finalDate = new Date(y, m-1, d, 12, 0, 0);
-                                } else if (dateStr.includes('/')) {
-                                    const [d,m,y] = dateStr.split('/').map(Number);
-                                    finalDate = new Date(y, m-1, d, 12, 0, 0);
-                                }
-
-                                const ref = doc(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions'));
-                                batch.set(ref, {
-                                    amount: Math.abs(amount),
-                                    desc: desc,
-                                    category: category || 'Importado',
-                                    type: type.toLowerCase().includes('income') || type.toLowerCase().includes('ingreso') ? 'income' : 'expense',
-                                    date: finalDate.toISOString()
-                                });
-                                count++;
-                            }
-                        }
-                    }
-                    
-                    if(count > 0) {
-                        await batch.commit();
-                        UI.toast(`${count} registros importados`, 'success');
-                        setTimeout(() => window.location.reload(), 1500);
-                    } else {
-                        UI.toast('No se pudieron leer registros', 'error');
-                    }
-                    input.value = ''; 
-                };
-                reader.readAsText(file);
             }
         };
 
