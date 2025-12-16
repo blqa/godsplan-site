@@ -14,7 +14,7 @@
     
     <script>
         tailwind.config = {
-            darkMode: 'class', // Activación manual del modo oscuro
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { sans: ['"Inter"', 'sans-serif'] },
@@ -24,8 +24,8 @@
                         light: '#f4f4f5',
                         cardDark: '#18181b',
                         cardLight: '#ffffff',
-                        sw: '#0ea5e9', /* Sky 500 */
-                        gen: '#eab308'  /* Yellow 500 */
+                        sw: '#0ea5e9',
+                        gen: '#eab308'
                     }
                 }
             }
@@ -33,39 +33,28 @@
     </script>
 
     <style>
-        /* Base Styles Transition */
         body { transition: background-color 0.3s, color 0.3s; }
-        
-        /* Scrollbars */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #a1a1aa; border-radius: 3px; }
         .dark ::-webkit-scrollbar-thumb { background: #3f3f46; }
         ::-webkit-scrollbar-thumb:hover { background: #E70000; }
 
-        /* Glassmorphism Dinámico */
-        .glass-nav {
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid;
-        }
-        /* Dark Glass */
+        .glass-nav { backdrop-filter: blur(12px); border-bottom: 1px solid; }
         .dark .glass-nav { background: rgba(9, 9, 11, 0.85); border-color: rgba(255,255,255,0.05); }
-        /* Light Glass */
         .glass-nav { background: rgba(255, 255, 255, 0.9); border-color: rgba(0,0,0,0.05); }
 
         .action-btn { transition: all 0.2s active; }
         .action-btn:active { transform: scale(0.95); }
-
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="flex flex-col min-h-screen overflow-x-hidden bg-gray-50 text-gray-900 dark:bg-[#000000] dark:text-gray-200">
 
-    <!-- TOASTS -->
     <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- HEADER GLOBAL -->
+    <!-- HEADER -->
     <header class="h-16 glass-nav sticky top-0 z-50 flex items-center justify-between px-4 lg:px-8 shadow-sm dark:shadow-none transition-colors">
         <div class="flex items-center gap-6">
             <a href="/" class="flex items-center gap-3 font-black tracking-tighter text-lg group">
@@ -74,24 +63,19 @@
                 </div>
                 <span class="dark:text-white text-gray-900">GOD'S PLAN</span>
             </a>
-            
             <nav class="hidden md:flex items-center gap-1 bg-gray-200/50 dark:bg-white/5 p-1 rounded-lg border border-transparent dark:border-white/5">
                 <a href="/adherencia.html" class="px-3 py-1.5 text-[11px] font-bold uppercase text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-white dark:hover:bg-white/5 rounded transition-all">Adherencia</a>
                 <a href="/chat.html" class="px-3 py-1.5 text-[11px] font-bold uppercase text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-white dark:hover:bg-white/5 rounded transition-all">Chat</a>
                 <a href="/finanzas.html" class="px-3 py-1.5 text-[11px] font-bold uppercase text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-white dark:hover:bg-white/5 rounded transition-all">Finanzas</a>
             </nav>
         </div>
-
         <div class="flex items-center gap-3">
-            <!-- Theme Toggle -->
             <button onclick="window.app.toggleTheme()" class="w-9 h-9 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors">
                 <i id="theme-icon" class="ph-bold ph-moon"></i>
             </button>
-
             <button onclick="window.app.toggleImportModal()" class="action-btn bg-brand hover:bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center gap-2 shadow-lg shadow-red-600/20">
                 <i class="ph-bold ph-plus"></i> <span class="hidden sm:inline">Nuevo</span>
             </button>
-            
             <div id="user-pill" class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-200 dark:bg-zinc-900 rounded-lg border border-gray-300 dark:border-zinc-800">
                 <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span id="username-display" class="text-xs font-bold text-gray-700 dark:text-zinc-300">...</span>
@@ -102,28 +86,22 @@
     <!-- CONTROLS -->
     <div class="sticky top-16 z-40 bg-white/80 dark:bg-black/95 backdrop-blur-sm border-b border-gray-200 dark:border-zinc-900 py-3 px-4 lg:px-8 shadow-sm transition-colors">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            <!-- Filter Pills -->
             <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto no-scrollbar pb-1 md:pb-0">
                 <button id="btn-all" onclick="window.app.setFilter('all')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase transition-all border">Todos <span id="count-all" class="ml-1 opacity-60 text-[10px]">0</span></button>
                 <button id="btn-my" onclick="window.app.setFilter('my')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase transition-all border">Mis Casos</button>
                 <button id="btn-sw" onclick="window.app.setFilter('smartwatch')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase transition-all border flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-sw"></div> Smartwatch</button>
                 <button id="btn-gen" onclick="window.app.setFilter('general')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase transition-all border flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-gen"></div> General</button>
             </div>
-
-            <!-- Search -->
             <div class="relative w-full md:w-96 group">
                 <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="search-input" onkeyup="window.app.handleSearch(this.value)" 
-                    class="block w-full pl-9 pr-3 py-2 bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" 
-                    placeholder="Buscar...">
+                <input type="text" id="search-input" onkeyup="window.app.handleSearch(this.value)" class="block w-full pl-9 pr-3 py-2 bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="Buscar...">
             </div>
         </div>
     </div>
 
-    <!-- MAIN LIST VIEW -->
+    <!-- MAIN GRID -->
     <main class="flex-grow p-4 lg:p-6 w-full max-w-6xl mx-auto">
         <div id="cases-grid" class="flex flex-col gap-3">
-            <!-- Loader -->
             <div class="flex flex-col items-center justify-center h-64 text-gray-400 dark:text-zinc-600">
                 <i class="ph-duotone ph-spinner-gap text-4xl animate-spin mb-2 text-brand"></i>
                 <span class="text-xs font-mono uppercase tracking-widest">Cargando Casos...</span>
@@ -133,11 +111,9 @@
 
     <!-- IMPORT MODAL -->
     <div id="import-modal" class="fixed inset-0 z-[100] bg-black/50 dark:bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all duration-200 opacity-0">
-        <div class="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 w-full max-w-2xl rounded-xl shadow-2xl transform scale-95 transition-all duration-200 flex flex-col overflow-hidden" id="modal-content">
+        <div class="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 w-full max-w-2xl rounded-xl shadow-2xl transform scale-95 transition-all duration-200 flex flex-col overflow-hidden" id="import-modal-content">
             <div class="p-5 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
-                <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <i class="ph-fill ph-files text-brand"></i> Importación Masiva
-                </h3>
+                <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2"><i class="ph-fill ph-files text-brand"></i> Importación Masiva</h3>
                 <button onclick="window.app.toggleImportModal()" class="text-gray-500 hover:text-red-500 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
             <div class="p-6">
@@ -156,14 +132,51 @@
         </div>
     </div>
 
+    <!-- EDIT MODAL (NEW) -->
+    <div id="edit-modal" class="fixed inset-0 z-[100] bg-black/50 dark:bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all duration-200 opacity-0">
+        <div class="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 w-full max-w-lg rounded-xl shadow-2xl transform scale-95 transition-all duration-200 flex flex-col overflow-hidden" id="edit-modal-content">
+            <div class="p-5 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
+                <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2"><i class="ph-fill ph-pencil-simple text-brand"></i> Editar Caso</h3>
+                <button onclick="window.app.toggleEditModal()" class="text-gray-500 hover:text-red-500 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+            <div class="p-6 flex flex-col gap-4">
+                <input type="hidden" id="edit-id">
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Nombre Cliente</label>
+                    <input type="text" id="edit-name" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Tel. Contacto</label>
+                        <input type="text" id="edit-contact" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand">
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Tel. Afectado</label>
+                        <input type="text" id="edit-affected" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Tipo</label>
+                    <select id="edit-type" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand">
+                        <option value="smartwatch">Smartwatch</option>
+                        <option value="general">General</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Descripción</label>
+                    <textarea id="edit-desc" rows="3" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand resize-none"></textarea>
+                </div>
+                <button onclick="window.app.saveEdit()" class="w-full bg-brand hover:bg-red-600 text-white font-bold py-3 rounded-lg uppercase tracking-wide transition-colors shadow-lg shadow-brand/20 mt-2">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
     <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithCustomToken, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración Inicial
-        const apiKey = ""; 
         let firebaseConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
         try { if (typeof __firebase_config !== 'undefined' && __firebase_config) firebaseConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; } catch(e){}
         
@@ -178,7 +191,6 @@
         let currentFilter = 'all';
         let searchTerm = '';
 
-        // --- THEME LOGIC ---
         const initTheme = () => {
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
@@ -190,7 +202,6 @@
         };
         initTheme();
 
-        // --- UTILS ---
         const toast = (msg, type = 'success') => {
             const c = document.getElementById('toast-container');
             const el = document.createElement('div');
@@ -209,7 +220,6 @@
             return `${Math.floor(seconds/86400)}d`;
         };
 
-        // --- AUTH ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -221,7 +231,6 @@
             }
         });
 
-        // --- CORE LOGIC ---
         function initRealtime() {
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cases'), (snap) => {
                 casesData = [];
@@ -238,27 +247,18 @@
         window.app = {
             toggleTheme: () => {
                 const isDark = document.documentElement.classList.contains('dark');
-                if (isDark) {
-                    document.documentElement.classList.remove('dark');
-                    localStorage.theme = 'light';
-                    document.getElementById('theme-icon').className = 'ph-bold ph-moon';
-                } else {
-                    document.documentElement.classList.add('dark');
-                    localStorage.theme = 'dark';
-                    document.getElementById('theme-icon').className = 'ph-bold ph-sun';
-                }
+                if (isDark) { document.documentElement.classList.remove('dark'); localStorage.theme = 'light'; document.getElementById('theme-icon').className = 'ph-bold ph-moon'; } 
+                else { document.documentElement.classList.add('dark'); localStorage.theme = 'dark'; document.getElementById('theme-icon').className = 'ph-bold ph-sun'; }
             },
             toggleImportModal: () => {
-                const m = document.getElementById('import-modal');
-                const c = document.getElementById('modal-content');
-                if (m.classList.contains('hidden')) {
-                    m.classList.remove('hidden');
-                    setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
-                    document.getElementById('raw-input').focus();
-                } else {
-                    m.classList.add('opacity-0'); c.classList.add('scale-95');
-                    setTimeout(() => m.classList.add('hidden'), 200);
-                }
+                const m = document.getElementById('import-modal'); const c = document.getElementById('import-modal-content');
+                if (m.classList.contains('hidden')) { m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); document.getElementById('raw-input').focus(); } 
+                else { m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => m.classList.add('hidden'), 200); }
+            },
+            toggleEditModal: () => {
+                const m = document.getElementById('edit-modal'); const c = document.getElementById('edit-modal-content');
+                if (m.classList.contains('hidden')) { m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); } 
+                else { m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => m.classList.add('hidden'), 200); }
             },
             setFilter: (f) => { currentFilter = f; render(); },
             handleSearch: (val) => { searchTerm = val.toLowerCase(); render(); },
@@ -291,58 +291,33 @@
             comment: async (id, inputId) => { const input = document.getElementById(inputId); const txt = input.value.trim(); if(!txt) return; await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), { comments: arrayUnion({ text: txt, author: currentUser.displayName?.split(' ')[0] || 'Yo', time: Date.now() }) }); input.value = ''; },
             copy: (txt) => { navigator.clipboard.writeText(txt).then(() => toast('Copiado')); },
             
-            // --- GEMINI AI (Fallback Integration) ---
-            askAI: async (id, name, desc) => {
-                const btn = document.getElementById(`ai-btn-${id}`);
-                const container = document.getElementById(`ai-box-${id}`);
-                const content = document.getElementById(`ai-content-${id}`);
-                
-                // 1. Obtener Key (Sistema o Local)
-                let currentKey = apiKey;
-                if (!currentKey) currentKey = localStorage.getItem('gemini_api_key');
-                
-                // 2. Si no hay key, pedirla
-                if (!currentKey) {
-                    currentKey = prompt("⚠️ Ingresa tu API Key de Gemini para activar la IA:");
-                    if (currentKey) {
-                        localStorage.setItem('gemini_api_key', currentKey);
-                    } else {
-                        return toast("Se requiere API Key", "error");
-                    }
-                }
+            openEdit: (id) => {
+                const c = casesData.find(x => x.id === id);
+                if (!c) return;
+                document.getElementById('edit-id').value = id;
+                document.getElementById('edit-name').value = c.clientName;
+                document.getElementById('edit-contact').value = c.contactPhone || '';
+                document.getElementById('edit-affected').value = c.affectedPhone || '';
+                document.getElementById('edit-type').value = c.type;
+                document.getElementById('edit-desc').value = c.description;
+                window.app.toggleEditModal();
+            },
 
-                btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i>`;
-                btn.disabled = true;
-                
+            saveEdit: async () => {
+                const id = document.getElementById('edit-id').value;
+                const name = document.getElementById('edit-name').value.trim();
+                const contact = document.getElementById('edit-contact').value.trim();
+                const affected = document.getElementById('edit-affected').value.trim();
+                const type = document.getElementById('edit-type').value;
+                const desc = document.getElementById('edit-desc').value.trim();
+                if (!name) return toast('Nombre requerido', 'error');
                 try {
-                    const prompt = `Analiza para soporte técnico: Cliente ${name}, Nota: "${desc}". Resumen ejecutivo brevísimo (3 líneas max) con problema, historial y sugerencia.`;
-                    
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${currentKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), {
+                        clientName: name.toUpperCase(), contactPhone: contact, affectedPhone: affected, type: type, description: desc, phones: [contact, affected].filter(Boolean)
                     });
-
-                    if (!response.ok) {
-                        if (response.status === 403) {
-                            localStorage.removeItem('gemini_api_key'); // Limpiar key invalida
-                            throw new Error("API Key inválida o expirada");
-                        }
-                        throw new Error('Error en API de Google');
-                    }
-                    
-                    const data = await response.json();
-                    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sin respuesta.";
-                    
-                    container.classList.remove('hidden');
-                    content.textContent = aiText;
-                } catch (error) { 
-                    console.error(error);
-                    toast(error.message, "error"); 
-                } finally { 
-                    btn.innerHTML = `✨ Resumen`; 
-                    btn.disabled = false; 
-                }
+                    toast('Caso actualizado');
+                    window.app.toggleEditModal();
+                } catch(e) { toast('Error al actualizar', 'error'); }
             }
         };
 
@@ -377,56 +352,42 @@
                 const isMine = c.assignedTo?.uid === currentUser?.uid;
                 const isSW = c.type === 'smartwatch';
                 
-                // New Horizontal Card Layout
                 const card = document.createElement('div');
                 card.className = `relative rounded-xl border p-4 flex flex-col md:flex-row gap-4 transition-all fade-in bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 shadow-sm hover:shadow-md ${isTaken ? 'opacity-75 grayscale-[0.3]' : ''}`;
                 if(isMine) card.className += ' ring-1 ring-green-500 dark:ring-green-500/50 bg-green-50 dark:bg-green-950/10';
 
-                // Phone Badge
                 const phoneBadge = (label, num, color) => num ? `
-                    <div onclick="window.app.copy('${num}')" class="cursor-pointer group flex items-center gap-2 bg-gray-100 dark:bg-zinc-950/50 px-2 py-1.5 rounded border border-gray-200 dark:border-zinc-800 hover:border-${color}-500 transition-colors">
-                        <span class="text-[9px] uppercase font-bold text-gray-400 dark:text-zinc-500 w-12">${label}</span>
+                    <div onclick="window.app.copy('${num}')" class="cursor-pointer group flex items-center gap-2 bg-gray-100 dark:bg-zinc-950/50 px-2 py-1 rounded border border-gray-200 dark:border-zinc-800 hover:border-${color}-500 transition-colors w-full md:w-auto">
+                        <span class="text-[9px] uppercase font-bold text-gray-400 dark:text-zinc-500 w-16">${label}:</span>
                         <span class="font-mono text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-${color}-500">${num}</span>
                     </div>` : '';
 
-                // Comments List
                 const comments = c.comments?.slice(-2).map(co => `<div class="text-[10px] text-gray-500 dark:text-zinc-400 truncate"><strong class="text-gray-700 dark:text-zinc-300">${co.author}:</strong> ${co.text}</div>`).join('') || '';
 
                 card.innerHTML = `
-                    <!-- LEFT: Main Info -->
                     <div class="flex-grow min-w-0 flex flex-col gap-2">
                         <div class="flex items-center gap-2 mb-1">
                             <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${isSW ? 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400' : 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'}">${isSW ? 'SW' : 'GEN'}</span>
                             <span class="text-[10px] font-mono text-gray-400">${timeAgo(c.createdAt)}</span>
                             ${isTaken ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-gray-100 dark:bg-zinc-800 text-gray-500">${isMine ? 'MÍO' : c.assignedTo?.name}</span>` : ''}
                         </div>
-                        <h3 class="font-black text-lg text-gray-900 dark:text-white leading-tight truncate" title="${c.clientName}">${c.clientName}</h3>
-                        <div class="flex flex-wrap gap-2">
+                        <h3 class="font-black text-lg text-gray-900 dark:text-white leading-tight truncate mb-1" title="${c.clientName}">${c.clientName}</h3>
+                        <div class="flex flex-col gap-1.5">
                             ${phoneBadge('Contacto', c.contactPhone, 'blue')}
                             ${phoneBadge('Afectado', c.affectedPhone, 'purple')}
                         </div>
                     </div>
 
-                    <!-- CENTER: Context & AI -->
                     <div class="flex-grow md:w-1/3 min-w-0 border-l-0 md:border-l border-gray-100 dark:border-zinc-800 md:pl-4 flex flex-col gap-2">
-                        <p class="text-[11px] text-gray-500 dark:text-zinc-400 line-clamp-2 hover:line-clamp-none cursor-help transition-all" title="${c.description}">${c.description}</p>
-                        
-                        <div id="ai-box-${c.id}" class="hidden bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-500/20 rounded p-2">
-                            <p id="ai-content-${c.id}" class="text-[10px] text-purple-700 dark:text-purple-300 font-mono leading-tight">...</p>
-                        </div>
-                        
-                        <div class="mt-auto pt-2 border-t border-gray-100 dark:border-zinc-800/50">
-                            ${comments}
-                        </div>
+                        <p class="text-[11px] text-gray-500 dark:text-zinc-400 line-clamp-3 hover:line-clamp-none cursor-help transition-all" title="${c.description}">${c.description}</p>
+                        <div class="mt-auto pt-2 border-t border-gray-100 dark:border-zinc-800/50">${comments}</div>
                     </div>
 
-                    <!-- RIGHT: Actions -->
                     <div class="flex flex-col gap-2 min-w-[140px] md:border-l border-gray-100 dark:border-zinc-800 md:pl-4 justify-center">
                         <div class="flex gap-1">
                             <input type="text" id="input-${c.id}" placeholder="Nota..." class="w-full bg-gray-50 dark:bg-black border border-gray-200 dark:border-zinc-800 rounded px-2 py-1 text-xs text-gray-800 dark:text-white focus:border-brand outline-none" onkeypress="if(event.key==='Enter') window.app.comment('${c.id}', 'input-${c.id}')">
                         </div>
                         <div class="flex gap-2">
-                            <button id="ai-btn-${c.id}" onclick="window.app.askAI('${c.id}', '${c.clientName}', '${c.description.replace(/'/g, "\\'")}')" class="flex-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/40 border border-purple-200 dark:border-purple-800 py-1.5 rounded text-[10px] font-bold uppercase transition-colors">✨ IA</button>
                             ${!isTaken ? 
                                 `<button onclick="window.app.claim('${c.id}')" class="flex-1 bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-brand dark:hover:bg-brand py-1.5 rounded text-[10px] font-bold uppercase transition-colors">TOMAR</button>` :
                                 (isMine ? 
@@ -435,7 +396,10 @@
                                 )
                             }
                         </div>
-                        ${!isTaken ? `<button onclick="window.app.delete('${c.id}')" class="text-[10px] text-gray-400 hover:text-red-500 text-right pr-1">Eliminar</button>` : ''}
+                        <div class="flex justify-end gap-2 mt-1">
+                            <button onclick="window.app.openEdit('${c.id}')" class="text-gray-400 hover:text-blue-500 transition-colors p-1" title="Editar"><i class="ph-bold ph-pencil-simple"></i></button>
+                            ${!isTaken ? `<button onclick="window.app.delete('${c.id}')" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="Eliminar"><i class="ph-bold ph-trash"></i></button>` : ''}
+                        </div>
                     </div>
                 `;
                 grid.appendChild(card);
