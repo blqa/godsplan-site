@@ -1,1079 +1,1056 @@
 <!DOCTYPE html>
-<html lang="es">
-
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>God's Plan | Adherencia</title>
-    <!-- FUENTE UNIFICADA: PLUS JAKARTA SANS -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!-- TAILWIND CSS & CONFIGURACIÓN DE TEMA -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>God's Plan | Finanzas</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        bg: 'var(--bg)',
-                        card: 'var(--card)',
-                        text: 'var(--text)',
-                        'text-mute': 'var(--text-mute)',
-                        brand: 'var(--brand)',
-                        money: 'var(--money)',
-                        alert: 'var(--alert)',
-                        warn: 'var(--warn)',
-                        border: 'var(--border)',
-                        'input-bg': 'var(--input-bg)',
-                    },
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'],
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- FIREBASE MODULAR (v9+) -->
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Firebase Imports (Modular) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Expose Firebase to global scope for the main script
         window.firebaseImports = {
             initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
-            GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile,
-            getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where
+            getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc
         };
     </script>
-
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { dark: { 900: '#050505', card: '#18181b' } },
+                    animation: {
+                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'pulse-red': 'pulseRed 2s infinite',
+                    },
+                    keyframes: {
+                        slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } },
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        pulseRed: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.5' } }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        /* --- DEFINICIÓN DE VARIABLES DE TEMA --- */
-        :root {
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #0f172a;
-            --text-mute: #64748b;
-            --brand: #2563eb;
-            --money: #059669;
-            --alert: #dc2626;
-            --warn: #f59e0b;
-            --border: #e2e8f0;
-            --input-bg: #f8fafc;
-        }
-
-        [data-theme="dark"] {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f1f5f9;
-            --text-mute: #94a3b8;
-            --brand: #3b82f6;
-            --money: #10b981;
-            --alert: #ef4444;
-            --warn: #f59e0b;
-            --border: #334155;
-            --input-bg: #0f172a;
-        }
-
-        [data-theme="red"] {
-            --bg: #000000;
-            --card: #111111;
-            --text: #e5e5e5;
-            --text-mute: #737373;
-            --brand: #dc2626;
-            --money: #16a34a;
-            --alert: #b91c1c;
-            --warn: #d97706;
-            --border: #262626;
-            --input-bg: #0a0a0a;
-        }
-
-        /* RESET & UTILIDADES ESPECÍFICAS */
-        * { -webkit-tap-highlight-color: transparent; outline: none; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
-        
-        /* Ocultar scrollbar en navegación */
+        :root { --sat: env(safe-area-inset-top); --sab: env(safe-area-inset-bottom); }
+        body { background-color: #050505; color: #e5e5e5; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; height: 100dvh; }
+        input, select, textarea { font-size: 16px !important; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Animaciones */
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        .animate-pulse-custom { animation: pulse 2s infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .spinner { border: 4px solid var(--border); border-top: 4px solid var(--brand); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
-
-        /* ESTADOS ACTIVOS COMPLEJOS */
-        .g-link.active { color: #fff; border-bottom: 2px solid #fff; padding-bottom: 2px; }
-        
-        /* Botones de control de tiempo activos */
-        .btn-ctrl.active-bath { background: var(--bg); color: var(--brand) !important; border-color: var(--brand) !important; box-shadow: inset 0 0 0 1px var(--brand); }
-        .btn-ctrl.active-food { background: var(--bg); color: var(--warn) !important; border-color: var(--warn) !important; box-shadow: inset 0 0 0 1px var(--warn); }
-        .btn-ctrl.active-pause { background: #fff7ed; color: #f97316 !important; border-color: #f97316 !important; box-shadow: inset 0 0 0 1px #f97316; }
-        
-        [data-theme="dark"] .btn-ctrl.active-pause, [data-theme="red"] .btn-ctrl.active-pause { background: #431407; color: #fb923c !important; border-color: #fb923c !important; }
-        
-        .side-clock.active { opacity: 1; transform: scale(1.05); background: transparent; }
-        .side-clock.danger .side-val { color: var(--alert) !important; }
-        
-        /* Tabs del modal */
-        .tab.active { color: var(--brand); border-bottom-color: var(--brand); }
-        
-        /* Theme buttons */
-        .theme-btn.active { border-color: var(--brand); color: var(--brand); background: var(--card); box-shadow: 0 0 0 2px var(--brand); }
-        
-        /* Inputs Color Picker */
-        input[type="color"] { -webkit-appearance: none; padding: 0; border: none; border-radius: 4px; height: 30px; width: 40px; cursor: pointer; }
-        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
+        .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
+        .glass-highlight { background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.08); }
+        .glass-nav { background: rgba(5, 5, 5, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: var(--sab); }
+        .g-links { display: flex; align-items: center; gap: 20px; overflow-x: auto; }
+        .g-link { font-size: 10px; font-weight: 800; letter-spacing: 0.05em; color: #71717a; transition: color 0.2s; text-decoration: none; white-space: nowrap; }
+        .g-link:hover, .g-link.active { color: white; }
+        .input-modern { background: #09090b; border: 1px solid #27272a; color: white; border-radius: 16px; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); font-size: 16px !important; }
+        .input-modern:focus { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); outline: none; background: #18181b; }
+        .toggle-checkbox:checked { right: 0; border-color: #10b981; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
+        .chip { transition: all 0.2s; user-select: none; white-space: nowrap; }
+        .chip.active { background: #ef4444; color: white; transform: scale(1.02); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); border-color: #ef4444; }
+        #toast-container { position: fixed; top: calc(20px + var(--sat)); left: 50%; transform: translateX(-50%); z-index: 2000; pointer-events: none; width: 90%; max-width: 400px; }
+        .toast { background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; border: 1px solid #333; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 10px; animation: fadeIn 0.3s forwards; pointer-events: auto; }
+        #global-nav { position: sticky; top: 0; z-index: 1000; }
+        .g-logo { color: #fff; font-weight: 800; text-decoration: none; font-size: 1.1rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; position: relative; z-index: 1001; cursor: pointer; white-space: nowrap; }
+        #modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; display: flex; align-items: flex-end; justify-content: center; }
+        #modalOverlay.is-open { opacity: 1; pointer-events: auto; }
+        #modalSheet { background: #121212; width: 100%; max-height: 85dvh; border-top-left-radius: 32px; border-top-right-radius: 32px; border-top: 1px solid #27272a; padding: 20px 24px; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding-bottom: calc(40px + var(--sab)); }
+        #modalOverlay.is-open #modalSheet { transform: translateY(0); }
+        @media (min-width: 768px) {
+            #modalOverlay { align-items: center; padding: 20px; }
+            #modalSheet {
+                width: 100%; max-width: 360px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); max-height: 85vh; padding: 20px;
+                transform: scale(0.95); opacity: 0; transition: all 0.2s ease-out;
+            }
+            #modalOverlay.is-open #modalSheet { transform: scale(1); opacity: 1; }
+            main { padding-bottom: 20px !important; }
+        }
+        .nav-link-desk { color: #71717a; padding: 6px 16px; border-radius: 99px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s; }
+        .nav-link-desk:hover { color: white; background: rgba(255,255,255,0.05); }
+        .nav-link-desk.active { color: white; background: #27272a; }
+        .modal-auth { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-auth.active { display: flex; }
     </style>
 </head>
-
-<body class="bg-bg text-text font-sans pb-24 text-sm font-normal selection:bg-brand selection:text-white">
-
-    <!-- NAV GLOBAL -->
-    <nav id="global-nav" class="sticky top-0 z-[100] h-14 bg-black border-b border-white/5 flex items-center justify-between px-5 shrink-0 shadow-md">
-        <a href="/" class="text-white font-black text-base tracking-wide flex items-center gap-2 no-underline hover:text-red-500 transition-colors">
-            <i class="ph-bold ph-circles-three-plus text-lg text-red-500"></i> God's Plan
-        </a>
-        <div class="flex items-center gap-5 overflow-x-auto no-scrollbar pr-2.5">
-            <a href="/adherencia.html" class="g-link active text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">ADHERENCIA</a>
-            <a href="/chat.html" class="g-link text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">CHAT</a>
-            <a href="/finanzas" class="g-link text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">FINANZAS</a>
-            <a href="/cuenta.html" class="g-link text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">CUENTA</a>
-            <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] ml-1 shrink-0"></div>
+<body class="flex flex-col overflow-hidden text-sm sm:text-base bg-[#050505] text-[#e5e5e5]">
+    <nav id="global-nav" class="h-14 bg-black border-b border-white/5 flex items-center justify-between px-5 shrink-0 z-50">
+        <a href="#" class="g-logo"><i class="ph-bold ph-circles-three-plus text-lg text-red-500"></i> God's Plan</a>
+        <div class="g-links no-scrollbar">
+            <a href="#" class="g-link">ADHERENCIA</a>
+            <a href="#" class="g-link">CHAT</a>
+            <a href="#" class="g-link active">FINANZAS</a>
+            <a href="#" class="g-link">CUENTA</a>
+            <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-zinc-800 ml-1 flex-shrink-0 transition-all duration-500" title="Estado"></div>
         </div>
     </nav>
-
-    <!-- HEADER APP -->
-    <header class="bg-card border-b border-border py-2.5 px-4 sticky top-14 z-50 flex justify-between items-center shadow-sm flex-wrap gap-2.5">
-        <div class="text-[1.1rem] font-extrabold flex items-center gap-2 text-text uppercase">
-            <i class="ph-fill ph-check-circle text-brand"></i> <span>Adherencia</span>
-        </div>
-        <div class="flex items-center gap-2 flex-wrap justify-end flex-1 md:flex-none">
-            <!-- NUEVO: RELOJ REAL CDMX (Mejorado para móvil) -->
-            <div id="realWorldClock" class="flex flex-col items-end mr-1 px-2 py-0.5 border-r border-border/50 min-w-[70px]">
-                <div class="text-[0.6rem] text-text-mute font-black tracking-wider leading-none mb-0.5 flex items-center gap-1 justify-end">
-                     <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> CDMX
+    <main id="app-content" class="flex-1 overflow-y-auto pb-36 relative scroll-smooth overflow-x-hidden md:px-6">
+        <div class="w-full max-w-lg md:max-w-6xl mx-auto h-full pt-4 md:pt-8">
+            <div class="hidden md:flex justify-center mb-8 fade-in">
+                <div class="bg-zinc-900/80 border border-white/10 p-1.5 rounded-full flex items-center gap-1 shadow-lg backdrop-blur-sm">
+                    <button onclick="app.switchView('balance')" class="nav-link-desk active px-5" data-view="balance">Billetera</button>
+                    <button onclick="app.switchView('plan')" class="nav-link-desk px-5" data-view="plan">Planificación</button>
                 </div>
-                <div class="text-[0.9rem] font-mono font-bold text-text leading-none tabular-nums text-right" id="realClockTime">--:--:--</div>
             </div>
-
-            <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.openExtensionModal()" title="Instalar Extensión"><i class="ph-bold ph-puzzle-piece"></i></button>
-            <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.syncData()" title="Sincronizar"><i class="ph-bold ph-arrows-clockwise"></i></button>
-            <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.openConfigModal()" title="Menú"><i class="ph-bold ph-list"></i></button>
-            
-            <div class="flex items-center gap-1 bg-bg px-2 py-1 rounded-full border border-border">
-                <button class="bg-transparent border-none text-text-mute cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center" onclick="window.app.changeMonth(-1)"><i class="ph-bold ph-caret-left"></i></button>
-                <span class="text-[0.85rem] font-extrabold uppercase text-text min-w-[75px] text-center" id="monthLabel">--</span>
-                <button class="bg-transparent border-none text-text-mute cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center" onclick="window.app.changeMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
-                <button class="bg-transparent border-none text-brand cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center" onclick="window.app.goToday()"><i class="ph-bold ph-calendar-check"></i></button>
-            </div>
-        </div>
-    </header>
-
-    <div class="w-full max-w-[900px] mx-auto p-4 overflow-x-hidden">
-        <div id="auth-status" class="text-center text-[0.85rem] text-text-mute mx-auto mb-5 py-2.5 px-4 w-fit bg-card border border-border rounded-full hidden items-center justify-center gap-2.5 shadow-sm">Conectando...</div>
-
-        <!-- RELOJ -->
-        <div class="bg-card rounded-2xl border border-border py-5 px-2.5 text-center mb-5 shadow-sm relative overflow-hidden">
-            <!-- Loader Overlay -->
-            <div id="mainLoader" class="absolute inset-0 bg-card/90 flex items-center justify-center z-10 rounded-2xl hidden">
-                <div class="spinner"></div>
-            </div>
-
-            <!-- Timer Grid -->
-            <div class="grid grid-cols-[1fr_1.2fr_1fr] items-center gap-1.5 mb-5" id="timersDisplay" style="display:none;">
-                <!-- Baño -->
-                <button class="side-clock flex flex-col items-center justify-center opacity-50 p-1.5 rounded-lg relative z-10 w-full h-full border-none hover:bg-bg hover:opacity-80 transition-all cursor-pointer" id="clockBathContainer" onclick="window.app.openTimerEdit('bathroom')" type="button">
-                    <div class="text-[0.65rem] font-extrabold uppercase text-text-mute mb-1 flex items-center justify-center gap-1">
-                        <i class="ph-bold ph-toilet"></i> Baño <i class="ph-bold ph-pencil-simple text-brand text-[0.9em]"></i>
+            <!-- VISTA: BALANCE -->
+            <section id="view-balance" class="p-4 sm:p-0 fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-12 md:gap-8 items-start">
+                    <div class="md:col-span-5 lg:col-span-4 md:sticky md:top-4">
+                        <div class="flex justify-between items-end mb-4 px-1">
+                            <div onclick="app.openModal('config')" class="cursor-pointer group py-2">
+                                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mb-1 group-hover:text-red-500 transition-colors">
+                                    CICLO ACTUAL <i class="ph-bold ph-gear inline align-middle ml-1"></i>
+                                </p>
+                                <h2 class="text-base font-bold text-white flex items-center gap-2" id="periodDates">Cargando...</h2>
+                            </div>
+                            <div id="daysLeftBadge" class="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full font-mono font-bold whitespace-nowrap shadow-[0_0_10px_rgba(239,68,68,0.1)]">
+                                -- Días
+                            </div>
+                        </div>
+                        <div id="mainCard" class="glass rounded-[2rem] p-6 relative overflow-hidden group mb-6 transition-all active:scale-[0.98] md:hover:scale-[1.01] shadow-2xl shadow-black/50">
+                            <div id="mainCardBg" class="absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 rounded-full blur-3xl transition-colors duration-500"></div>
+                            <div class="relative z-10">
+                                <div class="flex justify-between items-start mb-2">
+                                    <button id="extraMenuTrigger" onclick="app.toggleExtrasMenu()" class="flex items-center gap-2 group text-left focus:outline-none">
+                                        <span id="labelDailyState" class="text-xs font-bold text-zinc-400 uppercase tracking-widest transition-colors group-hover:text-white">Disponible Hoy</span>
+                                        <i id="extraMenuIcon" class="ph-bold ph-caret-down text-zinc-500 group-hover:text-white transition-transform duration-300"></i>
+                                    </button>
+                                </div>
+                                <div class="text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2 break-all relative leading-none transition-colors" id="dailyFreeContainer">
+                                    <span id="dailyFree">---</span>
+                                </div>
+                                <div class="flex items-center gap-3 mb-6 font-mono text-xs">
+                                    <div class="text-zinc-500">Límite: <span id="valDailyLimit" class="text-zinc-300 font-bold">---</span></div>
+                                    <div class="w-1 h-1 bg-zinc-700 rounded-full"></div>
+                                    <div class="text-zinc-500">Gastado: <span id="valTodaySpent" class="text-red-400 font-bold">---</span></div>
+                                </div>
+                                <div id="extraMenu" class="hidden border-t border-white/10 pt-4 mb-4 animate-fade-in">
+                                    <div class="mb-4">
+                                        <button onclick="app.openModal('adjustment')" class="w-full bg-zinc-800/50 hover:bg-zinc-800 text-zinc-300 text-xs font-bold py-3 rounded-xl border border-white/5 transition-all flex items-center justify-center gap-2 active:scale-95 group/adj">
+                                            <i class="ph-bold ph-scales text-zinc-500 group-hover/adj:text-white transition-colors"></i> AJUSTAR SALDO REAL
+                                        </button>
+                                    </div>
+                                    <div class="flex justify-between items-center mb-4">
+                                        <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-2"><i class="ph-fill ph-magic-wand"></i> Simulador &amp; Extras</div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[9px] font-bold text-zinc-500 uppercase">Simular</span>
+                                            <div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
+                                                <input type="checkbox" name="toggle" id="simToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-600 transition-all duration-300" onclick="app.toggleSimulation()">
+                                                <label for="simToggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-zinc-800 cursor-pointer"></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3 mb-4">
+                                        <div>
+                                            <label class="text-[9px] text-zinc-600 font-bold uppercase block mb-1">Monto Extra</label>
+                                            <div class="flex items-center bg-black/30 rounded-xl px-3 border border-white/5 focus-within:border-emerald-500/50 transition-colors">
+                                                <span class="text-emerald-500 font-bold mr-1">$</span>
+                                                <input type="number" id="manualExtraPay" inputmode="decimal" class="bg-transparent w-full py-2.5 text-sm font-bold text-white focus:outline-none placeholder-zinc-700 font-mono text-right" placeholder="0" onblur="app.saveExtraPayValue(this.value)">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="text-[9px] text-zinc-600 font-bold uppercase block mb-1">Fecha Cobro</label>
+                                            <input type="date" id="extraPayDateInput" onchange="app.saveExtraPayDate(this.value)" class="bg-black/30 w-full py-2.5 px-2 rounded-xl text-xs font-bold text-white border border-white/5 focus:outline-none focus:border-emerald-500/50 text-center cursor-pointer">
+                                            <div class="text-[9px] text-zinc-500 text-right mt-1" id="daysToTuesday">-- días</div>
+                                        </div>
+                                    </div>
+                                    <button id="btnImportExtras" onclick="app.importExtraMoney()" class="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold py-3 rounded-xl border border-emerald-500/20 transition-all flex items-center justify-center gap-2 active:scale-95">
+                                        <i class="ph-bold ph-download-simple"></i> IMPORTAR AL SALDO
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
+                                    <div><span class="block text-[10px] text-zinc-500 uppercase font-bold mb-1">Restante Total</span><span class="text-lg font-bold text-zinc-200" id="totalFree">---</span></div>
+                                    <div class="text-right"><span class="block text-[10px] text-zinc-500 uppercase font-bold mb-1">Total Gastado</span><span class="text-lg font-bold text-red-400" id="cycleSpent">---</span></div>
+                                </div>
+                            </div>
+                            <div class="absolute bottom-0 left-0 h-1.5 bg-zinc-800 w-full">
+                                <div id="periodProgress" class="h-full bg-gradient-to-r from-red-600 to-orange-600 shadow-[0_0_10px_rgba(239,68,68,0.5)] w-0 transition-all duration-1000 ease-out"></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-1 gap-3 mb-6">
+                            <button onclick="app.openModal('extra')" class="glass-highlight h-14 rounded-2xl text-emerald-500 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 md:hover:scale-105 hover:bg-emerald-500/10 border-transparent hover:border-emerald-500/30">
+                                <i class="ph-bold ph-arrow-down-left text-lg"></i> INGRESO
+                            </button>
+                            <button onclick="app.openModal('expense')" class="glass-highlight h-14 rounded-2xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all hover:scale-105 hover:bg-red-600 hover:border-red-500 bg-red-600/10 border-red-600/30">
+                                <i class="ph-bold ph-minus text-lg"></i> GASTO
+                            </button>
+                        </div>
                     </div>
-                    <div class="font-mono font-bold text-base text-text tabular-nums" id="dispBath">00:00</div>
-                    <div class="text-[0.65rem] text-text-mute mt-0.5">/ <span id="limBath">15</span>m</div>
-                    <div id="remBath" class="text-[0.7rem] font-extrabold mt-1 text-money">Restan: --</div>
-                </button>
-                
-                <!-- Reloj Principal -->
-                <div class="flex flex-col items-center">
-                    <div class="text-[0.7rem] uppercase tracking-widest text-text-mute font-extrabold mb-1.5" id="clockStatus">TURNO ACTIVO</div>
-                    <div class="text-[clamp(2.5rem,12vw,4rem)] font-extrabold text-text tabular-nums leading-none" id="clockDisplay">00:00</div>
-                    <div id="networkTimeBadge" class="text-[0.65rem] text-money font-bold mt-1.5 opacity-0 transition-opacity duration-500">
-                        <i class="ph-bold ph-globe"></i> Local
+                    <div class="md:col-span-7 lg:col-span-8">
+                        <div class="mt-2 md:mt-0">
+                            <div class="mb-4 px-1 md:p-3 md:rounded-xl">
+                                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 md:mb-1">Actividad y Filtros</h3>
+                                <div class="flex items-center gap-2">
+                                    <div class="relative flex-1">
+                                        <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
+                                        <input type="text" id="searchTx" placeholder="Buscar concepto o monto..." onkeyup="app.filterTransactions()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-zinc-600 placeholder-zinc-700 transition-colors">
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="dateFilterDisplay" class="hidden mx-1 md:mx-0 p-3 mb-4 bg-red-600/10 border border-red-500/20 rounded-xl text-xs font-bold text-red-400 justify-between items-center animate-fade-in">
+                                <span id="dateFilterLabel"></span>
+                                <button onclick="app.clearDateFilter()" class="text-red-300 hover:text-white transition-colors flex items-center gap-1 uppercase tracking-wider">
+                                    <i class="ph-bold ph-x text-sm"></i> Limpiar Filtro
+                                </button>
+                            </div>
+                            <div id="transactionsList" class="space-y-3 min-h-[100px] pb-24 md:pb-0">
+                                <div class="text-center py-10 text-zinc-600 animate-pulse">Sincronizando...</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Comida -->
-                <button class="side-clock flex flex-col items-center justify-center opacity-50 p-1.5 rounded-lg relative z-10 w-full h-full border-none hover:bg-bg hover:opacity-80 transition-all cursor-pointer" id="clockFoodContainer" onclick="window.app.openTimerEdit('food')" type="button">
-                    <div class="text-[0.65rem] font-extrabold uppercase text-text-mute mb-1 flex items-center justify-center gap-1">
-                        <i class="ph-bold ph-hamburger"></i> Comida <i class="ph-bold ph-pencil-simple text-brand text-[0.9em]"></i>
+            </section>
+            <!-- VISTA: PLAN -->
+            <section id="view-plan" class="p-4 sm:p-0 hidden fade-in max-w-5xl mx-auto pb-24">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-black text-white mb-2">Planificación</h2>
+                    <p class="text-zinc-500 text-sm">Define tus reglas de juego: ingresos, fijos y deudas.</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- COLUMNA IZQUIERDA -->
+                    <div class="space-y-6">
+                        <div class="glass p-6 rounded-3xl relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 p-4 opacity-10 text-emerald-500"><i class="ph-fill ph-money text-6xl"></i></div>
+                            <div class="flex items-center gap-3 mb-6 relative z-10">
+                                <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500"><i class="ph-bold ph-wallet text-xl"></i></div>
+                                <h3 class="text-lg font-bold text-white">Ingresos Base</h3>
+                            </div>
+                            <div class="space-y-5 relative z-10">
+                                <div>
+                                    <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 block" id="lblIncome1">Ingreso Mensual / Q1</label>
+                                    <div class="relative group">
+                                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold group-focus-within:text-emerald-500 transition-colors">$</span>
+                                        <input type="number" id="inpIncome" inputmode="decimal" class="w-full bg-zinc-900/50 border border-zinc-700 rounded-xl py-3 pl-8 pr-4 font-bold text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder-zinc-700" placeholder="0.00" onblur="app.saveConfig()">
+                                    </div>
+                                </div>
+                                <div id="divIncomeQ2" class="hidden pt-2 border-t border-zinc-800">
+                                    <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Ingreso Q2 (Opcional)</label>
+                                    <div class="relative group">
+                                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold group-focus-within:text-emerald-500 transition-colors">$</span>
+                                        <input type="number" id="inpIncomeQ2" inputmode="decimal" class="w-full bg-zinc-900/50 border border-zinc-700 rounded-xl py-3 pl-8 pr-4 font-bold text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder-zinc-700" placeholder="Igual al Q1" onblur="app.saveConfig()">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass p-6 rounded-3xl">
+                            <div class="flex justify-between items-center mb-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-500"><i class="ph-bold ph-calendar-check text-xl"></i></div>
+                                    <div><h3 class="text-lg font-bold text-white">Gastos Fijos</h3><p class="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Recurrentes</p></div>
+                                </div>
+                                <button onclick="app.openModal('fixed')" class="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-colors active:scale-90"><i class="ph-bold ph-plus"></i></button>
+                            </div>
+                            <div id="fixedExpensesList" class="space-y-3"></div>
+                        </div>
                     </div>
-                    <div class="font-mono font-bold text-base text-text tabular-nums" id="dispFood">00:00</div>
-                    <div class="text-[0.65rem] text-text-mute mt-0.5">/ <span id="limFood">45</span>m</div>
-                    <div id="remFood" class="text-[0.7rem] font-extrabold mt-1 text-money">Restan: --</div>
-                </button>
-            </div>
-
-            <!-- Offline Display -->
-            <div id="offlineDisplay" style="display:block;">
-                <div class="text-[0.7rem] uppercase tracking-widest text-text-mute font-extrabold mb-2.5">FUERA DE TURNO</div>
-                <div class="text-[clamp(2.5rem,12vw,4rem)] font-extrabold text-text-mute tabular-nums leading-none mb-5">--:--:--</div>
-            </div>
-
-            <!-- Botones de Acción -->
-            <div class="grid grid-cols-2 gap-2.5 mt-4" id="actionButtons"></div>
-        </div>
-
-        <!-- KPIs -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <!-- Semanal -->
-            <div class="bg-card border border-border rounded-xl p-4">
-                <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-border">
-                    <div class="flex items-center gap-2">
-                        <button class="bg-transparent border-none text-brand cursor-pointer text-base p-0" onclick="window.app.changeWeek(-1)"><i class="ph-bold ph-caret-left"></i></button>
-                        <span class="text-[0.9rem] font-extrabold text-text">Semana <span id="weekNum">--</span></span>
-                        <button class="bg-transparent border-none text-brand cursor-pointer text-base p-0" onclick="window.app.changeWeek(1)"><i class="ph-bold ph-caret-right"></i></button>
+                    <!-- COLUMNA DERECHA -->
+                    <div class="space-y-6">
+                        <div class="glass-highlight p-6 rounded-3xl relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-zinc-900/50 to-transparent"></div>
+                            <div class="relative z-10">
+                                <h3 class="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Impacto Mensual</h3>
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-sm text-zinc-300">Total Fijos</span>
+                                    <span id="summaryFixed" class="font-bold text-white text-lg font-mono">---</span>
+                                </div>
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-sm text-zinc-300">Deudas (Ciclo)</span>
+                                    <span id="summaryShortLoans" class="font-bold text-orange-400 text-lg font-mono">---</span>
+                                </div>
+                                <div class="mt-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs font-bold text-red-400 uppercase">Total Comprometido</span>
+                                        <span id="totalObligations" class="font-black text-red-500 text-xl font-mono">---</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass p-6 rounded-3xl">
+                            <div class="flex justify-between items-center mb-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500"><i class="ph-bold ph-receipt text-xl"></i></div>
+                                    <div><h3 class="text-lg font-bold text-white">Deudas Activas</h3><p class="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Pendientes</p></div>
+                                </div>
+                                <button onclick="app.openModal('loan')" class="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-colors active:scale-90"><i class="ph-bold ph-plus"></i></button>
+                            </div>
+                            <div id="loansList" class="space-y-3"></div>
+                        </div>
+                        <div class="p-6 rounded-3xl bg-zinc-900/30 border border-zinc-800/50">
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400"><i class="ph-fill ph-user text-2xl"></i></div>
+                                    <div>
+                                        <div id="userName" class="font-bold text-white">Usuario</div>
+                                        <div id="userStatusText" class="text-xs text-zinc-500">Estado</div>
+                                    </div>
+                                </div>
+                                <button id="btnLogout" onclick="app.logout()" class="text-zinc-500 hover:text-white transition-colors"><i class="ph-bold ph-sign-out text-xl"></i></button>
+                            </div>
+                            <button onclick="app.resetData()" class="w-full py-3 rounded-xl border border-red-900/30 text-red-500 text-xs font-bold hover:bg-red-900/10 transition-colors flex items-center justify-center gap-2">
+                                <i class="ph-bold ph-trash"></i> RESETEAR DATOS
+                            </button>
+                        </div>
                     </div>
-                    <span id="weekBalance" class="px-2 py-0.5 rounded-md font-extrabold text-[0.8rem] bg-emerald-100 text-emerald-700">0h</span>
                 </div>
-                <div class="flex justify-between items-center mb-1 text-[0.9rem]"><span class="text-text-mute">Meta</span><strong id="weekTarget" class="text-text">0:00</strong></div>
-                <div class="flex justify-between items-center mb-1 text-[0.9rem]"><span class="text-text-mute">Trabajado</span><strong class="text-brand" id="weekWorked">0:00</strong></div>
-                <div class="flex justify-between items-center mt-2.5 pt-1.5 border-t border-dashed border-border text-[0.9rem]">
-                    <span class="text-text-mute">Pago Extra</span><strong class="text-money" id="weekPay">$0</strong>
-                </div>
-            </div>
-
-            <!-- Quincenal -->
-            <div class="bg-card border border-border rounded-xl p-4">
-                <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-border">
-                    <span class="text-[0.9rem] font-extrabold text-text">Quincena <span id="qName">--</span></span>
-                    <span id="qBalance" class="px-2 py-0.5 rounded-md font-extrabold text-[0.8rem] bg-emerald-100 text-emerald-700">0h</span>
-                </div>
-                <div class="flex justify-between items-center mb-1 text-[0.9rem]"><span class="text-text-mute">Meta</span><strong id="qTarget" class="text-text">0:00</strong></div>
-                <div class="flex justify-between items-center mb-1 text-[0.9rem]"><span class="text-text-mute">Trabajado</span><strong class="text-brand" id="qWorked">0:00</strong></div>
-                <div class="flex justify-between items-center mt-2.5 text-[0.9rem]"><span class="text-alert">Faltas</span><strong class="text-alert" id="qFails">0</strong></div>
-            </div>
+            </section>
         </div>
-
-        <!-- LISTA HISTORIAL -->
-        <div class="bg-card border border-border rounded-2xl overflow-hidden shadow-sm mb-6">
-            <div class="px-5 py-4 bg-bg font-extrabold text-text-mute text-[0.75rem] border-b border-border flex justify-between items-center tracking-wide">
-                <span id="logListTitle">HISTORIAL</span>
-                <button onclick="window.app.openModal()" class="border-none bg-transparent text-brand font-extrabold cursor-pointer hover:underline">+ MANUAL</button>
-            </div>
-            <div id="logList"></div>
-        </div>
-
-        <!-- GRÁFICOS ELIMINADOS -->
+    </main>
+    <!-- FAB (MÓVIL) -->
+    <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40">
+        <button onclick="app.openModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
+            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
+            <i class="ph-bold ph-plus text-3xl group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
+        </button>
     </div>
-
-    <!-- MODALES (Usando clases Tailwind para estructura, CSS para funcionalidad display) -->
-    
-    <!-- MENU CONFIGURACION -->
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="configModal">
-        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 max-h-[85vh] overflow-y-auto border border-border">
-            <h3 class="text-center mb-4 text-text font-bold text-lg">Configuración</h3>
-            
-            <div class="flex border-b border-border mb-4">
-                <div class="tab active flex-1 text-center p-2.5 text-[0.8rem] font-extrabold text-text-mute cursor-pointer border-b-[3px] border-transparent" onclick="window.app.switchTab('tAccount')">Cuenta</div>
-                <div class="tab flex-1 text-center p-2.5 text-[0.8rem] font-extrabold text-text-mute cursor-pointer border-b-[3px] border-transparent" onclick="window.app.switchTab('tDesign')">Diseño</div>
-                <div class="tab flex-1 text-center p-2.5 text-[0.8rem] font-extrabold text-text-mute cursor-pointer border-b-[3px] border-transparent" onclick="window.app.switchTab('tSettings')">Ajustes</div>
-                <div class="tab flex-1 text-center p-2.5 text-[0.8rem] font-extrabold text-text-mute cursor-pointer border-b-[3px] border-transparent" onclick="window.app.switchTab('tData')">Datos</div>
+    <!-- NAV INFERIOR - MÓVIL -->
+    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-2 z-50 pb-2">
+        <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance', this)">
+            <div class="relative p-1"><i class="ph-fill ph-wallet text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Balance</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('plan', this)">
+            <div class="relative p-1"><i class="ph-fill ph-sliders-horizontal text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Plan</span>
+        </button>
+    </div>
+    <!-- MODAL PRINCIPAL -->
+    <div id="modalOverlay" onclick="if(event.target === this) app.closeModal()">
+        <div id="modalSheet">
+            <div class="md:hidden w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0"></div>
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#121212] z-10 pb-2 border-b border-transparent">
+                <h3 class="text-xl font-bold text-white" id="modalTitle">Nuevo</h3>
+                <button onclick="app.closeModal()" class="w-10 h-10 rounded-full bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 transition-colors active:scale-90"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
-
-            <!-- TAB CUENTA -->
-            <div id="tAccount" class="tab-content active block">
-                <div id="authenticatedView" class="hidden bg-bg p-2.5 rounded-lg mb-4 border border-border">
-                    <div id="userProfile" class="font-bold mb-1.5 text-text">...</div>
-                    <button class="w-full p-2 rounded-lg font-bold cursor-pointer border border-border bg-transparent text-text-mute hover:bg-white/5" onclick="window.app.logout()">Cerrar Sesión</button>
+            <div id="formTransaction" class="hidden pb-4">
+                <div class="relative mb-8 md:mb-2">
+                    <span class="absolute left-1/2 -translate-x-[calc(50%+60px)] top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none">$</span>
+                    <input type="number" id="txAmount" inputmode="decimal" class="bg-transparent text-center text-5xl md:text-3xl font-black text-white w-full border-none outline-none focus:ring-0 p-0 placeholder-zinc-800 h-16 md:h-10" placeholder="0">
                 </div>
-                <div id="unauthenticatedView" class="block text-center">
-                    <p class="text-[0.8rem] text-text-mute mb-4">La autenticación es centralizada en GodsPlan.site.</p>
-                    <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-brand text-white hover:opacity-90 transition-opacity" onclick="window.app.redirectToAuth()">
-                        <i class="ph-bold ph-sign-in"></i> Iniciar Sesión en GodsPlan.site
+                <div class="mb-6 md:mb-1" id="categorySelectionContainer">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-2 md:mb-1 block">Categoría</label>
+                    <div id="categoryChips" class="flex flex-wrap gap-2.5 md:gap-1.5 no-scrollbar overflow-x-auto pb-2"></div>
+                </div>
+                <div class="mb-4 md:mb-2">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Fecha</label>
+                    <input type="date" id="txDate" class="input-modern w-full p-4 text-center h-14 md:h-9 md:text-sm font-bold cursor-pointer">
+                </div>
+                <input type="text" id="txDesc" class="input-modern w-full p-4 mb-6 md:mb-3 text-center placeholder-zinc-600 h-14 md:h-9 md:text-sm" placeholder="Nota opcional...">
+                <button id="btnSaveTx" onclick="app.saveTransaction()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black text-lg hover:bg-zinc-200 transition-colors active:scale-95 shadow-lg shadow-white/10 h-16 md:h-10 md:text-sm">GUARDAR</button>
+                <button id="btnDeleteTx" onclick="app.deleteTxConfirm()" class="w-full mt-4 text-red-500 py-3 font-bold text-xs hidden opacity-70 hover:opacity-100">ELIMINAR TRANSACCIÓN</button>
+            </div>
+            <div id="formFixed" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Nombre</label><input type="text" id="fixName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Netflix"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label><input type="number" id="fixAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Día Pago</label><input type="number" id="fixDay" inputmode="numeric" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm text-center" placeholder="1-31"></div>
+                </div>
+                <button onclick="app.saveFixed()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR FIJO</button>
+                <button id="btnDeleteFix" onclick="app.deleteFixedConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
+            </div>
+            <div id="formLoan" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Concepto</label><input type="text" id="loanName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Visa"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto Pendiente</label><input type="number" id="loanAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha Límite</label><input type="date" id="loanDueDate" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm cursor-pointer"></div>
+                <button onclick="app.saveLoan()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR DEUDA</button>
+                <button id="btnDeleteLoan" onclick="app.deleteLoanConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">LIQUIDAR / BORRAR</button>
+            </div>
+            <div id="formConfig" class="hidden space-y-4 pb-4">
+                <p class="text-zinc-400 text-xs text-center mb-4">Define cómo y cuándo recibes tus ingresos.</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar-check text-3xl text-emerald-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Quincenal</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">2 Pagos al mes</div>
+                    </button>
+                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar text-3xl text-blue-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Mensual</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">Pago único (Día 1)</div>
                     </button>
                 </div>
-            </div>
-
-            <!-- TAB DISEÑO -->
-            <div id="tDesign" class="tab-content hidden">
-                <p class="text-[0.7rem] font-bold text-text-mute mb-2.5">TEMA DE LA APP</p>
-                <div class="grid grid-cols-2 gap-2.5 mb-4">
-                    <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeLight" onclick="window.app.setTheme('light')"><i class="ph-bold ph-sun"></i> Claro</button>
-                    <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeDark" onclick="window.app.setTheme('dark')"><i class="ph-bold ph-moon"></i> Oscuro</button>
-                    <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeRed" onclick="window.app.setTheme('red')"><i class="ph-bold ph-fire"></i> Red Core</button>
-                    <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeCustom" onclick="window.app.setTheme('custom')"><i class="ph-bold ph-palette"></i> Custom</button>
+                <div id="customStartDayDiv" class="hidden mt-6">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block" id="lblStartDay">Día de Inicio</label>
+                    <input type="number" id="configStartDay" class="input-modern w-full p-4 mt-1 text-center" placeholder="Día del mes (ej: 1, 5, 15)" value="1" min="1" max="28">
+                    <p class="text-[10px] text-zinc-600 mt-2 text-center">Si eliges 10, tus cortes serán 10 y 25.</p>
                 </div>
-
-                <div id="customColorsPanel" class="hidden bg-bg p-2.5 rounded-lg border border-border text-text">
-                    <p class="text-[0.7rem] font-bold mb-2.5">COLORES PERSONALIZADOS</p>
-                    <div class="flex items-center justify-between mb-2"><span>Fondo (BG)</span> <input type="color" id="ccBg" onchange="window.app.updateCustomTheme()"></div>
-                    <div class="flex items-center justify-between mb-2"><span>Tarjetas</span> <input type="color" id="ccCard" onchange="window.app.updateCustomTheme()"></div>
-                    <div class="flex items-center justify-between mb-2"><span>Texto</span> <input type="color" id="ccText" onchange="window.app.updateCustomTheme()"></div>
-                    <div class="flex items-center justify-between mb-2"><span>Marca (Brand)</span> <input type="color" id="ccBrand" onchange="window.app.updateCustomTheme()"></div>
-                </div>
-            </div>
-
-            <!-- TAB AJUSTES -->
-            <div id="tSettings" class="tab-content hidden">
-                <p class="text-[0.7rem] font-bold text-brand mb-1.5">TIEMPOS (MIN)</p>
-                <div class="grid grid-cols-2 gap-2.5">
-                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Baño</label><input type="number" id="cfgBath" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
-                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Comida</label><input type="number" id="cfgFood" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
-                </div>
-                <p class="text-[0.7rem] font-bold text-money my-2.5 mb-1.5">PAGOS ($)</p>
-                <div class="grid grid-cols-2 gap-2.5">
-                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Base</label><input type="number" id="cfgRate1" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
-                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Excedente</label><input type="number" id="cfgRate2" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
-                </div>
-            </div>
-
-            <!-- TAB DATOS -->
-            <div id="tData" class="tab-content hidden">
-                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-brand text-white" onclick="window.app.openImportModal()">Importar Excel</button>
-                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute mb-2.5" onclick="window.app.exportBackup()">Descargar Backup</button>
-                <div class="border-t border-border my-4"></div>
-                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer mb-2.5 text-alert border border-alert bg-transparent hover:bg-red-500/10" onclick="window.app.resetData()">Borrar Todo y Reiniciar</button>
-            </div>
-
-            <div class="mt-4 flex gap-2.5">
-                <button class="flex-1 bg-text text-bg p-3 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.saveConfig()">Guardar Cambios</button>
-                <button class="flex-1 bg-transparent border border-border text-text-mute p-3 rounded-lg font-extrabold cursor-pointer" onclick="window.app.closeModalById('configModal')">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- LOG MODAL -->
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="logModal">
-        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border">
-            <h3 class="text-text font-bold text-lg mb-4">Registro Manual</h3>
-            
-            <label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Fecha</label>
-            <input type="date" id="inpDate" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text mb-2.5">
-            
-            <label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Tipo</label>
-            <select id="inpType" onchange="window.app.toggleTimeInputs()" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text mb-2.5">
-                <option value="Laboral">Laboral</option>
-                <option value="Descanso">Descanso</option>
-                <option value="Falta">Falta</option>
-                <option value="Vacaciones">Vacaciones</option>
-            </select>
-
-            <div id="timeInputs">
-                <div class="grid grid-cols-2 gap-2.5 mb-2.5">
-                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Entrada</label><input type="time" id="inpIn" onchange="window.app.calcPreview()" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
-                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Salida</label><input type="time" id="inpOut" onchange="window.app.calcPreview()" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
-                </div>
-                <div class="bg-bg p-2.5 rounded-lg mb-2.5 border border-border">
-                    <label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Minutos Reales:</label>
-                    <div class="grid grid-cols-3 gap-1.5">
-                        <div><label class="block text-text-mute text-[0.65rem] font-bold mb-1">Baño</label><input type="number" id="inpBathTime" value="0" oninput="window.app.calcPreview()" class="bg-card border border-border w-full p-1.5 rounded text-sm text-text"></div>
-                        <div><label class="block text-text-mute text-[0.65rem] font-bold mb-1">Comida</label><input type="number" id="inpFoodTime" value="0" oninput="window.app.calcPreview()" class="bg-card border border-border w-full p-1.5 rounded text-sm text-text"></div>
-                        <div><label class="block text-text-mute text-[0.65rem] font-bold mb-1">Pausa</label><input type="number" id="inpPauseTime" value="0" oninput="window.app.calcPreview()" class="bg-card border border-border w-full p-1.5 rounded text-sm text-text"></div>
+                <div class="mt-6 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                    <div>
+                        <div class="text-sm font-bold text-white">Módulo Adherencia</div>
+                        <div class="text-[10px] text-zinc-500">Mostrar panel de horas extras</div>
+                    </div>
+                    <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggleAdh" id="adhToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300" onclick="app.toggleAdherenceModule()"/>
+                        <label for="adhToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-800 cursor-pointer"></label>
                     </div>
                 </div>
-                <p class="text-right text-text-mute text-sm">Neto Calculado: <strong id="calcHoursDisplay" class="text-text">0:00</strong></p>
-            </div>
-
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-text text-bg mt-4" onclick="window.app.saveLog()">Guardar</button>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer mb-2.5 text-alert border border-alert bg-transparent hidden" id="btnDelete" onclick="window.app.deleteLog()">Eliminar</button>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="window.app.closeModalById('logModal')">Cancelar</button>
-        </div>
-    </div>
-
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="clockOutModal">
-        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border text-center">
-            <h3 class="text-text font-bold text-lg mb-4">¿Terminar Turno?</h3>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-alert text-white mt-4 mb-2.5" onclick="window.app.finishShiftReal()">TERMINAR</button>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="window.app.cancelClockOut()">Cancelar</button>
-        </div>
-    </div>
-
-    <!-- EDITAR TIEMPO MODAL -->
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="timerEditModal">
-        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border">
-            <h3 class="text-text font-bold text-lg mb-4">Ajustar Tiempo</h3>
-            <p class="text-sm mb-2.5 text-text-mute">
-                Ingresa el tiempo acumulado para <strong id="timerEditTitle" class="text-text">--</strong>.
-                <br><span class="text-xs">(Formatos aceptados: "15", "3.5" o "3:14")</span>
-            </p>
-            <input type="text" id="inpTimerEdit" placeholder="Ej. 3:14" class="text-lg text-center bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text">
-            <div class="flex gap-2.5 mt-4">
-                <button class="flex-1 bg-text text-bg p-3 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.saveTimerEdit()">Actualizar</button>
-                <button class="flex-1 bg-transparent border border-border text-text-mute p-3 rounded-lg font-extrabold cursor-pointer" onclick="window.app.closeModalById('timerEditModal')">Cancelar</button>
+                <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-6 h-16 md:h-10 md:text-sm hover:bg-zinc-200">APLICAR CONFIGURACIÓN</button>
             </div>
         </div>
     </div>
-
-    <!-- MODAL EXTENSIÓN -->
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="extensionModal">
-        <div class="bg-card rounded-2xl w-[90%] max-w-[400px] p-5 border border-border text-left">
-            <h3 class="text-money font-bold text-lg mb-2.5">✅ Aviso de Seguridad</h3>
-            <p class="font-bold mb-1.5 text-text">Integridad de TouchPoint Confirmada.</p>
-            <p class="text-text-mute text-sm mb-4">Esta es una extensión de Solo Lectura (Read-Only) 🔒.</p>
-            <div class="flex flex-col gap-2.5">
-                <a href="https://drive.usercontent.google.com/download?id=1TFqG9DAag7bVGEvt3J9ApXmmLtXNAsWh&export=download&authuser=0&confirm=t&uuid=d30b9e7f-cba4-4fab-b446-f2b8742d671e&at=ALWLOp6ky2w0gxN8yuHKk6f-jMCx:1765495468040" 
-                   class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-brand text-white text-center no-underline block hover:opacity-90" 
-                   download>
-                    <i class="ph-bold ph-download-simple"></i> Agregar Extensión
-                </a>
-                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="window.app.closeModalById('extensionModal')">Cerrar</button>
+    <div class="modal-auth" id="authModal">
+        <div class="rounded-2xl p-8 text-center bg-[#121212] border border-zinc-800 max-w-xs w-full">
+            <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4"><i class="ph-fill ph-lock-key text-red-500 text-2xl"></i></div>
+            <h2 class="text-xl font-bold text-white mb-2">Autenticación</h2>
+            <p class="text-xs text-zinc-500 mb-6 leading-relaxed">Inicia sesión para sincronizar tus finanzas en todos tus dispositivos.</p>
+            <button class="w-full bg-white text-black py-4 rounded-xl font-bold hover:bg-zinc-200 transition-colors h-14" onclick="window.app.redirectToAuth()">Iniciar Sesión</button>
+        </div>
+    </div>
+    <div id="confirmDialog" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[2200] hidden flex items-center justify-center opacity-0 transition-opacity p-5">
+        <div class="rounded-3xl p-6 bg-[#121212] border border-zinc-800 transform scale-95 transition-transform duration-200 w-full max-w-xs" id="confirmBox">
+            <h4 id="confirmTitle" class="text-lg font-bold text-white mb-2">Confirmar</h4>
+            <p id="confirmMessage" class="text-zinc-400 text-sm mb-8 leading-relaxed">¿Estás seguro?</p>
+            <div class="flex justify-end gap-3">
+                <button id="confirmCancel" class="text-zinc-400 text-xs font-bold px-4 py-3 rounded-xl hover:bg-zinc-800 transition-colors uppercase tracking-wider flex-1 bg-zinc-900">Cancelar</button>
+                <button id="confirmAction" class="bg-red-600 text-white text-xs font-bold px-4 py-3 rounded-xl hover:bg-red-700 transition-colors uppercase tracking-wider shadow-lg shadow-red-900/20 flex-1">Aceptar</button>
             </div>
         </div>
     </div>
-
-    <!-- UTILS MODALS -->
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="msgModal">
-        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border text-center">
-            <i id="msgIcon" class="text-[2.5rem] mb-2.5 block"></i>
-            <p id="msgText" class="font-bold mb-5 text-text"></p>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-text text-bg" onclick="window.app.closeModalById('msgModal')">OK</button>
-        </div>
-    </div>
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="importModal">
-        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border">
-            <h3 class="text-text font-bold text-lg mb-4">Importar Excel</h3>
-            <textarea id="importTextArea" rows="6" class="font-mono text-xs w-full bg-input-bg border border-border p-2.5 rounded-lg text-text mb-4"></textarea>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-text text-bg" onclick="window.app.processImport()">Procesar</button>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="window.app.closeModalById('importModal')">Cancelar</button>
-        </div>
-    </div>
-
+    <div id="toast-container"></div>
     <script type="module">
-        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } = window.firebaseImports;
-        
+        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } = window.firebaseImports;
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-ultimate-v3';
         const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
         let firebaseConfig = fallbackConfig;
-        try { if (typeof __firebase_config !== 'undefined' && __firebase_config) { const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; } } catch(e) { console.error(e); }
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        let auth, db;
-        function showGlobalError(m) { const x = document.getElementById('msgModal'); if (x) { document.getElementById('msgText').textContent = m; document.getElementById('msgIcon').className = 'ph-fill ph-warning-circle text-alert'; x.classList.remove('hidden'); x.classList.add('flex'); } else alert(m); }
-        window.onerror = function (m) { if (!String(m).includes('popup')) showGlobalError(m); };
-
-        try { 
-            const fbApp = initializeApp(firebaseConfig); 
-            auth = getAuth(fbApp); 
-            db = getFirestore(fbApp); 
-        } catch (e) { setTimeout(() => showGlobalError(e.message), 1000); }
-
-        window.app = {
-            data: { logs: [], config: { rate1: 50, rate2: 75, bathAllow: 15, foodAllow: 45 }, activeShift: null },
-            userId: null, offline: false, editingId: null, date: new Date(), timer: null, processing: false, authMode: 'login',
-            currentTheme: 'light', editingTimerType: null, timeOffset: 0, lastSync: 0, isSyncing: false, nextSyncAllowed: 0,
-
-            init() {
-                // Se eliminó la llamada a syncNetworkTime para evitar errores de conexión
-                
-                // Forzar actualización inmediata del reloj
-                this.updateRealClockUI();
-                // ACTUALIZADOR DEL RELOJ REAL (Header) - Loop normal
-                setInterval(() => this.updateRealClockUI(), 1000);
-
-                document.getElementById('auth-status').classList.remove('hidden');
-                document.getElementById('auth-status').classList.add('flex');
-                const savedTheme = localStorage.getItem('gp_theme') || 'dark';
-                this.setTheme(savedTheme);
-                const customColors = JSON.parse(localStorage.getItem('gp_custom_colors'));
-                if (customColors) this.applyCustomColors(customColors);
-
-                window.addEventListener('message', (event) => {
-                    if (event.data && event.data.type === 'GODSPLAN_COMMAND') {
-                        switch(event.data.action) {
-                            case 'START_SHIFT': if (!this.data.activeShift) this.clockIn(); break;
-                            case 'START_BREAK_FOOD': if (this.data.activeShift?.breakType !== 'food') this.toggleBreak('food'); break;
-                            case 'START_BREAK_BATH': if (this.data.activeShift?.breakType !== 'bathroom') this.toggleBreak('bathroom'); break;
-                            case 'RESUME_WORK': if (this.data.activeShift?.breakStart) this.stopBreak(); break;
-                            case 'END_SHIFT': if (this.data.activeShift) this.confirmClockOut(); break;
-                        }
-                    }
+        try { if (typeof __firebase_config !== 'undefined' && __firebase_config) firebaseConfig = JSON.parse(__firebase_config); } catch(e) { console.error("Error parsing firebase config:", e); }
+        let fbApp, auth, db;
+        try { fbApp = initializeApp(firebaseConfig); auth = getAuth(fbApp); db = getFirestore(fbApp); } catch(e) { console.error("Error initializing Firebase:", e); }
+        const UI = {
+            toast(msg, type='info') {
+                const con = document.getElementById('toast-container'); const el = document.createElement('div'); el.className = 'toast';
+                const icons = { success: 'ph-check-circle text-emerald-400', error: 'ph-warning-circle text-red-400', info: 'ph-info text-blue-400' };
+                el.innerHTML = `<i class="ph-fill ${icons[type]||icons.info} text-xl"></i><span class="text-xs font-bold text-white">${msg}</span>`;
+                con.appendChild(el); setTimeout(() => { el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, 3000);
+            },
+            fmtMoney(n) { return new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',minimumFractionDigits:2}).format(n||0); },
+            confirm(title, msg) {
+                return new Promise(resolve => {
+                    const d = document.getElementById('confirmDialog'); const box = document.getElementById('confirmBox');
+                    document.getElementById('confirmTitle').textContent=title; document.getElementById('confirmMessage').textContent=msg;
+                    const cleanup = (res) => { d.classList.add('opacity-0'); box.classList.remove('scale-100'); setTimeout(()=>{d.classList.add('hidden');},200); document.getElementById('confirmAction').onclick=null; document.getElementById('confirmCancel').onclick=null; resolve(res); };
+                    document.getElementById('confirmAction').onclick=()=>cleanup(true); document.getElementById('confirmCancel').onclick=()=>cleanup(false);
+                    d.classList.remove('hidden'); requestAnimationFrame(()=>{d.classList.remove('opacity-0'); box.classList.add('scale-100');});
                 });
-
-                if (!auth) return this.goOffline();
-
-                onAuthStateChanged(auth, async u => {
-                    if (u) { 
-                        this.userId = u.uid; 
-                        this.offline = false; 
-                        this.renderAuth(u); 
-                        await this.load(); 
-                    } else {
-                        if (initialAuthToken) {
-                             try { await signInWithCustomToken(auth, initialAuthToken); return; } catch(e) { await signInAnonymously(auth).catch(() => this.goOffline()); }
-                        } else {
-                            await signInAnonymously(auth).catch(() => this.goOffline());
-                        }
-                    }
-                    this.loadLocal(); 
-                });
-            },
-
-            // Función simplificada para el Sync Time (Solo stubs para evitar errores)
-            async syncNetworkTime(force = false) {
-                // Ya no intentamos conectar a servidores externos para evitar ERR_CONNECTION_RESET
-                this.isSyncing = false;
-            },
-
-            // Función dedicada para actualizar el Reloj Real del Header
-            updateRealClockUI() {
-                const now = new Date();
-                const clockEl = document.getElementById('realClockTime');
-                
-                if (clockEl) {
-                    try {
-                        // Formatea la hora especificando la zona horaria de CDMX
-                        const horaCDMX = new Intl.DateTimeFormat('es-MX', {
-                            timeZone: 'America/Mexico_City',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                            hour12: false // Cambia a true si prefieres formato AM/PM
-                        }).format(now);
-                        
-                        clockEl.textContent = horaCDMX;
-                    } catch (e) {
-                        // Fallback simple
-                        clockEl.textContent = now.toLocaleTimeString();
-                    }
-                }
-            },
-
-            getNow() { return Date.now() + this.timeOffset; },
-
-            getCDMXDate(ms) {
-                 return new Date(ms).toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
-            },
-
-            getCDMXTime(ms) {
-                return new Date(ms).toLocaleTimeString('es-MX', { 
-                    timeZone: 'America/Mexico_City',
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    hour12: false 
-                }).slice(0, 5);
-            },
-
-            setTheme(t) {
-                this.currentTheme = t;
-                document.documentElement.setAttribute('data-theme', t);
-                localStorage.setItem('gp_theme', t);
-                document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-                const btn = document.getElementById(t === 'light' ? 'btnThemeLight' : t === 'dark' ? 'btnThemeDark' : t === 'red' ? 'btnThemeRed' : 'btnThemeCustom');
-                if (btn) btn.classList.add('active');
-                document.getElementById('customColorsPanel').style.display = t === 'custom' ? 'block' : 'none';
-                if (t !== 'custom') {
-                    document.documentElement.style.removeProperty('--bg'); document.documentElement.style.removeProperty('--card');
-                    document.documentElement.style.removeProperty('--text'); document.documentElement.style.removeProperty('--brand');
-                } else {
-                    const cc = JSON.parse(localStorage.getItem('gp_custom_colors'));
-                    if (cc) this.applyCustomColors(cc);
-                }
-            },
-
-            toggleTheme() {
-                const order = ['light', 'dark', 'red'];
-                let idx = order.indexOf(this.currentTheme);
-                if (idx === -1) idx = 0; 
-                this.setTheme(order[(idx + 1) % order.length]);
-            },
-
-            updateCustomTheme() {
-                const colors = { bg: document.getElementById('ccBg').value, card: document.getElementById('ccCard').value, text: document.getElementById('ccText').value, brand: document.getElementById('ccBrand').value };
-                this.applyCustomColors(colors);
-                localStorage.setItem('gp_custom_colors', JSON.stringify(colors));
-            },
-
-            applyCustomColors(c) {
-                const r = document.documentElement.style;
-                r.setProperty('--bg', c.bg); r.setProperty('--card', c.card); r.setProperty('--text', c.text); r.setProperty('--brand', c.brand);
-                document.getElementById('ccBg').value = c.bg; document.getElementById('ccCard').value = c.card; document.getElementById('ccText').value = c.text; document.getElementById('ccBrand').value = c.brand;
-            },
-
-            goOffline() { this.offline = true; document.getElementById('auth-status').innerHTML = `<i class="ph-bold ph-wifi-slash"></i> Offline`; this.loadLocal(); },
-            
-            renderAuth(u) {
-                const isRealUser = u && !u.isAnonymous;
-                document.getElementById('authenticatedView').style.display = isRealUser ? 'block' : 'none';
-                document.getElementById('unauthenticatedView').style.display = isRealUser ? 'none' : 'block';
-                let t = u ? (u.isAnonymous ? "ANÓNIMO" : (u.displayName || "Usuario")) : "DESCONECTADO";
-                if (isRealUser && u.email && u.email.includes('@godsplan.site')) t = u.email.split('@')[0];
-                document.getElementById('auth-status').innerHTML = `<i class="ph-fill ph-user-circle"></i> ${t}`;
-                document.getElementById('userProfile').textContent = t;
-            },
-
-            loadLocal() { const d = localStorage.getItem('godsPlanData'); if (d) { try { this.data = JSON.parse(d); this.render(); this.uiClock(); } catch (e) { } } },
-            
-            async load() {
-                if (this.offline || !this.userId) return;
-                try {
-                    const docRef = doc(db, "godsPlanData", this.userId);
-                    const snap = await getDoc(docRef);
-                    if (snap.exists()) { 
-                        this.data = snap.data(); 
-                        this.data.logs = this.data.logs || []; 
-                        this.data.config = this.data.config || { rate1: 50, rate2: 75, bathAllow: 15, foodAllow: 45 };
-                    } else if (auth.currentUser.isAnonymous) { 
-                        const l = localStorage.getItem('godsPlanData'); 
-                        if (l) { this.data = JSON.parse(l); this.save(); } 
-                    }
-                    this.render(); this.uiClock();
-                } catch (e) { console.error(e); }
-            },
-            
-            async save() {
-                localStorage.setItem('godsPlanData', JSON.stringify(this.data));
-                if (!this.offline && this.userId) {
-                    const docRef = doc(db, "godsPlanData", this.userId);
-                    await setDoc(docRef, this.data);
-                }
-            },
-            
-            syncData() { this.load(); this.showSuccess("Sincronizado"); this.syncNetworkTime(true); },
-            openExtensionModal() { document.getElementById('extensionModal').classList.remove('hidden'); document.getElementById('extensionModal').classList.add('flex'); },
-
-            uiClock() {
-                const s = this.data.activeShift;
-                const area = document.getElementById('actionButtons');
-                const off = document.getElementById('offlineDisplay');
-                const on = document.getElementById('timersDisplay');
-                const config = this.data.config || {}; 
-                const bl = config.bathAllow || 15;
-                const fl = config.foodAllow || 45;
-
-                // CLASES DE BOTONES COMUNES
-                const btnBase = "btn-ctrl h-[55px] rounded-lg border-none font-extrabold text-[0.85rem] cursor-pointer flex flex-col items-center justify-center gap-0.5 uppercase transition-all relative overflow-hidden active:scale-95";
-                const btnStart = `${btnBase} col-span-2 text-lg h-[70px] text-white bg-gradient-to-br from-blue-600 to-blue-800`;
-                const btnStop = `${btnBase} col-span-2 text-white bg-gradient-to-br from-red-600 to-red-800`;
-                const btnBath = `${btnBase} bg-bg text-text-mute border border-border`;
-                const btnFood = `${btnBase} bg-bg text-text-mute border border-border`;
-                const btnPause = `${btnBase} col-span-2 bg-bg text-text-mute border border-border`;
-
-                if (!s) {
-                    off.style.display = 'block'; on.style.display = 'none';
-                    area.innerHTML = `<button class="${btnStart}" onclick="window.app.clockIn()"><i class="ph-bold ph-play"></i> INICIAR JORNADA</button>`;
-                    if (this.timer) clearInterval(this.timer);
-                    document.getElementById('clockStatus').textContent = "FUERA DE TURNO";
-                    document.getElementById('clockStatus').classList.remove('animate-pulse-custom');
-                    document.getElementById('clockStatus').classList.remove('text-warn');
-                } else {
-                    if (!s.breaks) { s.breaks = { bathroom: 0, food: 0, pause: 0 }; this.save(); }
-                    if (s.breaks.pause === undefined) s.breaks.pause = 0;
-
-                    off.style.display = 'none'; on.style.display = 'grid';
-                    document.getElementById('limBath').textContent = bl;
-                    document.getElementById('limFood').textContent = fl;
-                    const bathEl = document.getElementById('clockBathContainer');
-                    const foodEl = document.getElementById('clockFoodContainer');
-                    
-                    area.innerHTML = `
-                        <button class="${btnBath} ${s.breakType === 'bathroom' ? 'active-bath' : ''}" onclick="window.app.toggleBreak('bathroom')"><i class="ph-bold ph-toilet"></i> BAÑO</button>
-                        <button class="${btnFood} ${s.breakType === 'food' ? 'active-food' : ''}" onclick="window.app.toggleBreak('food')"><i class="ph-bold ph-hamburger"></i> COMIDA</button>
-                        <button class="${btnPause} ${s.breakType === 'pause' ? 'active-pause' : ''}" onclick="window.app.toggleBreak('pause')"><i class="ph-bold ph-pause-circle"></i> ${s.breakType === 'pause' ? 'REANUDAR' : 'PAUSAR / DESCONEXIÓN'}</button>
-                        <button class="${btnStop}" onclick="window.app.confirmClockOut()"><i class="ph-bold ph-stop"></i> TERMINAR JORNADA</button>
-                    `;
-
-                    if (this.timer) clearInterval(this.timer);
-                    this.timer = setInterval(() => {
-                        const now = this.getNow();
-                        
-                        let totalPauseAccumulated = (s.breaks.pause || 0) * 60000;
-                        let currentPauseDuration = 0;
-
-                        if (s.breakType === 'pause') {
-                            document.getElementById('clockStatus').textContent = "PAUSADO";
-                            document.getElementById('clockStatus').classList.add('animate-pulse-custom');
-                            document.getElementById('clockStatus').classList.add('text-warn');
-                            
-                            currentPauseDuration = now - s.breakStart;
-                        } else {
-                            document.getElementById('clockStatus').textContent = "TURNO ACTIVO";
-                            document.getElementById('clockStatus').classList.remove('animate-pulse-custom');
-                            document.getElementById('clockStatus').classList.remove('text-warn');
-                        }
-
-                        let displayTime = (now - s.start) - totalPauseAccumulated - currentPauseDuration;
-                        document.getElementById('clockDisplay').textContent = this.msToTime(displayTime);
-
-                        let b = s.breaks.bathroom || 0, f = s.breaks.food || 0;
-                        if (s.breakStart) {
-                            const d = (now - s.breakStart) / 60000;
-                            if (s.breakType === 'bathroom') b += d; else if (s.breakType === 'food') f += d;
-                        }
-                        
-                        document.getElementById('dispBath').textContent = this.fmtBreak(b);
-                        if (s.breakType === 'bathroom') bathEl.classList.add('active'); else bathEl.classList.remove('active');
-                        if (b > bl) bathEl.classList.add('danger'); else bathEl.classList.remove('danger');
-
-                        const bathRem = (config.bathAllow || 15) - b;
-                        const elRemBath = document.getElementById('remBath');
-                        if (elRemBath) {
-                            elRemBath.textContent = bathRem >= 0 ? `Restan: ${this.fmtBreak(bathRem)}` : `Exceso: ${this.fmtBreak(Math.abs(bathRem))}`;
-                            elRemBath.className = bathRem >= 0 ? 'text-[0.7rem] font-extrabold mt-1 text-money' : 'text-[0.7rem] font-extrabold mt-1 text-alert';
-                        }
-
-                        document.getElementById('dispFood').textContent = this.fmtBreak(f);
-                        if (s.breakType === 'food') foodEl.classList.add('active'); else foodEl.classList.remove('active');
-                        if (f > fl) foodEl.classList.add('danger'); else foodEl.classList.remove('danger');
-
-                        const foodRem = (config.foodAllow || 45) - f;
-                        const elRemFood = document.getElementById('remFood');
-                        if (elRemFood) {
-                            elRemFood.textContent = foodRem >= 0 ? `Restan: ${this.fmtBreak(foodRem)}` : `Exceso: ${this.fmtBreak(Math.abs(foodRem))}`;
-                            elRemFood.className = foodRem >= 0 ? 'text-[0.7rem] font-extrabold mt-1 text-money' : 'text-[0.7rem] font-extrabold mt-1 text-alert';
-                        }
-                    }, 1000);
-                }
-            },
-            
-            openTimerEdit(type) {
-                if (!this.data.activeShift) return;
-                this.editingTimerType = type;
-                let currentTotal = this.data.activeShift.breaks[type] || 0;
-                if (this.data.activeShift.breakStart && this.data.activeShift.breakType === type) {
-                    currentTotal += (this.getNow() - this.data.activeShift.breakStart) / 60000;
-                }
-                document.getElementById('timerEditTitle').textContent = type === 'bathroom' ? 'Baño' : 'Comida';
-                const m = Math.floor(currentTotal);
-                const s = Math.floor((currentTotal % 1) * 60);
-                document.getElementById('inpTimerEdit').value = `${m}:${s.toString().padStart(2, '0')}`; 
-                const modal = document.getElementById('timerEditModal');
-                if(modal) {
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                }
-                setTimeout(() => document.getElementById('inpTimerEdit').focus(), 100);
-            },
-
-            saveTimerEdit() {
-                if (!this.editingTimerType || !this.data.activeShift) return;
-                const valStr = document.getElementById('inpTimerEdit').value.trim();
-                let newVal = 0;
-                if (valStr.includes(':')) {
-                    const parts = valStr.split(':');
-                    newVal = (parseInt(parts[0]) || 0) + ((parseInt(parts[1]) || 0) / 60);
-                } else newVal = parseFloat(valStr);
-                
-                if (isNaN(newVal) || newVal < 0) return this.showMessage("Tiempo inválido");
-
-                if (this.data.activeShift.breakStart && this.data.activeShift.breakType === this.editingTimerType) {
-                    this.data.activeShift.breaks[this.editingTimerType] = newVal;
-                    this.data.activeShift.breakStart = this.getNow();
-                } else {
-                    this.data.activeShift.breaks[this.editingTimerType] = newVal;
-                }
-                this.save(); this.uiClock();
-                document.getElementById('timerEditModal').classList.remove('flex');
-                document.getElementById('timerEditModal').classList.add('hidden');
-            },
-
-            clockIn() {
-                if (auth.currentUser?.isAnonymous) {
-                    this.showMessage("Inicia sesión primero.");
-                    this.redirectToAuth();
-                    return;
-                }
-                if (this.processing) return; this.processing = true;
-                this.stopBreak();
-                this.data.activeShift = { start: this.getNow(), breaks: { bathroom: 0, food: 0, pause: 0 }, breakStart: null, breakType: null };
-                this.save(); this.uiClock(); this.processing = false;
-            },
-            toggleBreak(type) {
-                const s = this.data.activeShift; if (!s) return;
-                if (s.breakStart) {
-                    const prev = s.breakType;
-                    this.stopBreak();
-                    if (prev !== type) setTimeout(() => this.startBreak(type), 50);
-                } else this.startBreak(type);
-            },
-            startBreak(t) { 
-                this.data.activeShift.breakStart = this.getNow(); 
-                this.data.activeShift.breakType = t; 
-                this.save(); this.uiClock(); 
-            },
-            stopBreak() {
-                const s = this.data.activeShift;
-                if (s && s.breakStart) {
-                    if (s.breakType) {
-                        if (s.breaks[s.breakType] === undefined) s.breaks[s.breakType] = 0;
-                        s.breaks[s.breakType] += (this.getNow() - s.breakStart) / 60000;
-                    }
-                    s.breakStart = null; s.breakType = null;
-                    this.save(); this.uiClock();
-                }
-            },
-            confirmClockOut() {
-                if (this.data.activeShift.breakStart) this.stopBreak();
-                if (this.data.activeShift) {
-                    const m = document.getElementById('clockOutModal');
-                    m.classList.remove('hidden');
-                    m.classList.add('flex');
-                }
-            },
-            finishShiftReal() {
-                const s = this.data.activeShift;
-                if (!s) return;
-                if (s.breakStart) this.stopBreak(); 
-                if (!s.breaks) s.breaks = { bathroom: 0, food: 0, pause: 0 };
-                
-                const end = this.getNow();
-                const totalWallTime = (end - s.start) / 60000;
-                const pauseTime = s.breaks.pause || 0;
-                const gross = totalWallTime - pauseTime;
-                
-                const b = s.breaks.bathroom || 0, f = s.breaks.food || 0;
-                const config = this.data.config || {}; 
-                const disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
-                
-                const logDate = this.getCDMXDate(s.start);
-                const logIn = this.getCDMXTime(s.start);
-                const logOut = this.getCDMXTime(end);
-
-                this.data.logs.push({
-                    id: this.getNow(), 
-                    date: logDate, 
-                    type: 'Laboral',
-                    in: logIn,        
-                    out: logOut,     
-                    hours: gross, 
-                    disconnection: disc, 
-                    details: { bath: b, food: f, pause: pauseTime }
-                });
-                this.data.activeShift = null;
-                this.save(); this.render(); this.uiClock();
-                document.getElementById('clockOutModal').classList.remove('flex');
-                document.getElementById('clockOutModal').classList.add('hidden');
-            },
-            cancelClockOut() { 
-                document.getElementById('clockOutModal').classList.remove('flex'); 
-                document.getElementById('clockOutModal').classList.add('hidden'); 
-            },
-
-            render() {
-                const d = this.date, m = d.getMonth(), y = d.getFullYear();
-                document.getElementById('monthLabel').textContent = `${["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"][m]} ${y}`;
-                const wn = this.getWeek(d);
-                document.getElementById('weekNum').textContent = wn;
-
-                const wLogs = this.data.logs.filter(l => this.getWeek(new Date(l.date + 'T00:00')) === wn && new Date(l.date).getFullYear() === y);
-                const wRes = this.calcStats(wLogs);
-                document.getElementById('weekTarget').textContent = this.fmt(wRes.target);
-                document.getElementById('weekWorked').textContent = this.fmt(wRes.worked);
-                this.setBadge('weekBalance', wRes.bal);
-                const config = this.data.config || {}; 
-                let pay = 0, he = Math.floor(wRes.bal / 60);
-                if (wRes.bal > 0) pay = (he <= 12) ? he * (config.rate1 || 50) : (12 * (config.rate1 || 50)) + ((he - 12) * (config.rate1 || 50));
-                document.getElementById('weekPay').textContent = `$${Math.round(pay)}`;
-
-                const isQ1 = d.getDate() <= 15;
-                document.getElementById('qName').textContent = isQ1 ? 'Q1' : 'Q2';
-                const qLogs = this.data.logs.filter(l => { const x = new Date(l.date + 'T00:00'); return x.getMonth() === m && (isQ1 ? x.getDate() <= 15 : x.getDate() > 15); });
-                const qRes = this.calcStats(qLogs);
-                document.getElementById('qTarget').textContent = this.fmt(qRes.target);
-                document.getElementById('qWorked').textContent = this.fmt(qRes.worked);
-                this.setBadge('qBalance', qRes.bal);
-                document.getElementById('qFails').textContent = qRes.fails;
-
-                const list = document.getElementById('logList'); list.innerHTML = '';
-                const mLogs = this.data.logs.filter(l => new Date(l.date + 'T00:00').getMonth() === m).sort((a, b) => new Date(b.date) - new Date(a.date));
-                mLogs.forEach(l => {
-                    const x = new Date(l.date + 'T00:00');
-                    const net = (l.type === 'Laboral' || l.type === 'Descanso') ? (l.hours - (l.disconnection || 0)) : 0;
-                    const bal = net - ((l.type === 'Laboral' || l.type === 'Falta') ? 480 : 0);
-                    let chips = '';
-                    if (l.details) {
-                        const pillClass = "px-1.5 py-0.5 rounded flex items-center gap-1 font-semibold text-[0.7rem] border border-border bg-bg text-text-mute";
-                        const excessClass = "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-300 dark:border-red-800";
-
-                        if (l.details.bath > 0) chips += `<span class="${pillClass} ${l.details.bath > (config.bathAllow || 15) ? excessClass : ''}"><i class="ph-bold ph-toilet"></i> ${Math.round(l.details.bath)}m</span>`;
-                        if (l.details.food > 0) chips += `<span class="${pillClass} ${l.details.food > (config.foodAllow || 45) ? excessClass : ''}"><i class="ph-bold ph-hamburger"></i> ${Math.round(l.details.food)}m</span>`;
-                        if (l.details.pause > 0) chips += `<span class="${pillClass} text-warn border-warn"><i class="ph-bold ph-pause-circle"></i> ${Math.round(l.details.pause)}m</span>`;
-                    }
-                    const hourText = (l.type === 'Laboral' || (l.type === 'Descanso' && l.hours > 0)) ? `${l.in ? l.in + '-' + l.out + ' • ' : ''}<b>${this.fmt(net)}</b>` : '';
-
-                    // TAG STYLES
-                    let tagClass = "px-2.5 py-1 rounded-md text-[0.7rem] font-extrabold uppercase inline-flex items-center justify-center leading-none tracking-wide ";
-                    if(l.type === 'Laboral') tagClass += "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-                    else if(l.type === 'Descanso') tagClass += "bg-slate-100 text-slate-600 border border-border dark:bg-slate-800 dark:text-slate-300 dark:border-transparent";
-                    else if(l.type === 'Falta') tagClass += "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-                    else if(l.type === 'Vacaciones') tagClass += "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
-
-                    // BALANCE STYLES
-                    const balClass = bal >= 0 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-
-                    const html = `
-                    <div class="bg-bg border border-border rounded-lg text-center py-1.5 flex flex-col items-center justify-center">
-                        <div class="text-base font-extrabold text-text leading-none mb-0.5">${x.getDate()}</div>
-                        <div class="text-[0.65rem] uppercase text-text-mute font-bold">${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][x.getDay()]}</div>
-                    </div>
-                    <div class="flex flex-col gap-1.5">
-                        <div class="flex items-center text-[0.85rem] font-semibold text-text"><span class="${tagClass}">${l.type}</span></div>
-                        ${hourText ? `<div class="text-[0.8rem] text-text-mute flex gap-2 items-center font-medium">${hourText}</div>` : ''}
-                        <div class="flex gap-1.5 flex-wrap text-[0.7rem]">${chips}</div>
-                    </div>
-                    <div class="text-center font-extrabold text-[0.8rem] px-2 py-1 rounded-md justify-self-end min-w-[60px] ${balClass}">${bal > 0 ? '+' : ''}${this.fmt(bal)}</div>`;
-                    const div = document.createElement('div'); 
-                    div.className = 'p-4 border-b border-border grid grid-cols-[45px_1fr_auto] gap-4 items-center hover:bg-bg transition-colors cursor-pointer last:border-b-0'; 
-                    div.onclick = () => window.app.openModal(l.id); 
-                    div.innerHTML = html;
-                    list.appendChild(div);
-                });
-            },
-
-            calcStats(logs) { let t = 0, w = 0, f = 0; logs.forEach(l => { t += (l.type === 'Laboral' || l.type === 'Falta') ? 480 : 0; w += (l.type === 'Laboral' || l.type === 'Descanso') ? (l.hours - (l.disconnection || 0)) : 0; if (l.type === 'Falta') f++; }); return { target: t, worked: w, bal: w - t, fails: f }; },
-            fmt(m) { const a = Math.abs(m); return `${m < 0 ? '-' : ''}${Math.floor(a / 60)}:${Math.floor(a % 60).toString().padStart(2, '0')}`; },
-            fmtBreak(m) { return `${Math.floor(m).toString().padStart(2, '0')}:${Math.floor((m % 1) * 60).toString().padStart(2, '0')}`; },
-            msToTime(ms) { const s = Math.floor(ms / 1000), m = Math.floor(s / 60), h = Math.floor(m / 60); return `${h}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`; },
-            getWeek(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); var y = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); return Math.ceil((((d - y) / 86400000) + 1) / 7); },
-            setBadge(id, v) { 
-                const e = document.getElementById(id); 
-                e.textContent = (v > 0 ? '+' : '') + this.fmt(v); 
-                e.className = `px-2 py-0.5 rounded-md font-extrabold text-[0.8rem] ${v >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}`; 
-            },
-            changeMonth(n) { this.date.setMonth(this.date.getMonth() + n); this.date.setDate(1); this.render(); },
-            changeWeek(n) { this.date.setDate(this.date.getDate() + (n * 7)); this.render(); },
-            goToday() { this.date = new Date(); this.render(); },
-
-            openConfigModal() { 
-                const m = document.getElementById('configModal');
-                m.classList.remove('hidden');
-                m.classList.add('flex');
-                document.getElementById('cfgBath').value = this.data.config.bathAllow || 15; document.getElementById('cfgFood').value = this.data.config.foodAllow || 45; document.getElementById('cfgRate1').value = this.data.config.rate1; document.getElementById('cfgRate2').value = this.data.config.rate2; this.switchTab('tAccount'); 
-            },
-            saveConfig() { this.data.config.bathAllow = parseFloat(document.getElementById('cfgBath').value) || 15; this.data.config.foodAllow = parseFloat(document.getElementById('cfgFood').value) || 45; this.data.config.rate1 = parseFloat(document.getElementById('cfgRate1').value) || 50; this.data.config.rate2 = parseFloat(document.getElementById('cfgRate2').value) || 75; this.save(); document.getElementById('configModal').classList.remove('active'); document.getElementById('configModal').classList.add('hidden'); document.getElementById('configModal').classList.remove('flex'); },
-            switchTab(id) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('block')); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); event.target.classList.add('active'); document.getElementById(id).classList.add('active'); document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('block'); },
-            
-            redirectToAuth() {
-                 this.showMessage("Redirigiendo a GodsPlan.site para iniciar sesión...");
-                 setTimeout(() => { window.location.href = "https://godsplan.site"; }, 1500);
-            },
-            
-            openAuthModal(m) { this.redirectToAuth(); },
-            async processAuth() { this.redirectToAuth(); },
-            async loginWithGoogle() { this.redirectToAuth(); },
-            
-            logout() { signOut(auth).then(() => window.location.href = "https://godsplan.site"); }, 
-            
-            resetData() { if (confirm("¿Borrar todo?")) { this.data = { logs: [], config: this.data.config, activeShift: null }; this.save(); location.reload(); } },
-
-            openModal(id = null) {
-                this.editingId = id; 
-                const m = document.getElementById('logModal');
-                m.classList.remove('hidden');
-                m.classList.add('flex');
-
-                const now = new Date().toISOString().split('T')[0];
-                document.getElementById('inpDate').value = now; document.getElementById('inpType').value = 'Laboral';
-                document.getElementById('inpIn').value = ''; document.getElementById('inpOut').value = '';
-                document.getElementById('inpBathTime').value = 0; document.getElementById('inpFoodTime').value = 0;
-                document.getElementById('inpPauseTime').value = 0;
-
-                const btnDel = document.getElementById('btnDelete');
-                if (id) {
-                    btnDel.classList.remove('hidden');
-                    const l = this.data.logs.find(x => x.id === id);
-                    document.getElementById('inpDate').value = l.date; document.getElementById('inpType').value = l.type;
-                    document.getElementById('inpIn').value = l.in; document.getElementById('inpOut').value = l.out;
-                    if (l.details) { 
-                        document.getElementById('inpBathTime').value = Math.round(l.details.bath); 
-                        document.getElementById('inpFoodTime').value = Math.round(l.details.food); 
-                        document.getElementById('inpPauseTime').value = l.details.pause ? Math.round(l.details.pause) : 0;
-                    }
-                } else {
-                    btnDel.classList.add('hidden');
-                }
-                this.toggleTimeInputs();
-            },
-            toggleTimeInputs() { 
-                const type = document.getElementById('inpType').value;
-                document.getElementById('timeInputs').style.display = (type === 'Falta' || type === 'Vacaciones') ? 'none' : 'block'; 
-            },
-            calcPreview() { 
-                const i = document.getElementById('inpIn').value, o = document.getElementById('inpOut').value;
-                const b = parseFloat(document.getElementById('inpBathTime').value) || 0;
-                const f = parseFloat(document.getElementById('inpFoodTime').value) || 0; 
-                const p = parseFloat(document.getElementById('inpPauseTime').value) || 0; 
-
-                const g = this.calcHours(i, o);
-                const config = this.data.config || {};
-                const disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
-                
-                document.getElementById('calcHoursDisplay').textContent = g === -1 ? 'Error' : this.fmt(g - p - disc);
-            },
-            saveLog() {
-                const d = document.getElementById('inpDate').value, t = document.getElementById('inpType').value, i = document.getElementById('inpIn').value, o = document.getElementById('inpOut').value;
-                const b = parseFloat(document.getElementById('inpBathTime').value) || 0, f = parseFloat(document.getElementById('inpFoodTime').value) || 0;
-                const p = parseFloat(document.getElementById('inpPauseTime').value) || 0;
-
-                if (!d) return this.showMessage("Fecha requerida");
-                let h = 0, disc = 0; 
-                
-                if (t === 'Laboral') {
-                    if (!i || !o) return this.showMessage("Laboral requiere entrada y salida");
-                    h = this.calcHours(i, o) - p; 
-                    if (h <= 0) return this.showMessage("Horario inválido o pausa excede turno"); 
-                } else if (t === 'Descanso') {
-                    if (i && o) {
-                        h = this.calcHours(i, o) - p;
-                        if (h < 0) return this.showMessage("Horario inválido");
-                    } else {
-                        h = 0;
-                    }
-                }
-
-                if (t === 'Laboral' || (t === 'Descanso' && h > 0)) {
-                        const config = this.data.config || {};
-                        disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
-                }
-
-                const log = { id: this.editingId || this.getNow(), date: d, type: t, in: i || '', out: o || '', hours: h, disconnection: disc, details: { bath: b, food: f, pause: p } };
-                if (this.editingId) this.data.logs[this.data.logs.findIndex(x => x.id === this.editingId)] = log; else this.data.logs.push(log);
-                this.save(); this.render(); 
-                this.closeModalById('logModal');
-            },
-            deleteLog() { if (confirm("¿Eliminar?")) { this.data.logs = this.data.logs.filter(x => x.id !== this.editingId); this.save(); this.render(); this.closeModalById('logModal'); } },
-            
-            closeModalById(id) {
-                const m = document.getElementById(id);
-                if(m) {
-                    m.classList.remove('flex');
-                    m.classList.add('hidden');
-                }
-            },
-
-            showMessage(m) { 
-                document.getElementById('msgText').textContent = m; 
-                document.getElementById('msgIcon').className = 'ph-fill ph-warning-circle text-alert'; 
-                const mod = document.getElementById('msgModal');
-                mod.classList.remove('hidden');
-                mod.classList.add('flex');
-            },
-            showSuccess(m) { 
-                document.getElementById('msgText').textContent = m; 
-                document.getElementById('msgIcon').className = 'ph-fill ph-check-circle text-money'; 
-                const mod = document.getElementById('msgModal');
-                mod.classList.remove('hidden');
-                mod.classList.add('flex');
-            },
-            closeMessageModal() { 
-                this.closeModalById('msgModal');
-            },
-
-            openImportModal() { 
-                const m = document.getElementById('importModal');
-                m.classList.remove('hidden');
-                m.classList.add('flex');
-            },
-            processImport() { const t = document.getElementById('importTextArea').value; if (!t) return; const l = t.split('\n'); let c = 0; l.forEach(x => { const p = x.split(/[\t,]+/); if (p.length >= 4) { this.data.logs.push({ id: Date.now() + c, date: p[0], type: p[1], in: p[2], out: p[3], hours: this.calcHours(p[2], p[3]), disconnection: 0 }); c++; } }); this.save(); this.closeModalById('importModal'); this.showSuccess(c + " importados"); },
-            exportBackup() { const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.data)); a.download = 'backup.json'; a.click(); },
-
-            calcHours(i, o) { if (!i || !o) return 0; const [h1, m1] = i.split(':'), [h2, m2] = o.split(':'); const d = ((h2 * 60 + +m2) - (h1 * 60 + +m1)); return d < 0 ? -1 : d; },
-            toggleLoader(s) { 
-                const l = document.getElementById('mainLoader');
-                if(s) l.classList.remove('hidden'); else l.classList.add('hidden');
             }
         };
+        const DefaultCategories = [
+            { id: 'Comida', icon: 'ph-hamburger', color: 'text-orange-400' },
+            { id: 'Transporte', icon: 'ph-car', color: 'text-blue-400' },
+            { id: 'Ocio', icon: 'ph-popcorn', color: 'text-purple-400' },
+            { id: 'Servicios', icon: 'ph-lightning', color: 'text-yellow-400' },
+            { id: 'Compras', icon: 'ph-shopping-bag', color: 'text-pink-400' },
+            { id: 'Salud', icon: 'ph-heartbeat', color: 'text-red-400' },
+            { id: 'Super', icon: 'ph-basket', color: 'text-emerald-400' },
+            { id: 'Deuda', icon: 'ph-receipt', color: 'text-indigo-400' },
+            { id: 'Ajuste', icon: 'ph-scales', color: 'text-zinc-300' },
+            { id: 'Otro', icon: 'ph-dots-three-circle', color: 'text-gray-400' }
+        ];
+        window.app = {
+            user: null,
+            data: { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 },
+            logs: [],
+            currentPeriod: null,
+            searchQuery: '',
+            filterDate: null,
+            historyData: {},
+            currentWalletBalance: 0,
+            currentDailyLimit: 0,
+            isSimulating: false,
+            async init() {
+                if(!auth) return;
+                onAuthStateChanged(auth, async (u) => {
+                    if (u) {
+                        this.user = u; this.updateUserUI();
+                        document.getElementById('authModal').classList.remove('active');
+                        this.setupListeners();
+                    } else {
+                        const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                        if(token) await signInWithCustomToken(auth, token); else document.getElementById('authModal').classList.add('active');
+                    }
+                });
+            },
+            redirectToAuth() { signInAnonymously(auth); },
+            logout() { if(confirm("¿Salir?")) signOut(auth).then(() => window.location.reload()); },
+            updateUserUI() {
+                document.getElementById('userName').textContent = this.user.displayName || 'Usuario';
+                document.getElementById('userStatusText').textContent = 'Sincronizado'; document.getElementById('userStatusText').className = 'text-[10px] text-emerald-500 font-bold';
+                document.getElementById('syncStatus').classList.add('bg-emerald-500');
+            },
+            setupListeners() {
+                const uid = this.user.uid;
+                const userRef = doc(db, 'artifacts', APP_ID, 'users', uid, 'data', 'financials');
+                const logsRef = collection(db, 'artifacts', APP_ID, 'users', uid, 'transactions');
+                onSnapshot(userRef, (snap) => {
+                    if(snap.exists()) {
+                        this.data = { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
+                        document.getElementById('inpIncome').value = this.data.income || '';
+                        document.getElementById('inpIncomeQ2').value = this.data.incomeQ2 || '';
+                        document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
+                        document.getElementById('manualExtraPay').value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
+                        this.renderPlanInputs();
+                        this.renderFixed(); this.renderLoans();
+                        this.calcPeriod();
+                        this.updateExtraUI();
+                    } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
+                });
+                const q = query(logsRef, orderBy('date', 'desc'), limit(1500));
+                onSnapshot(q, (snap) => {
+                    this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
+                    this.calcBalance();
+                    this.renderTransactions();
+                    this.processHistory();
+                });
+            },
+            processHistory() {
+                this.historyData = {};
+                this.logs.forEach(log => {
+                    const d = new Date(log.date);
+                    const key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+                    if (!this.historyData[key]) {
+                        this.historyData[key] = { month: d.getMonth(), year: d.getFullYear(), income: 0, expense: 0, txs: [] };
+                    }
+                    if (log.type === 'income') this.historyData[key].income += log.amount;
+                    else this.historyData[key].expense += log.amount;
+                    this.historyData[key].txs.push(log);
+                });
+            },
+            renderPlanInputs() {
+                const isBi = this.data.cycle === 'biweekly';
+                document.getElementById('divIncomeQ2').classList.toggle('hidden', !isBi);
+                document.getElementById('lblIncome1').textContent = isBi ? 'Ingreso 1ra Quincena (Q1)' : 'Ingreso Mensual Base';
+            },
+            toggleExtrasMenu() {
+                const menu = document.getElementById('extraMenu');
+                const icon = document.getElementById('extraMenuIcon');
+                menu.classList.toggle('hidden');
+                icon.classList.toggle('rotate-180');
+            },
+            updateExtraUI() {
+                const triggerBtn = document.getElementById('extraMenuTrigger');
+                const menu = document.getElementById('extraMenu');
+                const icon = document.getElementById('extraMenuIcon');
+                if (this.data.enableAdherence === false) {
+                    triggerBtn.classList.add('pointer-events-none');
+                    icon.classList.add('hidden');
+                    menu.classList.add('hidden');
+                } else {
+                    triggerBtn.classList.remove('pointer-events-none');
+                    icon.classList.remove('hidden');
+                }
+                this.pendingExtraPay = this.data.extraPayAmount || 0;
+                this.resolvePayDate();
+            },
+            resolvePayDate() {
+                const input = document.getElementById('extraPayDateInput');
+                const badge = document.getElementById('daysToTuesday');
+                if (this.data.nextExtraPayDate) {
+                    const savedDate = new Date(this.data.nextExtraPayDate + 'T12:00:00');
+                    const now = new Date();
+                    const daysDiff = Math.ceil((savedDate - now) / (1000 * 60 * 60 * 24));
+                    input.value = this.data.nextExtraPayDate;
+                    badge.textContent = daysDiff === 0 ? '¡Es Hoy!' : (daysDiff < 0 ? 'Pasado' : `Faltan ${daysDiff} días`);
+                } else {
+                    const now = new Date(); const resultDate = new Date();
+                    const diff = 2 - now.getDay() + 7;
+                    resultDate.setDate(now.getDate() + (diff % 7 === 0 ? 0 : (2 - now.getDay() + 7) % 7));
+                    if (resultDate <= now) resultDate.setDate(resultDate.getDate() + 7);
+                    const dateStr = resultDate.toISOString().split('T')[0];
+                    input.value = dateStr;
+                    const daysDiff = Math.ceil((resultDate - now) / (1000 * 60 * 60 * 24));
+                    badge.textContent = `Faltan ${daysDiff} días`;
+                }
+            },
+            async saveExtraPayDate(val) {
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { nextExtraPayDate: val });
+                this.resolvePayDate();
+            },
+            async saveExtraPayValue(val) {
+                const amount = parseFloat(val) || 0;
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { extraPayAmount: amount });
+                this.calcBalance();
+            },
+            toggleAdherenceModule() {
+                const isEnabled = document.getElementById('adhToggle').checked;
+                updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { enableAdherence: isEnabled });
+            },
+            toggleSimulation() {
+                this.isSimulating = document.getElementById('simToggle').checked;
+                this.calcBalance();
+            },
+            async importExtraMoney() {
+                const amount = this.data.extraPayAmount || 0;
+                if (amount <= 0) return UI.toast('Monto debe ser mayor a 0', 'error');
+                if (await UI.confirm('Importar Dinero', `¿Registrar ingreso de ${UI.fmtMoney(amount)}?`)) {
+                    await addDoc(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions'), {
+                        amount: amount, desc: `Cobro Extra`, category: 'Otro', type: 'income', date: new Date().toISOString()
+                    });
+                    UI.toast('Dinero sumado a billetera', 'success');
+                }
+            },
+            getCycleParams(dateInput) {
+                const d = new Date(dateInput);
+                const day = d.getDate();
+                const m = d.getMonth();
+                const y = d.getFullYear();
+                const startDay = this.data.startDay || 1;
+                let start, end;
+                let isQ2 = false;
+                if (this.data.cycle === 'monthly') {
+                    if (day >= startDay) {
+                        start = new Date(y, m, startDay);
+                        end = new Date(y, m + 1, startDay - 1);
+                    } else {
+                        start = new Date(y, m - 1, startDay);
+                        end = new Date(y, m, startDay - 1);
+                    }
+                } else {
+                    const midDay = startDay + 15;
+                    if (day >= startDay && day < midDay) {
+                        start = new Date(y, m, startDay);
+                        end = new Date(y, m, midDay - 1);
+                    } else {
+                        if (day >= midDay) {
+                            start = new Date(y, m, midDay);
+                            end = new Date(y, m + 1, startDay - 1);
+                        } else {
+                            start = new Date(y, m - 1, midDay);
+                            end = new Date(y, m, startDay - 1);
+                        }
+                        isQ2 = true;
+                    }
+                }
+                start.setHours(0,0,0,0);
+                end.setHours(23,59,59,999);
+                return { start, end, isQ2 };
+            },
+            calcPeriod() {
+                const now = new Date();
+                const cycle = this.getCycleParams(now);
+                const totalMs = cycle.end - cycle.start;
+                const elapsed = now - cycle.start;
+                const progress = Math.min(100, Math.max(0, (elapsed / totalMs) * 100));
+                const daysLeft = Math.ceil((cycle.end - now) / (86400000));
+                this.currentPeriod = { start: cycle.start, end: cycle.end, daysLeft: Math.max(1, daysLeft), progress };
+                document.getElementById('periodDates').innerHTML = `<span class="text-zinc-400 text-sm font-normal">${cycle.start.getDate()} ${cycle.start.toLocaleString('es',{month:'short'})}</span> <i class="ph-bold ph-arrow-right text-zinc-600 text-xs"></i> <span class="text-white text-sm">${cycle.end.getDate()} ${cycle.end.toLocaleString('es',{month:'short'})}</span>`;
+                document.getElementById('daysLeftBadge').textContent = `Faltan ${this.currentPeriod.daysLeft} días`;
+                document.getElementById('periodProgress').style.width = `${progress}%`;
+                this.calcBalance();
+            },
+            calcBalance() {
+                if(!this.currentPeriod) return;
+                const { start: pStart, end: pEnd } = this.currentPeriod;
+                const periodLogs = this.logs.filter(l => { const d = new Date(l.date); return d >= pStart && d <= pEnd; });
+                const todayStr = new Date().toDateString();
+                const todaySpent = periodLogs.filter(l => l.type === 'expense' && l.category !== 'Ajuste' && new Date(l.date).toDateString() === todayStr).reduce((a, b) => a + b.amount, 0);
+                let totalSpentInCycle = 0; let extraInc = 0;
+                periodLogs.forEach(l => { if(l.type === 'income') extraInc += l.amount; else totalSpentInCycle += l.amount; });
+                if (this.isSimulating) { extraInc += (this.data.extraPayAmount || 0); }
+                let fixedReserve = 0;
+                const fixedStatus = [];
+                (this.data.fixed || []).forEach(f => {
+                    const amount = parseFloat(f.amount) || 0;
+                    const day = parseInt(f.day); let triggers = false;
+                    const d1 = new Date(pStart.getFullYear(), pStart.getMonth(), day);
+                    const d2 = new Date(pStart.getFullYear(), pStart.getMonth() + 1, day);
+                    if ((d1 >= pStart && d1 <= pEnd) || (d2 >= pStart && d2 <= pEnd)) triggers = true;
+                    if (triggers) {
+                        const isPaid = periodLogs.some(l => (l.meta_related_fixed && l.meta_related_fixed === f.name) || (l.type === 'expense' && (l.desc || '').toLowerCase().includes(f.name.toLowerCase()) && l.amount > 0));
+                        fixedStatus.push({ name: f.name, paid: isPaid });
+                        if (!isPaid) fixedReserve += amount;
+                    } else {
+                        fixedStatus.push({ name: f.name, paid: 'n/a' });
+                    }
+                });
+                this.updateFixedUI(fixedStatus);
+                const totalLoans = (this.data.loans || []).reduce((acc, loan) => {
+                    const amount = parseFloat(loan.amount) || 0;
+                    if (!loan.dueDate) return acc;
+                    const [y, m, d] = loan.dueDate.split('-').map(Number);
+                    const due = new Date(y, m - 1, d, 23, 59, 59, 999);
+                    if (due >= pStart && due <= pEnd) return acc + amount;
+                    return acc;
+                }, 0);
+                let baseInc = parseFloat(this.data.income) || 0;
+                if (this.data.cycle === 'biweekly') {
+                    // Logic for biweekly income picking relies on calcPeriod mostly,
+                    // but here we can check currentPeriod start date day
+                    const pStartDay = this.currentPeriod.start.getDate();
+                    const triggerQ2 = (this.data.startDay || 1) + 14;
+                    if (pStartDay >= triggerQ2) { baseInc = parseFloat(this.data.incomeQ2) || baseInc; }
+                }
+                const liquidIncome = (baseInc + extraInc);
+                const remainingTotal = liquidIncome - fixedReserve - totalLoans - totalSpentInCycle;
+                const daysLeft = this.currentPeriod.daysLeft;
+                const virtualAvailableStartOfDay = remainingTotal + todaySpent;
+                const dailyLimit = virtualAvailableStartOfDay / daysLeft;
+                const balanceToday = dailyLimit - todaySpent;
+                this.currentWalletBalance = remainingTotal;
+                this.currentDailyLimit = dailyLimit;
+                const dailyEl = document.getElementById('dailyFree');
+                const labelState = document.getElementById('labelDailyState');
+                const cardBg = document.getElementById('mainCardBg');
+                const mainCard = document.getElementById('mainCard');
+                mainCard.style.border = ''; mainCard.style.boxShadow = '';
+                dailyEl.textContent = UI.fmtMoney(balanceToday);
+                if (this.isSimulating) {
+                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl transition-colors duration-500 bg-emerald-500/40 animate-pulse';
+                    labelState.textContent = 'SIMULACIÓN ACTIVA';
+                    labelState.className = 'text-xs font-bold text-emerald-400 uppercase tracking-widest transition-colors';
+                    dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-emerald-400 font-black';
+                    mainCard.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+                    mainCard.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(16, 185, 129, 0.1)';
+                } else if (balanceToday < 0) {
+                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/50 rounded-full blur-3xl transition-colors duration-500 animate-pulse-red';
+                    labelState.textContent = 'EXCEDIDO HOY';
+                    labelState.className = 'text-xs font-black text-red-500 uppercase tracking-widest';
+                    dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-red-500 animate-pulse font-black';
+                } else {
+                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 rounded-full blur-3xl transition-colors duration-500';
+                    labelState.textContent = 'DISPONIBLE HOY';
+                    labelState.className = 'text-xs font-bold text-zinc-400 uppercase tracking-widest transition-colors group-hover:text-white';
+                    dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-white font-black';
+                }
+                document.getElementById('valDailyLimit').textContent = UI.fmtMoney(dailyLimit);
+                document.getElementById('valTodaySpent').textContent = UI.fmtMoney(todaySpent);
+                document.getElementById('totalFree').textContent = UI.fmtMoney(remainingTotal);
+                document.getElementById('totalFree').className = remainingTotal < 0 ? 'text-lg font-bold text-red-500' : 'text-lg font-bold text-zinc-200';
+                document.getElementById('cycleSpent').textContent = `-${UI.fmtMoney(totalSpentInCycle)}`;
+                const sumFixed = document.getElementById('summaryFixed');
+                if(sumFixed) sumFixed.textContent = UI.fmtMoney(fixedReserve);
+                const sumLoans = document.getElementById('summaryShortLoans');
+                if(sumLoans) sumLoans.textContent = UI.fmtMoney(totalLoans);
+                const sumTotal = document.getElementById('totalObligations');
+                if(sumTotal) sumTotal.textContent = UI.fmtMoney(fixedReserve + totalLoans);
+                this.renderTransactions();
+            },
+            setFilterDate(dateString) {
+                if (!dateString) return;
+                this.filterDate = dateString;
+                this.renderTransactions();
+                const displayEl = document.getElementById('dateFilterDisplay');
+                const labelEl = document.getElementById('dateFilterLabel');
+                const [y, m, d] = dateString.split('-').map(Number);
+                const dateObj = new Date(y, m-1, d);
+                labelEl.textContent = `Filtro Activo: ${dateObj.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}`;
+                displayEl.classList.remove('hidden'); displayEl.classList.add('flex');
+            },
+            clearDateFilter() {
+                this.filterDate = null;
+                document.getElementById('dateFilterDisplay').classList.remove('flex');
+                document.getElementById('dateFilterDisplay').classList.add('hidden');
+                this.renderTransactions();
+                UI.toast('Filtro de fecha eliminado', 'info');
+            },
+            groupTransactionsByDate(logs) {
+                const groups = {};
+                logs.forEach(log => {
+                    const date = new Date(log.date);
+                    const sortKey = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+                    if (!groups[sortKey]) { groups[sortKey] = { txs: [], income: 0, expense: 0, date: date }; }
+                    groups[sortKey].txs.push(log);
+                    if (log.type === 'income') groups[sortKey].income += log.amount;
+                    else groups[sortKey].expense += log.amount;
+                });
+                return groups;
+            },
+            renderTransactions() {
+                const list = document.getElementById('transactionsList'); list.innerHTML = '';
+                let visibleLogs = this.logs;
+                if(this.searchQuery) {
+                    const q = this.searchQuery.toLowerCase();
+                    visibleLogs = visibleLogs.filter(l => (l.desc||'').toLowerCase().includes(q) || (l.category||'').toLowerCase().includes(q) || l.amount.toString().includes(q));
+                }
+                if(this.filterDate) {
+                    visibleLogs = visibleLogs.filter(l => {
+                        const txDate = new Date(l.date);
+                        const [y, m, d] = this.filterDate.split('-').map(Number);
+                        return txDate.getFullYear() === y && txDate.getMonth() === m-1 && txDate.getDate() === d;
+                    });
+                }
+                if(!visibleLogs.length) {
+                    list.innerHTML = `<div class="text-center py-6 text-zinc-600 text-xs italic">No hay movimientos${this.filterDate || this.searchQuery ? ' para estos filtros.' : '.'}</div>`;
+                    return;
+                }
+                const cats = DefaultCategories;
+                const groupedLogs = this.groupTransactionsByDate(visibleLogs);
+                const sortedDates = Object.keys(groupedLogs).sort((a, b) => b.localeCompare(a));
+                sortedDates.forEach(dateKey => {
+                    const group = groupedLogs[dateKey];
+                    const dayName = group.date.toLocaleDateString('es-MX', { weekday: 'long' });
+                    const formattedDate = group.date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+                    // Updated Header Design: Cleaner, no box, just text and subtle border
+                    list.innerHTML += `
+                        <div class="daily-summary-header flex justify-between items-end px-2 mt-6 mb-2 pb-2 border-b border-white/5">
+                            <div class="flex flex-col">
+                                <h3 class="text-base font-bold text-zinc-200 capitalize">${dayName}</h3>
+                                <p class="text-[11px] text-zinc-500 font-medium">${formattedDate}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="flex items-center gap-3">
+                                     ${group.income > 0 ? `<span class="text-xs font-bold text-emerald-500 font-mono bg-emerald-500/10 px-2 py-1 rounded-md">+${UI.fmtMoney(group.income)}</span>` : ''}
+                                    <span class="text-sm font-bold text-red-400 font-mono bg-red-500/10 px-2 py-1 rounded-md">-${UI.fmtMoney(group.expense)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    list.innerHTML += `
+                    <div class="space-y-1">
+                        ${group.txs.map(l => {
+                            const isInc = l.type === 'income';
+                            const cat = cats.find(c=>c.id === l.category) || {icon:'ph-question',color:'text-gray-500'};
+                            const icon = isInc ? 'ph-arrow-down-left' : cat.icon;
+                            const color = isInc ? 'text-emerald-500' : cat.color;
+                            const isFixedLink = l.meta_related_fixed ? '<i class="ph-bold ph-link text-zinc-600 ml-1" title="Vinculado a Gasto Fijo"></i>' : '';
+                            const time = new Date(l.date).toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'});
+                            return `
+                            <div onclick="app.openModal('${isInc?'extra':'expense'}','${l.id}')" class="flex justify-between items-center p-3 rounded-xl hover:bg-zinc-900/50 transition-colors cursor-pointer border border-transparent hover:border-zinc-800 group active:scale-[0.99] active:bg-zinc-900 md:bg-zinc-900/20">
+                                <div class="flex items-center gap-3 overflow-hidden">
+                                    <div class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform md:bg-black"><i class="ph-fill ${icon} ${color} text-xl"></i></div>
+                                    <div class="min-w-0">
+                                        <h4 class="font-bold text-zinc-300 text-sm truncate flex items-center">${l.desc || l.category || 'Movimiento'} ${isFixedLink}</h4>
+                                        <p class="text-xs text-zinc-500">${time}</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold text-base ${isInc?'text-emerald-500':'text-zinc-300'} whitespace-nowrap">${isInc?'+':'-'}${UI.fmtMoney(l.amount)}</span>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    `;
+                });
+            },
+            renderFixed() {
+                const el = document.getElementById('fixedExpensesList'); el.innerHTML='';
+                (this.data.fixed || []).sort((a,b)=>a.day-b.day).forEach((f,i) => {
+                    el.innerHTML += `
+                    <div class="fixed-item-row flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl mb-2 active:scale-[0.99] transition-transform hover:border-zinc-700" data-name="${f.name}">
+                        <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="app.openModal('fixed', ${i})">
+                            <div class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center font-bold text-sm text-zinc-400 relative border border-zinc-700">${f.day}<div class="status-dot absolute -top-1 -right-1 w-3 h-3 bg-zinc-700 rounded-full border-2 border-[#050505] hidden"></div></div>
+                            <div class="min-w-0"><div class="font-bold text-sm text-zinc-200 truncate">${f.name}</div><div class="text-xs text-zinc-500">${UI.fmtMoney(f.amount)}</div></div>
+                        </div>
+                        <button onclick="app.payFixed(${i})" class="bg-zinc-800 hover:bg-red-600 hover:text-white text-zinc-400 text-[10px] font-bold px-3 py-2 rounded-lg transition-colors ml-2" title="Registrar Pago Hoy">PAGAR</button>
+                    </div>`;
+                });
+                if((this.data.fixed || []).length === 0) { el.innerHTML = '<div class="text-center py-8 text-zinc-600 italic text-xs">Sin gastos fijos configurados</div>'; }
+            },
+            updateFixedUI(statusArray) {
+                const rows = document.querySelectorAll('.fixed-item-row');
+                rows.forEach(row => {
+                    const name = row.dataset.name; const status = statusArray.find(s => s.name === name);
+                    const dot = row.querySelector('.status-dot'); const btn = row.querySelector('button');
+                    if (status && status.paid === true) { dot.classList.remove('hidden', 'bg-zinc-700'); dot.classList.add('bg-emerald-500'); btn.classList.add('opacity-50', 'pointer-events-none'); btn.textContent = 'LISTO'; }
+                    else if (status && status.paid === false) { dot.classList.remove('hidden', 'bg-emerald-500'); dot.classList.add('bg-zinc-700'); btn.classList.remove('opacity-50', 'pointer-events-none'); btn.textContent = 'PAGAR'; }
+                    else { dot.classList.add('hidden'); }
+                });
+            },
+            renderLoans() {
+                const el = document.getElementById('loansList'); el.innerHTML='';
+                if(!this.data.loans?.length) el.innerHTML = '<div class="text-center py-8 text-zinc-600 italic text-xs">¡Libre de deudas!</div>';
+                const pEnd = this.currentPeriod ? this.currentPeriod.end : new Date(2100,0,1);
+                (this.data.loans || []).forEach((l,i) => {
+                    const [y, m, d] = l.dueDate ? l.dueDate.split('-').map(Number) : [0,0,0];
+                    const due = l.dueDate ? new Date(y, m-1, d, 23, 59, 59) : new Date(0);
+                    const affectsBudget = !l.dueDate || due <= pEnd;
+                    const opacityClass = affectsBudget ? '' : 'opacity-50 grayscale';
+                    const badge = affectsBudget ? '' : '<span class="text-[9px] bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded ml-2 border border-zinc-700">Próx. Ciclo</span>';
+                    el.innerHTML += `<div onclick="app.openModal('loan', ${i})" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center mb-2 active:scale-[0.99] ${opacityClass}"><div><div class="font-bold text-sm text-white flex items-center">${l.name} ${badge}</div><div class="text-xs text-red-400">Vence: ${l.dueDate||'Sin fecha'}</div></div><div class="text-right font-bold text-base text-zinc-300">${UI.fmtMoney(l.amount)}</div></div>`;
+                });
+            },
+            openModal(type, id=null) {
+                this.modalType = type; this.editId = id;
+                document.querySelectorAll('#modalSheet > div[id^="form"]').forEach(d => d.classList.add('hidden'));
+                document.getElementById('modalOverlay').classList.add('is-open');
+                const title = document.getElementById('modalTitle');
+                document.getElementById('categorySelectionContainer').classList.remove('hidden');
+                if(type === 'expense' || type === 'extra' || type === 'adjustment') {
+                    document.getElementById('formTransaction').classList.remove('hidden');
+                    if (type === 'expense') title.textContent = 'Registrar Gasto';
+                    else if (type === 'extra') title.textContent = 'Ingreso Extra';
+                    else if (type === 'adjustment') {
+                        title.textContent = 'Ajuste de Saldo';
+                        document.getElementById('categorySelectionContainer').classList.add('hidden');
+                    }
+                    const chips = document.getElementById('categoryChips');
+                    chips.innerHTML = DefaultCategories.map(c => `
+                        <div onclick="app.selCat(this)" class="chip bg-zinc-900 px-5 py-3 rounded-full text-xs font-bold text-zinc-400 cursor-pointer border border-zinc-800 hover:border-zinc-600 flex items-center gap-2 transition-all">
+                            <i class="ph-fill ${c.icon} ${c.color} text-lg"></i>
+                            <span>${c.id}</span>
+                        </div>
+                    `).join('');
+                    const log = id ? this.logs.find(l=>l.id===id) : null;
+                    document.getElementById('txAmount').value = log ? log.amount : '';
+                    document.getElementById('txDesc').value = log ? log.desc : '';
+                    let dateVal = new Date().toISOString().split('T')[0];
+                    if (log) {
+                         const d = new Date(log.date);
+                         dateVal = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                    }
+                    document.getElementById('txDate').value = dateVal;
+                    document.getElementById('btnDeleteTx').classList.toggle('hidden', !log);
+                    if (type === 'adjustment') {
+                        document.getElementById('txAmount').placeholder = "Saldo Real Actual";
+                        document.getElementById('txDesc').placeholder = "Motivo del ajuste (opcional)";
+                    } else {
+                        document.getElementById('txAmount').placeholder = "0";
+                        document.getElementById('txDesc').placeholder = "Nota opcional...";
+                    }
+                    if(log) {
+                        setTimeout(()=> {
+                            Array.from(chips.children).find(c => c.querySelector('span')?.textContent.trim() === log.category)?.classList.add('active');
+                        }, 50);
+                    } else if (type === 'expense') {
+                        setTimeout(()=> { chips.children[0]?.classList.add('active') }, 50);
+                    }
+                }
+                else if (type === 'fixed') {
+                    document.getElementById('formFixed').classList.remove('hidden'); title.textContent = 'Gasto Fijo';
+                    const f = id !== null ? this.data.fixed[id] : {};
+                    document.getElementById('fixName').value = f.name||''; document.getElementById('fixAmount').value=f.amount||''; document.getElementById('fixDay').value=f.day||'';
+                    document.getElementById('btnDeleteFix').classList.toggle('hidden', id===null);
+                }
+                else if (type === 'loan') {
+                    document.getElementById('formLoan').classList.remove('hidden'); title.textContent = 'Deuda';
+                    const l = id !== null ? this.data.loans[id] : {};
+                    document.getElementById('loanName').value = l.name||''; document.getElementById('loanAmount').value=l.amount||''; document.getElementById('loanDueDate').value=l.dueDate||'';
+                    document.getElementById('btnDeleteLoan').classList.toggle('hidden', id===null);
+                }
+                else if (type === 'config') {
+                    document.getElementById('formConfig').classList.remove('hidden'); title.textContent = 'Configuración Ciclo';
+                    const currentMode = this.data.cycle || 'biweekly';
+                    this.setCycleMode(currentMode);
+                    document.getElementById('configStartDay').value = this.data.startDay || 1;
+                }
+            },
+            closeModal() { document.getElementById('modalOverlay').classList.remove('is-open'); },
+            selCat(el) { document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); },
+            async saveTransaction() {
+                const amtVal = parseFloat(document.getElementById('txAmount').value);
+                const desc = document.getElementById('txDesc').value;
+                const catEl = document.querySelector('.chip.active');
+                let cat = catEl ? catEl.innerText.trim() : 'Otro';
+                const dateVal = document.getElementById('txDate').value;
+                if(isNaN(amtVal)) return UI.toast('Ingresa un monto válido','error');
+                if(!dateVal) return UI.toast('Fecha requerida','error');
+                const [y, m, d] = dateVal.split('-').map(Number);
+                const now = new Date();
+                const finalDate = new Date(y, m-1, d, now.getHours(), now.getMinutes());
+                const payload = { desc, date: finalDate.toISOString() };
+                if (this.modalType === 'adjustment') {
+                    const diff = amtVal - this.currentWalletBalance;
+                    if (Math.abs(diff) < 0.01) return UI.toast('El saldo ya cuadra con el sistema', 'success');
+                    payload.amount = Math.abs(diff);
+                    payload.type = diff > 0 ? 'income' : 'expense';
+                    payload.category = 'Ajuste';
+                    payload.desc = desc || 'Ajuste Manual de Saldo';
+                } else {
+                    payload.amount = amtVal;
+                    payload.category = cat;
+                    payload.type = this.modalType === 'extra' ? 'income' : 'expense';
+                }
+                const ref = collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions');
+                if(this.editId) await updateDoc(doc(ref, this.editId), payload);
+                else await addDoc(ref, payload);
+                UI.toast(this.modalType === 'adjustment' ? 'Saldo Ajustado' : 'Guardado', 'success');
+                this.closeModal();
+            },
+            async saveFixed() {
+                const arr = [...(this.data.fixed||[])];
+                const item = { name: document.getElementById('fixName').value, amount: parseFloat(document.getElementById('fixAmount').value), day: parseInt(document.getElementById('fixDay').value) };
+                if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{fixed:arr});
+                this.closeModal(); UI.toast('Fijo guardado','success');
+            },
+            async payFixed(idx) {
+                const f = this.data.fixed[idx];
+                if(await UI.confirm('Pagar Fijo', `¿Registrar pago de ${f.name} por ${UI.fmtMoney(f.amount)}?`)) {
+                    await addDoc(collection(db,'artifacts',APP_ID,'users',this.user.uid,'transactions'), {
+                        amount: parseFloat(f.amount),
+                        desc: `Pago Fijo: ${f.name}`,
+                        category: 'Servicios',
+                        type: 'expense',
+                        date: new Date().toISOString(),
+                        meta_related_fixed: f.name
+                    });
+                    UI.toast('Pago registrado','success');
+                }
+            },
+            async saveLoan() {
+                const arr = [...(this.data.loans||[])];
+                const item = { name: document.getElementById('loanName').value, amount: parseFloat(document.getElementById('loanAmount').value), dueDate: document.getElementById('loanDueDate').value };
+                if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{loans:arr});
+                this.closeModal();
+            },
+            async saveConfig() {
+                const inc = parseFloat(document.getElementById('inpIncome').value);
+                const incQ2 = parseFloat(document.getElementById('inpIncomeQ2').value);
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{income:inc, incomeQ2: incQ2});
+                UI.toast('Ingresos actualizados','success');
+            },
+            setCycleMode(mode) {
+                this.tempCycle = mode;
+                document.getElementById('btnCycleBi').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95 ${mode==='biweekly' ? 'border-emerald-500 bg-emerald-500/10' : 'border-zinc-700'}`;
+                document.getElementById('btnCycleMo').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95 ${mode==='monthly' ? 'border-blue-500 bg-blue-500/10' : 'border-zinc-700'}`;
+                const div = document.getElementById('customStartDayDiv');
+                div.classList.remove('hidden');
+                const lbl = document.getElementById('lblStartDay');
+                if(mode === 'biweekly') {
+                    lbl.textContent = 'Día Inicio 1er Periodo';
+                    div.querySelector('p').textContent = 'El segundo periodo iniciará 15 días después.';
+                } else {
+                    lbl.textContent = 'Día de Corte / Inicio Mes';
+                    div.querySelector('p').textContent = 'Tu mes financiero iniciará en este día.';
+                }
+            },
+            async saveCycleConfig() {
+                const mode = this.tempCycle || this.data.cycle || 'biweekly';
+                const startDay = parseInt(document.getElementById('configStartDay').value) || 1;
+                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{cycle: mode, startDay: startDay});
+                UI.toast('Ciclo actualizado','success'); this.closeModal();
+            },
+            async deleteTxConfirm() { if(await UI.confirm('Borrar','¿Eliminar esta transacción?')) { await deleteDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'transactions',this.editId)); this.closeModal(); } },
+            async deleteFixedConfirm() { if(await UI.confirm('Borrar','¿Eliminar gasto fijo?')) { const arr=this.data.fixed.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{fixed:arr}); this.closeModal(); } },
+            async deleteLoanConfirm() { if(await UI.confirm('Liquidar','¿Marcar como pagado y borrar?')) { const arr=this.data.loans.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{loans:arr}); this.closeModal(); } },
+            async resetData() {
+                 if(await UI.confirm('RESETEO TOTAL','¿Estás seguro? Se borrará TODO.')) {
+                     const uid = this.user.uid; const batch = writeBatch(db);
+                     batch.set(doc(db,'artifacts',APP_ID,'users',uid,'data','financials'), {income:0,fixed:[],loans:[],goals:[], categories:[]});
+                     const q = await getDocs(collection(db,'artifacts',APP_ID,'users',uid,'transactions'));
+                     q.forEach(d => batch.delete(d.ref));
+                     await batch.commit(); window.location.reload();
+                 }
+            },
+            switchView(v, btnRef) {
+                document.querySelectorAll('section[id^="view-"]').forEach(s => s.classList.add('hidden'));
+                const target = document.getElementById('view-'+v);
+                if(target) target.classList.remove('hidden');
+                document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+                if(btnRef) btnRef.classList.add('active');
+                document.querySelectorAll('.nav-link-desk').forEach(b => {
+                    b.classList.toggle('active', b.dataset.view === v);
+                });
+                document.getElementById('fabContainer').classList.toggle('scale-0', v !== 'balance');
+            },
+            filterTransactions() {
+                this.searchQuery = document.getElementById('searchTx').value;
+                this.renderTransactions();
+            }
+        };
+        // Start App
         document.addEventListener('DOMContentLoaded', () => window.app.init());
     </script>
 </body>
-
 </html>
