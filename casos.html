@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>God's Plan | Casos</title>
+    <title>God's Plan | Sala de Guerra (Casos)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Fuentes e Iconos -->
@@ -84,7 +84,7 @@
         <div class="flex items-center gap-4">
             <div id="user-pill" class="hidden md:flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
                 <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span id="current-user-name" class="text-xs font-bold uppercase tracking-wider text-zinc-300">Cargando...</span>
+                <span id="current-user-name" class="text-xs font-bold uppercase tracking-wider text-zinc-300">Verificando...</span>
             </div>
             <button onclick="window.app.toggleImportModal()" class="btn-action text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                 <i class="ph-bold ph-plus-circle"></i> Nuevo Caso
@@ -223,19 +223,35 @@
         let casesUnsubscribe = null;
         let allCases = [];
 
-        // --- AUTH ---
+        // --- AUTH (Lógica Corregida) ---
         async function initAuth() {
+            // Solo usamos el token si estamos en el entorno Canvas de inicio
             const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            if (initialToken) await signInWithCustomToken(auth, initialToken).catch(() => {});
-            else await signInAnonymously(auth).catch(() => {});
+            if (initialToken) {
+                try {
+                    await signInWithCustomToken(auth, initialToken);
+                } catch (e) {
+                    console.error("Token Auth Error", e);
+                }
+            }
+            // ELIMINADO: signInAnonymously(). 
+            // Esto evita crear un usuario "Agente" si ya existe una sesión válida en el navegador.
         }
         
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                // Usuario autenticado (viene de index.html o login previo)
                 currentUser = user;
-                document.getElementById('current-user-name').textContent = user.displayName || 'Agente ' + user.uid.slice(0,4);
+                
+                // Intentar obtener el nombre real, el email o fallback a ID
+                const displayName = user.displayName || (user.email ? user.email.split('@')[0] : null) || 'Invitado';
+                
+                document.getElementById('current-user-name').textContent = displayName.toUpperCase();
                 initRealtimeListener();
             } else {
+                // NO AUTENTICADO -> REDIRIGIR AL LOGIN
+                // Esto cumple con "si no estás logeado, te bote"
+                console.log("No user detected, redirecting to login...");
                 window.location.href = '/'; 
             }
         });
@@ -282,7 +298,7 @@
                 if(!modal.classList.contains('hidden')) document.getElementById('raw-input').focus();
             },
 
-            // --- NUEVA LÓGICA: Procesamiento Manual ---
+            // --- LÓGICA DE IMPORTACIÓN ---
             processInput: async (forcedType) => {
                 const rawText = document.getElementById('raw-input').value;
                 if (!rawText.trim()) return;
@@ -291,14 +307,10 @@
                 const casesRef = collection(db, 'artifacts', appId, 'public', 'data', 'cases');
 
                 // Lógica de separación flexible:
-                // 1. Si hay "plis", usalo.
-                // 2. Si NO hay "plis", separa por nuevas líneas.
                 let chunks = [];
                 if (rawText.toLowerCase().includes('plis')) {
                     chunks = rawText.split(/plis/i).map(c => c.trim()).filter(c => c.length > 5);
                 } else {
-                    // Separar por saltos de línea, pero intentar agrupar bloques si es posible
-                    // Por ahora, salto de línea simple para máxima compatibilidad con listas
                     chunks = rawText.split(/\n+/).map(c => c.trim()).filter(c => c.length > 5);
                 }
 
@@ -314,52 +326,36 @@
                     const foundPhones = chunk.match(phoneRegex) || [];
                     phones = foundPhones;
 
-                    // --- EXTRACCIÓN SEGÚN EL BOTÓN QUE PRESIONÓ EL USUARIO ---
-                    
+                    // --- EXTRACCIÓN ---
                     if (forcedType === 'smartwatch') {
-                        // Lógica Smartwatch: Teléfono suele ir primero
-                        // Formato esperado: "5512345678 NOMBRE PRODUCTO"
-                        
-                        // Intentar quitar el primer numero del texto para obtener el nombre
                         let textWithoutFirstPhone = chunk;
                         if (phones.length > 0) {
                             textWithoutFirstPhone = chunk.replace(phones[0], '').trim();
                         }
-                        
-                        // Limpiar un poco más
                         const nameMatch = textWithoutFirstPhone.split(/(Apple|Huawei|Samsung|Watch)/i)[0];
                         clientName = nameMatch.trim();
 
                     } else {
-                        // Lógica General: Nombre suele ir primero
-                        // Formato esperado: "NOMBRE APELLIDO ... 5512345678 ... DESC"
-                        
                         if (phones.length > 0) {
-                            // Asumimos que el nombre es todo lo que hay ANTES del primer teléfono
                             const firstPhoneIndex = chunk.indexOf(phones[0]);
                             if (firstPhoneIndex > 0) {
                                 clientName = chunk.substring(0, firstPhoneIndex).trim();
                             } else {
-                                // Raro: el teléfono está al inicio en un caso general?
-                                // Tomamos las primeras palabras
                                 clientName = chunk.split(' ').slice(1, 5).join(' '); 
                             }
                         } else {
-                            // Sin teléfono, tomamos las primeras 4 palabras
                             clientName = chunk.split(' ').slice(0, 4).join(' ');
                         }
                     }
 
                     // --- LIMPIEZA FINAL DE NOMBRE ---
-                    // Quitamos palabras "basura" comunes en estos reportes
                     clientName = clientName
                         .replace(/NAVEGACION/i, '')
                         .replace(/NOMBRE-/i, '')
                         .replace(/CONTACTO/i, '')
-                        .replace(/[:.-]/g, ' ') // Quitar puntuación rara
+                        .replace(/[:.-]/g, ' ') 
                         .trim();
                     
-                    // Si quedó vacío o muy corto
                     if (!clientName || clientName.length < 3) clientName = "Cliente (Sin Nombre Detectado)";
 
                     // Guardar en Firestore
@@ -379,8 +375,6 @@
 
                 document.getElementById('raw-input').value = '';
                 window.app.toggleImportModal();
-                // Opcional: Feedback visual
-                // alert(`Se agregaron ${count} casos de tipo ${forcedType}.`);
             },
 
             filter: (type) => {
