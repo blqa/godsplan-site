@@ -3,36 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>God's Plan | Sala de Guerra (Casos)</title>
+    <title>God's Plan | War Room</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Fuentes e Iconos -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    fontFamily: { sans: ['"Inter"', 'sans-serif'] },
                     colors: {
                         brand: '#E70000',
-                        brandDark: '#990000',
-                        dark: '#050505',
-                        panel: '#111111',
-                        neonBlue: '#00F0FF',
-                        neonYellow: '#FFE600'
-                    },
-                    animation: {
-                        'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    },
-                    keyframes: {
-                        pulseGlow: {
-                            '0%, 100%': { opacity: 1, boxShadow: '0 0 10px rgba(231,0,0,0.5)' },
-                            '50%': { opacity: .8, boxShadow: '0 0 20px rgba(231,0,0,0.8)' },
-                        }
+                        dark: '#09090b',
+                        card: '#18181b',
+                        border: '#27272a',
+                        sw: '#38bdf8', /* Sky Blue */
+                        gen: '#facc15'  /* Yellow */
                     }
                 }
             }
@@ -40,621 +31,430 @@
     </script>
 
     <style>
-        body { 
-            background-color: #050505; 
-            color: #e5e5e5; 
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        } 
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        body { background-color: #000000; color: #e4e4e7; }
+        
+        /* Scrollbars finos */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: #E70000; }
 
-        .glass-panel {
-            background: rgba(20, 20, 20, 0.85); /* Un poco más oscuro para legibilidad */
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            transition: all 0.3s ease;
+        /* Efectos */
+        .glass-nav {
+            background: rgba(9, 9, 11, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #E70000 0%, #b30000 100%);
-            box-shadow: 0 4px 15px rgba(231, 0, 0, 0.3);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        
+        .action-btn {
+            transition: all 0.2s active;
         }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(231, 0, 0, 0.5); filter: brightness(1.1); }
-        .btn-primary:active { transform: translateY(1px); }
+        .action-btn:active { transform: scale(0.95); }
 
-        .nav-link {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #71717a;
-            transition: color 0.2s;
-        }
-        .nav-link:hover { color: white; }
-        .nav-link.active { color: white; border-bottom: 2px solid white; padding-bottom: 2px; }
-
-        .card-enter { animation: slideIn 0.3s ease-out forwards; }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Toast */
-        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { pointer-events: auto; background: #1a1a1a; border-left: 4px solid #E70000; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 12px; font-size: 0.9rem; animation: toastIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); max-width: 300px; }
-        .toast.success { border-left-color: #10B981; }
-        .toast.error { border-left-color: #EF4444; }
-        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        /* Animación de entrada */
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body>
+<body class="flex flex-col min-h-screen overflow-x-hidden">
 
-    <!-- BACKGROUND FX (Estilo Casos) -->
-    <div class="fixed inset-0 z-[-1] pointer-events-none">
-        <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_-20%,_#220505_0%,_#000000_60%)]"></div>
-        <div class="absolute bottom-0 right-0 w-[800px] h-[800px] bg-brand/5 blur-[120px] rounded-full mix-blend-screen"></div>
-    </div>
+    <!-- TOASTS -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- TOAST CONTAINER -->
-    <div id="toast-container"></div>
-
-    <!-- NAVEGACIÓN GLOBAL UNIFICADA -->
-    <header class="h-14 bg-black/80 border-b border-white/10 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-5">
-        <div class="flex items-center gap-8">
-            <a href="/" class="flex items-center gap-2 font-black tracking-wider text-white group decoration-0">
-                <i class="ph-bold ph-circles-three-plus text-lg text-white group-hover:text-red-500 transition-colors"></i> 
-                GOD'S PLAN
+    <!-- HEADER GLOBAL -->
+    <header class="h-16 glass-nav sticky top-0 z-50 flex items-center justify-between px-4 lg:px-8">
+        <div class="flex items-center gap-6">
+            <a href="/" class="flex items-center gap-3 font-black tracking-tighter text-white text-lg group">
+                <div class="w-8 h-8 bg-brand rounded flex items-center justify-center shadow-[0_0_15px_rgba(231,0,0,0.4)]">
+                    <i class="ph-bold ph-strategy text-white"></i>
+                </div>
+                <span>GOD'S PLAN</span>
             </a>
-            <!-- Links Desktop -->
-            <div class="hidden md:flex items-center gap-6">
-                <!-- Nota: Podrías marcar 'Casos' como activo si agregas un link específico -->
-                <a href="/adherencia.html" class="nav-link">Adherencia</a>
-                <a href="/chat.html" class="nav-link">Chat</a>
-                <a href="/finanzas.html" class="nav-link">Finanzas</a>
-                <a href="/cuenta.html" class="nav-link">Cuenta</a>
-                <a href="/guia.html" class="nav-link text-brand hover:text-red-400 flex items-center gap-1">
-                    <i class="ph-bold ph-question"></i> Ayuda
-                </a>
-            </div>
+            
+            <nav class="hidden md:flex items-center gap-1 bg-white/5 p-1 rounded-lg border border-white/5">
+                <a href="/adherencia.html" class="px-3 py-1.5 text-[11px] font-bold uppercase text-zinc-400 hover:text-white hover:bg-white/5 rounded transition-all">Adherencia</a>
+                <a href="/chat.html" class="px-3 py-1.5 text-[11px] font-bold uppercase text-zinc-400 hover:text-white hover:bg-white/5 rounded transition-all">Chat</a>
+                <a href="/finanzas.html" class="px-3 py-1.5 text-[11px] font-bold uppercase text-zinc-400 hover:text-white hover:bg-white/5 rounded transition-all">Finanzas</a>
+            </nav>
         </div>
 
-        <div id="auth-status-container" class="flex items-center gap-4">
-            <!-- Botón de Importación (Específico de Casos) -->
-            <button onclick="window.app.toggleImportModal()" class="bg-white/5 hover:bg-brand border border-white/10 hover:border-brand text-white font-bold py-1.5 px-3 rounded-lg text-xs transition flex items-center gap-2">
-                <i class="ph-bold ph-plus-circle"></i> 
-                <span class="hidden sm:inline">Nuevo Caso</span>
+        <div class="flex items-center gap-3">
+            <button onclick="window.app.toggleImportModal()" class="action-btn bg-brand hover:bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center gap-2 shadow-lg shadow-red-900/20">
+                <i class="ph-bold ph-plus"></i> <span class="hidden sm:inline">Nuevo Caso</span>
             </button>
-
-            <!-- User Display -->
-            <div id="user-display" class="flex items-center gap-3">
-                <a href="/cuenta.html" class="flex items-center gap-2 hover:bg-white/5 p-1.5 rounded-lg transition-colors group">
-                    <span id="user-initials" class="w-6 h-6 flex items-center justify-center rounded-full bg-brand font-bold text-[10px] text-white"></span>
-                    <span id="user-name" class="font-semibold text-xs text-white hidden sm:block group-hover:text-brand transition-colors">Cargando...</span>
-                </a>
+            <div id="user-pill" class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-lg border border-zinc-800">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span id="username-display" class="text-xs font-bold text-zinc-300">...</span>
             </div>
         </div>
     </header>
 
-    <!-- MAIN DASHBOARD -->
-    <main class="flex-grow p-4 md:p-8 max-w-[1800px] mx-auto w-full">
-        
-        <!-- HEADER DE SECCIÓN -->
-        <div class="mb-6 flex items-end justify-between">
-            <div>
-                <h2 class="text-3xl font-black text-white tracking-tight leading-none">WAR ROOM</h2>
-                <p class="text-zinc-500 text-xs font-mono mt-1">SISTEMA DE GESTIÓN DE CASOS EN TIEMPO REAL</p>
-            </div>
-        </div>
-
-        <!-- DASHBOARD STATS -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8">
-            <!-- Stat Card -->
-            <div class="glass-panel p-4 md:p-5 rounded-2xl flex flex-col relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <i class="ph-fill ph-stack text-4xl text-white"></i>
-                </div>
-                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">Pendientes</span>
-                <span id="stat-pending" class="text-3xl md:text-4xl font-black text-white tracking-tight">0</span>
-                <div class="h-1 w-full bg-zinc-800 mt-3 rounded-full overflow-hidden">
-                    <div id="bar-pending" class="h-full bg-white w-0 transition-all duration-1000"></div>
-                </div>
-            </div>
-
-            <!-- Stat Card -->
-            <div class="glass-panel p-4 md:p-5 rounded-2xl flex flex-col relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <i class="ph-fill ph-fire text-4xl text-brand"></i>
-                </div>
-                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">En Proceso</span>
-                <span id="stat-progress" class="text-3xl md:text-4xl font-black text-brand tracking-tight">0</span>
-                <div class="h-1 w-full bg-zinc-800 mt-3 rounded-full overflow-hidden">
-                    <div id="bar-progress" class="h-full bg-brand w-0 transition-all duration-1000"></div>
-                </div>
-            </div>
-
-            <!-- Stat Card -->
-            <div class="glass-panel p-4 md:p-5 rounded-2xl flex flex-col relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <i class="ph-fill ph-watch text-4xl text-neonBlue"></i>
-                </div>
-                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">Smartwatch</span>
-                <span id="stat-sw" class="text-3xl md:text-4xl font-black text-neonBlue tracking-tight">0</span>
-                <div class="h-1 w-full bg-zinc-800 mt-3 rounded-full overflow-hidden">
-                    <div id="bar-sw" class="h-full bg-neonBlue w-0 transition-all duration-1000"></div>
-                </div>
-            </div>
-
-            <!-- Stat Card -->
-            <div class="glass-panel p-4 md:p-5 rounded-2xl flex flex-col relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <i class="ph-fill ph-globe text-4xl text-neonYellow"></i>
-                </div>
-                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">General</span>
-                <span id="stat-gen" class="text-3xl md:text-4xl font-black text-neonYellow tracking-tight">0</span>
-                <div class="h-1 w-full bg-zinc-800 mt-3 rounded-full overflow-hidden">
-                    <div id="bar-gen" class="h-full bg-neonYellow w-0 transition-all duration-1000"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- CONTROL BAR (Filter & Search) -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sticky top-16 z-40 bg-[#050505]/95 p-2 rounded-2xl backdrop-blur-md border border-white/5 shadow-2xl">
+    <!-- CONTROLS & STATS BAR -->
+    <div class="sticky top-16 z-40 bg-black/95 backdrop-blur-sm border-b border-zinc-900 py-3 px-4 lg:px-8 shadow-2xl">
+        <div class="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             
-            <!-- Filters -->
-            <div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-                <button onclick="window.app.setFilter('all')" id="btn-filter-all" class="px-4 py-2 rounded-xl text-xs font-bold uppercase bg-white text-black shadow-lg shadow-white/10 transition-all hover:scale-105 whitespace-nowrap">
-                    Todos
+            <!-- Filter Pills (Ergonomic) -->
+            <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto no-scrollbar pb-1 md:pb-0">
+                <button id="btn-all" onclick="window.app.setFilter('all')" class="action-btn px-5 py-2 rounded-full text-xs font-bold uppercase bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all">
+                    Todos <span id="count-all" class="ml-1 opacity-60 text-[10px]">0</span>
                 </button>
-                <button onclick="window.app.setFilter('my')" id="btn-filter-my" class="px-4 py-2 rounded-xl text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-white hover:border-zinc-600 transition-all whitespace-nowrap flex items-center gap-2">
-                    <i class="ph-bold ph-user"></i> Mis Casos
+                <button id="btn-my" onclick="window.app.setFilter('my')" class="action-btn px-5 py-2 rounded-full text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-600 transition-all">
+                    Mis Casos
                 </button>
-                <button onclick="window.app.setFilter('smartwatch')" id="btn-filter-sw" class="px-4 py-2 rounded-xl text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-neonBlue hover:border-neonBlue/50 transition-all whitespace-nowrap">
-                    Smartwatch
+                <button id="btn-sw" onclick="window.app.setFilter('smartwatch')" class="action-btn px-5 py-2 rounded-full text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-sw hover:text-sw transition-all flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-sw"></div> Smartwatch
                 </button>
-                <button onclick="window.app.setFilter('general')" id="btn-filter-gen" class="px-4 py-2 rounded-xl text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-neonYellow hover:border-neonYellow/50 transition-all whitespace-nowrap">
-                    General
+                <button id="btn-gen" onclick="window.app.setFilter('general')" class="action-btn px-5 py-2 rounded-full text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-gen hover:text-gen transition-all flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-gen"></div> General
                 </button>
             </div>
 
-            <!-- Search -->
-            <div class="relative w-full md:w-80">
-                <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
-                <input type="text" id="search-input" onkeyup="window.app.handleSearch(this.value)" placeholder="Buscar cliente, teléfono..." 
-                    class="w-full bg-zinc-900/80 border border-zinc-800 focus:border-brand focus:ring-1 focus:ring-brand text-white text-sm rounded-xl pl-10 pr-4 py-2.5 outline-none transition-all placeholder-zinc-600">
-            </div>
-        </div>
-
-        <!-- CASES GRID -->
-        <div id="cases-grid" class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
-            <!-- Loading Skeleton -->
-            <div class="col-span-full flex flex-col items-center justify-center py-20 opacity-50">
-                <div class="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p class="text-sm font-mono text-zinc-500 animate-pulse">SINCRONIZANDO BASE DE DATOS...</p>
+            <!-- Search (Efficient) -->
+            <div class="relative w-full md:w-96 group">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="ph-bold ph-magnifying-glass text-zinc-500 group-focus-within:text-white transition-colors"></i>
+                </div>
+                <input type="text" id="search-input" onkeyup="window.app.handleSearch(this.value)" 
+                    class="block w-full pl-10 pr-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" 
+                    placeholder="Buscar teléfono, nombre o nota...">
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <span class="text-[10px] bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded border border-zinc-700 font-mono">/</span>
+                </div>
             </div>
         </div>
+    </div>
 
+    <!-- MAIN GRID -->
+    <main class="flex-grow p-4 lg:p-8 max-w-[1920px] mx-auto w-full">
+        <div id="cases-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+            <!-- Loader -->
+            <div class="col-span-full flex flex-col items-center justify-center h-64 text-zinc-600">
+                <i class="ph-duotone ph-spinner-gap text-4xl animate-spin mb-2 text-brand"></i>
+                <span class="text-xs font-mono uppercase tracking-widest">Sincronizando Base de Datos...</span>
+            </div>
+        </div>
     </main>
 
-    <!-- IMPORT MODAL -->
-    <div id="import-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="glass-panel w-full max-w-2xl rounded-2xl shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]" id="modal-content">
-            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
-                <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                    <i class="ph-fill ph-files text-brand"></i> Importar Lotes
-                </h3>
-                <button onclick="window.app.toggleImportModal()" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+    <!-- IMPORT MODAL (Mejorado) -->
+    <div id="import-modal" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all duration-200 opacity-0">
+        <div class="bg-zinc-950 border border-zinc-800 w-full max-w-2xl rounded-2xl shadow-2xl transform scale-95 transition-all duration-200 flex flex-col overflow-hidden" id="modal-content">
+            <div class="p-5 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800">
+                        <i class="ph-fill ph-files text-brand text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white">Importación Masiva</h3>
+                        <p class="text-xs text-zinc-500">Pega el texto crudo, el sistema detectará los números.</p>
+                    </div>
+                </div>
+                <button onclick="window.app.toggleImportModal()" class="text-zinc-500 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
                     <i class="ph-bold ph-x text-lg"></i>
                 </button>
             </div>
             
-            <div class="p-6 overflow-y-auto">
-                <textarea id="raw-input" class="w-full h-48 bg-black/50 border border-zinc-700 rounded-xl p-4 text-sm font-mono text-zinc-300 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/50 resize-none mb-4" 
-                    placeholder="Pega aquí los casos...&#10;Formato ejemplo:&#10;5512345678 (Contacto)&#10;5587654321 (Afectado)&#10;JUAN PEREZ..."></textarea>
+            <div class="p-6">
+                <textarea id="raw-input" class="w-full h-40 bg-black border border-zinc-800 rounded-xl p-4 text-sm font-mono text-zinc-300 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/50 resize-none mb-6 placeholder-zinc-700" 
+                    placeholder="Ejemplo:&#10;5512345678 (Contacto) 5587654321 (Afectado) JUAN PEREZ...&#10;plis&#10;OTRO CASO..."></textarea>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button onclick="window.app.processInput('smartwatch')" class="group p-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-neonBlue hover:bg-neonBlue/5 transition-all text-left">
-                        <div class="flex items-center gap-2 mb-1">
-                            <i class="ph-fill ph-watch text-neonBlue text-xl"></i>
-                            <span class="font-bold text-white">Smartwatch</span>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="window.app.processInput('smartwatch')" class="group relative overflow-hidden bg-zinc-900 border border-zinc-800 hover:border-sw p-4 rounded-xl text-left transition-all hover:shadow-[0_0_20px_rgba(56,189,248,0.1)]">
+                        <div class="relative z-10">
+                            <span class="text-sw font-black text-lg flex items-center gap-2"><i class="ph-fill ph-watch"></i> SMARTWATCH</span>
+                            <span class="text-xs text-zinc-500 block mt-1">Configuración y Soporte</span>
                         </div>
-                        <p class="text-[10px] text-zinc-500">Detectar relojes y accesorios</p>
                     </button>
-                    
-                    <button onclick="window.app.processInput('general')" class="group p-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-neonYellow hover:bg-neonYellow/5 transition-all text-left">
-                        <div class="flex items-center gap-2 mb-1">
-                            <i class="ph-fill ph-globe text-neonYellow text-xl"></i>
-                            <span class="font-bold text-white">General / Internet</span>
+                    <button onclick="window.app.processInput('general')" class="group relative overflow-hidden bg-zinc-900 border border-zinc-800 hover:border-gen p-4 rounded-xl text-left transition-all hover:shadow-[0_0_20px_rgba(250,204,21,0.1)]">
+                        <div class="relative z-10">
+                            <span class="text-gen font-black text-lg flex items-center gap-2"><i class="ph-fill ph-globe"></i> GENERAL</span>
+                            <span class="text-xs text-zinc-500 block mt-1">Ventas y Consultas</span>
                         </div>
-                        <p class="text-[10px] text-zinc-500">Detectar leads generales</p>
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- FIREBASE & LOGIC -->
+    <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración Firebase con Fallback
+        // Config & Init
         const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
         let firebaseConfig = fallbackConfig;
+        try { if (typeof __firebase_config !== 'undefined' && __firebase_config) firebaseConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; } catch(e){}
         
-        try { 
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) { 
-                const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; 
-                if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; 
-            } 
-        } catch(e) { console.error(e); }
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan';
-        
-        // ** PERSISTENCIA LOCAL **
         setPersistence(auth, browserLocalPersistence).catch(console.error);
 
         let currentUser = null;
-        let allCases = [];
-        let filterType = 'all';
-        let searchQuery = '';
+        let casesData = [];
+        let currentFilter = 'all';
+        let searchTerm = '';
 
         // --- UTILS ---
-        const showToast = (msg, type = 'success') => {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'} text-xl"></i><span class="font-bold text-sm">${msg}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.style.animation = 'toastOut 0.3s forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
+        const toast = (msg, type = 'success') => {
+            const c = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = `px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm font-bold animate-toastIn ${type === 'success' ? 'bg-green-500 text-black' : 'bg-red-600 text-white'}`;
+            el.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check' : 'ph-warning'}"></i> ${msg}`;
+            c.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
         };
-        const copyToClipboard = (text) => { navigator.clipboard.writeText(text).then(() => showToast(`Copiado: ${text}`, 'success')).catch(() => showToast('Error al copiar', 'error')); };
+
+        const timeAgo = (date) => {
+            if (!date) return '';
+            const seconds = Math.floor((new Date() - date.toDate()) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + " años";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + " m";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + " d";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + " h";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + " min";
+            return "Ahora";
+        };
 
         // --- AUTH ---
-        const initAuth = async () => {
-            const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            if (token) await signInWithCustomToken(auth, token);
-        };
-
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                const name = user.displayName || user.email?.split('@')[0] || 'Agente';
-                document.getElementById('user-name').textContent = name;
-                document.getElementById('user-initials').textContent = name.charAt(0).toUpperCase();
-                initListeners();
+                document.getElementById('username-display').textContent = (user.displayName || user.email.split('@')[0]).toUpperCase();
+                initRealtime();
             } else {
-                window.location.href = '/'; 
+                // Auto-login fallback or redirect
+                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                if (token) await signInWithCustomToken(auth, token);
+                else window.location.href = '/';
             }
         });
-        initAuth();
 
-        // --- FIRESTORE LISTENERS ---
-        const initListeners = () => {
-            const q = collection(db, 'artifacts', appId, 'public', 'data', 'cases');
-            
-            onSnapshot(q, (snapshot) => {
-                allCases = [];
-                let stats = { pending: 0, progress: 0, sw: 0, gen: 0 };
-                
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const k = { id: doc.id, ...data };
-                    // Migración rápida de datos antiguos si existen
-                    if (!k.contactPhone && k.phones && k.phones.length > 0) k.contactPhone = k.phones[0];
-                    if (!k.comments) k.comments = [];
-                    
-                    allCases.push(k);
-                    if (k.status === 'open') {
-                        stats.pending++;
-                        if (k.type === 'smartwatch') stats.sw++;
-                        if (k.type === 'general') stats.gen++;
-                    } else if (k.status === 'taken') stats.progress++;
-                });
-
-                allCases.sort((a, b) => {
+        // --- CORE LOGIC ---
+        function initRealtime() {
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cases'), (snap) => {
+                casesData = [];
+                snap.forEach(d => casesData.push({ id: d.id, ...d.data() }));
+                // Sort: Open first, then newest
+                casesData.sort((a, b) => {
                     if (a.status === 'open' && b.status !== 'open') return -1;
                     if (a.status !== 'open' && b.status === 'open') return 1;
                     return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
                 });
+                render();
+            });
+        }
 
-                updateStatsUI(stats);
-                window.app.renderCases();
-            }, (error) => showToast("Error de conexión BD", "error"));
-        };
-
-        const updateStatsUI = (s) => {
-            const update = (id, val, barId, color, max) => {
-                document.getElementById(id).textContent = val;
-                const pct = max > 0 ? (val / max) * 100 : 0;
-                document.getElementById(barId).style.width = `${Math.min(pct * 1.5, 100)}%`;
-            };
-            const total = s.pending + s.progress;
-            update('stat-pending', s.pending, 'bar-pending', 'white', total);
-            update('stat-progress', s.progress, 'bar-progress', '#E70000', total);
-            update('stat-sw', s.sw, 'bar-sw', '#00F0FF', s.pending);
-            update('stat-gen', s.gen, 'bar-gen', '#FFE600', s.pending);
-        };
-
-        // --- APP LOGIC ---
         window.app = {
-            // Utilidad para tiempos relativos (reemplaza date-fns)
-            getTimeAgo: (dateInput) => {
-                if (!dateInput) return 'Desconocido';
-                const date = new Date(dateInput);
-                const now = new Date();
-                const diffInSeconds = Math.floor((now - date) / 1000);
-                
-                if (diffInSeconds < 60) return 'Hace un momento';
-                if (diffInSeconds < 3600) return `Hace ${Math.floor(diffInSeconds / 60)} min`;
-                if (diffInSeconds < 86400) return `Hace ${Math.floor(diffInSeconds / 3600)} h`;
-                if (diffInSeconds < 604800) return `Hace ${Math.floor(diffInSeconds / 86400)} días`;
-                return date.toLocaleDateString();
-            },
-
             toggleImportModal: () => {
-                const modal = document.getElementById('import-modal');
-                const content = document.getElementById('modal-content');
-                if (modal.classList.contains('hidden')) {
-                    modal.classList.remove('hidden');
-                    requestAnimationFrame(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); });
+                const m = document.getElementById('import-modal');
+                const c = document.getElementById('modal-content');
+                if (m.classList.contains('hidden')) {
+                    m.classList.remove('hidden');
+                    setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
                     document.getElementById('raw-input').focus();
                 } else {
-                    modal.classList.add('opacity-0'); content.classList.add('scale-95');
-                    setTimeout(() => modal.classList.add('hidden'), 300);
+                    m.classList.add('opacity-0'); c.classList.add('scale-95');
+                    setTimeout(() => m.classList.add('hidden'), 200);
                 }
             },
 
+            setFilter: (f) => {
+                currentFilter = f;
+                render();
+            },
+
+            handleSearch: (val) => {
+                searchTerm = val.toLowerCase();
+                render();
+            },
+
             processInput: async (type) => {
-                const input = document.getElementById('raw-input').value;
-                if (!input.trim()) { showToast("Campo vacío", "error"); return; }
-                const chunks = input.split(/(?:plis|\n)/i).map(c => c.trim()).filter(c => c.length > 5);
-                let count = 0;
+                const text = document.getElementById('raw-input').value;
+                if(!text.trim()) return toast('Escribe algo', 'error');
                 
-                const batchPromises = chunks.map(async (chunk) => {
-                    const phoneRegex = /\b\d{10}\b/g;
-                    const phones = chunk.match(phoneRegex) || [];
+                const chunks = text.split(/(?:plis|\n{2,})/i).map(c => c.trim()).filter(c => c.length > 5);
+                let added = 0;
+
+                for (const chunk of chunks) {
+                    const phones = chunk.match(/\b\d{10}\b/g) || [];
+                    const contact = phones[0] || '';
+                    const affected = phones[1] || '';
                     
-                    // Lógica mejorada: 1er num = Contacto, 2do num = Afectado
-                    let contactPhone = phones.length > 0 ? phones[0] : '';
-                    let affectedPhone = phones.length > 1 ? phones[1] : '';
-                    
-                    let name = "Cliente Desconocido";
-                    
-                    // Extraer nombre (texto que no es numero)
-                    let textParts = chunk.split(contactPhone);
-                    let possibleName = textParts[0].length > 3 ? textParts[0] : (textParts[1] || '');
-                    
-                    name = possibleName.replace(/\d+/g, '').replace(/[:.-]/g, ' ').replace(/NOMBRE|TELEFONO|PEDIDO|CONTACTO|AFECTADO/gi, '').trim().substring(0, 30);
-                    if (!name || name.length < 3) name = "Cliente Sin Nombre";
+                    // Name clean up
+                    let name = chunk.split(contact)[0].replace(/[:.-]/g, ' ').trim().substring(0, 30);
+                    if(name.length < 3 && phones.length > 0) name = chunk.substring(chunk.indexOf(phones[0])+10).trim().substring(0, 30);
+                    if(!name || name.length < 3) name = "Cliente Desconocido";
 
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'cases'), {
-                        type, 
-                        rawText: chunk, 
-                        clientName: name.toUpperCase(), 
-                        phones, // Legacy support
-                        contactPhone,
-                        affectedPhone,
-                        description: chunk, 
-                        status: 'open', 
-                        assignedTo: null, 
-                        comments: [], // Nuevo array de comentarios
+                        type, rawText: chunk, clientName: name.toUpperCase(),
+                        contactPhone: contact, affectedPhone: affected, phones,
+                        description: chunk, status: 'open', assignedTo: null, comments: [],
                         createdAt: serverTimestamp()
                     });
-                    count++;
-                });
-                await Promise.all(batchPromises);
-                showToast(`${count} casos importados`, 'success');
+                    added++;
+                }
+                toast(`${added} Casos Importados`);
                 document.getElementById('raw-input').value = '';
                 window.app.toggleImportModal();
             },
 
-            setFilter: (f) => {
-                filterType = f;
-                ['all', 'my', 'sw', 'gen'].forEach(key => {
-                    const btn = document.getElementById(`btn-filter-${key}`);
-                    if (key === f) btn.className = "px-4 py-2 rounded-xl text-xs font-bold uppercase bg-white text-black shadow-lg shadow-white/10 transition-all scale-105 whitespace-nowrap flex items-center gap-2";
-                    else btn.className = "px-4 py-2 rounded-xl text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-white hover:border-zinc-600 transition-all whitespace-nowrap flex items-center gap-2";
+            // Acciones de Tarjeta
+            claim: async (id) => {
+                if(!currentUser) return;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), {
+                    status: 'taken',
+                    assignedTo: { uid: currentUser.uid, name: currentUser.displayName || 'Agente' },
+                    takenAt: serverTimestamp()
                 });
-                window.app.renderCases();
+                toast('Caso Asignado');
             },
 
-            handleSearch: (val) => { searchQuery = val.toLowerCase(); window.app.renderCases(); },
-            
-            addComment: async (id, inputId) => {
+            close: async (id) => {
+                if(!confirm("¿Cerrar caso?")) return;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), { status: 'closed' });
+                toast('Caso Cerrado');
+            },
+
+            delete: async (id) => {
+                if(!confirm("¿Eliminar permanentemente?")) return;
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id));
+                toast('Eliminado');
+            },
+
+            comment: async (id, inputId) => {
                 const input = document.getElementById(inputId);
-                const text = input.value.trim();
-                if (!text || !currentUser) return;
-                
-                try {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), {
-                        comments: arrayUnion({
-                            text,
-                            author: currentUser.displayName || 'Agente',
-                            uid: currentUser.uid,
-                            createdAt: Date.now()
-                        })
-                    });
-                    input.value = '';
-                } catch(e) { showToast('Error al comentar', 'error'); }
+                const txt = input.value.trim();
+                if(!txt) return;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), {
+                    comments: arrayUnion({ text: txt, author: currentUser.displayName?.split(' ')[0] || 'Yo', time: Date.now() })
+                });
+                input.value = '';
             },
 
-            renderCases: () => {
-                const grid = document.getElementById('cases-grid');
-                grid.innerHTML = '';
-                let filtered = allCases.filter(c => c.status !== 'closed');
-                
-                if (filterType === 'my' && currentUser) filtered = filtered.filter(c => c.assignedTo?.uid === currentUser.uid);
-                else if (filterType !== 'all' && filterType !== 'my') filtered = filtered.filter(c => c.type === filterType);
-                
-                if (searchQuery) filtered = filtered.filter(c => 
-                    c.clientName.toLowerCase().includes(searchQuery) || 
-                    (c.contactPhone && c.contactPhone.includes(searchQuery)) ||
-                    (c.affectedPhone && c.affectedPhone.includes(searchQuery)) ||
-                    c.description.toLowerCase().includes(searchQuery)
-                );
+            copy: (txt) => {
+                navigator.clipboard.writeText(txt).then(() => toast('Copiado'));
+            }
+        };
 
-                if (filtered.length === 0) {
-                    grid.innerHTML = `<div class="col-span-full text-center py-20"><i class="ph-duotone ph-magnifying-glass text-4xl text-zinc-700 mb-3"></i><p class="text-zinc-500 font-bold uppercase text-xs tracking-widest">No se encontraron casos</p></div>`;
-                    return;
+        // --- RENDER ENGINE ---
+        function render() {
+            const grid = document.getElementById('cases-grid');
+            grid.innerHTML = '';
+
+            // Update Filter Buttons Style (The Fix)
+            const filters = { 'all': 'btn-all', 'my': 'btn-my', 'smartwatch': 'btn-sw', 'general': 'btn-gen' };
+            Object.keys(filters).forEach(key => {
+                const btn = document.getElementById(filters[key]);
+                if (currentFilter === key) {
+                    // ACTIVE STATE: White BG, Black Text
+                    btn.className = "action-btn px-5 py-2 rounded-full text-xs font-bold uppercase bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all flex items-center gap-2";
+                } else {
+                    // INACTIVE STATE: Dark BG
+                    btn.className = "action-btn px-5 py-2 rounded-full text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800 transition-all flex items-center gap-2";
                 }
+            });
 
-                const now = new Date();
-                filtered.forEach(c => {
-                    const isTaken = c.status === 'taken';
-                    const isMine = isTaken && c.assignedTo?.uid === currentUser?.uid;
-                    const isSw = c.type === 'smartwatch';
-                    
-                    const colorClass = isSw ? 'text-neonBlue' : 'text-neonYellow';
-                    const bgGlow = isSw ? 'group-hover:shadow-[0_0_30px_rgba(0,240,255,0.15)]' : 'group-hover:shadow-[0_0_30px_rgba(255,230,0,0.15)]';
-                    const borderClass = isSw ? 'group-hover:border-neonBlue/50' : 'group-hover:border-neonYellow/50';
-                    
-                    let timeText = 'Recién';
-                    if (c.createdAt) { try { timeText = window.app.getTimeAgo(c.createdAt.toDate()); } catch(e) {} }
+            // Filter Data
+            let list = casesData.filter(c => c.status !== 'closed');
+            if (currentFilter === 'my') list = list.filter(c => c.assignedTo?.uid === currentUser.uid);
+            else if (currentFilter !== 'all') list = list.filter(c => c.type === currentFilter);
+            
+            if (searchTerm) list = list.filter(c => JSON.stringify(c).toLowerCase().includes(searchTerm));
 
-                    // --- GENERADOR DE TELÉFONOS ---
-                    const renderPhoneRow = (label, phone, icon) => {
-                        if (!phone) return '';
-                        const wpNumber = phone.length === 10 ? `52${phone}` : phone;
-                        return `
-                            <div class="flex items-center gap-2 mb-2 bg-black/40 p-2 rounded-lg border border-white/5">
-                                <div class="w-8 h-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-400">
-                                    <i class="ph-fill ${icon} text-lg"></i>
-                                </div>
-                                <div class="flex-grow">
-                                    <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">${label}</div>
-                                    <div class="font-mono text-white text-sm tracking-wide cursor-pointer hover:text-brand transition-colors" onclick="window.app.copy('${phone}')">${phone}</div>
-                                </div>
-                                <a href="https://wa.me/${wpNumber}" target="_blank" class="w-8 h-8 flex items-center justify-center rounded bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-white transition-colors">
-                                    <i class="ph-bold ph-whatsapp-logo"></i>
-                                </a>
-                                <a href="tel:${phone}" class="w-8 h-8 flex items-center justify-center rounded bg-white/5 hover:bg-white text-white hover:text-black transition-colors">
-                                    <i class="ph-bold ph-phone"></i>
-                                </a>
-                            </div>
-                        `;
-                    };
+            document.getElementById('count-all').textContent = casesData.length;
 
-                    const contactHtml = renderPhoneRow('Contacto', c.contactPhone, 'ph-user');
-                    const affectedHtml = renderPhoneRow('Línea Afectada', c.affectedPhone, 'ph-sim-card');
-                    
-                    // --- COMENTARIOS ---
-                    const commentsHtml = (c.comments || []).map(com => `
-                        <div class="mb-2 last:mb-0 bg-white/5 p-2 rounded border border-white/5">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[10px] font-bold text-brand uppercase">${com.author}</span>
-                                <span class="text-[8px] text-zinc-600">${window.app.getTimeAgo(com.createdAt)}</span>
-                            </div>
-                            <p class="text-xs text-zinc-300 leading-tight">${com.text}</p>
-                        </div>
-                    `).join('');
+            if (list.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-20 text-zinc-600 font-bold uppercase tracking-widest text-xs">Sin resultados</div>`;
+                return;
+            }
 
-                    // --- ACCIONES ---
-                    let actionArea = '';
-                    if (!isTaken) {
-                        actionArea = `<button onclick="window.app.takeCase('${c.id}')" class="w-full mt-2 btn-primary text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 group/act overflow-hidden relative"><div class="absolute inset-0 bg-white/20 translate-y-full group-hover/act:translate-y-0 transition-transform duration-300"></div><i class="ph-bold ph-hand-grabbing text-lg relative z-10"></i> <span class="relative z-10">TOMAR CASO</span></button>`;
-                    } else {
-                        actionArea = `
-                            <div class="mt-3 pt-3 border-t border-white/5">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-300">${c.assignedTo?.name?.charAt(0) || 'A'}</div>
-                                        <div><div class="text-[10px] text-zinc-500 font-bold uppercase">Asignado a</div><div class="text-xs font-bold text-white">${c.assignedTo?.name?.split(' ')[0]}</div></div>
-                                    </div>
-                                    ${isMine ? 
-                                        `<button onclick="window.app.closeCase('${c.id}')" class="bg-green-500 hover:bg-green-400 text-black px-4 py-1.5 rounded-lg text-xs font-bold uppercase transition-all flex items-center gap-1 shadow-lg shadow-green-500/20"><i class="ph-bold ph-check-fat"></i> Cerrar Venta</button>` : 
-                                        `<button onclick="window.app.takeCase('${c.id}')" class="text-zinc-500 hover:text-white text-[10px] font-bold uppercase border border-zinc-800 hover:border-zinc-600 px-3 py-1 rounded transition-colors">Reclamar</button>`
-                                    }
-                                </div>
-                                <div class="relative">
-                                    <input type="text" id="comment-${c.id}" placeholder="Escribir bitácora..." class="w-full bg-black/50 border border-white/10 rounded-lg py-2 pl-3 pr-10 text-xs text-white focus:border-brand focus:outline-none placeholder-zinc-700" onkeypress="if(event.key === 'Enter') window.app.addComment('${c.id}', 'comment-${c.id}')">
-                                    <button onclick="window.app.addComment('${c.id}', 'comment-${c.id}')" class="absolute right-1 top-1 p-1 text-zinc-500 hover:text-brand"><i class="ph-bold ph-paper-plane-right"></i></button>
-                                </div>
-                            </div>
-                        `;
-                    }
+            list.forEach(c => {
+                const isTaken = c.status === 'taken';
+                const isMine = c.assignedTo?.uid === currentUser?.uid;
+                const isSW = c.type === 'smartwatch';
+                
+                // Card Styling
+                let borderClass = isTaken ? (isMine ? 'border-green-900/50' : 'border-zinc-800') : (isSW ? 'border-sky-900/50 hover:border-sw/50' : 'border-yellow-900/50 hover:border-gen/50');
+                let bgClass = isTaken ? 'bg-zinc-950/50 grayscale-[0.5]' : 'bg-zinc-900/80';
+                if(isMine) bgClass = 'bg-green-950/10';
 
-                    const card = document.createElement('div');
-                    card.className = `glass-panel rounded-xl p-0 overflow-hidden relative group transition-all duration-300 hover:-translate-y-1 ${borderClass} ${bgGlow} card-enter ${isTaken && !isMine ? 'opacity-80 grayscale-[0.3]' : ''}`;
-                    card.innerHTML = `
-                        <div class="absolute left-0 top-0 bottom-0 w-1 ${isSw ? 'bg-neonBlue' : 'bg-neonYellow'}"></div>
-                        <div class="p-5 pl-6 flex flex-col h-full">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <span class="inline-block py-0.5 px-2 rounded text-[10px] font-bold uppercase tracking-widest border ${isSw ? 'border-neonBlue/30 bg-neonBlue/10 text-neonBlue' : 'border-neonYellow/30 bg-neonYellow/10 text-neonYellow'} mb-1">${isSw ? 'Smartwatch' : 'General'}</span>
-                                    <h3 class="font-bold text-white text-lg leading-tight line-clamp-1" title="${c.clientName}">${c.clientName}</h3>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[10px] text-zinc-500 font-mono">${timeText}</span>
-                                    ${!isTaken ? `<button onclick="window.app.deleteCase('${c.id}')" class="text-zinc-600 hover:text-red-500 p-1 transition-colors"><i class="ph-bold ph-trash"></i></button>` : ''}
-                                </div>
-                            </div>
-
-                            <div class="space-y-1 mb-4">
-                                ${contactHtml || '<div class="text-xs text-red-500 font-bold italic p-2 border border-red-900/30 bg-red-900/10 rounded">Sin Contacto</div>'}
-                                ${affectedHtml}
-                            </div>
-
-                            <div class="bg-[#050505]/50 border border-white/5 rounded-lg p-3 text-xs text-zinc-400 font-mono max-h-24 overflow-y-auto custom-scroll mb-2 flex-grow">
-                                <div class="mb-2">${c.description}</div>
-                                ${commentsHtml ? `<div class="mt-3 pt-2 border-t border-white/5 space-y-2">${commentsHtml}</div>` : ''}
-                            </div>
-
-                            <div class="mt-auto">
-                                ${actionArea}
+                // Phone Rows
+                const phoneBlock = (label, num, icon) => {
+                    if(!num) return '';
+                    return `
+                        <div class="flex items-center gap-2 bg-black/40 p-1.5 rounded border border-white/5 group/ph">
+                            <div class="w-6 h-6 rounded flex items-center justify-center bg-zinc-800 text-zinc-400 text-xs"><i class="ph-fill ${icon}"></i></div>
+                            <div class="flex-grow">
+                                <span class="block text-[9px] uppercase text-zinc-500 font-bold">${label}</span>
+                                <span class="font-mono text-xs text-zinc-300 group-hover/ph:text-white cursor-pointer" onclick="window.app.copy('${num}')">${num}</span>
                             </div>
                         </div>
                     `;
-                    grid.appendChild(card);
-                });
-            },
-            
-            copy: (text) => copyToClipboard(text),
-            
-            // Reclamar/Tomar ahora funciona siempre
-            takeCase: async (id) => { 
-                if (!currentUser) return; 
-                try { 
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), { 
-                        status: 'taken', 
-                        assignedTo: { uid: currentUser.uid, name: currentUser.displayName || 'Agente' }, 
-                        takenAt: serverTimestamp() 
-                    }); 
-                    showToast('Caso asignado correctamente'); 
-                } catch(e) { showToast('Error al asignar', 'error'); } 
-            },
-            
-            closeCase: async (id) => { 
-                if(!confirm("¿Confirmar venta/cierre?")) return; 
-                try { 
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), { status: 'closed' }); 
-                    showToast('Caso cerrado'); 
-                } catch(e) { showToast('Error', 'error'); } 
-            },
-            
-            deleteCase: async (id) => { 
-                if(!confirm("¿Eliminar?")) return; 
-                try { 
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id)); 
-                    showToast('Eliminado'); 
-                } catch(e) { showToast('Error', 'error'); } 
-            }
-        };
-        window.app.copy = copyToClipboard;
+                };
+
+                // Comments
+                const commentsHTML = c.comments?.map(com => `
+                    <div class="text-[10px] text-zinc-400 border-l-2 border-zinc-700 pl-2 mb-1">
+                        <span class="text-zinc-200 font-bold">${com.author}:</span> ${com.text}
+                    </div>
+                `).join('') || '';
+
+                const card = document.createElement('div');
+                card.className = `relative rounded-xl border p-4 flex flex-col gap-3 transition-all fade-in ${borderClass} ${bgClass}`;
+                card.innerHTML = `
+                    <!-- Header -->
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${isSW ? 'bg-sw/10 text-sw' : 'bg-gen/10 text-gen'}">${isSW ? 'SW' : 'GEN'}</span>
+                                ${isTaken ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${isMine ? 'bg-green-500/20 text-green-500' : 'bg-zinc-800 text-zinc-500'}">${isMine ? 'MÍO' : c.assignedTo?.name}</span>` : ''}
+                            </div>
+                            <h3 class="font-bold text-white leading-tight">${c.clientName}</h3>
+                        </div>
+                        <span class="text-[9px] text-zinc-500 font-mono">${timeAgo(c.createdAt)}</span>
+                    </div>
+
+                    <!-- Phones -->
+                    <div class="flex flex-col gap-1">
+                        ${phoneBlock('Contacto', c.contactPhone, 'ph-user')}
+                        ${phoneBlock('Afectado', c.affectedPhone, 'ph-sim-card')}
+                    </div>
+
+                    <!-- Description & Chat -->
+                    <div class="flex-grow bg-black/20 rounded p-2 border border-white/5 min-h-[80px] flex flex-col">
+                        <p class="text-[11px] text-zinc-400 mb-2 line-clamp-3">${c.description}</p>
+                        <div class="mt-auto space-y-1 overflow-y-auto max-h-24 custom-scroll">
+                            ${commentsHTML}
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="pt-2 flex items-center gap-2">
+                        <input type="text" id="input-${c.id}" placeholder="Nota..." 
+                            class="bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-xs text-white flex-grow focus:border-brand focus:outline-none placeholder-zinc-600"
+                            onkeypress="if(event.key==='Enter') window.app.comment('${c.id}', 'input-${c.id}')">
+                        
+                        ${!isTaken ? 
+                            `<button onclick="window.app.claim('${c.id}')" class="bg-zinc-800 hover:bg-brand text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase transition-colors">TOMAR</button>` :
+                            (isMine ? 
+                                `<button onclick="window.app.close('${c.id}')" class="bg-green-600 hover:bg-green-500 text-black px-3 py-1.5 rounded text-[10px] font-bold uppercase transition-colors">CERRAR</button>` :
+                                `<button onclick="window.app.claim('${c.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase transition-colors">ROBAR</button>`
+                            )
+                        }
+                    </div>
+                    ${!isTaken ? `<button onclick="window.app.delete('${c.id}')" class="absolute top-2 right-2 text-zinc-700 hover:text-red-500"><i class="ph-bold ph-trash"></i></button>` : ''}
+                `;
+                grid.appendChild(card);
+            });
+        }
     </script>
 </body>
 </html>
