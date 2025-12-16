@@ -749,7 +749,10 @@
                 const periodLogs = this.logs.filter(l => { const d = new Date(l.date); return d >= pStart && d <= pEnd; });
 
                 const todayStr = new Date().toDateString();
-                const todaySpent = periodLogs.filter(l => l.type === 'expense' && new Date(l.date).toDateString() === todayStr).reduce((a, b) => a + b.amount, 0);
+                
+                // --- CAMBIO AQUI ---
+                // Filtramos 'Ajuste' para que no cuente en "Gastado Hoy", pero siga contando en el total del ciclo
+                const todaySpent = periodLogs.filter(l => l.type === 'expense' && l.category !== 'Ajuste' && new Date(l.date).toDateString() === todayStr).reduce((a, b) => a + b.amount, 0);
 
                 let totalSpentInCycle = 0; let extraInc = 0;
                 periodLogs.forEach(l => { if(l.type === 'income') extraInc += l.amount; else totalSpentInCycle += l.amount; });
