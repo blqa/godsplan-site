@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>God's Plan |Casos</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuentes e Iconos -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        brand: '#E70000',
+                        dark: '#050505',
+                        glass: 'rgba(255, 255, 255, 0.05)'
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            background-color: #050505; 
+            color: white; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        } 
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #E70000; }
+
+        /* Estilos Base God's Plan */
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-action {
+            background: linear-gradient(135deg, #E70000 0%, #990000 100%);
+            transition: all 0.2s;
+        }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(231, 0, 0, 0.4); }
+        .btn-action:active { transform: translateY(0); }
+
+        /* Estados de las tarjetas */
+        .case-card { border-left: 4px solid #E70000; }
+        .case-card.taken { border-left-color: #444; opacity: 0.7; filter: grayscale(0.8); }
+        .case-card.taken:hover { filter: grayscale(0); opacity: 1; }
+        .case-card.smartwatch { border-left-color: #00E7FF; }
+        
+        /* Modal */
+        .modal-bg { background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); }
+    </style>
+</head>
+<body>
+
+    <!-- FONDO -->
+    <div class="fixed inset-0 z-[-1]">
+        <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,_#1a0505_0%,_#000000_80%)]"></div>
+        <div class="absolute top-[-20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-brand/10 blur-[100px] animate-pulse-fast"></div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="h-16 bg-black/80 border-b border-white/10 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-6">
+        <a href="/" class="flex items-center gap-3 font-black tracking-wider text-white hover:text-brand transition-colors">
+            <i class="ph-bold ph-caret-left"></i>
+            VOLVER AL HUB
+        </a>
+        <div class="flex items-center gap-4">
+            <div id="user-pill" class="hidden md:flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span id="current-user-name" class="text-xs font-bold uppercase tracking-wider text-zinc-300">Cargando...</span>
+            </div>
+            <button onclick="window.app.toggleImportModal()" class="btn-action text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                <i class="ph-bold ph-plus-circle"></i> Nuevo Caso
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow p-4 md:p-8 max-w-[1600px] mx-auto w-full">
+        
+        <!-- ESTADÍSTICAS RÁPIDAS -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="glass-panel p-4 rounded-xl flex flex-col">
+                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Pendientes</span>
+                <span id="stat-pending" class="text-2xl font-black text-white">0</span>
+            </div>
+            <div class="glass-panel p-4 rounded-xl flex flex-col">
+                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">En Proceso</span>
+                <span id="stat-progress" class="text-2xl font-black text-brand">0</span>
+            </div>
+            <div class="glass-panel p-4 rounded-xl flex flex-col">
+                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Smartwatches</span>
+                <span id="stat-sw" class="text-2xl font-black text-[#00E7FF]">0</span>
+            </div>
+            <div class="glass-panel p-4 rounded-xl flex flex-col">
+                <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Generales</span>
+                <span id="stat-gen" class="text-2xl font-black text-yellow-500">0</span>
+            </div>
+        </div>
+
+        <!-- FILTROS -->
+        <div class="flex flex-wrap gap-2 mb-6">
+            <button onclick="window.app.filter('all')" class="bg-white/10 hover:bg-white/20 px-4 py-1.5 rounded-full text-xs font-bold transition-all border border-transparent focus:border-brand">TODOS</button>
+            <button onclick="window.app.filter('smartwatch')" class="bg-[#00E7FF]/10 hover:bg-[#00E7FF]/20 text-[#00E7FF] px-4 py-1.5 rounded-full text-xs font-bold transition-all border border-transparent focus:border-[#00E7FF]">SMARTWATCH</button>
+            <button onclick="window.app.filter('general')" class="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 px-4 py-1.5 rounded-full text-xs font-bold transition-all border border-transparent focus:border-yellow-500">GENERALES</button>
+            <div class="flex-grow"></div>
+            <button onclick="window.app.clearCompleted()" class="text-zinc-500 hover:text-red-500 text-xs font-bold flex items-center gap-1 transition-colors">
+                <i class="ph-bold ph-trash"></i> Limpiar Completados
+            </button>
+        </div>
+
+        <!-- GRID DE CASOS -->
+        <div id="cases-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <!-- Loading State -->
+            <div class="col-span-full flex flex-col items-center justify-center py-20 text-zinc-600">
+                <i class="ph-bold ph-spinner animate-spin text-4xl mb-4"></i>
+                <p class="text-sm font-mono">SINCRONIZANDO BASE DE DATOS...</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL DE IMPORTACIÓN ACTUALIZADO -->
+    <div id="import-modal" class="fixed inset-0 z-[100] modal-bg hidden flex items-center justify-center p-4">
+        <div class="bg-[#0a0a0a] border border-white/10 w-full max-w-2xl rounded-2xl shadow-2xl transform transition-all scale-100 flex flex-col overflow-hidden max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-[#111]">
+                <div>
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="ph-bold ph-clipboard-text text-brand"></i> Importación Manual
+                    </h3>
+                    <p class="text-zinc-500 text-xs mt-1">Pega el texto y selecciona qué tipo de casos son.</p>
+                </div>
+                <button onclick="window.app.toggleImportModal()" class="text-zinc-500 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg">
+                    <i class="ph-bold ph-x text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6 flex-grow overflow-y-auto">
+                <div class="mb-4">
+                    <label class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 block">1. Pega los casos aquí:</label>
+                    <textarea id="raw-input" class="w-full h-40 bg-black border border-zinc-800 rounded-xl p-4 text-sm font-mono text-zinc-300 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/50 resize-none transition-all placeholder-zinc-700" placeholder="Ejemplo: 5541811889 MARIO... &#10;o&#10;J. JESUS GONZALEZ..."></textarea>
+                    <div class="flex justify-between mt-2">
+                        <span class="text-[10px] text-zinc-600">Se separará automáticamente por 'plis' o saltos de línea.</span>
+                        <button onclick="document.getElementById('raw-input').value=''" class="text-[10px] text-red-500 hover:text-red-400 font-bold uppercase">Borrar Todo</button>
+                    </div>
+                </div>
+
+                <div class="border-t border-white/5 pt-4">
+                    <label class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3 block">2. Selecciona el Tipo para Procesar:</label>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Botón Smartwatch -->
+                        <button onclick="window.app.processInput('smartwatch')" class="group relative overflow-hidden rounded-xl border border-zinc-800 hover:border-[#00E7FF] bg-zinc-900 p-4 text-left transition-all hover:bg-zinc-900/50">
+                            <div class="relative z-10 flex flex-col gap-1">
+                                <div class="flex items-center gap-2 text-[#00E7FF]">
+                                    <i class="ph-bold ph-watch text-xl"></i>
+                                    <span class="font-bold uppercase tracking-wider text-sm">Smartwatch</span>
+                                </div>
+                                <p class="text-[10px] text-zinc-500 group-hover:text-zinc-300">Formato: Teléfono primero <br> (55... Nombre Producto)</p>
+                            </div>
+                            <div class="absolute inset-0 bg-gradient-to-br from-[#00E7FF]/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
+                        </button>
+
+                        <!-- Botón General -->
+                        <button onclick="window.app.processInput('general')" class="group relative overflow-hidden rounded-xl border border-zinc-800 hover:border-yellow-500 bg-zinc-900 p-4 text-left transition-all hover:bg-zinc-900/50">
+                            <div class="relative z-10 flex flex-col gap-1">
+                                <div class="flex items-center gap-2 text-yellow-500">
+                                    <i class="ph-bold ph-globe text-xl"></i>
+                                    <span class="font-bold uppercase tracking-wider text-sm">General / Internet</span>
+                                </div>
+                                <p class="text-[10px] text-zinc-500 group-hover:text-zinc-300">Formato: Nombre primero <br> (Nombre ... Tel ... Desc)</p>
+                            </div>
+                            <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGICA FIREBASE Y APP -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // CONFIGURACIÓN
+        const fallbackConfig = { apiKey: "", authDomain: "", projectId: "", storageBucket: "", messagingSenderId: "", appId: "" };
+        let firebaseConfig = fallbackConfig;
+        try { if (typeof __firebase_config !== 'undefined' && __firebase_config) firebaseConfig = JSON.parse(__firebase_config); } catch(e) {}
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let currentUser = null;
+        let casesUnsubscribe = null;
+        let allCases = [];
+
+        // --- AUTH ---
+        async function initAuth() {
+            const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            if (initialToken) await signInWithCustomToken(auth, initialToken).catch(() => {});
+            else await signInAnonymously(auth).catch(() => {});
+        }
+        
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('current-user-name').textContent = user.displayName || 'Agente ' + user.uid.slice(0,4);
+                initRealtimeListener();
+            } else {
+                window.location.href = '/'; 
+            }
+        });
+
+        initAuth();
+
+        // --- FIRESTORE ---
+        function initRealtimeListener() {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const q = collection(db, 'artifacts', appId, 'public', 'data', 'cases');
+            
+            casesUnsubscribe = onSnapshot(q, (snapshot) => {
+                allCases = [];
+                snapshot.forEach(doc => {
+                    allCases.push({ id: doc.id, ...doc.data() });
+                });
+                allCases.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                window.app.renderCases();
+                updateStats();
+            }, (error) => {
+                console.error("Error fetching cases:", error);
+            });
+        }
+
+        function updateStats() {
+            const pending = allCases.filter(c => c.status === 'open').length;
+            const progress = allCases.filter(c => c.status === 'taken').length;
+            const sw = allCases.filter(c => c.type === 'smartwatch' && c.status === 'open').length;
+            const gen = allCases.filter(c => c.type === 'general' && c.status === 'open').length;
+
+            document.getElementById('stat-pending').textContent = pending;
+            document.getElementById('stat-progress').textContent = progress;
+            document.getElementById('stat-sw').textContent = sw;
+            document.getElementById('stat-gen').textContent = gen;
+        }
+
+        // --- LÓGICA DE LA APP ---
+        window.app = {
+            currentFilter: 'all',
+
+            toggleImportModal: () => {
+                const modal = document.getElementById('import-modal');
+                modal.classList.toggle('hidden');
+                if(!modal.classList.contains('hidden')) document.getElementById('raw-input').focus();
+            },
+
+            // --- NUEVA LÓGICA: Procesamiento Manual ---
+            processInput: async (forcedType) => {
+                const rawText = document.getElementById('raw-input').value;
+                if (!rawText.trim()) return;
+
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const casesRef = collection(db, 'artifacts', appId, 'public', 'data', 'cases');
+
+                // Lógica de separación flexible:
+                // 1. Si hay "plis", usalo.
+                // 2. Si NO hay "plis", separa por nuevas líneas.
+                let chunks = [];
+                if (rawText.toLowerCase().includes('plis')) {
+                    chunks = rawText.split(/plis/i).map(c => c.trim()).filter(c => c.length > 5);
+                } else {
+                    // Separar por saltos de línea, pero intentar agrupar bloques si es posible
+                    // Por ahora, salto de línea simple para máxima compatibilidad con listas
+                    chunks = rawText.split(/\n+/).map(c => c.trim()).filter(c => c.length > 5);
+                }
+
+                let count = 0;
+
+                for (const chunk of chunks) {
+                    let clientName = '';
+                    let phones = [];
+                    let description = chunk;
+
+                    // Extraer teléfonos (10 dígitos)
+                    const phoneRegex = /\b\d{10}\b/g;
+                    const foundPhones = chunk.match(phoneRegex) || [];
+                    phones = foundPhones;
+
+                    // --- EXTRACCIÓN SEGÚN EL BOTÓN QUE PRESIONÓ EL USUARIO ---
+                    
+                    if (forcedType === 'smartwatch') {
+                        // Lógica Smartwatch: Teléfono suele ir primero
+                        // Formato esperado: "5512345678 NOMBRE PRODUCTO"
+                        
+                        // Intentar quitar el primer numero del texto para obtener el nombre
+                        let textWithoutFirstPhone = chunk;
+                        if (phones.length > 0) {
+                            textWithoutFirstPhone = chunk.replace(phones[0], '').trim();
+                        }
+                        
+                        // Limpiar un poco más
+                        const nameMatch = textWithoutFirstPhone.split(/(Apple|Huawei|Samsung|Watch)/i)[0];
+                        clientName = nameMatch.trim();
+
+                    } else {
+                        // Lógica General: Nombre suele ir primero
+                        // Formato esperado: "NOMBRE APELLIDO ... 5512345678 ... DESC"
+                        
+                        if (phones.length > 0) {
+                            // Asumimos que el nombre es todo lo que hay ANTES del primer teléfono
+                            const firstPhoneIndex = chunk.indexOf(phones[0]);
+                            if (firstPhoneIndex > 0) {
+                                clientName = chunk.substring(0, firstPhoneIndex).trim();
+                            } else {
+                                // Raro: el teléfono está al inicio en un caso general?
+                                // Tomamos las primeras palabras
+                                clientName = chunk.split(' ').slice(1, 5).join(' '); 
+                            }
+                        } else {
+                            // Sin teléfono, tomamos las primeras 4 palabras
+                            clientName = chunk.split(' ').slice(0, 4).join(' ');
+                        }
+                    }
+
+                    // --- LIMPIEZA FINAL DE NOMBRE ---
+                    // Quitamos palabras "basura" comunes en estos reportes
+                    clientName = clientName
+                        .replace(/NAVEGACION/i, '')
+                        .replace(/NOMBRE-/i, '')
+                        .replace(/CONTACTO/i, '')
+                        .replace(/[:.-]/g, ' ') // Quitar puntuación rara
+                        .trim();
+                    
+                    // Si quedó vacío o muy corto
+                    if (!clientName || clientName.length < 3) clientName = "Cliente (Sin Nombre Detectado)";
+
+                    // Guardar en Firestore
+                    await addDoc(casesRef, {
+                        type: forcedType,
+                        rawText: chunk,
+                        clientName: clientName.toUpperCase(),
+                        phones,
+                        description,
+                        status: 'open', 
+                        assignedTo: null,
+                        takenAt: null,
+                        createdAt: serverTimestamp()
+                    });
+                    count++;
+                }
+
+                document.getElementById('raw-input').value = '';
+                window.app.toggleImportModal();
+                // Opcional: Feedback visual
+                // alert(`Se agregaron ${count} casos de tipo ${forcedType}.`);
+            },
+
+            filter: (type) => {
+                window.app.currentFilter = type;
+                window.app.renderCases();
+            },
+
+            renderCases: () => {
+                const grid = document.getElementById('cases-grid');
+                grid.innerHTML = '';
+
+                let filtered = allCases;
+                if (window.app.currentFilter !== 'all') {
+                    filtered = allCases.filter(c => c.type === window.app.currentFilter);
+                }
+                
+                filtered = filtered.filter(c => c.status !== 'closed');
+
+                if (filtered.length === 0) {
+                    grid.innerHTML = `<div class="col-span-full text-center text-zinc-600 py-10 font-bold uppercase tracking-widest">No hay casos activos</div>`;
+                    return;
+                }
+
+                filtered.forEach(c => {
+                    const isTaken = c.status === 'taken';
+                    const isSmartwatch = c.type === 'smartwatch';
+                    const typeColor = isSmartwatch ? 'text-[#00E7FF]' : 'text-yellow-500';
+                    
+                    // Botón de Acción
+                    let actionButton = '';
+                    if (!isTaken) {
+                        actionButton = `
+                            <button onclick="window.app.takeCase('${c.id}')" class="w-full mt-4 bg-white/5 hover:bg-brand border border-white/10 hover:border-brand text-white py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 group">
+                                <i class="ph-bold ph-hand-grabbing group-hover:scale-110 transition-transform"></i> Tomar Caso
+                            </button>
+                        `;
+                    } else {
+                        const isMe = c.assignedTo?.uid === currentUser.uid;
+                        actionButton = `
+                            <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold">
+                                        ${c.assignedTo?.name?.charAt(0) || '?'}
+                                    </div>
+                                    <span class="text-xs text-zinc-400 font-mono">Tomado por <span class="text-white font-bold">${c.assignedTo?.name?.split(' ')[0]}</span></span>
+                                </div>
+                                ${isMe ? `
+                                    <button onclick="window.app.closeCase('${c.id}')" class="text-xs text-green-500 hover:text-green-400 font-bold uppercase flex items-center gap-1">
+                                        <i class="ph-bold ph-check"></i> Cerrar
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+
+                    // Renderizar Teléfonos clickeables
+                    const phonesHtml = c.phones.map(p => 
+                        `<a href="tel:${p}" class="inline-block bg-black/40 text-zinc-300 hover:text-white hover:bg-brand/20 px-2 py-1 rounded text-xs font-mono mr-1 mb-1 border border-white/5 transition-colors"><i class="ph-bold ph-phone"></i> ${p}</a>`
+                    ).join('');
+
+                    const html = `
+                        <div class="glass-panel p-6 rounded-xl relative overflow-hidden group hover:shadow-2xl transition-all ${isTaken ? 'opacity-60 grayscale-[0.5] hover:grayscale-0 hover:opacity-100' : ''}">
+                            <!-- Indicador de Tipo -->
+                            <div class="absolute top-0 left-0 bottom-0 w-1 ${isSmartwatch ? 'bg-[#00E7FF]' : 'bg-yellow-500'}"></div>
+                            
+                            <div class="flex justify-between items-start mb-3 pl-3">
+                                <span class="text-[10px] font-bold uppercase tracking-widest ${typeColor} border border-white/10 px-2 py-0.5 rounded bg-black/20">
+                                    ${isSmartwatch ? 'Smartwatch' : 'General'}
+                                </span>
+                                ${!isTaken ? `<button onclick="window.app.deleteCase('${c.id}')" class="text-zinc-600 hover:text-red-500 transition-colors"><i class="ph-bold ph-trash"></i></button>` : ''}
+                            </div>
+
+                            <h3 class="text-lg font-bold text-white mb-1 pl-3 truncate leading-tight" title="${c.clientName}">${c.clientName}</h3>
+                            
+                            <div class="pl-3 mb-4">
+                                ${phonesHtml || '<span class="text-xs text-red-500">Sin número</span>'}
+                            </div>
+
+                            <div class="bg-black/30 p-3 rounded-lg border border-white/5 text-xs text-zinc-400 font-mono h-24 overflow-y-auto mb-2 custom-scroll ml-3">
+                                ${c.description}
+                            </div>
+
+                            <div class="pl-3">
+                                ${actionButton}
+                            </div>
+                        </div>
+                    `;
+                    grid.innerHTML += html;
+                });
+            },
+
+            takeCase: async (id) => {
+                if (!currentUser) return;
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'cases', id);
+                await updateDoc(ref, {
+                    status: 'taken',
+                    assignedTo: { uid: currentUser.uid, name: currentUser.displayName || 'Agente' },
+                    takenAt: serverTimestamp()
+                });
+            },
+
+            closeCase: async (id) => {
+                if (!confirm("¿Ya terminaste este caso? Se archivará.")) return;
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'cases', id);
+                await updateDoc(ref, { status: 'closed' });
+            },
+
+            deleteCase: async (id) => {
+                if (!confirm("¿Eliminar este caso?")) return;
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'cases', id);
+                await deleteDoc(ref);
+            },
+            
+            clearCompleted: async () => { alert("Función administrativa."); }
+        };
+    </script>
+</body>
+</html>
