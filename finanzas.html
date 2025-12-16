@@ -413,7 +413,7 @@
             <div id="simFixedList" class="space-y-2"></div>
             <div class="flex justify-between items-center px-4 py-2 border-b border-zinc-800 pb-4 mb-2">
                 <span class="text-xs text-zinc-500">Total Fijos Mensuales</span>
-                <span class="text-sm font-bold text-red-400" id="simTotalFixed">---</span>
+                <span class="sm font-bold text-red-400" id="simTotalFixed">---</span>
             </div>
             
             <h4 class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider pl-2 mb-2">Deudas a Pagar (Este Mes)</h4>
@@ -662,7 +662,7 @@
             <div id="formConfig" class="hidden space-y-4 pb-4">
                 <p class="text-zinc-400 text-xs text-center mb-4">Define cómo y cuándo recibes tus ingresos.</p>
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center hover:bg-zinc-800 transition-colors h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
                         <i class="ph-bold ph-calendar-check text-3xl text-emerald-500 mb-2"></i>
                         <div class="font-bold text-sm text-white">Quincenal</div>
                         <div class="text-[10px] text-zinc-500 mt-1">2 Pagos al mes</div>
@@ -1164,7 +1164,15 @@
                 const daysLeft = this.currentPeriod.daysLeft;
                 const virtualAvailableStartOfDay = remainingTotal + todaySpent;
                 const dailyLimit = virtualAvailableStartOfDay / daysLeft;
-                const balanceToday = dailyLimit - todaySpent;
+                const balanceToday = dailyLimit - todaySpent; // FIX: Added missing definition of balanceToday
+
+                // Store total cycle liquid income and total days for the new rendering logic
+                const totalDaysInCycle = Math.ceil((pEnd.getTime() - pStart.getTime()) / (86400000)) + 1; // Add 1 day for inclusive end
+                this.currentPeriod = { 
+                    ...this.currentPeriod, 
+                    totalLiquidIncome: liquidIncome, 
+                    totalDaysInCycle: totalDaysInCycle
+                };
 
                 // STORE TOTAL REMAINING FOR ADJUSTMENT LOGIC
                 this.currentWalletBalance = remainingTotal;
@@ -1235,6 +1243,30 @@
                 this.renderTransactions();
                 UI.toast('Filtro de fecha eliminado', 'info');
             },
+            
+            // NUEVO: Función para agrupar las transacciones por fecha (YYYY-MM-DD)
+            groupTransactionsByDate(logs) {
+                const groups = {};
+                logs.forEach(log => {
+                    const date = new Date(log.date);
+                    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
+                    if (!groups[dateStr]) {
+                        groups[dateStr] = {
+                            txs: [],
+                            income: 0,
+                            expense: 0,
+                            date: date
+                        };
+                    }
+                    groups[dateStr].txs.push(log);
+                    if (log.type === 'income') {
+                        groups[dateStr].income += log.amount;
+                    } else {
+                        groups[dateStr].expense += log.amount;
+                    }
+                });
+                return groups;
+            },
 
 
             // --- RENDERING ---
@@ -1250,7 +1282,6 @@
                 
                 // 2. Filter by Date (NUEVO FILTRO)
                 if(this.filterDate) {
-                    // Normalizar la fecha del filtro y de la transacción a YYYY-MM-DD
                     const targetDateStr = new Date(this.filterDate + 'T12:00:00').toISOString().split('T')[0];
                     visibleLogs = visibleLogs.filter(l => {
                         const logDateStr = new Date(l.date).toISOString().split('T')[0];
@@ -1264,21 +1295,71 @@
                 }
                 
                 const cats = DefaultCategories;
-                visibleLogs.slice(0,50).forEach(l => {
-                    const isInc = l.type === 'income';
-                    const cat = cats.find(c=>c.id === l.category) || {icon:'ph-question',color:'text-gray-500'};
-                    const icon = isInc ? 'ph-arrow-down-left' : cat.icon;
-                    const color = isInc ? 'text-emerald-500' : cat.color;
-                    const isFixedLink = l.meta_related_fixed ? '<i class="ph-bold ph-link text-zinc-600 ml-1" title="Vinculado a Gasto Fijo"></i>' : '';
+                
+                // 3. Group logs by date
+                const groupedLogs = this.groupTransactionsByDate(visibleLogs);
+                const sortedDates = Object.keys(groupedLogs).sort((a, b) => b.localeCompare(a)); // Sort desc (latest first)
+                
+                // Calculate current daily limit for historical comparison (simplification)
+                const totalLiquidIncome = this.currentPeriod?.totalLiquidIncome || 0;
+                const totalDaysInCycle = this.currentPeriod?.totalDaysInCycle || 1;
+                const currentDailyLimit = totalLiquidIncome / totalDaysInCycle;
+                const currentDailyLimitDisplay = currentDailyLimit > 0 ? UI.fmtMoney(currentDailyLimit) : UI.fmtMoney(0);
+
+
+                // 4. Loop through sorted dates and render summary + transactions
+                sortedDates.forEach(dateStr => {
+                    const group = groupedLogs[dateStr];
+                    const date = group.date;
                     
+                    const dayName = date.toLocaleDateString('es-MX', { weekday: 'long' });
+                    const formattedDate = date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+                    const net = group.income - group.expense;
+                    const netColor = net >= 0 ? 'text-emerald-400' : 'text-red-400';
+
+                    // Daily Summary Header
                     list.innerHTML += `
-                    <div onclick="app.openModal('${isInc?'extra':'expense'}','${l.id}')" class="flex justify-between items-center p-3 rounded-2xl hover:bg-zinc-900/50 transition-colors cursor-pointer border border-transparent hover:border-zinc-800 group active:scale-[0.99] active:bg-zinc-900 md:bg-zinc-900/20 md:mb-2">
-                        <div class="flex items-center gap-4 overflow-hidden">
-                            <div class="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform md:bg-black"><i class="ph-fill ${icon} ${color} text-xl"></i></div>
-                            <div class="min-w-0"><h4 class="font-bold text-zinc-300 text-sm truncate flex items-center">${l.desc || l.category || 'Movimiento'} ${isFixedLink}</h4><p class="text-xs text-zinc-500">${new Date(l.date).toLocaleDateString()}</p></div>
+                        <div class="daily-summary-header p-4 bg-zinc-800/80 rounded-2xl border border-zinc-700/50 my-4 shadow-xl shadow-black/30">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-base font-bold text-white capitalize">${dayName} <span class="text-zinc-400 font-normal ml-2">${formattedDate}</span></h3>
+                                <span class="text-[10px] text-zinc-500 font-bold uppercase">NETO: <span class="${netColor} font-mono ml-1">${net >= 0 ? '+' : ''}${UI.fmtMoney(net)}</span></span>
+                            </div>
+                            <div class="grid grid-cols-3 text-xs font-mono border-t border-zinc-700/50 pt-2">
+                                <div class="text-zinc-500">Gasto: <span class="text-red-400 font-bold">-${UI.fmtMoney(group.expense)}</span></div>
+                                <div class="text-zinc-500">Ingreso: <span class="text-emerald-400 font-bold">+${UI.fmtMoney(group.income)}</span></div>
+                                <div class="text-zinc-500 text-right">Límite Aprox: <span class="text-zinc-300 font-bold">${currentDailyLimitDisplay}</span></div>
+                            </div>
                         </div>
-                        <span class="font-bold text-base ${isInc?'text-emerald-500':'text-zinc-300'} whitespace-nowrap">${isInc?'+':'-'}${UI.fmtMoney(l.amount)}</span>
-                    </div>`;
+                    `;
+
+                    // Transactions for this day
+                    list.innerHTML += `
+                    <div class="space-y-1">
+                        ${group.txs.map(l => {
+                            const isInc = l.type === 'income';
+                            const cat = cats.find(c=>c.id === l.category) || {icon:'ph-question',color:'text-gray-500'};
+                            const icon = isInc ? 'ph-arrow-down-left' : cat.icon;
+                            const color = isInc ? 'text-emerald-500' : cat.color;
+                            const isFixedLink = l.meta_related_fixed ? '<i class="ph-bold ph-link text-zinc-600 ml-1" title="Vinculado a Gasto Fijo"></i>' : '';
+                            
+                            // Mostrar solo la hora
+                            const time = new Date(l.date).toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'});
+
+                            return `
+                            <div onclick="app.openModal('${isInc?'extra':'expense'}','${l.id}')" class="flex justify-between items-center p-3 rounded-xl hover:bg-zinc-900/50 transition-colors cursor-pointer border border-transparent hover:border-zinc-800 group active:scale-[0.99] active:bg-zinc-900 md:bg-zinc-900/20">
+                                <div class="flex items-center gap-3 overflow-hidden">
+                                    <div class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform md:bg-black"><i class="ph-fill ${icon} ${color} text-xl"></i></div>
+                                    <div class="min-w-0">
+                                        <h4 class="font-bold text-zinc-300 text-sm truncate flex items-center">${l.desc || l.category || 'Movimiento'} ${isFixedLink}</h4>
+                                        <p class="text-xs text-zinc-500">${time}</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold text-base ${isInc?'text-emerald-500':'text-zinc-300'} whitespace-nowrap">${isInc?'+':'-'}${UI.fmtMoney(l.amount)}</span>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    `;
                 });
             },
 
