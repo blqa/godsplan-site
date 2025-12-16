@@ -391,7 +391,7 @@
                         </div>
                     </div>
 
-                    <div id="chartSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div id="chartSection" class="grid grid-cols-2 md:grid-cols-2 gap-6 mb-6">
                         <div class="glass rounded-3xl p-5 relative">
                             <h3 class="text-center text-xs font-bold text-zinc-500 mb-4 tracking-widest">TENDENCIA DEL CICLO</h3>
                             <div class="chart-container"><canvas id="trendChart"></canvas></div>
@@ -994,18 +994,39 @@
                 const fixedStatus = []; 
                 (this.data.fixed || []).forEach(f => {
                     const amount = parseFloat(f.amount) || 0;
-                    const isPaid = periodLogs.some(l => (l.meta_related_fixed && l.meta_related_fixed === f.name) || (l.type === 'expense' && (l.desc || '').toLowerCase().includes(f.name.toLowerCase()) && l.amount > 0));
-                    fixedStatus.push({ name: f.name, paid: isPaid });
-                    if (!isPaid) fixedReserve += amount;
+                    const day = parseInt(f.day); let triggers = false;
+                    const dateInMonth = new Date(pStart.getFullYear(), pStart.getMonth(), day);
+                    const dateNextMonth = new Date(pStart.getFullYear(), pStart.getMonth() + 1, day);
+                    const datePrevMonth = new Date(pStart.getFullYear(), pStart.getMonth() - 1, day);
+
+                    // Revisa si la fecha de pago Fija cae en el período actual (mes actual, siguiente o anterior)
+                    if (dateInMonth >= pStart && dateInMonth <= pEnd) triggers = true;
+                    if (dateNextMonth >= pStart && dateNextMonth <= pEnd) triggers = true;
+                    if (datePrevMonth >= pStart && datePrevMonth <= pEnd) triggers = true;
+
+                    if (triggers) {
+                        const isPaid = periodLogs.some(l => (l.meta_related_fixed && l.meta_related_fixed === f.name) || (l.type === 'expense' && (l.desc || '').toLowerCase().includes(f.name.toLowerCase()) && l.amount > 0));
+                        fixedStatus.push({ name: f.name, paid: isPaid });
+                        if (!isPaid) fixedReserve += amount;
+                    } else {
+                        fixedStatus.push({ name: f.name, paid: 'n/a' });
+                    }
                 });
                 this.updateFixedUI(fixedStatus);
 
                 const totalLoans = (this.data.loans || []).reduce((acc, loan) => {
                     const amount = parseFloat(loan.amount) || 0;
-                    if (!loan.dueDate) return acc + amount;
+                    // CORRECCIÓN: Si no hay fecha de vencimiento, no debe considerarse una obligación de ciclo.
+                    if (!loan.dueDate) return acc; 
+                    
                     const [y, m, d] = loan.dueDate.split('-').map(Number);
-                    const due = new Date(y, m-1, d, 23, 59, 59);
-                    if (due <= pEnd) return acc + amount;
+                    // Usar 999ms para asegurar que la fecha sea al final del día.
+                    const due = new Date(y, m - 1, d, 23, 59, 59, 999); 
+                    
+                    // Solo cuenta las deudas que vencen DENTRO del período actual
+                    if (due >= pStart && due <= pEnd) { 
+                        return acc + amount;
+                    }
                     return acc;
                 }, 0);
 
