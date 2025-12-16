@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>God's Plan | Casos</title>
+    <title>God's Plan | Sala de Guerra (Casos)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Date-fns para manejo de tiempo relativo -->
+    <!-- Date-fns -->
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/locale/es/index.min.js"></script>
     
@@ -22,7 +22,7 @@
                 extend: {
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: {
-                        brand: '#E70000',     /* Rojo Ferrari */
+                        brand: '#E70000',
                         brandDark: '#990000',
                         dark: '#050505',
                         panel: '#111111',
@@ -53,7 +53,7 @@
             overflow-x: hidden;
         } 
 
-        /* Custom Scrollbar */
+        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0a0a0a; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
@@ -65,6 +65,7 @@
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
         }
 
         .btn-primary {
@@ -75,27 +76,35 @@
         .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(231, 0, 0, 0.5); filter: brightness(1.1); }
         .btn-primary:active { transform: translateY(1px); }
 
+        .nav-link {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #71717a;
+            transition: color 0.2s;
+        }
+        .nav-link:hover { color: white; }
+        .nav-link.active { color: white; border-bottom: 2px solid white; padding-bottom: 2px; }
+
         .card-enter { animation: slideIn 0.3s ease-out forwards; }
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Toast Notification */
+        /* Toast */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
         .toast { pointer-events: auto; background: #1a1a1a; border-left: 4px solid #E70000; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 12px; font-size: 0.9rem; animation: toastIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); max-width: 300px; }
         .toast.success { border-left-color: #10B981; }
         .toast.error { border-left-color: #EF4444; }
         @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-
-        /* Mobile Adjustments */
-        .tap-target { min-height: 44px; min-width: 44px; }
     </style>
 </head>
 <body>
 
-    <!-- BACKGROUND FX -->
+    <!-- BACKGROUND FX (Estilo Casos) -->
     <div class="fixed inset-0 z-[-1] pointer-events-none">
         <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_-20%,_#220505_0%,_#000000_60%)]"></div>
         <div class="absolute bottom-0 right-0 w-[800px] h-[800px] bg-brand/5 blur-[120px] rounded-full mix-blend-screen"></div>
@@ -104,38 +113,55 @@
     <!-- TOAST CONTAINER -->
     <div id="toast-container"></div>
 
-    <!-- HEADER -->
-    <header class="h-16 md:h-20 bg-black/80 border-b border-white/5 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-4 md:px-8">
-        <div class="flex items-center gap-4">
-            <div class="w-8 h-8 md:w-10 md:h-10 bg-brand rounded-lg flex items-center justify-center shadow-lg shadow-brand/20">
-                <i class="ph-bold ph-shield-check text-white text-lg md:text-xl"></i>
-            </div>
-            <div>
-                <h1 class="font-black text-lg md:text-xl tracking-tighter leading-none text-white">GOD'S PLAN</h1>
-                <p class="text-[10px] md:text-xs font-bold text-zinc-500 tracking-[0.2em] uppercase">Casos v2.0</p>
+    <!-- NAVEGACIÓN GLOBAL UNIFICADA -->
+    <header class="h-14 bg-black/80 border-b border-white/10 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-5">
+        <div class="flex items-center gap-8">
+            <a href="/" class="flex items-center gap-2 font-black tracking-wider text-white group decoration-0">
+                <i class="ph-bold ph-circles-three-plus text-lg text-white group-hover:text-red-500 transition-colors"></i> 
+                GOD'S PLAN
+            </a>
+            <!-- Links Desktop -->
+            <div class="hidden md:flex items-center gap-6">
+                <!-- Nota: Podrías marcar 'Casos' como activo si agregas un link específico -->
+                <a href="/adherencia.html" class="nav-link">Adherencia</a>
+                <a href="/chat.html" class="nav-link">Chat</a>
+                <a href="/finanzas.html" class="nav-link">Finanzas</a>
+                <a href="/cuenta.html" class="nav-link">Cuenta</a>
+                <a href="/guia.html" class="nav-link text-brand hover:text-red-400 flex items-center gap-1">
+                    <i class="ph-bold ph-question"></i> Ayuda
+                </a>
             </div>
         </div>
 
-        <div class="flex items-center gap-3 md:gap-4">
-            <!-- User Status -->
-            <div class="hidden md:flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/5">
-                <div class="relative">
-                    <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
-                    <div class="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></div>
-                </div>
-                <span id="user-display" class="text-xs font-bold uppercase tracking-wider text-zinc-300">Conectado</span>
-            </div>
-            
-            <!-- Import Button -->
-            <button onclick="window.app.toggleImportModal()" class="btn-primary text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
-                <i class="ph-bold ph-plus"></i> <span class="hidden md:inline">Nuevo Caso</span>
+        <div id="auth-status-container" class="flex items-center gap-4">
+            <!-- Botón de Importación (Específico de Casos) -->
+            <button onclick="window.app.toggleImportModal()" class="bg-white/5 hover:bg-brand border border-white/10 hover:border-brand text-white font-bold py-1.5 px-3 rounded-lg text-xs transition flex items-center gap-2">
+                <i class="ph-bold ph-plus-circle"></i> 
+                <span class="hidden sm:inline">Nuevo Caso</span>
             </button>
+
+            <!-- User Display -->
+            <div id="user-display" class="flex items-center gap-3">
+                <a href="/cuenta.html" class="flex items-center gap-2 hover:bg-white/5 p-1.5 rounded-lg transition-colors group">
+                    <span id="user-initials" class="w-6 h-6 flex items-center justify-center rounded-full bg-brand font-bold text-[10px] text-white"></span>
+                    <span id="user-name" class="font-semibold text-xs text-white hidden sm:block group-hover:text-brand transition-colors">Cargando...</span>
+                </a>
+            </div>
         </div>
     </header>
 
     <!-- MAIN DASHBOARD -->
     <main class="flex-grow p-4 md:p-8 max-w-[1800px] mx-auto w-full">
         
+        <!-- HEADER DE SECCIÓN -->
+        <div class="mb-6 flex items-end justify-between">
+            <div>
+                <h2 class="text-3xl font-black text-white tracking-tight leading-none">WAR ROOM</h2>
+                <p class="text-zinc-500 text-xs font-mono mt-1">SISTEMA DE GESTIÓN DE CASOS EN TIEMPO REAL</p>
+            </div>
+            <!-- Stats rápidas inline si se desea, o mantener las cards abajo -->
+        </div>
+
         <!-- DASHBOARD STATS -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8">
             <!-- Stat Card -->
@@ -188,7 +214,7 @@
         </div>
 
         <!-- CONTROL BAR (Filter & Search) -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sticky top-20 z-40 bg-[#050505]/90 p-2 rounded-2xl backdrop-blur-sm border border-white/5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sticky top-16 z-40 bg-[#050505]/90 p-2 rounded-2xl backdrop-blur-sm border border-white/5 shadow-2xl">
             
             <!-- Filters -->
             <div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
@@ -265,16 +291,28 @@
     <!-- FIREBASE & LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración Firebase (Segura)
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // Configuración Firebase con Fallback
+        const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
+        let firebaseConfig = fallbackConfig;
+        
+        try { 
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) { 
+                const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; 
+                if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; 
+            } 
+        } catch(e) { console.error(e); }
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan';
         
+        // ** PERSISTENCIA LOCAL (Igual que Index) **
+        setPersistence(auth, browserLocalPersistence).catch(console.error);
+
         let currentUser = null;
         let allCases = [];
         let filterType = 'all';
@@ -285,36 +323,31 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.innerHTML = `
-                <i class="ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'} text-xl"></i>
-                <span class="font-bold text-sm">${msg}</span>
-            `;
+            toast.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'} text-xl"></i><span class="font-bold text-sm">${msg}</span>`;
             container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.animation = 'toastOut 0.3s forwards';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            setTimeout(() => { toast.style.animation = 'toastOut 0.3s forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
         };
-
-        const copyToClipboard = (text) => {
-            navigator.clipboard.writeText(text).then(() => {
-                showToast(`Copiado: ${text}`, 'success');
-            }).catch(() => showToast('Error al copiar', 'error'));
-        };
+        const copyToClipboard = (text) => { navigator.clipboard.writeText(text).then(() => showToast(`Copiado: ${text}`, 'success')).catch(() => showToast('Error al copiar', 'error')); };
 
         // --- AUTH ---
+        // Verificar sesión existente o token
         const initAuth = async () => {
             const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
             if (token) await signInWithCustomToken(auth, token);
-            else await signInAnonymously(auth);
+            // NOTA: NO usamos signInAnonymously por defecto aquí para obligar el login en index.html si no hay sesión
         };
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
                 const name = user.displayName || user.email?.split('@')[0] || 'Agente';
-                document.getElementById('user-display').textContent = name;
+                document.getElementById('user-name').textContent = name;
+                document.getElementById('user-initials').textContent = name.charAt(0).toUpperCase();
                 initListeners();
+            } else {
+                // Si no hay usuario, redirigir al login (index.html)
+                // Comentado para desarrollo, descomentar en producción:
+                window.location.href = '/'; 
             }
         });
         initAuth();
@@ -331,42 +364,29 @@
                     const data = doc.data();
                     const k = { id: doc.id, ...data };
                     allCases.push(k);
-                    
-                    // Stats Calculation
                     if (k.status === 'open') {
                         stats.pending++;
                         if (k.type === 'smartwatch') stats.sw++;
                         if (k.type === 'general') stats.gen++;
-                    } else if (k.status === 'taken') {
-                        stats.progress++;
-                    }
+                    } else if (k.status === 'taken') stats.progress++;
                 });
 
-                // Sort: Open first, then by date desc
                 allCases.sort((a, b) => {
                     if (a.status === 'open' && b.status !== 'open') return -1;
                     if (a.status !== 'open' && b.status === 'open') return 1;
-                    const timeA = a.createdAt?.seconds || 0;
-                    const timeB = b.createdAt?.seconds || 0;
-                    return timeB - timeA;
+                    return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
                 });
 
                 updateStatsUI(stats);
                 window.app.renderCases();
-            }, (error) => {
-                console.error("Error BD:", error);
-                showToast("Error de conexión con la base de datos", "error");
-            });
+            }, (error) => showToast("Error de conexión BD", "error"));
         };
 
         const updateStatsUI = (s) => {
-            // Animate Numbers
             const update = (id, val, barId, color, max) => {
-                const el = document.getElementById(id);
-                el.textContent = val;
-                const bar = document.getElementById(barId);
+                document.getElementById(id).textContent = val;
                 const pct = max > 0 ? (val / max) * 100 : 0;
-                bar.style.width = `${Math.min(pct * 1.5, 100)}%`; // Fake scale for visuals
+                document.getElementById(barId).style.width = `${Math.min(pct * 1.5, 100)}%`;
             };
             const total = s.pending + s.progress;
             update('stat-pending', s.pending, 'bar-pending', 'white', total);
@@ -380,125 +400,69 @@
             toggleImportModal: () => {
                 const modal = document.getElementById('import-modal');
                 const content = document.getElementById('modal-content');
-                
                 if (modal.classList.contains('hidden')) {
                     modal.classList.remove('hidden');
-                    // Small delay for animation
-                    requestAnimationFrame(() => {
-                        modal.classList.remove('opacity-0');
-                        content.classList.remove('scale-95');
-                    });
+                    requestAnimationFrame(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); });
                     document.getElementById('raw-input').focus();
                 } else {
-                    modal.classList.add('opacity-0');
-                    content.classList.add('scale-95');
+                    modal.classList.add('opacity-0'); content.classList.add('scale-95');
                     setTimeout(() => modal.classList.add('hidden'), 300);
                 }
             },
 
             processInput: async (type) => {
                 const input = document.getElementById('raw-input').value;
-                if (!input.trim()) {
-                    showToast("El campo está vacío", "error");
-                    return;
-                }
-
-                // Smart Splitting Logic
+                if (!input.trim()) { showToast("Campo vacío", "error"); return; }
                 const chunks = input.split(/(?:plis|\n)/i).map(c => c.trim()).filter(c => c.length > 5);
                 let count = 0;
-                
                 const batchPromises = chunks.map(async (chunk) => {
-                    // Extract Phone
                     const phoneRegex = /\b\d{10}\b/g;
                     const phones = chunk.match(phoneRegex) || [];
-                    
-                    // Basic Name Extraction Heuristic
                     let name = "Cliente Desconocido";
                     if (phones.length > 0) {
                         const parts = chunk.split(phones[0]);
-                        // Usually name is before phone in copy-pastes
                         if (parts[0].length > 3) name = parts[0]; 
                         else if (parts[1] && parts[1].length > 3) name = parts[1].substring(0, 30);
-                    } else {
-                        name = chunk.substring(0, 20) + "...";
-                    }
-
-                    // Clean Name
+                    } else name = chunk.substring(0, 20) + "...";
                     name = name.replace(/[:.-]/g, ' ').replace(/NOMBRE|TELEFONO|PEDIDO/gi, '').trim();
                     if (!name) name = "Cliente Sin Nombre";
-
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'cases'), {
-                        type,
-                        rawText: chunk,
-                        clientName: name.toUpperCase(),
-                        phones,
-                        description: chunk,
-                        status: 'open',
-                        assignedTo: null,
-                        createdAt: serverTimestamp()
+                        type, rawText: chunk, clientName: name.toUpperCase(), phones, description: chunk, status: 'open', assignedTo: null, createdAt: serverTimestamp()
                     });
                     count++;
                 });
-
                 await Promise.all(batchPromises);
-                showToast(`${count} casos importados correctamente`, 'success');
+                showToast(`${count} casos importados`, 'success');
                 document.getElementById('raw-input').value = '';
                 window.app.toggleImportModal();
             },
 
             setFilter: (f) => {
                 filterType = f;
-                // Update Buttons Visuals
                 ['all', 'my', 'sw', 'gen'].forEach(key => {
                     const btn = document.getElementById(`btn-filter-${key}`);
-                    if (key === f) {
-                        btn.className = "px-4 py-2 rounded-xl text-xs font-bold uppercase bg-white text-black shadow-lg shadow-white/10 transition-all scale-105 whitespace-nowrap flex items-center gap-2";
-                    } else {
-                        btn.className = "px-4 py-2 rounded-xl text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-white hover:border-zinc-600 transition-all whitespace-nowrap flex items-center gap-2";
-                    }
+                    if (key === f) btn.className = "px-4 py-2 rounded-xl text-xs font-bold uppercase bg-white text-black shadow-lg shadow-white/10 transition-all scale-105 whitespace-nowrap flex items-center gap-2";
+                    else btn.className = "px-4 py-2 rounded-xl text-xs font-bold uppercase bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-white hover:border-zinc-600 transition-all whitespace-nowrap flex items-center gap-2";
                 });
                 window.app.renderCases();
             },
 
-            handleSearch: (val) => {
-                searchQuery = val.toLowerCase();
-                window.app.renderCases();
-            },
+            handleSearch: (val) => { searchQuery = val.toLowerCase(); window.app.renderCases(); },
 
             renderCases: () => {
                 const grid = document.getElementById('cases-grid');
                 grid.innerHTML = '';
-
                 let filtered = allCases.filter(c => c.status !== 'closed');
-
-                // Apply Logic Filters
-                if (filterType === 'my' && currentUser) {
-                    filtered = filtered.filter(c => c.assignedTo?.uid === currentUser.uid);
-                } else if (filterType !== 'all' && filterType !== 'my') {
-                    filtered = filtered.filter(c => c.type === filterType);
-                }
-
-                // Apply Search
-                if (searchQuery) {
-                    filtered = filtered.filter(c => 
-                        c.clientName.toLowerCase().includes(searchQuery) || 
-                        c.phones.some(p => p.includes(searchQuery)) ||
-                        c.description.toLowerCase().includes(searchQuery)
-                    );
-                }
+                if (filterType === 'my' && currentUser) filtered = filtered.filter(c => c.assignedTo?.uid === currentUser.uid);
+                else if (filterType !== 'all' && filterType !== 'my') filtered = filtered.filter(c => c.type === filterType);
+                if (searchQuery) filtered = filtered.filter(c => c.clientName.toLowerCase().includes(searchQuery) || c.phones.some(p => p.includes(searchQuery)) || c.description.toLowerCase().includes(searchQuery));
 
                 if (filtered.length === 0) {
-                    grid.innerHTML = `
-                        <div class="col-span-full text-center py-20">
-                            <i class="ph-duotone ph-magnifying-glass text-4xl text-zinc-700 mb-3"></i>
-                            <p class="text-zinc-500 font-bold uppercase text-xs tracking-widest">No se encontraron casos</p>
-                        </div>
-                    `;
+                    grid.innerHTML = `<div class="col-span-full text-center py-20"><i class="ph-duotone ph-magnifying-glass text-4xl text-zinc-700 mb-3"></i><p class="text-zinc-500 font-bold uppercase text-xs tracking-widest">No se encontraron casos</p></div>`;
                     return;
                 }
 
                 const now = new Date();
-
                 filtered.forEach(c => {
                     const isTaken = c.status === 'taken';
                     const isMine = isTaken && c.assignedTo?.uid === currentUser?.uid;
@@ -506,149 +470,35 @@
                     const colorClass = isSw ? 'text-neonBlue' : 'text-neonYellow';
                     const bgGlow = isSw ? 'group-hover:shadow-[0_0_30px_rgba(0,240,255,0.15)]' : 'group-hover:shadow-[0_0_30px_rgba(255,230,0,0.15)]';
                     const borderClass = isSw ? 'group-hover:border-neonBlue/50' : 'group-hover:border-neonYellow/50';
-                    
-                    // Time Ago Logic
                     let timeText = 'Recién';
-                    if (c.createdAt) {
-                        try {
-                            // Firestore Timestamp to Date
-                            const date = c.createdAt.toDate();
-                            timeText = dateFns.formatDistance(date, now, { addSuffix: true, locale: dateFns.locale.es });
-                        } catch(e) {}
-                    }
+                    if (c.createdAt) { try { timeText = dateFns.formatDistance(c.createdAt.toDate(), now, { addSuffix: true, locale: dateFns.locale.es }); } catch(e) {} }
 
-                    // Phone Buttons Logic
                     let phonesHtml = '';
                     if (c.phones && c.phones.length > 0) {
                         phonesHtml = c.phones.map(p => {
-                            // Clean phone for whatsapp (MX format assumption, can be generic)
                             const wpNumber = p.length === 10 ? `52${p}` : p; 
-                            return `
-                                <div class="flex items-center gap-1 mb-2">
-                                    <button onclick="window.app.copy('${p}')" class="flex-grow flex items-center gap-2 bg-black/40 hover:bg-white/10 border border-white/5 rounded-lg px-3 py-2 text-xs font-mono transition-colors group/btn">
-                                        <i class="ph-bold ph-copy text-zinc-500 group-hover/btn:text-white"></i>
-                                        <span class="text-zinc-300 group-hover/btn:text-white font-bold tracking-wider">${p}</span>
-                                    </button>
-                                    <a href="https://wa.me/${wpNumber}" target="_blank" class="w-9 h-9 flex items-center justify-center rounded-lg bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-white border border-[#25D366]/20 transition-all">
-                                        <i class="ph-bold ph-whatsapp-logo text-lg"></i>
-                                    </a>
-                                    <a href="tel:${p}" class="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white text-white hover:text-black border border-white/10 transition-all">
-                                        <i class="ph-bold ph-phone text-lg"></i>
-                                    </a>
-                                </div>
-                            `;
+                            return `<div class="flex items-center gap-1 mb-2"><button onclick="window.app.copy('${p}')" class="flex-grow flex items-center gap-2 bg-black/40 hover:bg-white/10 border border-white/5 rounded-lg px-3 py-2 text-xs font-mono transition-colors group/btn"><i class="ph-bold ph-copy text-zinc-500 group-hover/btn:text-white"></i><span class="text-zinc-300 group-hover/btn:text-white font-bold tracking-wider">${p}</span></button><a href="https://wa.me/${wpNumber}" target="_blank" class="w-9 h-9 flex items-center justify-center rounded-lg bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-white border border-[#25D366]/20 transition-all"><i class="ph-bold ph-whatsapp-logo text-lg"></i></a><a href="tel:${p}" class="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white text-white hover:text-black border border-white/10 transition-all"><i class="ph-bold ph-phone text-lg"></i></a></div>`;
                         }).join('');
-                    } else {
-                        phonesHtml = `<div class="text-xs text-zinc-600 italic py-1"><i class="ph-bold ph-warning"></i> Sin número detectado</div>`;
-                    }
+                    } else phonesHtml = `<div class="text-xs text-zinc-600 italic py-1"><i class="ph-bold ph-warning"></i> Sin número detectado</div>`;
 
-                    // Card Action Area
                     let actionArea = '';
                     if (!isTaken) {
-                        actionArea = `
-                            <button onclick="window.app.takeCase('${c.id}')" class="w-full mt-2 btn-primary text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 group/act overflow-hidden relative">
-                                <div class="absolute inset-0 bg-white/20 translate-y-full group-hover/act:translate-y-0 transition-transform duration-300"></div>
-                                <i class="ph-bold ph-hand-grabbing text-lg relative z-10"></i> <span class="relative z-10">Tomar Caso</span>
-                            </button>
-                        `;
+                        actionArea = `<button onclick="window.app.takeCase('${c.id}')" class="w-full mt-2 btn-primary text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 group/act overflow-hidden relative"><div class="absolute inset-0 bg-white/20 translate-y-full group-hover/act:translate-y-0 transition-transform duration-300"></div><i class="ph-bold ph-hand-grabbing text-lg relative z-10"></i> <span class="relative z-10">Tomar Caso</span></button>`;
                     } else {
-                        actionArea = `
-                            <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[10px] font-bold text-zinc-300">
-                                        ${c.assignedTo?.name?.charAt(0) || 'A'}
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <span class="text-[10px] text-zinc-500 font-bold uppercase">Agente</span>
-                                        <span class="text-xs font-bold text-white leading-none">${c.assignedTo?.name?.split(' ')[0]}</span>
-                                    </div>
-                                </div>
-                                ${isMine ? `
-                                    <button onclick="window.app.closeCase('${c.id}')" class="bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all flex items-center gap-1">
-                                        <i class="ph-bold ph-check"></i> Cerrar
-                                    </button>
-                                ` : `<i class="ph-fill ph-lock-key text-zinc-600 text-xl" title="Bloqueado por otro agente"></i>`}
-                            </div>
-                        `;
+                        actionArea = `<div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between"><div class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[10px] font-bold text-zinc-300">${c.assignedTo?.name?.charAt(0) || 'A'}</div><div class="flex flex-col"><span class="text-[10px] text-zinc-500 font-bold uppercase">Agente</span><span class="text-xs font-bold text-white leading-none">${c.assignedTo?.name?.split(' ')[0]}</span></div></div>${isMine ? `<button onclick="window.app.closeCase('${c.id}')" class="bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all flex items-center gap-1"><i class="ph-bold ph-check"></i> Cerrar</button>` : `<i class="ph-fill ph-lock-key text-zinc-600 text-xl" title="Bloqueado por otro agente"></i>`}</div>`;
                     }
 
-                    // HTML Construction
                     const card = document.createElement('div');
                     card.className = `glass-panel rounded-xl p-0 overflow-hidden relative group transition-all duration-300 hover:-translate-y-1 ${borderClass} ${bgGlow} card-enter ${isTaken ? 'opacity-70 grayscale-[0.8] hover:grayscale-0 hover:opacity-100' : ''}`;
-                    card.innerHTML = `
-                        <!-- Color Strip -->
-                        <div class="absolute left-0 top-0 bottom-0 w-1 ${isSw ? 'bg-neonBlue' : 'bg-neonYellow'}"></div>
-                        
-                        <div class="p-5 pl-6">
-                            <!-- Header -->
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <span class="inline-block py-0.5 px-2 rounded text-[10px] font-bold uppercase tracking-widest border ${isSw ? 'border-neonBlue/30 bg-neonBlue/10 text-neonBlue' : 'border-neonYellow/30 bg-neonYellow/10 text-neonYellow'} mb-1">
-                                        ${isSw ? 'Smartwatch' : 'General'}
-                                    </span>
-                                    <h3 class="font-bold text-white text-lg leading-tight line-clamp-1" title="${c.clientName}">${c.clientName}</h3>
-                                </div>
-                                ${!isTaken ? `
-                                    <button onclick="window.app.deleteCase('${c.id}')" class="text-zinc-600 hover:text-red-500 p-1 transition-colors"><i class="ph-bold ph-trash"></i></button>
-                                ` : ''}
-                            </div>
-                            
-                            <!-- Time -->
-                            <div class="flex items-center gap-1 text-[10px] text-zinc-500 font-mono mb-4">
-                                <i class="ph-bold ph-clock"></i> ${timeText}
-                            </div>
-
-                            <!-- Phones -->
-                            <div class="mb-4">
-                                ${phonesHtml}
-                            </div>
-
-                            <!-- Description -->
-                            <div class="bg-[#050505]/50 border border-white/5 rounded-lg p-3 text-xs text-zinc-400 font-mono h-20 overflow-y-auto custom-scroll mb-1">
-                                ${c.description}
-                            </div>
-
-                            <!-- Actions -->
-                            ${actionArea}
-                        </div>
-                    `;
+                    card.innerHTML = `<div class="absolute left-0 top-0 bottom-0 w-1 ${isSw ? 'bg-neonBlue' : 'bg-neonYellow'}"></div><div class="p-5 pl-6"><div class="flex justify-between items-start mb-2"><div><span class="inline-block py-0.5 px-2 rounded text-[10px] font-bold uppercase tracking-widest border ${isSw ? 'border-neonBlue/30 bg-neonBlue/10 text-neonBlue' : 'border-neonYellow/30 bg-neonYellow/10 text-neonYellow'} mb-1">${isSw ? 'Smartwatch' : 'General'}</span><h3 class="font-bold text-white text-lg leading-tight line-clamp-1" title="${c.clientName}">${c.clientName}</h3></div>${!isTaken ? `<button onclick="window.app.deleteCase('${c.id}')" class="text-zinc-600 hover:text-red-500 p-1 transition-colors"><i class="ph-bold ph-trash"></i></button>` : ''}</div><div class="flex items-center gap-1 text-[10px] text-zinc-500 font-mono mb-4"><i class="ph-bold ph-clock"></i> ${timeText}</div><div class="mb-4">${phonesHtml}</div><div class="bg-[#050505]/50 border border-white/5 rounded-lg p-3 text-xs text-zinc-400 font-mono h-20 overflow-y-auto custom-scroll mb-1">${c.description}</div>${actionArea}</div>`;
                     grid.appendChild(card);
                 });
             },
-
-            // --- ACTIONS ---
             copy: (text) => copyToClipboard(text),
-            
-            takeCase: async (id) => {
-                if (!currentUser) return;
-                try {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), {
-                        status: 'taken',
-                        assignedTo: { uid: currentUser.uid, name: currentUser.displayName || 'Agente' },
-                        takenAt: serverTimestamp()
-                    });
-                    showToast('Caso tomado con éxito');
-                } catch(e) { showToast('Error al tomar caso', 'error'); }
-            },
-
-            closeCase: async (id) => {
-                if(!confirm("¿Confirmar venta/cierre del caso?")) return;
-                try {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), { status: 'closed' });
-                    showToast('Caso cerrado y archivado');
-                } catch(e) { showToast('Error al cerrar', 'error'); }
-            },
-
-            deleteCase: async (id) => {
-                if(!confirm("¿Eliminar caso permanentemente?")) return;
-                try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id));
-                    showToast('Caso eliminado');
-                } catch(e) { showToast('Error al eliminar', 'error'); }
-            }
+            takeCase: async (id) => { if (!currentUser) return; try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), { status: 'taken', assignedTo: { uid: currentUser.uid, name: currentUser.displayName || 'Agente' }, takenAt: serverTimestamp() }); showToast('Caso tomado'); } catch(e) { showToast('Error', 'error'); } },
+            closeCase: async (id) => { if(!confirm("¿Confirmar venta/cierre?")) return; try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), { status: 'closed' }); showToast('Caso cerrado'); } catch(e) { showToast('Error', 'error'); } },
+            deleteCase: async (id) => { if(!confirm("¿Eliminar?")) return; try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id)); showToast('Eliminado'); } catch(e) { showToast('Error', 'error'); } }
         };
-
-        // Expose utils
         window.app.copy = copyToClipboard;
     </script>
 </body>
