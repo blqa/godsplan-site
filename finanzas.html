@@ -667,7 +667,612 @@
                         <div class="font-bold text-sm text-white">Quincenal</div>
                         <div class="text-[10px] text-zinc-500 mt-1">2 Pagos al mes</div>
                     </button>
-                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center hover:bg-zinc-800 transition-colors h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar text-3xl text-blue-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Mensual</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">Pago único (Día 1)</div>
+                    </button>
+                </div>
+                 <div id="customStartDayDiv" class="hidden mt-6">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block" id="lblStartDay">Día de Inicio</label>
+                    <input type="number" id="configStartDay" class="input-modern w-full p-4 mt-1 text-center" placeholder="Día del mes (ej: 1, 5, 15)" value="1" min="1" max="28">
+                    <p class="text-[10px] text-zinc-600 mt-2 text-center">Si eliges 10, tus cortes serán 10 y 25.</p>
+                </div>
+                <div class="mt-6 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                    <div>
+                        <div class="text-sm font-bold text-white">Módulo Adherencia</div>
+                        <div class="text-[10px] text-zinc-500">Mostrar panel de horas extras</div>
+                    </div>
+                    <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggleAdh" id="adhToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300" onclick="app.toggleAdherenceModule()"/>
+                        <label for="adhToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-800 cursor-pointer"></label>
+                    </div>
+                </div>
+                <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-6 h-16 md:h-10 md:text-sm hover:bg-zinc-200">APLICAR CONFIGURACIÓN</button>
+            </div>
+        </div>
+    </div>
+</section>
+        
+        </div>
+
+    </main>
+    
+    <!-- ÁREA DE IMPRESIÓN -->
+    <div id="print-area"></div>
+    
+    <!-- FAB (MÓVIL) -->
+    <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40">
+        <button onclick="app.openModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
+            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
+            <i class="ph-bold ph-plus text-3xl group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
+        </button>
+    </div>
+
+    <!-- NAV INFERIOR - MÓVIL (GRID DE 4) -->
+    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-4 z-50 pb-2">
+        <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance', this)">
+            <div class="relative p-1"><i class="ph-fill ph-wallet text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Balance</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('simulation', this)">
+            <div class="relative p-1"><i class="ph-fill ph-chart-line-up text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Simular</span>
+        </button>
+        <!-- NUEVO BOTON HISTORIAL -->
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('history', this)">
+            <div class="relative p-1"><i class="ph-fill ph-clock-counter-clockwise text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Historial</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('plan', this)">
+            <div class="relative p-1"><i class="ph-fill ph-sliders-horizontal text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Plan</span>
+        </button>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modalOverlay" onclick="if(event.target === this) app.closeModal()">
+        <div id="modalSheet">
+            <div class="md:hidden w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0"></div>
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#121212] z-10 pb-2 border-b border-transparent">
+                <h3 class="text-xl font-bold text-white" id="modalTitle">Nuevo</h3>
+                <button onclick="app.closeModal()" class="w-10 h-10 rounded-full bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 transition-colors active:scale-90"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+
+            <!-- Form Transacción -->
+            <div id="formTransaction" class="hidden pb-4">
+                <div class="relative mb-8 md:mb-2">
+                    <span class="absolute left-1/2 -translate-x-[calc(50%+60px)] top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none">$</span>
+                    <!-- REDUCCIÓN AGRESIVA PC: text-3xl y h-10 -->
+                    <input type="number" id="txAmount" inputmode="decimal" class="bg-transparent text-center text-5xl md:text-3xl font-black text-white w-full border-none outline-none focus:ring-0 p-0 placeholder-zinc-800 h-16 md:h-10" placeholder="0">
+                </div>
+                <div class="mb-6 md:mb-1" id="categorySelectionContainer">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-2 md:mb-1 block">Categoría</label>
+                    <div id="categoryChips" class="flex flex-wrap gap-2.5 md:gap-1.5 no-scrollbar overflow-x-auto pb-2"></div>
+                </div>
+                <div class="mb-4 md:mb-2">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Fecha</label>
+                    <input type="date" id="txDate" class="input-modern w-full p-4 text-center h-14 md:h-9 md:text-sm font-bold cursor-pointer">
+                </div>
+                <input type="text" id="txDesc" class="input-modern w-full p-4 mb-6 md:mb-3 text-center placeholder-zinc-600 h-14 md:h-9 md:text-sm" placeholder="Nota opcional...">
+                <button id="btnSaveTx" onclick="app.saveTransaction()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black text-lg hover:bg-zinc-200 transition-colors active:scale-95 shadow-lg shadow-white/10 h-16 md:h-10 md:text-sm">GUARDAR</button>
+                <button id="btnDeleteTx" onclick="app.deleteTxConfirm()" class="w-full mt-4 text-red-500 py-3 font-bold text-xs hidden opacity-70 hover:opacity-100">ELIMINAR TRANSACCIÓN</button>
+            </div>
+
+            <!-- Form Gasto Fijo -->
+            <div id="formFixed" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Nombre</label><input type="text" id="fixName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Netflix"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label><input type="number" id="fixAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Día Pago</label><input type="number" id="fixDay" inputmode="numeric" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm text-center" placeholder="1-31"></div>
+                </div>
+                <button onclick="app.saveFixed()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR FIJO</button>
+                <button id="btnDeleteFix" onclick="app.deleteFixedConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
+            </div>
+            
+            <!-- Form Deuda -->
+            <div id="formLoan" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Concepto</label><input type="text" id="loanName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Visa"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto Pendiente</label><input type="number" id="loanAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha Límite</label><input type="date" id="loanDueDate" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm cursor-pointer"></div>
+                <button onclick="app.saveLoan()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR DEUDA</button>
+                <button id="btnDeleteLoan" onclick="app.deleteLoanConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">LIQUIDAR / BORRAR</button>
+            </div>
+            
+            <!-- Configuración Ciclo -->
+            <div id="formConfig" class="hidden space-y-4 pb-4">
+                <p class="text-zinc-400 text-xs text-center mb-4">Define cómo y cuándo recibes tus ingresos.</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar-check text-3xl text-emerald-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Quincenal</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">2 Pagos al mes</div>
+                    </button>
+                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar text-3xl text-blue-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Mensual</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">Pago único (Día 1)</div>
+                    </button>
+                </div>
+                 <div id="customStartDayDiv" class="hidden mt-6">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block" id="lblStartDay">Día de Inicio</label>
+                    <input type="number" id="configStartDay" class="input-modern w-full p-4 mt-1 text-center" placeholder="Día del mes (ej: 1, 5, 15)" value="1" min="1" max="28">
+                    <p class="text-[10px] text-zinc-600 mt-2 text-center">Si eliges 10, tus cortes serán 10 y 25.</p>
+                </div>
+                <div class="mt-6 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                    <div>
+                        <div class="text-sm font-bold text-white">Módulo Adherencia</div>
+                        <div class="text-[10px] text-zinc-500">Mostrar panel de horas extras</div>
+                    </div>
+                    <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggleAdh" id="adhToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300" onclick="app.toggleAdherenceModule()"/>
+                        <label for="adhToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-800 cursor-pointer"></label>
+                    </div>
+                </div>
+                <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-6 h-16 md:h-10 md:text-sm hover:bg-zinc-200">APLICAR CONFIGURACIÓN</button>
+            </div>
+        </div>
+    </div>
+</section>
+        
+        </div>
+
+    </main>
+    
+    <!-- ÁREA DE IMPRESIÓN -->
+    <div id="print-area"></div>
+    
+    <!-- FAB (MÓVIL) -->
+    <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40">
+        <button onclick="app.openModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
+            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
+            <i class="ph-bold ph-plus text-3xl group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
+        </button>
+    </div>
+
+    <!-- NAV INFERIOR - MÓVIL (GRID DE 4) -->
+    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-4 z-50 pb-2">
+        <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance', this)">
+            <div class="relative p-1"><i class="ph-fill ph-wallet text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Balance</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('simulation', this)">
+            <div class="relative p-1"><i class="ph-fill ph-chart-line-up text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Simular</span>
+        </button>
+        <!-- NUEVO BOTON HISTORIAL -->
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('history', this)">
+            <div class="relative p-1"><i class="ph-fill ph-clock-counter-clockwise text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Historial</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('plan', this)">
+            <div class="relative p-1"><i class="ph-fill ph-sliders-horizontal text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Plan</span>
+        </button>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modalOverlay" onclick="if(event.target === this) app.closeModal()">
+        <div id="modalSheet">
+            <div class="md:hidden w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0"></div>
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#121212] z-10 pb-2 border-b border-transparent">
+                <h3 class="text-xl font-bold text-white" id="modalTitle">Nuevo</h3>
+                <button onclick="app.closeModal()" class="w-10 h-10 rounded-full bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 transition-colors active:scale-90"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+
+            <!-- Form Transacción -->
+            <div id="formTransaction" class="hidden pb-4">
+                <div class="relative mb-8 md:mb-2">
+                    <span class="absolute left-1/2 -translate-x-[calc(50%+60px)] top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none">$</span>
+                    <!-- REDUCCIÓN AGRESIVA PC: text-3xl y h-10 -->
+                    <input type="number" id="txAmount" inputmode="decimal" class="bg-transparent text-center text-5xl md:text-3xl font-black text-white w-full border-none outline-none focus:ring-0 p-0 placeholder-zinc-800 h-16 md:h-10" placeholder="0">
+                </div>
+                <div class="mb-6 md:mb-1" id="categorySelectionContainer">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-2 md:mb-1 block">Categoría</label>
+                    <div id="categoryChips" class="flex flex-wrap gap-2.5 md:gap-1.5 no-scrollbar overflow-x-auto pb-2"></div>
+                </div>
+                <div class="mb-4 md:mb-2">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Fecha</label>
+                    <input type="date" id="txDate" class="input-modern w-full p-4 text-center h-14 md:h-9 md:text-sm font-bold cursor-pointer">
+                </div>
+                <input type="text" id="txDesc" class="input-modern w-full p-4 mb-6 md:mb-3 text-center placeholder-zinc-600 h-14 md:h-9 md:text-sm" placeholder="Nota opcional...">
+                <button id="btnSaveTx" onclick="app.saveTransaction()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black text-lg hover:bg-zinc-200 transition-colors active:scale-95 shadow-lg shadow-white/10 h-16 md:h-10 md:text-sm">GUARDAR</button>
+                <button id="btnDeleteTx" onclick="app.deleteTxConfirm()" class="w-full mt-4 text-red-500 py-3 font-bold text-xs hidden opacity-70 hover:opacity-100">ELIMINAR TRANSACCIÓN</button>
+            </div>
+
+            <!-- Form Gasto Fijo -->
+            <div id="formFixed" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Nombre</label><input type="text" id="fixName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Netflix"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label><input type="number" id="fixAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Día Pago</label><input type="number" id="fixDay" inputmode="numeric" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm text-center" placeholder="1-31"></div>
+                </div>
+                <button onclick="app.saveFixed()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR FIJO</button>
+                <button id="btnDeleteFix" onclick="app.deleteFixedConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
+            </div>
+            
+            <!-- Form Deuda -->
+            <div id="formLoan" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Concepto</label><input type="text" id="loanName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Visa"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto Pendiente</label><input type="number" id="loanAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha Límite</label><input type="date" id="loanDueDate" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm cursor-pointer"></div>
+                <button onclick="app.saveLoan()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR DEUDA</button>
+                <button id="btnDeleteLoan" onclick="app.deleteLoanConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">LIQUIDAR / BORRAR</button>
+            </div>
+            
+            <!-- Configuración Ciclo -->
+            <div id="formConfig" class="hidden space-y-4 pb-4">
+                <p class="text-zinc-400 text-xs text-center mb-4">Define cómo y cuándo recibes tus ingresos.</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar-check text-3xl text-emerald-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Quincenal</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">2 Pagos al mes</div>
+                    </button>
+                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar text-3xl text-blue-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Mensual</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">Pago único (Día 1)</div>
+                    </button>
+                </div>
+                 <div id="customStartDayDiv" class="hidden mt-6">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block" id="lblStartDay">Día de Inicio</label>
+                    <input type="number" id="configStartDay" class="input-modern w-full p-4 mt-1 text-center" placeholder="Día del mes (ej: 1, 5, 15)" value="1" min="1" max="28">
+                    <p class="text-[10px] text-zinc-600 mt-2 text-center">Si eliges 10, tus cortes serán 10 y 25.</p>
+                </div>
+                <div class="mt-6 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                    <div>
+                        <div class="text-sm font-bold text-white">Módulo Adherencia</div>
+                        <div class="text-[10px] text-zinc-500">Mostrar panel de horas extras</div>
+                    </div>
+                    <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggleAdh" id="adhToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300" onclick="app.toggleAdherenceModule()"/>
+                        <label for="adhToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-800 cursor-pointer"></label>
+                    </div>
+                </div>
+                <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-6 h-16 md:h-10 md:text-sm hover:bg-zinc-200">APLICAR CONFIGURACIÓN</button>
+            </div>
+        </div>
+    </div>
+</section>
+        
+        </div>
+
+    </main>
+    
+    <!-- ÁREA DE IMPRESIÓN -->
+    <div id="print-area"></div>
+    
+    <!-- FAB (MÓVIL) -->
+    <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40">
+        <button onclick="app.openModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
+            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
+            <i class="ph-bold ph-plus text-3xl group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
+        </button>
+    </div>
+
+    <!-- NAV INFERIOR - MÓVIL (GRID DE 4) -->
+    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-4 z-50 pb-2">
+        <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance', this)">
+            <div class="relative p-1"><i class="ph-fill ph-wallet text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Balance</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('simulation', this)">
+            <div class="relative p-1"><i class="ph-fill ph-chart-line-up text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Simular</span>
+        </button>
+        <!-- NUEVO BOTON HISTORIAL -->
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('history', this)">
+            <div class="relative p-1"><i class="ph-fill ph-clock-counter-clockwise text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Historial</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('plan', this)">
+            <div class="relative p-1"><i class="ph-fill ph-sliders-horizontal text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Plan</span>
+        </button>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modalOverlay" onclick="if(event.target === this) app.closeModal()">
+        <div id="modalSheet">
+            <div class="md:hidden w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0"></div>
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#121212] z-10 pb-2 border-b border-transparent">
+                <h3 class="text-xl font-bold text-white" id="modalTitle">Nuevo</h3>
+                <button onclick="app.closeModal()" class="w-10 h-10 rounded-full bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 transition-colors active:scale-90"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+
+            <!-- Form Transacción -->
+            <div id="formTransaction" class="hidden pb-4">
+                <div class="relative mb-8 md:mb-2">
+                    <span class="absolute left-1/2 -translate-x-[calc(50%+60px)] top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none">$</span>
+                    <!-- REDUCCIÓN AGRESIVA PC: text-3xl y h-10 -->
+                    <input type="number" id="txAmount" inputmode="decimal" class="bg-transparent text-center text-5xl md:text-3xl font-black text-white w-full border-none outline-none focus:ring-0 p-0 placeholder-zinc-800 h-16 md:h-10" placeholder="0">
+                </div>
+                <div class="mb-6 md:mb-1" id="categorySelectionContainer">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-2 md:mb-1 block">Categoría</label>
+                    <div id="categoryChips" class="flex flex-wrap gap-2.5 md:gap-1.5 no-scrollbar overflow-x-auto pb-2"></div>
+                </div>
+                <div class="mb-4 md:mb-2">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Fecha</label>
+                    <input type="date" id="txDate" class="input-modern w-full p-4 text-center h-14 md:h-9 md:text-sm font-bold cursor-pointer">
+                </div>
+                <input type="text" id="txDesc" class="input-modern w-full p-4 mb-6 md:mb-3 text-center placeholder-zinc-600 h-14 md:h-9 md:text-sm" placeholder="Nota opcional...">
+                <button id="btnSaveTx" onclick="app.saveTransaction()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black text-lg hover:bg-zinc-200 transition-colors active:scale-95 shadow-lg shadow-white/10 h-16 md:h-10 md:text-sm">GUARDAR</button>
+                <button id="btnDeleteTx" onclick="app.deleteTxConfirm()" class="w-full mt-4 text-red-500 py-3 font-bold text-xs hidden opacity-70 hover:opacity-100">ELIMINAR TRANSACCIÓN</button>
+            </div>
+
+            <!-- Form Gasto Fijo -->
+            <div id="formFixed" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Nombre</label><input type="text" id="fixName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Netflix"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label><input type="number" id="fixAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Día Pago</label><input type="number" id="fixDay" inputmode="numeric" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm text-center" placeholder="1-31"></div>
+                </div>
+                <button onclick="app.saveFixed()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR FIJO</button>
+                <button id="btnDeleteFix" onclick="app.deleteFixedConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
+            </div>
+            
+            <!-- Form Deuda -->
+            <div id="formLoan" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Concepto</label><input type="text" id="loanName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Visa"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto Pendiente</label><input type="number" id="loanAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha Límite</label><input type="date" id="loanDueDate" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm cursor-pointer"></div>
+                <button onclick="app.saveLoan()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR DEUDA</button>
+                <button id="btnDeleteLoan" onclick="app.deleteLoanConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">LIQUIDAR / BORRAR</button>
+            </div>
+            
+            <!-- Configuración Ciclo -->
+            <div id="formConfig" class="hidden space-y-4 pb-4">
+                <p class="text-zinc-400 text-xs text-center mb-4">Define cómo y cuándo recibes tus ingresos.</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar-check text-3xl text-emerald-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Quincenal</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">2 Pagos al mes</div>
+                    </button>
+                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar text-3xl text-blue-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Mensual</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">Pago único (Día 1)</div>
+                    </button>
+                </div>
+                 <div id="customStartDayDiv" class="hidden mt-6">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block" id="lblStartDay">Día de Inicio</label>
+                    <input type="number" id="configStartDay" class="input-modern w-full p-4 mt-1 text-center" placeholder="Día del mes (ej: 1, 5, 15)" value="1" min="1" max="28">
+                    <p class="text-[10px] text-zinc-600 mt-2 text-center">Si eliges 10, tus cortes serán 10 y 25.</p>
+                </div>
+                <div class="mt-6 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                    <div>
+                        <div class="text-sm font-bold text-white">Módulo Adherencia</div>
+                        <div class="text-[10px] text-zinc-500">Mostrar panel de horas extras</div>
+                    </div>
+                    <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggleAdh" id="adhToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300" onclick="app.toggleAdherenceModule()"/>
+                        <label for="adhToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-800 cursor-pointer"></label>
+                    </div>
+                </div>
+                <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-6 h-16 md:h-10 md:text-sm hover:bg-zinc-200">APLICAR CONFIGURACIÓN</button>
+            </div>
+        </div>
+    </div>
+</section>
+        
+        </div>
+
+    </main>
+    
+    <!-- ÁREA DE IMPRESIÓN -->
+    <div id="print-area"></div>
+    
+    <!-- FAB (MÓVIL) -->
+    <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40">
+        <button onclick="app.openModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
+            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
+            <i class="ph-bold ph-plus text-3xl group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
+        </button>
+    </div>
+
+    <!-- NAV INFERIOR - MÓVIL (GRID DE 4) -->
+    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-4 z-50 pb-2">
+        <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance', this)">
+            <div class="relative p-1"><i class="ph-fill ph-wallet text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Balance</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('simulation', this)">
+            <div class="relative p-1"><i class="ph-fill ph-chart-line-up text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Simular</span>
+        </button>
+        <!-- NUEVO BOTON HISTORIAL -->
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('history', this)">
+            <div class="relative p-1"><i class="ph-fill ph-clock-counter-clockwise text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Historial</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('plan', this)">
+            <div class="relative p-1"><i class="ph-fill ph-sliders-horizontal text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Plan</span>
+        </button>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modalOverlay" onclick="if(event.target === this) app.closeModal()">
+        <div id="modalSheet">
+            <div class="md:hidden w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0"></div>
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#121212] z-10 pb-2 border-b border-transparent">
+                <h3 class="text-xl font-bold text-white" id="modalTitle">Nuevo</h3>
+                <button onclick="app.closeModal()" class="w-10 h-10 rounded-full bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 transition-colors active:scale-90"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+
+            <!-- Form Transacción -->
+            <div id="formTransaction" class="hidden pb-4">
+                <div class="relative mb-8 md:mb-2">
+                    <span class="absolute left-1/2 -translate-x-[calc(50%+60px)] top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none">$</span>
+                    <!-- REDUCCIÓN AGRESIVA PC: text-3xl y h-10 -->
+                    <input type="number" id="txAmount" inputmode="decimal" class="bg-transparent text-center text-5xl md:text-3xl font-black text-white w-full border-none outline-none focus:ring-0 p-0 placeholder-zinc-800 h-16 md:h-10" placeholder="0">
+                </div>
+                <div class="mb-6 md:mb-1" id="categorySelectionContainer">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-2 md:mb-1 block">Categoría</label>
+                    <div id="categoryChips" class="flex flex-wrap gap-2.5 md:gap-1.5 no-scrollbar overflow-x-auto pb-2"></div>
+                </div>
+                <div class="mb-4 md:mb-2">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Fecha</label>
+                    <input type="date" id="txDate" class="input-modern w-full p-4 text-center h-14 md:h-9 md:text-sm font-bold cursor-pointer">
+                </div>
+                <input type="text" id="txDesc" class="input-modern w-full p-4 mb-6 md:mb-3 text-center placeholder-zinc-600 h-14 md:h-9 md:text-sm" placeholder="Nota opcional...">
+                <button id="btnSaveTx" onclick="app.saveTransaction()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black text-lg hover:bg-zinc-200 transition-colors active:scale-95 shadow-lg shadow-white/10 h-16 md:h-10 md:text-sm">GUARDAR</button>
+                <button id="btnDeleteTx" onclick="app.deleteTxConfirm()" class="w-full mt-4 text-red-500 py-3 font-bold text-xs hidden opacity-70 hover:opacity-100">ELIMINAR TRANSACCIÓN</button>
+            </div>
+
+            <!-- Form Gasto Fijo -->
+            <div id="formFixed" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Nombre</label><input type="text" id="fixName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Netflix"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label><input type="number" id="fixAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Día Pago</label><input type="number" id="fixDay" inputmode="numeric" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm text-center" placeholder="1-31"></div>
+                </div>
+                <button onclick="app.saveFixed()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR FIJO</button>
+                <button id="btnDeleteFix" onclick="app.deleteFixedConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
+            </div>
+            
+            <!-- Form Deuda -->
+            <div id="formLoan" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Concepto</label><input type="text" id="loanName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Visa"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto Pendiente</label><input type="number" id="loanAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha Límite</label><input type="date" id="loanDueDate" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm cursor-pointer"></div>
+                <button onclick="app.saveLoan()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR DEUDA</button>
+                <button id="btnDeleteLoan" onclick="app.deleteLoanConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">LIQUIDAR / BORRAR</button>
+            </div>
+            
+            <!-- Configuración Ciclo -->
+            <div id="formConfig" class="hidden space-y-4 pb-4">
+                <p class="text-zinc-400 text-xs text-center mb-4">Define cómo y cuándo recibes tus ingresos.</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar-check text-3xl text-emerald-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Quincenal</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">2 Pagos al mes</div>
+                    </button>
+                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar text-3xl text-blue-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Mensual</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">Pago único (Día 1)</div>
+                    </button>
+                </div>
+                 <div id="customStartDayDiv" class="hidden mt-6">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block" id="lblStartDay">Día de Inicio</label>
+                    <input type="number" id="configStartDay" class="input-modern w-full p-4 mt-1 text-center" placeholder="Día del mes (ej: 1, 5, 15)" value="1" min="1" max="28">
+                    <p class="text-[10px] text-zinc-600 mt-2 text-center">Si eliges 10, tus cortes serán 10 y 25.</p>
+                </div>
+                <div class="mt-6 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                    <div>
+                        <div class="text-sm font-bold text-white">Módulo Adherencia</div>
+                        <div class="text-[10px] text-zinc-500">Mostrar panel de horas extras</div>
+                    </div>
+                    <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggleAdh" id="adhToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-zinc-700 transition-all duration-300" onclick="app.toggleAdherenceModule()"/>
+                        <label for="adhToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-800 cursor-pointer"></label>
+                    </div>
+                </div>
+                <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-6 h-16 md:h-10 md:text-sm hover:bg-zinc-200">APLICAR CONFIGURACIÓN</button>
+            </div>
+        </div>
+    </div>
+</section>
+        
+        </div>
+
+    </main>
+    
+    <!-- ÁREA DE IMPRESIÓN -->
+    <div id="print-area"></div>
+    
+    <!-- FAB (MÓVIL) -->
+    <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40">
+        <button onclick="app.openModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
+            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
+            <i class="ph-bold ph-plus text-3xl group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
+        </button>
+    </div>
+
+    <!-- NAV INFERIOR - MÓVIL (GRID DE 4) -->
+    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-4 z-50 pb-2">
+        <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance', this)">
+            <div class="relative p-1"><i class="ph-fill ph-wallet text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Balance</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('simulation', this)">
+            <div class="relative p-1"><i class="ph-fill ph-chart-line-up text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Simular</span>
+        </button>
+        <!-- NUEVO BOTON HISTORIAL -->
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('history', this)">
+            <div class="relative p-1"><i class="ph-fill ph-clock-counter-clockwise text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Historial</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('plan', this)">
+            <div class="relative p-1"><i class="ph-fill ph-sliders-horizontal text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Plan</span>
+        </button>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modalOverlay" onclick="if(event.target === this) app.closeModal()">
+        <div id="modalSheet">
+            <div class="md:hidden w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0"></div>
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#121212] z-10 pb-2 border-b border-transparent">
+                <h3 class="text-xl font-bold text-white" id="modalTitle">Nuevo</h3>
+                <button onclick="app.closeModal()" class="w-10 h-10 rounded-full bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 transition-colors active:scale-90"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+
+            <!-- Form Transacción -->
+            <div id="formTransaction" class="hidden pb-4">
+                <div class="relative mb-8 md:mb-2">
+                    <span class="absolute left-1/2 -translate-x-[calc(50%+60px)] top-1/2 -translate-y-1/2 text-2xl text-zinc-600 font-light pointer-events-none">$</span>
+                    <!-- REDUCCIÓN AGRESIVA PC: text-3xl y h-10 -->
+                    <input type="number" id="txAmount" inputmode="decimal" class="bg-transparent text-center text-5xl md:text-3xl font-black text-white w-full border-none outline-none focus:ring-0 p-0 placeholder-zinc-800 h-16 md:h-10" placeholder="0">
+                </div>
+                <div class="mb-6 md:mb-1" id="categorySelectionContainer">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-2 md:mb-1 block">Categoría</label>
+                    <div id="categoryChips" class="flex flex-wrap gap-2.5 md:gap-1.5 no-scrollbar overflow-x-auto pb-2"></div>
+                </div>
+                <div class="mb-4 md:mb-2">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Fecha</label>
+                    <input type="date" id="txDate" class="input-modern w-full p-4 text-center h-14 md:h-9 md:text-sm font-bold cursor-pointer">
+                </div>
+                <input type="text" id="txDesc" class="input-modern w-full p-4 mb-6 md:mb-3 text-center placeholder-zinc-600 h-14 md:h-9 md:text-sm" placeholder="Nota opcional...">
+                <button id="btnSaveTx" onclick="app.saveTransaction()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black text-lg hover:bg-zinc-200 transition-colors active:scale-95 shadow-lg shadow-white/10 h-16 md:h-10 md:text-sm">GUARDAR</button>
+                <button id="btnDeleteTx" onclick="app.deleteTxConfirm()" class="w-full mt-4 text-red-500 py-3 font-bold text-xs hidden opacity-70 hover:opacity-100">ELIMINAR TRANSACCIÓN</button>
+            </div>
+
+            <!-- Form Gasto Fijo -->
+            <div id="formFixed" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Nombre</label><input type="text" id="fixName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Netflix"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label><input type="number" id="fixAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Día Pago</label><input type="number" id="fixDay" inputmode="numeric" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm text-center" placeholder="1-31"></div>
+                </div>
+                <button onclick="app.saveFixed()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR FIJO</button>
+                <button id="btnDeleteFix" onclick="app.deleteFixedConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
+            </div>
+            
+            <!-- Form Deuda -->
+            <div id="formLoan" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Concepto</label><input type="text" id="loanName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Visa"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto Pendiente</label><input type="number" id="loanAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha Límite</label><input type="date" id="loanDueDate" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm cursor-pointer"></div>
+                <button onclick="app.saveLoan()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR DEUDA</button>
+                <button id="btnDeleteLoan" onclick="app.deleteLoanConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">LIQUIDAR / BORRAR</button>
+            </div>
+            
+            <!-- Configuración Ciclo -->
+            <div id="formConfig" class="hidden space-y-4 pb-4">
+                <p class="text-zinc-400 text-xs text-center mb-4">Define cómo y cuándo recibes tus ingresos.</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-calendar-check text-3xl text-emerald-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Quincenal</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">2 Pagos al mes</div>
+                    </button>
+                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
                         <i class="ph-bold ph-calendar text-3xl text-blue-500 mb-2"></i>
                         <div class="font-bold text-sm text-white">Mensual</div>
                         <div class="text-[10px] text-zinc-500 mt-1">Pago único (Día 1)</div>
@@ -1164,7 +1769,7 @@
                 const daysLeft = this.currentPeriod.daysLeft;
                 const virtualAvailableStartOfDay = remainingTotal + todaySpent;
                 const dailyLimit = virtualAvailableStartOfDay / daysLeft;
-                const balanceToday = dailyLimit - todaySpent; // FIX: Added missing definition of balanceToday
+                const balanceToday = dailyLimit - todaySpent; 
 
                 // Store total cycle liquid income and total days for the new rendering logic
                 const totalDaysInCycle = Math.ceil((pEnd.getTime() - pStart.getTime()) / (86400000)) + 1; // Add 1 day for inclusive end
@@ -1301,10 +1906,11 @@
                 const sortedDates = Object.keys(groupedLogs).sort((a, b) => b.localeCompare(a)); // Sort desc (latest first)
                 
                 // Calculate current daily limit for historical comparison (simplification)
-                const totalLiquidIncome = this.currentPeriod?.totalLiquidIncome || 0;
-                const totalDaysInCycle = this.currentPeriod?.totalDaysInCycle || 1;
-                const currentDailyLimit = totalLiquidIncome / totalDaysInCycle;
-                const currentDailyLimitDisplay = currentDailyLimit > 0 ? UI.fmtMoney(currentDailyLimit) : UI.fmtMoney(0);
+                // Se elimina la dependencia del límite diario aquí para el historial
+                // const totalLiquidIncome = this.currentPeriod?.totalLiquidIncome || 0;
+                // const totalDaysInCycle = this.currentPeriod?.totalDaysInCycle || 1;
+                // const currentDailyLimit = totalLiquidIncome / totalDaysInCycle;
+                // const currentDailyLimitDisplay = currentDailyLimit > 0 ? UI.fmtMoney(currentDailyLimit) : UI.fmtMoney(0);
 
 
                 // 4. Loop through sorted dates and render summary + transactions
@@ -1322,12 +1928,12 @@
                         <div class="daily-summary-header p-4 bg-zinc-800/80 rounded-2xl border border-zinc-700/50 my-4 shadow-xl shadow-black/30">
                             <div class="flex items-center justify-between mb-2">
                                 <h3 class="text-base font-bold text-white capitalize">${dayName} <span class="text-zinc-400 font-normal ml-2">${formattedDate}</span></h3>
-                                <span class="text-[10px] text-zinc-500 font-bold uppercase">NETO: <span class="${netColor} font-mono ml-1">${net >= 0 ? '+' : ''}${UI.fmtMoney(net)}</span></span>
+                                <span class="text-[10px] text-zinc-500 font-bold uppercase">BALANCE NETO: <span class="${netColor} font-mono ml-1">${net >= 0 ? '+' : ''}${UI.fmtMoney(net)}</span></span>
                             </div>
                             <div class="grid grid-cols-3 text-xs font-mono border-t border-zinc-700/50 pt-2">
-                                <div class="text-zinc-500">Gasto: <span class="text-red-400 font-bold">-${UI.fmtMoney(group.expense)}</span></div>
-                                <div class="text-zinc-500">Ingreso: <span class="text-emerald-400 font-bold">+${UI.fmtMoney(group.income)}</span></div>
-                                <div class="text-zinc-500 text-right">Límite Aprox: <span class="text-zinc-300 font-bold">${currentDailyLimitDisplay}</span></div>
+                                <div class="text-zinc-500 col-span-1">Gasto: <span class="text-red-400 font-bold">-${UI.fmtMoney(group.expense)}</span></div>
+                                <div class="text-zinc-500 col-span-2">Ingreso: <span class="text-emerald-400 font-bold">+${UI.fmtMoney(group.income)}</span></div>
+                                <!-- Se elimina el Límite Aprox. para el historial diario ya que era confuso. -->
                             </div>
                         </div>
                     `;
