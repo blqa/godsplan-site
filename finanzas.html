@@ -1157,7 +1157,8 @@
             async payFixed(idx) {
                 const f = this.data.fixed[idx];
                 if(await UI.confirm('Pagar Fijo', `¿Registrar pago de ${f.name} por ${UI.fmtMoney(f.amount)}?`)) {
-                    await addDoc(collection(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), {
+                    // FIX: Changed collection path to point to 'transactions', not 'financials'
+                    await addDoc(collection(db,'artifacts',APP_ID,'users',this.user.uid,'transactions'), {
                         amount: parseFloat(f.amount), 
                         desc: `Pago Fijo: ${f.name}`, 
                         category: 'Servicios', 
