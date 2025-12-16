@@ -228,13 +228,14 @@
                     <div class="md:col-span-7 lg:col-span-8">
                         <div class="mt-2 md:mt-0">
                             
-                            <div class="mb-4 px-1 md:p-3 md:rounded-xl">
-                                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 md:mb-1">Actividad y Filtros</h3>
+                            <!-- Actividad y Filtros Header -->
+                            <div class="mb-6 px-1 md:p-3 md:rounded-xl">
+                                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 md:mb-2">Actividad y Filtros</h3>
                                 
                                 <div class="flex items-center gap-2">
                                     <div class="relative flex-1">
                                         <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
-                                        <input type="text" id="searchTx" placeholder="Buscar concepto o monto..." onkeyup="app.filterTransactions()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-zinc-600 placeholder-zinc-700 transition-colors">
+                                        <input type="text" id="searchTx" placeholder="Buscar historial completo..." onkeyup="app.filterTransactions()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-zinc-600 placeholder-zinc-700 transition-colors shadow-inner">
                                     </div>
                                 </div>
                             </div>
@@ -246,7 +247,8 @@
                                 </button>
                             </div>
 
-                            <div id="transactionsList" class="space-y-3 min-h-[100px] pb-24 md:pb-0">
+                            <!-- Lista de Transacciones mejorada -->
+                            <div id="transactionsList" class="space-y-4 min-h-[100px] pb-24 md:pb-0 px-1">
                                 <div class="text-center py-10 text-zinc-600 animate-pulse">Sincronizando...</div>
                             </div>
                         </div>
@@ -857,29 +859,55 @@
                 UI.toast('Filtro de fecha eliminado', 'info');
             },
             
-            groupTransactionsByDate(logs) {
-                const groups = {};
-                logs.forEach(log => {
-                    const date = new Date(log.date);
-                    const sortKey = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-                    if (!groups[sortKey]) { groups[sortKey] = { txs: [], income: 0, expense: 0, date: date }; }
-                    groups[sortKey].txs.push(log);
-                    if (log.type === 'income') groups[sortKey].income += log.amount;
-                    else groups[sortKey].expense += log.amount;
-                });
-                return groups;
+            getCatIcon(id) {
+                const cats = DefaultCategories;
+                const c = cats.find(x => x.id === id);
+                return c ? { icon: c.icon, color: c.color } : { icon: 'ph-question', color: 'text-zinc-500' };
+            },
+
+            createCardHTML(l) {
+                const isInc = l.type === 'income';
+                const info = this.getCatIcon(l.category);
+                const icon = isInc ? 'ph-arrow-down-left' : info.icon;
+                const colorClass = isInc ? 'text-emerald-400' : info.color;
+                const bgClass = isInc ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-zinc-800/50 border-zinc-700/50';
+                const time = new Date(l.date).toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'});
+                const dateStr = new Date(l.date).toLocaleDateString('es-MX', {day: 'numeric', month: 'short'});
+                
+                return `
+                <div onclick="app.openModal('${isInc?'extra':'expense'}','${l.id}')" class="relative group overflow-hidden rounded-2xl border ${bgClass} p-4 transition-all active:scale-[0.98] cursor-pointer hover:border-zinc-600">
+                    <div class="flex items-center justify-between relative z-10">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-zinc-900 flex items-center justify-center shadow-inner border border-zinc-800 group-hover:scale-105 transition-transform">
+                                <i class="ph-fill ${icon} ${colorClass} text-2xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-base leading-tight">${l.desc || l.category}</h4>
+                                <p class="text-xs text-zinc-500 mt-0.5 font-medium">${isInc ? dateStr : time} &bull; ${l.category}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                             <span class="block font-black text-lg ${isInc?'text-emerald-400':'text-white'} tracking-tight">${isInc?'+':'-'}${UI.fmtMoney(l.amount)}</span>
+                        </div>
+                    </div>
+                    ${l.meta_related_fixed ? `<div class="absolute top-2 right-2"><i class="ph-bold ph-link text-zinc-700 text-xs"></i></div>` : ''}
+                </div>`;
             },
 
             renderTransactions() {
                 const list = document.getElementById('transactionsList'); list.innerHTML = '';
                 let visibleLogs = this.logs;
                 
-                if(this.searchQuery) {
+                // Lógica de filtrado
+                const hasSearch = !!this.searchQuery;
+                const hasDateFilter = !!this.filterDate;
+
+                if(hasSearch) {
                     const q = this.searchQuery.toLowerCase();
                     visibleLogs = visibleLogs.filter(l => (l.desc||'').toLowerCase().includes(q) || (l.category||'').toLowerCase().includes(q) || l.amount.toString().includes(q));
                 }
                 
-                if(this.filterDate) {
+                if(hasDateFilter) {
                     visibleLogs = visibleLogs.filter(l => {
                         const txDate = new Date(l.date);
                         const [y, m, d] = this.filterDate.split('-').map(Number);
@@ -887,61 +915,52 @@
                     });
                 }
                 
-                if(!visibleLogs.length) { 
-                    list.innerHTML = `<div class="text-center py-6 text-zinc-600 text-xs italic">No hay movimientos${this.filterDate || this.searchQuery ? ' para estos filtros.' : '.'}</div>`; 
-                    return; 
+                // Si hay búsqueda o filtro de fecha, mostrar lista estándar
+                if (hasSearch || hasDateFilter) {
+                     if(!visibleLogs.length) { 
+                        list.innerHTML = `<div class="text-center py-12 text-zinc-600 text-sm font-medium">No se encontraron resultados.</div>`; 
+                        return; 
+                    }
+                    visibleLogs.forEach(l => list.innerHTML += this.createCardHTML(l));
+                    return;
                 }
+
+                // VISTA POR DEFECTO: SOLO HOY (Gastos) + INGRESOS RECIENTES
+                const todayStr = new Date().toDateString();
+                const expensesToday = visibleLogs.filter(l => l.type === 'expense' && new Date(l.date).toDateString() === todayStr);
+                const incomes = visibleLogs.filter(l => l.type === 'income'); 
                 
-                const cats = DefaultCategories;
-                const groupedLogs = this.groupTransactionsByDate(visibleLogs);
-                const sortedDates = Object.keys(groupedLogs).sort((a, b) => b.localeCompare(a));
-                
-                sortedDates.forEach(dateKey => {
-                    const group = groupedLogs[dateKey];
-                    const dayName = group.date.toLocaleDateString('es-MX', { weekday: 'long' });
-                    const formattedDate = group.date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+                // Ordenar
+                expensesToday.sort((a,b) => new Date(b.date) - new Date(a.date));
+                incomes.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-                    // Simplified Card
+                // 1. Sección Ingresos (Estética)
+                if (incomes.length > 0) {
+                    list.innerHTML += `<div class="mb-6"><h4 class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-3 pl-1 flex items-center gap-2"><i class="ph-bold ph-trend-up"></i> Ingresos Recientes</h4><div class="grid grid-cols-1 gap-3">`;
+                    // Mostrar solo los últimos 3 ingresos para no saturar, o todos si son pocos
+                    const recentIncomes = incomes.slice(0, 3);
+                    recentIncomes.forEach(l => list.innerHTML += this.createCardHTML(l));
+                    list.innerHTML += `</div></div>`;
+                }
+
+                // 2. Sección Gastos DE HOY (Principal)
+                list.innerHTML += `<div class="flex items-center justify-between mb-3 pl-1 mt-2">
+                    <h4 class="text-[10px] font-bold text-red-400 uppercase tracking-widest flex items-center gap-2"><i class="ph-bold ph-calendar-check"></i> Gastos de Hoy</h4>
+                    <span class="text-[10px] text-zinc-500 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded-md font-mono">${new Date().toLocaleDateString('es-MX', {weekday: 'short', day: 'numeric'})}</span>
+                </div>`;
+
+                if (expensesToday.length === 0) {
                     list.innerHTML += `
-                        <div class="daily-summary-header flex justify-between items-end p-4 bg-zinc-900 border border-zinc-800 rounded-2xl mt-6 mb-2">
-                            <div>
-                                <h3 class="text-sm font-bold text-white capitalize">${dayName}</h3>
-                                <p class="text-xs text-zinc-500">${formattedDate}</p>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-[10px] text-zinc-500 font-bold uppercase block">Total Gastado</span>
-                                <span class="text-base font-bold text-red-400 font-mono">-${UI.fmtMoney(group.expense)}</span>
-                                ${group.income > 0 ? `<div class="text-xs text-emerald-500 font-mono mt-1">+${UI.fmtMoney(group.income)}</div>` : ''}
-                            </div>
-                        </div>
-                    `;
-
-                    list.innerHTML += `
-                    <div class="space-y-1">
-                        ${group.txs.map(l => {
-                            const isInc = l.type === 'income';
-                            const cat = cats.find(c=>c.id === l.category) || {icon:'ph-question',color:'text-gray-500'};
-                            const icon = isInc ? 'ph-arrow-down-left' : cat.icon;
-                            const color = isInc ? 'text-emerald-500' : cat.color;
-                            const isFixedLink = l.meta_related_fixed ? '<i class="ph-bold ph-link text-zinc-600 ml-1" title="Vinculado a Gasto Fijo"></i>' : '';
-                            const time = new Date(l.date).toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'});
-
-                            return `
-                            <div onclick="app.openModal('${isInc?'extra':'expense'}','${l.id}')" class="flex justify-between items-center p-3 rounded-xl hover:bg-zinc-900/50 transition-colors cursor-pointer border border-transparent hover:border-zinc-800 group active:scale-[0.99] active:bg-zinc-900 md:bg-zinc-900/20">
-                                <div class="flex items-center gap-3 overflow-hidden">
-                                    <div class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform md:bg-black"><i class="ph-fill ${icon} ${color} text-xl"></i></div>
-                                    <div class="min-w-0">
-                                        <h4 class="font-bold text-zinc-300 text-sm truncate flex items-center">${l.desc || l.category || 'Movimiento'} ${isFixedLink}</h4>
-                                        <p class="text-xs text-zinc-500">${time}</p>
-                                    </div>
-                                </div>
-                                <span class="font-bold text-base ${isInc?'text-emerald-500':'text-zinc-300'} whitespace-nowrap">${isInc?'+':'-'}${UI.fmtMoney(l.amount)}</span>
-                            </div>
-                            `;
-                        }).join('')}
-                    </div>
-                    `;
-                });
+                    <div class="flex flex-col items-center justify-center p-8 border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/20">
+                        <div class="w-12 h-12 bg-zinc-800/50 rounded-full flex items-center justify-center mb-3 text-zinc-600"><i class="ph-fill ph-check-circle text-2xl"></i></div>
+                        <p class="text-zinc-500 text-xs font-bold">Sin gastos hoy.</p>
+                        <p class="text-zinc-600 text-[10px] mt-1">¡Tu billetera sonríe!</p>
+                    </div>`;
+                } else {
+                    list.innerHTML += `<div class="grid grid-cols-1 gap-3 pb-4">`;
+                    expensesToday.forEach(l => list.innerHTML += this.createCardHTML(l));
+                    list.innerHTML += `</div>`;
+                }
             },
 
             renderFixed() {
