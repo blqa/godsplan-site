@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>God's Plan | Finanzas</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Firebase Imports (Modular) -->
     <script type="module">
@@ -15,6 +20,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
+        // Expose Firebase to global scope for the main script
         window.firebaseImports = {
             initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
             getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc
@@ -32,13 +38,11 @@
                         'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                         'fade-in': 'fadeIn 0.3s ease-out',
                         'pulse-red': 'pulseRed 2s infinite',
-                        'pulse-green': 'pulseGreen 2s infinite'
                     },
                     keyframes: {
                         slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } },
                         fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-                        pulseRed: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.5' } },
-                        pulseGreen: { '0%, 100%': { boxShadow: '0 0 0 0 rgba(16, 185, 129, 0.7)' }, '70%': { boxShadow: '0 0 0 10px rgba(16, 185, 129, 0)' }, '100%': { boxShadow: '0 0 0 0 rgba(16, 185, 129, 0)' } }
+                        pulseRed: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.5' } }
                     }
                 }
             }
@@ -94,25 +98,23 @@
             main { padding-bottom: 20px !important; }
         }
 
-        .chart-container { position: relative; width: 100%; height: 200px; }
         .nav-link-desk { color: #71717a; padding: 6px 16px; border-radius: 99px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s; }
         .nav-link-desk:hover { color: white; background: rgba(255,255,255,0.05); }
         .nav-link-desk.active { color: white; background: #27272a; }
-        .modal-auth { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-auth { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 2000; }
         .modal-auth.active { display: flex; }
-        
-        #print-area { display: none; }
     </style>
 </head>
 <body class="flex flex-col overflow-hidden text-sm sm:text-base bg-[#050505] text-[#e5e5e5]">
 
     <nav id="global-nav" class="h-14 bg-black border-b border-white/5 flex items-center justify-between px-5 shrink-0 z-50">
-        <a href="/" class="g-logo"><i class="ph-bold ph-circles-three-plus text-lg text-red-500"></i> God's Plan</a>
+        <a href="#" class="g-logo"><i class="ph-bold ph-circles-three-plus text-lg text-red-500"></i> God's Plan</a>
         <div class="g-links no-scrollbar">
-            <a href="/adherencia.html" class="g-link">ADHERENCIA</a>
-            <a href="/chat.html" class="g-link">CHAT</a>
+            <!-- Used # for links to prevent 404s in this standalone version -->
+            <a href="/adherencia" class="g-link">ADHERENCIA</a>
+            <a href="/chat" class="g-link">CHAT</a>
             <a href="#" class="g-link active">FINANZAS</a>
-            <a href="/cuenta.html" class="g-link">CUENTA</a>
+            <a href="/cuenta" class="g-link">CUENTA</a>
             <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-zinc-800 ml-1 flex-shrink-0 transition-all duration-500" title="Estado"></div>
         </div>
     </nav>
@@ -243,7 +245,6 @@
                                     <i class="ph-bold ph-x text-sm"></i> Limpiar Filtro
                                 </button>
                             </div>
-                            <!-- FIN: Filtro y Búsqueda -->
 
                             <div id="transactionsList" class="space-y-3 min-h-[100px] pb-24 md:pb-0">
                                 <div class="text-center py-10 text-zinc-600 animate-pulse">Sincronizando...</div>
@@ -354,9 +355,6 @@
         </div>
     </main>
     
-    <!-- ÁREA DE IMPRESIÓN (Invisible) -->
-    <div id="print-area"></div>
-    
     <!-- FAB (MÓVIL) -->
     <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40">
         <button onclick="app.openModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
@@ -365,7 +363,7 @@
         </button>
     </div>
 
-    <!-- NAV INFERIOR - MÓVIL (GRID DE 2) -->
+    <!-- NAV INFERIOR - MÓVIL -->
     <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-2 z-50 pb-2">
         <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance', this)">
             <div class="relative p-1"><i class="ph-fill ph-wallet text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
@@ -471,7 +469,7 @@
     </div>
     
     <!-- CONFIRMATION DIALOG -->
-    <div id="confirmDialog" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[1200] hidden flex items-center justify-center opacity-0 transition-opacity p-5">
+    <div id="confirmDialog" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[2200] hidden flex items-center justify-center opacity-0 transition-opacity p-5">
         <div class="rounded-3xl p-6 bg-[#121212] border border-zinc-800 transform scale-95 transition-transform duration-200 w-full max-w-xs" id="confirmBox">
             <h4 id="confirmTitle" class="text-lg font-bold text-white mb-2">Confirmar</h4>
             <p id="confirmMessage" class="text-zinc-400 text-sm mb-8 leading-relaxed">¿Estás seguro?</p>
@@ -531,7 +529,7 @@
         ];
 
         // --- APP LOGIC ---
-        const app = window.app = {
+        window.app = {
             user: null, 
             data: { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 }, 
             logs: [],
@@ -539,8 +537,6 @@
             privacyMode: false,
             searchQuery: '',
             filterDate: null,
-            charts: {},
-            isSimulating: false,
             historyData: {},
             currentWalletBalance: 0,
 
@@ -558,7 +554,10 @@
                 });
             },
 
-            redirectToAuth() { window.location.href = '/'; },
+            redirectToAuth() { 
+                // In a real app this redirects to login, here we simulate anonymous for demo if clicked manually (though blocked by auth guard usually)
+                signInAnonymously(auth); 
+            },
             logout() { if(confirm("¿Salir?")) signOut(auth).then(() => window.location.reload()); },
             
             updateUserUI() {
@@ -590,14 +589,14 @@
                 const q = query(logsRef, orderBy('date', 'desc'), limit(1500));
                 onSnapshot(q, (snap) => {
                     this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
-                    this.renderTransactions(); this.calcBalance(); this.renderCharts(); this.renderAnalysisMetrics(); 
+                    this.renderTransactions(); this.calcBalance(); 
                     this.processHistory();
                 });
             },
             
             // --- HISTORY LOGIC ---
             processHistory() {
-                // Keep data logic but do not render grid as element is gone
+                // Keep logic structure for consistency, even if grid is removed in Lite version
                 this.historyData = {};
                 this.logs.forEach(log => {
                     const d = new Date(log.date);
@@ -611,18 +610,6 @@
                     else this.historyData[key].expense += log.amount;
                     this.historyData[key].txs.push(log);
                 });
-                // Guard against missing element
-                if (document.getElementById('historyGrid')) this.renderHistoryGrid();
-            },
-
-            renderHistoryGrid() {
-                // DEPRECATED in Lite Version
-                return;
-            },
-
-            showHistoryDetail(key) {
-                // DEPRECATED in Lite Version
-                return;
             },
 
             renderPlanInputs() {
@@ -695,11 +682,6 @@
                 updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { enableAdherence: isEnabled });
             },
 
-            toggleSimulation() {
-                // NO-OP in Lite Version
-                this.calcBalance();
-            },
-
             async importExtraMoney() {
                 const amount = this.data.extraPayAmount || 0;
                 if (amount <= 0) return UI.toast('Monto debe ser mayor a 0', 'error');
@@ -761,9 +743,6 @@
 
                 let totalSpentInCycle = 0; let extraInc = 0;
                 periodLogs.forEach(l => { if(l.type === 'income') extraInc += l.amount; else totalSpentInCycle += l.amount; });
-
-                // No simulation in Lite
-                // if (this.isSimulating) { extraInc += (this.data.extraPayAmount || 0); }
 
                 let fixedReserve = 0;
                 const fixedStatus = []; 
@@ -862,7 +841,9 @@
                 const displayEl = document.getElementById('dateFilterDisplay');
                 const labelEl = document.getElementById('dateFilterLabel');
                 
-                const dateObj = new Date(dateString + 'T12:00:00');
+                // Construct date from parts to avoid timezone shift
+                const [y, m, d] = dateString.split('-').map(Number);
+                const dateObj = new Date(y, m-1, d);
                 labelEl.textContent = `Filtro Activo: ${dateObj.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}`;
                 displayEl.classList.remove('hidden'); displayEl.classList.add('flex');
             },
@@ -879,12 +860,17 @@
             groupTransactionsByDate(logs) {
                 const groups = {};
                 logs.forEach(log => {
+                    // Use local date string for grouping to match user expectation (midnight cut-off)
                     const date = new Date(log.date);
-                    const dateStr = date.toISOString().split('T')[0];
-                    if (!groups[dateStr]) { groups[dateStr] = { txs: [], income: 0, expense: 0, date: date }; }
-                    groups[dateStr].txs.push(log);
-                    if (log.type === 'income') groups[dateStr].income += log.amount;
-                    else groups[dateStr].expense += log.amount;
+                    const dateStr = date.toLocaleDateString('es-MX'); // e.g. "16/12/2025"
+                    
+                    // We need sortable key YYYY-MM-DD
+                    const sortKey = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+                    
+                    if (!groups[sortKey]) { groups[sortKey] = { txs: [], income: 0, expense: 0, date: date }; }
+                    groups[sortKey].txs.push(log);
+                    if (log.type === 'income') groups[sortKey].income += log.amount;
+                    else groups[sortKey].expense += log.amount;
                 });
                 return groups;
             },
@@ -901,8 +887,12 @@
                 }
                 
                 if(this.filterDate) {
-                    const targetDateStr = new Date(this.filterDate + 'T12:00:00').toISOString().split('T')[0];
-                    visibleLogs = visibleLogs.filter(l => new Date(l.date).toISOString().split('T')[0] === targetDateStr);
+                    // Filter by local date string comparison
+                    visibleLogs = visibleLogs.filter(l => {
+                        const txDate = new Date(l.date);
+                        const [y, m, d] = this.filterDate.split('-').map(Number);
+                        return txDate.getFullYear() === y && txDate.getMonth() === m-1 && txDate.getDate() === d;
+                    });
                 }
                 
                 if(!visibleLogs.length) { 
@@ -914,8 +904,8 @@
                 const groupedLogs = this.groupTransactionsByDate(visibleLogs);
                 const sortedDates = Object.keys(groupedLogs).sort((a, b) => b.localeCompare(a));
                 
-                sortedDates.forEach(dateStr => {
-                    const group = groupedLogs[dateStr];
+                sortedDates.forEach(dateKey => {
+                    const group = groupedLogs[dateKey];
                     const date = group.date;
                     
                     const dayName = date.toLocaleDateString('es-MX', { weekday: 'long' });
@@ -1006,23 +996,6 @@
                 });
             },
             
-            // --- CHARTS & METRICS ---
-            renderCharts() {
-                // Charts removed in Lite version
-                return;
-            },
-
-            renderAnalysisMetrics() {
-                // Analysis metrics removed in Lite version
-                return;
-            },
-            
-            // --- ACTUALIZACION SIMULACION ---
-            updateSimulation() {
-                // Simulation logic removed in Lite version
-                return;
-            },
-
             // --- ACTIONS ---
             openModal(type, id=null) {
                 this.modalType = type; this.editId = id;
@@ -1052,8 +1025,16 @@
                     const log = id ? this.logs.find(l=>l.id===id) : null;
                     document.getElementById('txAmount').value = log ? log.amount : '';
                     document.getElementById('txDesc').value = log ? log.desc : '';
-                    const today = new Date().toISOString().split('T')[0];
-                    document.getElementById('txDate').value = log ? new Date(log.date).toISOString().split('T')[0] : today;
+                    
+                    // Handle date inputs correctly using ISO string (YYYY-MM-DD)
+                    let dateVal = new Date().toISOString().split('T')[0];
+                    if (log) {
+                         // Convert log date to local YYYY-MM-DD for input
+                         const d = new Date(log.date);
+                         dateVal = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                    }
+                    
+                    document.getElementById('txDate').value = dateVal;
                     document.getElementById('btnDeleteTx').classList.toggle('hidden', !log);
                     
                     if (type === 'adjustment') {
@@ -1106,8 +1087,10 @@
                 if(isNaN(amtVal)) return UI.toast('Ingresa un monto válido','error');
                 if(!dateVal) return UI.toast('Fecha requerida','error');
 
+                // Construct date at current time but on selected day
                 const [y, m, d] = dateVal.split('-').map(Number);
-                const finalDate = new Date(y, m-1, d, new Date().getHours(), new Date().getMinutes());
+                const now = new Date();
+                const finalDate = new Date(y, m-1, d, now.getHours(), now.getMinutes());
                 
                 const payload = { desc, date: finalDate.toISOString() };
 
@@ -1212,14 +1195,14 @@
             },
             
             // --- UI HELPERS ---
-            switchView(v) {
+            switchView(v, btnRef) {
                 document.querySelectorAll('section[id^="view-"]').forEach(s => s.classList.add('hidden'));
                 const target = document.getElementById('view-'+v);
                 if(target) target.classList.remove('hidden');
                 
                 document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
                 
-                if(event && event.currentTarget) event.currentTarget.classList.add('active');
+                if(btnRef) btnRef.classList.add('active');
                 
                 document.querySelectorAll('.nav-link-desk').forEach(b => {
                     b.classList.toggle('active', b.dataset.view === v);
@@ -1234,6 +1217,7 @@
             }
         };
 
+        // Start App
         document.addEventListener('DOMContentLoaded', () => window.app.init());
     </script>
 </body>
