@@ -294,14 +294,41 @@
 
         <div class="md:col-span-7 lg:col-span-8">
             <div class="mt-2 md:mt-0">
-                <div class="flex justify-between items-center mb-4 px-1 md:bg-zinc-900/30 md:p-3 md:rounded-xl md:border md:border-white/5">
-                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest hidden md:block">Movimientos Recientes</h3>
-                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest md:hidden">Actividad</h3>
-                    <div class="relative w-36 md:w-64 transition-all focus-within:w-full md:focus-within:w-64">
-                         <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
-                         <input type="text" id="searchTx" placeholder="Buscar..." onkeyup="app.filterTransactions()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-zinc-600 placeholder-zinc-700 transition-colors">
+                
+                <!-- INICIO: Filtro y Búsqueda -->
+                <div class="mb-4 px-1 md:p-3 md:rounded-xl">
+                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 md:mb-1">Actividad y Filtros</h3>
+                    
+                    <div class="flex items-center gap-2">
+                        <!-- Search Input -->
+                        <div class="relative flex-1">
+                             <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
+                             <input type="text" id="searchTx" placeholder="Buscar concepto o monto..." onkeyup="app.filterTransactions()" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-zinc-600 placeholder-zinc-700 transition-colors">
+                        </div>
+                        
+                        <!-- Date Picker Button -->
+                        <div class="relative">
+                            <button onclick="document.getElementById('dateFilterInput').click()" 
+                                    class="bg-zinc-900 border border-zinc-800 rounded-xl p-2 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors" 
+                                    title="Filtrar por Fecha">
+                                <i class="ph-bold ph-calendar-blank text-lg"></i>
+                            </button>
+                            <!-- Hidden Input Date -->
+                            <input type="date" id="dateFilterInput" class="hidden" onchange="app.setFilterDate(this.value)">
+                        </div>
                     </div>
                 </div>
+                
+                <!-- DISPLAY FILTERED DATE AND CLEAR BUTTON (Nuevo) -->
+                <div id="dateFilterDisplay" class="hidden mx-1 md:mx-0 p-3 mb-4 bg-red-600/10 border border-red-500/20 rounded-xl text-xs font-bold text-red-400 justify-between items-center animate-fade-in">
+                    <span id="dateFilterLabel"></span>
+                    <button onclick="app.clearDateFilter()" class="text-red-300 hover:text-white transition-colors flex items-center gap-1 uppercase tracking-wider">
+                        <i class="ph-bold ph-x text-sm"></i>
+                        Limpiar Filtro
+                    </button>
+                </div>
+                <!-- FIN: Filtro y Búsqueda -->
+
                 <div id="transactionsList" class="space-y-3 min-h-[100px] pb-24 md:pb-0">
                     <div class="text-center py-10 text-zinc-600 animate-pulse">Sincronizando...</div>
                 </div>
@@ -744,6 +771,7 @@
             currentPeriod: null, 
             privacyMode: false,
             searchQuery: '',
+            filterDate: null, // NUEVO: Estado para el filtro de fecha
             charts: {},
             printCharts: {},
             pendingExtraPay: 0, 
@@ -872,6 +900,7 @@
                                 </h3>
                                 <p class="text-[10px] ${statusColor} font-bold uppercase tracking-widest mt-1">
                                     ${statusIcon} ${statusText}
+                                    
                                 </p>
                             </div>
                             <div class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:text-white transition-colors border border-zinc-800">
@@ -1181,16 +1210,59 @@
                 if(this.privacyMode) { blur.classList.remove('hidden'); icon.className = 'ph-fill ph-eye-slash text-lg'; }
                 else { blur.classList.add('hidden'); icon.className = 'ph ph-eye text-lg'; }
             },
+            
+            // NUEVO: Función para establecer el filtro de fecha
+            setFilterDate(dateString) {
+                if (!dateString) return;
+                this.filterDate = dateString;
+                this.renderTransactions();
+                
+                const displayEl = document.getElementById('dateFilterDisplay');
+                const labelEl = document.getElementById('dateFilterLabel');
+                
+                const dateObj = new Date(dateString + 'T12:00:00'); // Evitar problemas de zona horaria
+                labelEl.textContent = `Filtro Activo: ${dateObj.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}`;
+                displayEl.classList.remove('hidden');
+                displayEl.classList.add('flex'); // Mostrar el contenedor
+            },
+            
+            // NUEVO: Función para limpiar el filtro de fecha
+            clearDateFilter() {
+                this.filterDate = null;
+                document.getElementById('dateFilterInput').value = '';
+                document.getElementById('dateFilterDisplay').classList.remove('flex'); // Ocultar el contenedor
+                document.getElementById('dateFilterDisplay').classList.add('hidden');
+                this.renderTransactions();
+                UI.toast('Filtro de fecha eliminado', 'info');
+            },
+
 
             // --- RENDERING ---
             renderTransactions() {
                 const list = document.getElementById('transactionsList'); list.innerHTML = '';
                 let visibleLogs = this.logs;
+                
+                // 1. Filter by Search Query
                 if(this.searchQuery) {
                     const q = this.searchQuery.toLowerCase();
                     visibleLogs = visibleLogs.filter(l => (l.desc||'').toLowerCase().includes(q) || (l.category||'').toLowerCase().includes(q) || l.amount.toString().includes(q));
                 }
-                if(!visibleLogs.length) { list.innerHTML = `<div class="text-center py-6 text-zinc-600 text-xs italic">No hay movimientos.</div>`; return; }
+                
+                // 2. Filter by Date (NUEVO FILTRO)
+                if(this.filterDate) {
+                    // Normalizar la fecha del filtro y de la transacción a YYYY-MM-DD
+                    const targetDateStr = new Date(this.filterDate + 'T12:00:00').toISOString().split('T')[0];
+                    visibleLogs = visibleLogs.filter(l => {
+                        const logDateStr = new Date(l.date).toISOString().split('T')[0];
+                        return logDateStr === targetDateStr;
+                    });
+                }
+                
+                if(!visibleLogs.length) { 
+                    list.innerHTML = `<div class="text-center py-6 text-zinc-600 text-xs italic">No hay movimientos${this.filterDate || this.searchQuery ? ' para estos filtros.' : '.'}</div>`; 
+                    return; 
+                }
+                
                 const cats = DefaultCategories;
                 visibleLogs.slice(0,50).forEach(l => {
                     const isInc = l.type === 'income';
@@ -1640,7 +1712,12 @@
                 }
             },
             scrollToChart() { document.getElementById('chartSection').classList.remove('hidden'); document.getElementById('chartSection').scrollIntoView({behavior:'smooth'}); },
-            filterTransactions() { this.searchQuery = document.getElementById('searchTx').value; this.renderTransactions(); },
+            
+            // Llama a renderTransactions que ahora incluye el filtro de fecha
+            filterTransactions() { 
+                this.searchQuery = document.getElementById('searchTx').value; 
+                this.renderTransactions(); 
+            },
             
             generateReport() {
                 if(!this.currentPeriod) return UI.toast('Espera un momento...','error');
