@@ -818,6 +818,9 @@
                 mainCard.style.border = '';
                 mainCard.style.boxShadow = '';
                 
+                // Set the value (Fix for "---" issue)
+                dailyEl.textContent = UI.fmtMoney(balanceToday);
+                
                 if (this.isSimulating) {
                     // Green Theme
                     cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl transition-colors duration-500 bg-emerald-500/40 animate-pulse';
@@ -1154,7 +1157,7 @@
             async payFixed(idx) {
                 const f = this.data.fixed[idx];
                 if(await UI.confirm('Pagar Fijo', `¿Registrar pago de ${f.name} por ${UI.fmtMoney(f.amount)}?`)) {
-                    await addDoc(collection(db,'artifacts',APP_ID,'users',this.user.uid,'transactions'), {
+                    await addDoc(collection(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), {
                         amount: parseFloat(f.amount), 
                         desc: `Pago Fijo: ${f.name}`, 
                         category: 'Servicios', 
