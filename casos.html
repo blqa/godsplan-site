@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>God's Plan | War Room</title>
+    <title>God's Plan | Ticket System</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Fuentes e Iconos -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
@@ -17,15 +17,17 @@
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['"Inter"', 'sans-serif'] },
+                    fontFamily: { 
+                        sans: ['"Inter"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    },
                     colors: {
                         brand: '#E70000',
-                        dark: '#09090b',
-                        light: '#f4f4f5',
-                        cardDark: '#18181b',
-                        cardLight: '#ffffff',
-                        sw: '#0ea5e9',
-                        gen: '#eab308'
+                        status: {
+                            unassigned: '#ef4444', // Rojo
+                            pending: '#eab308',    // Amarillo
+                            resolved: '#22c55e'    // Verde
+                        }
                     }
                 }
             }
@@ -36,21 +38,32 @@
         body { transition: background-color 0.3s, color 0.3s; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #a1a1aa; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #52525b; border-radius: 3px; }
         .dark ::-webkit-scrollbar-thumb { background: #3f3f46; }
-        ::-webkit-scrollbar-thumb:hover { background: #E70000; }
-
+        
         .glass-nav { backdrop-filter: blur(12px); border-bottom: 1px solid; }
         .dark .glass-nav { background: rgba(9, 9, 11, 0.85); border-color: rgba(255,255,255,0.05); }
         .glass-nav { background: rgba(255, 255, 255, 0.9); border-color: rgba(0,0,0,0.05); }
 
-        .action-btn { transition: all 0.2s active; }
+        .action-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .action-btn:active { transform: scale(0.95); }
+        
+        /* Animaciones de estado */
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .badge-pulse { animation: pulse-soft 2s infinite; }
+        @keyframes pulse-soft { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+        /* Estilos para pestañas del modal */
+        .tab-active { border-bottom-color: #E70000; color: #E70000; background-color: rgba(231, 0, 0, 0.05); }
+        .tab-inactive { border-bottom-color: transparent; color: #9ca3af; }
+        .dark .tab-inactive { color: #52525b; }
+        .tab-inactive:hover { color: #374151; }
+        .dark .tab-inactive:hover { color: #d4d4d8; }
     </style>
 </head>
-<body class="flex flex-col min-h-screen overflow-x-hidden bg-gray-50 text-gray-900 dark:bg-[#000000] dark:text-gray-200">
+<body class="flex flex-col min-h-screen overflow-x-hidden bg-gray-50 text-gray-900 dark:bg-[#09090b] dark:text-gray-200">
 
     <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none"></div>
 
@@ -58,23 +71,28 @@
     <header class="h-16 glass-nav sticky top-0 z-50 flex items-center justify-between px-4 lg:px-8 shadow-sm dark:shadow-none transition-colors">
         <div class="flex items-center gap-6">
             <a href="/" class="flex items-center gap-3 font-black tracking-tighter text-lg group">
-                <div class="w-8 h-8 bg-brand rounded flex items-center justify-center shadow-lg shadow-red-500/30">
+                <div class="w-8 h-8 bg-brand rounded flex items-center justify-center shadow-lg shadow-brand/20 group-hover:scale-105 transition-transform">
                     <i class="ph-bold ph-strategy text-white"></i>
                 </div>
-                <span class="dark:text-white text-gray-900">GOD'S PLAN</span>
+                <span class="dark:text-white text-gray-900 tracking-tight">WAR ROOM</span>
             </a>
-            <nav class="hidden md:flex items-center gap-1 bg-gray-200/50 dark:bg-white/5 p-1 rounded-lg border border-transparent dark:border-white/5">
-                <a href="/adherencia.html" class="px-3 py-1.5 text-[11px] font-bold uppercase text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-white dark:hover:bg-white/5 rounded transition-all">Adherencia</a>
-                <a href="/chat.html" class="px-3 py-1.5 text-[11px] font-bold uppercase text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-white dark:hover:bg-white/5 rounded transition-all">Chat</a>
-                <a href="/finanzas.html" class="px-3 py-1.5 text-[11px] font-bold uppercase text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-white dark:hover:bg-white/5 rounded transition-all">Finanzas</a>
-            </nav>
+            <!-- Estadísticas rápidas -->
+            <div class="hidden lg:flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                <div class="px-2 py-1 rounded bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+                    <span id="stat-unassigned">0</span> Libres
+                </div>
+                <div class="px-2 py-1 rounded bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400">
+                    <span id="stat-pending">0</span> En Proceso
+                </div>
+            </div>
         </div>
+
         <div class="flex items-center gap-3">
             <button onclick="window.app.toggleTheme()" class="w-9 h-9 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors">
                 <i id="theme-icon" class="ph-bold ph-moon"></i>
             </button>
-            <button onclick="window.app.toggleImportModal()" class="action-btn bg-brand hover:bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center gap-2 shadow-lg shadow-red-600/20">
-                <i class="ph-bold ph-plus"></i> <span class="hidden sm:inline">Nuevo</span>
+            <button onclick="window.app.toggleImportModal()" class="action-btn bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-brand dark:hover:bg-brand hover:text-white dark:hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center gap-2 shadow-lg">
+                <i class="ph-bold ph-plus"></i> <span class="hidden sm:inline">Nuevo Caso</span>
             </button>
             <div id="user-pill" class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-200 dark:bg-zinc-900 rounded-lg border border-gray-300 dark:border-zinc-800">
                 <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -83,90 +101,114 @@
         </div>
     </header>
 
-    <!-- CONTROLS -->
-    <div class="sticky top-16 z-40 bg-white/80 dark:bg-black/95 backdrop-blur-sm border-b border-gray-200 dark:border-zinc-900 py-3 px-4 lg:px-8 shadow-sm transition-colors">
-        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+    <!-- CONTROLS & FILTERS -->
+    <div class="sticky top-16 z-40 bg-white/80 dark:bg-[#09090b]/95 backdrop-blur-sm border-b border-gray-200 dark:border-zinc-800 py-3 px-4 lg:px-8 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Main State Filters -->
             <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto no-scrollbar pb-1 md:pb-0">
-                <button id="btn-all" onclick="window.app.setFilter('all')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase transition-all border">Todos <span id="count-all" class="ml-1 opacity-60 text-[10px]">0</span></button>
-                <button id="btn-my" onclick="window.app.setFilter('my')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase transition-all border">Mis Casos</button>
-                <button id="btn-sw" onclick="window.app.setFilter('smartwatch')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase transition-all border flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-sw"></div> Smartwatch</button>
-                <button id="btn-gen" onclick="window.app.setFilter('general')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase transition-all border flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-gen"></div> General</button>
+                <button id="filter-unassigned" onclick="window.app.setFilter('unassigned')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase border flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-red-500"></div> Sin Asignar
+                </button>
+                <button id="filter-mine" onclick="window.app.setFilter('mine')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase border flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-yellow-500"></div> Mis Pendientes
+                </button>
+                <button id="filter-resolved" onclick="window.app.setFilter('resolved')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase border flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div> Resueltos
+                </button>
+                <div class="h-4 w-px bg-gray-300 dark:bg-zinc-700 mx-1"></div>
+                <button id="filter-all" onclick="window.app.setFilter('all')" class="action-btn px-3 py-1.5 rounded-full text-xs font-bold uppercase border text-gray-500">Todos</button>
             </div>
-            <div class="relative w-full md:w-96 group">
-                <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="search-input" onkeyup="window.app.handleSearch(this.value)" class="block w-full pl-9 pr-3 py-2 bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="Buscar...">
+
+            <!-- Search -->
+            <div class="relative w-full md:w-80 group">
+                <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand transition-colors"></i>
+                <input type="text" id="search-input" onkeyup="window.app.handleSearch(this.value)" class="block w-full pl-9 pr-3 py-2 bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="Buscar cliente, teléfono...">
             </div>
         </div>
     </div>
 
     <!-- MAIN GRID -->
-    <main class="flex-grow p-4 lg:p-6 w-full max-w-6xl mx-auto">
-        <div id="cases-grid" class="flex flex-col gap-3">
-            <div class="flex flex-col items-center justify-center h-64 text-gray-400 dark:text-zinc-600">
-                <i class="ph-duotone ph-spinner-gap text-4xl animate-spin mb-2 text-brand"></i>
-                <span class="text-xs font-mono uppercase tracking-widest">Cargando Casos...</span>
+    <main class="flex-grow p-4 lg:p-6 w-full max-w-7xl mx-auto">
+        <div id="cases-grid" class="grid grid-cols-1 gap-4">
+            <!-- Loader -->
+            <div class="col-span-1 flex flex-col items-center justify-center h-64 text-gray-400 dark:text-zinc-600">
+                <i class="ph-duotone ph-spinner-gap text-4xl animate-spin mb-3 text-brand"></i>
+                <span class="text-xs font-mono uppercase tracking-widest">Sincronizando War Room...</span>
             </div>
         </div>
     </main>
 
-    <!-- IMPORT MODAL -->
-    <div id="import-modal" class="fixed inset-0 z-[100] bg-black/50 dark:bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all duration-200 opacity-0">
-        <div class="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 w-full max-w-2xl rounded-xl shadow-2xl transform scale-95 transition-all duration-200 flex flex-col overflow-hidden" id="import-modal-content">
-            <div class="p-5 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
-                <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2"><i class="ph-fill ph-files text-brand"></i> Importación Masiva</h3>
-                <button onclick="window.app.toggleImportModal()" class="text-gray-500 hover:text-red-500 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
+    <!-- NEW HYBRID MODAL -->
+    <div id="import-modal" class="fixed inset-0 z-[100] bg-black/50 dark:bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all duration-200 opacity-0">
+        <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 w-full max-w-xl rounded-2xl shadow-2xl transform scale-95 transition-all duration-200 flex flex-col overflow-hidden" id="import-modal-content">
+            <!-- Header -->
+            <div class="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-950">
+                <h3 class="font-black text-lg text-gray-900 dark:text-white flex items-center gap-2"><i class="ph-fill ph-plus-circle text-brand"></i> NUEVO CASO</h3>
+                <button onclick="window.app.toggleImportModal()" class="text-gray-400 hover:text-red-500 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
-            <div class="p-6">
-                <textarea id="raw-input" class="w-full h-40 bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-4 text-sm font-mono text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/50 resize-none mb-6" placeholder="Pega los casos aquí..."></textarea>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="window.app.processInput('smartwatch')" class="p-4 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-sw bg-white dark:bg-zinc-900 hover:shadow-md transition-all text-left group">
-                        <span class="text-sw font-black text-sm flex items-center gap-2 mb-1"><i class="ph-fill ph-watch"></i> SMARTWATCH</span>
-                        <span class="text-xs text-gray-500 dark:text-zinc-500">Soporte Técnico</span>
-                    </button>
-                    <button onclick="window.app.processInput('general')" class="p-4 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-gen bg-white dark:bg-zinc-900 hover:shadow-md transition-all text-left group">
-                        <span class="text-gen font-black text-sm flex items-center gap-2 mb-1"><i class="ph-fill ph-globe"></i> GENERAL</span>
-                        <span class="text-xs text-gray-500 dark:text-zinc-500">Ventas y Otros</span>
-                    </button>
-                </div>
+            
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-100 dark:border-zinc-800">
+                <button onclick="window.app.setTab('auto')" id="tab-auto" class="flex-1 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all tab-active">Automático (Pegar)</button>
+                <button onclick="window.app.setTab('manual')" id="tab-manual" class="flex-1 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all tab-inactive">Manual</button>
             </div>
-        </div>
-    </div>
 
-    <!-- EDIT MODAL (NEW) -->
-    <div id="edit-modal" class="fixed inset-0 z-[100] bg-black/50 dark:bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all duration-200 opacity-0">
-        <div class="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 w-full max-w-lg rounded-xl shadow-2xl transform scale-95 transition-all duration-200 flex flex-col overflow-hidden" id="edit-modal-content">
-            <div class="p-5 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
-                <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2"><i class="ph-fill ph-pencil-simple text-brand"></i> Editar Caso</h3>
-                <button onclick="window.app.toggleEditModal()" class="text-gray-500 hover:text-red-500 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
-            </div>
-            <div class="p-6 flex flex-col gap-4">
-                <input type="hidden" id="edit-id">
-                <div>
-                    <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Nombre Cliente</label>
-                    <input type="text" id="edit-name" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Tel. Contacto</label>
-                        <input type="text" id="edit-contact" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand">
+            <div class="p-6 relative">
+                <!-- VISTA AUTOMÁTICA -->
+                <div id="view-auto" class="transition-all duration-300">
+                    <div class="mb-4 text-xs text-gray-500 dark:text-zinc-400 flex items-start gap-2">
+                        <i class="ph-bold ph-magic-wand text-brand mt-0.5"></i>
+                        Pega el texto crudo (ej: WhatsApp, Email). El sistema extraerá teléfonos y nombres.
                     </div>
-                    <div>
-                        <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Tel. Afectado</label>
-                        <input type="text" id="edit-affected" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand">
+                    <textarea id="raw-input" class="w-full h-40 bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-700 rounded-xl p-4 text-sm font-mono text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/50 resize-none mb-6 placeholder:text-gray-400 dark:placeholder:text-zinc-700" placeholder="Ej: Cliente Juan Perez 5512345678 problema con pantalla..."></textarea>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="window.app.processInput('smartwatch')" class="p-3 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-sky-500 bg-white dark:bg-zinc-950 hover:bg-sky-50 dark:hover:bg-sky-900/10 transition-all text-left group">
+                            <span class="text-sky-500 font-black text-xs flex items-center gap-2 mb-1"><i class="ph-fill ph-watch"></i> SMARTWATCH</span>
+                            <span class="text-[10px] text-gray-400">Procesar como soporte SW</span>
+                        </button>
+                        <button onclick="window.app.processInput('general')" class="p-3 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-yellow-500 bg-white dark:bg-zinc-950 hover:bg-yellow-50 dark:hover:bg-yellow-900/10 transition-all text-left group">
+                            <span class="text-yellow-500 font-black text-xs flex items-center gap-2 mb-1"><i class="ph-fill ph-globe"></i> GENERAL</span>
+                            <span class="text-[10px] text-gray-400">Procesar como ventas/dudas</span>
+                        </button>
                     </div>
                 </div>
-                <div>
-                    <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Tipo</label>
-                    <select id="edit-type" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand">
-                        <option value="smartwatch">Smartwatch</option>
-                        <option value="general">General</option>
-                    </select>
+
+                <!-- VISTA MANUAL -->
+                <div id="view-manual" class="hidden transition-all duration-300 flex flex-col gap-4">
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Nombre del Cliente</label>
+                        <input type="text" id="man-name" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:border-brand uppercase" placeholder="Ej: JUAN PEREZ">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Tel. Contacto</label>
+                            <input type="text" id="man-contact" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:border-brand" placeholder="Llamar a...">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Tel. Afectado (Opcional)</label>
+                            <input type="text" id="man-affected" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:border-brand" placeholder="Línea con falla...">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Tipo de Caso</label>
+                        <select id="man-type" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-brand">
+                            <option value="smartwatch">Smartwatch (Soporte)</option>
+                            <option value="general">General (Ventas)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Descripción del Problema</label>
+                        <textarea id="man-desc" rows="3" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand resize-none" placeholder="Detalles del caso..."></textarea>
+                    </div>
+
+                    <button onclick="window.app.saveManual()" class="w-full py-3 bg-brand hover:bg-red-600 text-white font-bold rounded-xl shadow-lg shadow-brand/20 transition-all uppercase text-sm mt-2">
+                        Crear Ticket
+                    </button>
                 </div>
-                <div>
-                    <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Descripción</label>
-                    <textarea id="edit-desc" rows="3" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand resize-none"></textarea>
-                </div>
-                <button onclick="window.app.saveEdit()" class="w-full bg-brand hover:bg-red-600 text-white font-bold py-3 rounded-lg uppercase tracking-wide transition-colors shadow-lg shadow-brand/20 mt-2">Guardar Cambios</button>
             </div>
         </div>
     </div>
@@ -174,236 +216,436 @@
     <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithCustomToken, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        let firebaseConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
-        try { if (typeof __firebase_config !== 'undefined' && __firebase_config) firebaseConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; } catch(e){}
-        
+        // Configuración 
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan';
-        setPersistence(auth, browserLocalPersistence).catch(console.error);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-default';
 
         let currentUser = null;
         let casesData = [];
-        let currentFilter = 'all';
+        let currentFilter = 'unassigned';
         let searchTerm = '';
 
-        const initTheme = () => {
-            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-                document.getElementById('theme-icon').className = 'ph-bold ph-sun';
-            } else {
-                document.documentElement.classList.remove('dark');
-                document.getElementById('theme-icon').className = 'ph-bold ph-moon';
-            }
-        };
-        initTheme();
-
+        // --- UI UTILS ---
         const toast = (msg, type = 'success') => {
             const c = document.getElementById('toast-container');
             const el = document.createElement('div');
-            el.className = `px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm font-bold animate-toastIn border ${type === 'success' ? 'bg-white dark:bg-zinc-900 border-green-500 text-green-600 dark:text-green-400' : 'bg-white dark:bg-zinc-900 border-red-500 text-red-600 dark:text-red-400'}`;
-            el.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check' : 'ph-warning'}"></i> ${msg}`;
+            const colors = type === 'success' ? 'bg-green-500 text-white' : (type === 'error' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white');
+            el.className = `${colors} px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 text-sm font-bold animate-toastIn pointer-events-auto`;
+            el.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check' : (type === 'error' ? 'ph-warning' : 'ph-info')}"></i> ${msg}`;
             c.appendChild(el);
-            setTimeout(() => el.remove(), 3000);
+            setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300) }, 3000);
         };
 
         const timeAgo = (date) => {
-            if (!date) return '';
+            if (!date) return 'Hace un momento';
             const seconds = Math.floor((new Date() - date.toDate()) / 1000);
-            if (seconds < 60) return 'Ahora';
-            if (seconds < 3600) return `${Math.floor(seconds/60)}m`;
-            if (seconds < 86400) return `${Math.floor(seconds/3600)}h`;
-            return `${Math.floor(seconds/86400)}d`;
+            if (seconds < 60) return 'Hace unos seg';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} min`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} h`;
+            return `${Math.floor(hours / 24)} d`;
         };
 
-        onAuthStateChanged(auth, async (user) => {
+        // --- AUTH & DATA ---
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        };
+
+        initAuth();
+
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                document.getElementById('username-display').textContent = (user.displayName || user.email.split('@')[0]).toUpperCase();
+                document.getElementById('username-display').textContent = (user.displayName || 'AGENTE').toUpperCase();
                 initRealtime();
-            } else {
-                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (token) await signInWithCustomToken(auth, token); else window.location.href = '/';
             }
         });
 
         function initRealtime() {
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'cases'), (snap) => {
+            const q = collection(db, 'artifacts', appId, 'public', 'data', 'tickets');
+            onSnapshot(q, (snap) => {
                 casesData = [];
                 snap.forEach(d => casesData.push({ id: d.id, ...d.data() }));
-                casesData.sort((a, b) => {
-                    if (a.status === 'open' && b.status !== 'open') return -1;
-                    if (a.status !== 'open' && b.status === 'open') return 1;
-                    return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
-                });
+                
+                // Actualizar contadores
+                const unassignedCount = casesData.filter(c => c.status === 'unassigned').length;
+                const pendingCount = casesData.filter(c => c.status === 'pending').length;
+                document.getElementById('stat-unassigned').textContent = unassignedCount;
+                document.getElementById('stat-pending').textContent = pendingCount;
+                
+                // Ordenar: Pendientes urgentes primero
+                casesData.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
                 render();
+            }, (error) => {
+                console.error("Error fetching tickets:", error);
             });
         }
 
+        // --- APP LOGIC ---
         window.app = {
             toggleTheme: () => {
+                document.documentElement.classList.toggle('dark');
                 const isDark = document.documentElement.classList.contains('dark');
-                if (isDark) { document.documentElement.classList.remove('dark'); localStorage.theme = 'light'; document.getElementById('theme-icon').className = 'ph-bold ph-moon'; } 
-                else { document.documentElement.classList.add('dark'); localStorage.theme = 'dark'; document.getElementById('theme-icon').className = 'ph-bold ph-sun'; }
+                localStorage.theme = isDark ? 'dark' : 'light';
+                document.getElementById('theme-icon').className = isDark ? 'ph-bold ph-sun' : 'ph-bold ph-moon';
             },
+
             toggleImportModal: () => {
-                const m = document.getElementById('import-modal'); const c = document.getElementById('import-modal-content');
-                if (m.classList.contains('hidden')) { m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); document.getElementById('raw-input').focus(); } 
-                else { m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => m.classList.add('hidden'), 200); }
+                const m = document.getElementById('import-modal');
+                const c = document.getElementById('import-modal-content');
+                if (m.classList.contains('hidden')) {
+                    m.classList.remove('hidden');
+                    setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
+                    // Reset to Auto Tab by default
+                    window.app.setTab('auto');
+                } else {
+                    m.classList.add('opacity-0'); c.classList.add('scale-95');
+                    setTimeout(() => m.classList.add('hidden'), 200);
+                }
             },
-            toggleEditModal: () => {
-                const m = document.getElementById('edit-modal'); const c = document.getElementById('edit-modal-content');
-                if (m.classList.contains('hidden')) { m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); } 
-                else { m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => m.classList.add('hidden'), 200); }
+
+            setTab: (tabName) => {
+                const btnAuto = document.getElementById('tab-auto');
+                const btnMan = document.getElementById('tab-manual');
+                const viewAuto = document.getElementById('view-auto');
+                const viewMan = document.getElementById('view-manual');
+
+                if (tabName === 'auto') {
+                    btnAuto.className = "flex-1 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all tab-active";
+                    btnMan.className = "flex-1 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all tab-inactive";
+                    viewAuto.classList.remove('hidden');
+                    viewMan.classList.add('hidden');
+                    document.getElementById('raw-input').focus();
+                } else {
+                    btnAuto.className = "flex-1 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all tab-inactive";
+                    btnMan.className = "flex-1 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all tab-active";
+                    viewAuto.classList.add('hidden');
+                    viewMan.classList.remove('hidden');
+                    document.getElementById('man-name').focus();
+                }
             },
-            setFilter: (f) => { currentFilter = f; render(); },
-            handleSearch: (val) => { searchTerm = val.toLowerCase(); render(); },
-            
+
+            setFilter: (f) => {
+                currentFilter = f;
+                render();
+            },
+
+            handleSearch: (val) => {
+                searchTerm = val.toLowerCase();
+                render();
+            },
+
+            // AUTOMATIC IMPORT
             processInput: async (type) => {
                 const text = document.getElementById('raw-input').value;
-                if(!text.trim()) return toast('Vacío', 'error');
+                if(!text.trim()) return toast('El campo está vacío', 'error');
+                
                 const chunks = text.split(/(?:plis|\n{2,})/i).map(c => c.trim()).filter(c => c.length > 5);
                 let added = 0;
+                
                 for (const chunk of chunks) {
                     const phones = chunk.match(/\b\d{10}\b/g) || [];
                     let name = chunk.split(phones[0] || '')[0].replace(/[:.-]/g, ' ').trim().substring(0, 30);
                     if(!name || name.length < 3) name = "Cliente Desconocido";
-                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'cases'), {
-                        type, rawText: chunk, clientName: name.toUpperCase(),
-                        contactPhone: phones[0] || '', affectedPhone: phones[1] || '', phones,
-                        description: chunk, status: 'open', assignedTo: null, comments: [],
-                        createdAt: serverTimestamp()
+
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'tickets'), {
+                        type,
+                        rawText: chunk,
+                        clientName: name.toUpperCase(),
+                        contactPhone: phones[0] || '',
+                        phones,
+                        description: chunk,
+                        status: 'unassigned',
+                        assignedTo: null,
+                        comments: [],
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
                     });
                     added++;
                 }
-                toast(`${added} importados`);
+                
+                toast(`${added} Tickets Creados`);
                 document.getElementById('raw-input').value = '';
                 window.app.toggleImportModal();
             },
 
-            claim: async (id) => { if(!currentUser) return; await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), { status: 'taken', assignedTo: { uid: currentUser.uid, name: currentUser.displayName || 'Agente' }, takenAt: serverTimestamp() }); toast('Asignado'); },
-            close: async (id) => { if(!confirm("¿Cerrar?")) return; await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), { status: 'closed' }); toast('Cerrado'); },
-            delete: async (id) => { if(!confirm("¿Eliminar?")) return; await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id)); toast('Eliminado'); },
-            comment: async (id, inputId) => { const input = document.getElementById(inputId); const txt = input.value.trim(); if(!txt) return; await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), { comments: arrayUnion({ text: txt, author: currentUser.displayName?.split(' ')[0] || 'Yo', time: Date.now() }) }); input.value = ''; },
-            copy: (txt) => { navigator.clipboard.writeText(txt).then(() => toast('Copiado')); },
-            
-            openEdit: (id) => {
-                const c = casesData.find(x => x.id === id);
-                if (!c) return;
-                document.getElementById('edit-id').value = id;
-                document.getElementById('edit-name').value = c.clientName;
-                document.getElementById('edit-contact').value = c.contactPhone || '';
-                document.getElementById('edit-affected').value = c.affectedPhone || '';
-                document.getElementById('edit-type').value = c.type;
-                document.getElementById('edit-desc').value = c.description;
-                window.app.toggleEditModal();
+            // MANUAL IMPORT
+            saveManual: async () => {
+                const name = document.getElementById('man-name').value.trim();
+                const contact = document.getElementById('man-contact').value.trim();
+                const affected = document.getElementById('man-affected').value.trim();
+                const type = document.getElementById('man-type').value;
+                const desc = document.getElementById('man-desc').value.trim();
+
+                if (!name) return toast('El nombre es obligatorio', 'error');
+                if (!contact && !affected) return toast('Ingresa al menos un teléfono', 'error');
+                if (!desc) return toast('La descripción es obligatoria', 'error');
+
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'tickets'), {
+                        type,
+                        rawText: 'Creado manualmente',
+                        clientName: name.toUpperCase(),
+                        contactPhone: contact,
+                        affectedPhone: affected,
+                        phones: [contact, affected].filter(p => p),
+                        description: desc,
+                        status: 'unassigned',
+                        assignedTo: null,
+                        comments: [],
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                    
+                    toast('Ticket creado con éxito');
+                    
+                    // Clear fields
+                    document.getElementById('man-name').value = '';
+                    document.getElementById('man-contact').value = '';
+                    document.getElementById('man-affected').value = '';
+                    document.getElementById('man-desc').value = '';
+                    
+                    window.app.toggleImportModal();
+                } catch (e) {
+                    console.error(e);
+                    toast('Error al guardar', 'error');
+                }
             },
 
-            saveEdit: async () => {
-                const id = document.getElementById('edit-id').value;
-                const name = document.getElementById('edit-name').value.trim();
-                const contact = document.getElementById('edit-contact').value.trim();
-                const affected = document.getElementById('edit-affected').value.trim();
-                const type = document.getElementById('edit-type').value;
-                const desc = document.getElementById('edit-desc').value.trim();
-                if (!name) return toast('Nombre requerido', 'error');
+            // CASE ACTIONS
+            claim: async (id) => {
+                if(!currentUser) return;
                 try {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', id), {
-                        clientName: name.toUpperCase(), contactPhone: contact, affectedPhone: affected, type: type, description: desc, phones: [contact, affected].filter(Boolean)
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tickets', id), {
+                        status: 'pending',
+                        assignedTo: { uid: currentUser.uid, name: currentUser.displayName || 'Agente' },
+                        updatedAt: serverTimestamp(),
+                        comments: arrayUnion({ type: 'system', text: 'tomó el caso', author: currentUser.displayName || 'Agente', time: Date.now() })
                     });
-                    toast('Caso actualizado');
-                    window.app.toggleEditModal();
-                } catch(e) { toast('Error al actualizar', 'error'); }
+                    toast('Caso asignado a ti');
+                } catch(e) { toast('Error al asignar', 'error'); }
+            },
+
+            release: async (id) => {
+                if(!confirm("¿Soltar este caso?")) return;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tickets', id), {
+                    status: 'unassigned',
+                    assignedTo: null,
+                    updatedAt: serverTimestamp(),
+                    comments: arrayUnion({ type: 'system', text: 'liberó el caso', author: currentUser.displayName, time: Date.now() })
+                });
+                toast('Caso liberado');
+            },
+
+            resolve: async (id) => {
+                if(!confirm("¿Marcar como resuelto?")) return;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tickets', id), {
+                    status: 'resolved',
+                    updatedAt: serverTimestamp(),
+                    comments: arrayUnion({ type: 'system', text: 'marcó como resuelto', author: currentUser.displayName, time: Date.now() })
+                });
+                toast('Caso Resuelto', 'success');
+            },
+
+            reopen: async (id) => {
+                if(!confirm("¿Reabrir caso?")) return;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tickets', id), {
+                    status: 'pending',
+                    updatedAt: serverTimestamp(),
+                    comments: arrayUnion({ type: 'system', text: 'reabrió el caso', author: currentUser.displayName, time: Date.now() })
+                });
+                toast('Caso Reabierto');
+            },
+
+            addComment: async (id, inputId) => {
+                const input = document.getElementById(inputId);
+                const txt = input.value.trim();
+                if(!txt) return;
+                
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tickets', id), {
+                    comments: arrayUnion({ type: 'user', text: txt, author: currentUser.displayName?.split(' ')[0] || 'Yo', time: Date.now() })
+                });
+                input.value = '';
+            },
+
+            delete: async (id) => {
+                if(!confirm("¿Eliminar permanentemente?")) return;
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tickets', id));
+                toast('Eliminado');
             }
         };
 
+        // --- RENDER ---
         function render() {
             const grid = document.getElementById('cases-grid');
             grid.innerHTML = '';
 
-            const btnBase = "action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase transition-all border";
-            const btnActive = "bg-brand text-white border-brand shadow-lg shadow-brand/30";
-            const btnInactive = "bg-white dark:bg-zinc-900 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-zinc-700 hover:border-gray-400 dark:hover:border-zinc-500";
-
-            ['all', 'my', 'smartwatch', 'general'].forEach(k => {
-                const elId = k === 'all' ? 'btn-all' : (k === 'my' ? 'btn-my' : (k === 'smartwatch' ? 'btn-sw' : 'btn-gen'));
-                const btn = document.getElementById(elId);
-                btn.className = `${btnBase} ${currentFilter === k ? btnActive : btnInactive}`;
+            // Update Filter Buttons Style
+            const filters = ['unassigned', 'mine', 'resolved', 'all'];
+            filters.forEach(f => {
+                const btn = document.getElementById(`filter-${f}`);
+                if (btn) {
+                    if (currentFilter === f) {
+                        btn.classList.add('bg-gray-900', 'dark:bg-white', 'text-white', 'dark:text-black', 'border-transparent');
+                        btn.classList.remove('bg-transparent', 'text-gray-500');
+                    } else {
+                        btn.classList.remove('bg-gray-900', 'dark:bg-white', 'text-white', 'dark:text-black', 'border-transparent');
+                        btn.classList.add('bg-transparent', 'text-gray-500', 'hover:text-gray-900', 'dark:hover:text-white');
+                    }
+                }
             });
 
-            let list = casesData.filter(c => c.status !== 'closed');
-            if (currentFilter === 'my') list = list.filter(c => c.assignedTo?.uid === currentUser.uid);
-            else if (currentFilter !== 'all') list = list.filter(c => c.type === currentFilter);
-            if (searchTerm) list = list.filter(c => JSON.stringify(c).toLowerCase().includes(searchTerm));
+            // Filter Data logic
+            let list = casesData;
 
-            document.getElementById('count-all').textContent = casesData.length;
+            if (currentFilter === 'unassigned') {
+                list = list.filter(c => c.status === 'unassigned');
+            } else if (currentFilter === 'mine') {
+                list = list.filter(c => c.status === 'pending' && c.assignedTo?.uid === currentUser?.uid);
+            } else if (currentFilter === 'resolved') {
+                list = list.filter(c => c.status === 'resolved');
+            }
+
+            if (searchTerm) {
+                list = list.filter(c => JSON.stringify(c).toLowerCase().includes(searchTerm));
+            }
 
             if (list.length === 0) {
-                grid.innerHTML = `<div class="text-center py-20 text-gray-400 dark:text-zinc-600 font-bold uppercase text-xs tracking-widest">Sin resultados</div>`;
+                grid.innerHTML = `
+                    <div class="col-span-1 flex flex-col items-center justify-center h-64 opacity-50">
+                        <i class="ph-duotone ph-magnifying-glass text-4xl mb-2"></i>
+                        <span class="text-sm font-bold uppercase">No hay tickets en esta vista</span>
+                    </div>`;
                 return;
             }
 
             list.forEach(c => {
-                const isTaken = c.status === 'taken';
                 const isMine = c.assignedTo?.uid === currentUser?.uid;
-                const isSW = c.type === 'smartwatch';
                 
+                // Color mapping based on Status
+                let statusColor = 'gray';
+                let statusLabel = 'DESCONOCIDO';
+                let borderColor = 'border-gray-200 dark:border-zinc-800';
+                
+                if (c.status === 'unassigned') {
+                    statusColor = 'red'; statusLabel = 'SIN ASIGNAR';
+                    borderColor = 'border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/5';
+                } else if (c.status === 'pending') {
+                    statusColor = 'yellow'; statusLabel = isMine ? 'MIS PENDIENTES' : `PENDIENTE (${c.assignedTo?.name})`;
+                    borderColor = isMine ? 'border-yellow-200 dark:border-yellow-900/30 bg-yellow-50/50 dark:bg-yellow-950/5 ring-1 ring-yellow-400/20' : 'border-gray-200 dark:border-zinc-800 opacity-90';
+                } else if (c.status === 'resolved') {
+                    statusColor = 'green'; statusLabel = 'RESUELTO';
+                    borderColor = 'border-green-200 dark:border-green-900/30 bg-green-50/50 dark:bg-green-950/5 opacity-75';
+                }
+
                 const card = document.createElement('div');
-                card.className = `relative rounded-xl border p-4 flex flex-col md:flex-row gap-4 transition-all fade-in bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 shadow-sm hover:shadow-md ${isTaken ? 'opacity-75 grayscale-[0.3]' : ''}`;
-                if(isMine) card.className += ' ring-1 ring-green-500 dark:ring-green-500/50 bg-green-50 dark:bg-green-950/10';
+                card.className = `group relative rounded-2xl border ${borderColor} p-5 flex flex-col md:flex-row gap-6 transition-all hover:shadow-lg dark:hover:shadow-none bg-white dark:bg-[#0f0f11]`;
 
-                const phoneBadge = (label, num, color) => num ? `
-                    <div onclick="window.app.copy('${num}')" class="cursor-pointer group flex items-center gap-2 bg-gray-100 dark:bg-zinc-950/50 px-2 py-1 rounded border border-gray-200 dark:border-zinc-800 hover:border-${color}-500 transition-colors w-full md:w-auto">
-                        <span class="text-[9px] uppercase font-bold text-gray-400 dark:text-zinc-500 w-16">${label}:</span>
-                        <span class="font-mono text-sm font-bold text-gray-800 dark:text-gray-200 group-hover:text-${color}-500">${num}</span>
-                    </div>` : '';
+                // Badge Logic
+                const typeIcon = c.type === 'smartwatch' ? 'ph-watch' : 'ph-globe';
+                const typeColor = c.type === 'smartwatch' ? 'text-sky-500' : 'text-orange-500';
 
-                const comments = c.comments?.slice(-2).map(co => `<div class="text-[10px] text-gray-500 dark:text-zinc-400 truncate"><strong class="text-gray-700 dark:text-zinc-300">${co.author}:</strong> ${co.text}</div>`).join('') || '';
+                // Phones Display
+                let phonesDisplay = c.contactPhone || 'Sin teléfono';
+                if (c.affectedPhone && c.affectedPhone !== c.contactPhone) {
+                    phonesDisplay += ` <span class="opacity-50 mx-1">|</span> <i class="ph-bold ph-warning-circle text-orange-500"></i> ${c.affectedPhone}`;
+                }
+
+                // Comments Logic (System vs User)
+                const recentComments = c.comments?.slice().reverse().slice(0, 3).map(co => {
+                    if (co.type === 'system') {
+                        return `<div class="text-[10px] text-gray-400 italic mb-1"><i class="ph-bold ph-info"></i> <span class="font-bold">${co.author}</span> ${co.text}</div>`;
+                    }
+                    return `<div class="text-[11px] text-gray-600 dark:text-zinc-300 mb-1 bg-gray-100 dark:bg-zinc-800/50 p-1.5 rounded-lg border border-gray-200 dark:border-zinc-700/50">
+                        <span class="font-bold text-gray-800 dark:text-zinc-200 mr-1">${co.author}:</span> ${co.text}
+                    </div>`;
+                }).join('') || '<div class="text-[10px] text-gray-300 italic">Sin actividad reciente</div>';
+
+                // Actions Logic
+                let mainAction = '';
+                if (c.status === 'unassigned') {
+                    mainAction = `<button onclick="window.app.claim('${c.id}')" class="w-full py-2 bg-gray-900 dark:bg-white text-white dark:text-black font-bold text-xs uppercase rounded-lg hover:bg-brand dark:hover:bg-brand hover:text-white dark:hover:text-white transition-colors shadow-lg shadow-black/5">TOMAR CASO</button>`;
+                } else if (c.status === 'pending' && isMine) {
+                    mainAction = `
+                        <div class="flex gap-2">
+                            <button onclick="window.app.resolve('${c.id}')" class="flex-1 py-2 bg-green-500 text-white font-bold text-xs uppercase rounded-lg hover:bg-green-600 shadow-lg shadow-green-500/20">RESOLVER</button>
+                            <button onclick="window.app.release('${c.id}')" class="px-3 py-2 border border-gray-200 dark:border-zinc-700 text-gray-400 hover:text-red-500 rounded-lg" title="Soltar caso"><i class="ph-bold ph-hand-palm"></i></button>
+                        </div>
+                    `;
+                } else if (c.status === 'resolved') {
+                    mainAction = `<button onclick="window.app.reopen('${c.id}')" class="w-full py-2 border border-gray-200 dark:border-zinc-700 text-gray-500 dark:text-zinc-400 font-bold text-xs uppercase rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800">REABRIR CASO</button>`;
+                } else {
+                     mainAction = `<button class="w-full py-2 bg-gray-100 dark:bg-zinc-800 text-gray-400 font-bold text-xs uppercase rounded-lg cursor-not-allowed">EN PROCESO POR OTRO</button>`;
+                }
 
                 card.innerHTML = `
-                    <div class="flex-grow min-w-0 flex flex-col gap-2">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${isSW ? 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400' : 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'}">${isSW ? 'SW' : 'GEN'}</span>
-                            <span class="text-[10px] font-mono text-gray-400">${timeAgo(c.createdAt)}</span>
-                            ${isTaken ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-gray-100 dark:bg-zinc-800 text-gray-500">${isMine ? 'MÍO' : c.assignedTo?.name}</span>` : ''}
+                    <!-- Left: Info -->
+                    <div class="flex-grow min-w-0 flex flex-col gap-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="text-${statusColor}-500 bg-${statusColor}-100 dark:bg-${statusColor}-900/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${c.status === 'unassigned' ? 'badge-pulse' : ''}">${statusLabel}</span>
+                                <span class="text-[10px] font-mono text-gray-400">${timeAgo(c.updatedAt || c.createdAt)}</span>
+                            </div>
+                            <i class="${typeIcon} ${typeColor} text-lg opacity-50"></i>
                         </div>
-                        <h3 class="font-black text-lg text-gray-900 dark:text-white leading-tight truncate mb-1" title="${c.clientName}">${c.clientName}</h3>
-                        <div class="flex flex-col gap-1.5">
-                            ${phoneBadge('Contacto', c.contactPhone, 'blue')}
-                            ${phoneBadge('Afectado', c.affectedPhone, 'purple')}
+                        
+                        <div>
+                            <h3 class="font-black text-xl text-gray-900 dark:text-white leading-tight truncate tracking-tight mb-1">${c.clientName}</h3>
+                            <p class="text-xs font-mono text-gray-500 dark:text-zinc-500 select-all">${phonesDisplay}</p>
+                        </div>
+
+                        <div class="text-sm text-gray-600 dark:text-zinc-400 leading-relaxed line-clamp-3 hover:line-clamp-none transition-all cursor-help bg-white dark:bg-black/20 p-3 rounded-lg border border-gray-100 dark:border-zinc-800/50">
+                            ${c.description}
                         </div>
                     </div>
 
-                    <div class="flex-grow md:w-1/3 min-w-0 border-l-0 md:border-l border-gray-100 dark:border-zinc-800 md:pl-4 flex flex-col gap-2">
-                        <p class="text-[11px] text-gray-500 dark:text-zinc-400 line-clamp-3 hover:line-clamp-none cursor-help transition-all" title="${c.description}">${c.description}</p>
-                        <div class="mt-auto pt-2 border-t border-gray-100 dark:border-zinc-800/50">${comments}</div>
-                    </div>
+                    <!-- Right: Chat & Actions -->
+                    <div class="flex-grow md:max-w-xs min-w-0 md:border-l border-gray-100 dark:border-zinc-800 md:pl-6 flex flex-col gap-3 justify-between">
+                        
+                        <!-- Mini Chat History -->
+                        <div class="flex-grow flex flex-col gap-1 overflow-hidden">
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Actividad Reciente</div>
+                            ${recentComments}
+                        </div>
 
-                    <div class="flex flex-col gap-2 min-w-[140px] md:border-l border-gray-100 dark:border-zinc-800 md:pl-4 justify-center">
-                        <div class="flex gap-1">
-                            <input type="text" id="input-${c.id}" placeholder="Nota..." class="w-full bg-gray-50 dark:bg-black border border-gray-200 dark:border-zinc-800 rounded px-2 py-1 text-xs text-gray-800 dark:text-white focus:border-brand outline-none" onkeypress="if(event.key==='Enter') window.app.comment('${c.id}', 'input-${c.id}')">
-                        </div>
-                        <div class="flex gap-2">
-                            ${!isTaken ? 
-                                `<button onclick="window.app.claim('${c.id}')" class="flex-1 bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-brand dark:hover:bg-brand py-1.5 rounded text-[10px] font-bold uppercase transition-colors">TOMAR</button>` :
-                                (isMine ? 
-                                    `<button onclick="window.app.close('${c.id}')" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-1.5 rounded text-[10px] font-bold uppercase transition-colors shadow-lg shadow-green-500/30">CERRAR</button>` :
-                                    `<button onclick="window.app.claim('${c.id}')" class="flex-1 border border-gray-300 dark:border-zinc-700 text-gray-400 dark:text-zinc-500 hover:text-red-500 hover:border-red-500 py-1.5 rounded text-[10px] font-bold uppercase transition-colors">ROBAR</button>`
-                                )
-                            }
-                        </div>
-                        <div class="flex justify-end gap-2 mt-1">
-                            <button onclick="window.app.openEdit('${c.id}')" class="text-gray-400 hover:text-blue-500 transition-colors p-1" title="Editar"><i class="ph-bold ph-pencil-simple"></i></button>
-                            ${!isTaken ? `<button onclick="window.app.delete('${c.id}')" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="Eliminar"><i class="ph-bold ph-trash"></i></button>` : ''}
+                        <!-- Inputs area -->
+                        <div class="space-y-3 pt-3 border-t border-gray-100 dark:border-zinc-800">
+                            ${c.status !== 'resolved' ? `
+                            <div class="relative">
+                                <input type="text" id="input-${c.id}" placeholder="Agregar nota..." 
+                                    class="w-full bg-gray-50 dark:bg-black border border-gray-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-gray-900 dark:text-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all"
+                                    onkeypress="if(event.key==='Enter') window.app.addComment('${c.id}', 'input-${c.id}')">
+                                <button onclick="window.app.addComment('${c.id}', 'input-${c.id}')" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand"><i class="ph-bold ph-paper-plane-right"></i></button>
+                            </div>
+                            ` : ''}
+                            
+                            ${mainAction}
+                            
+                            <div class="flex justify-end pt-1">
+                                <button onclick="window.app.delete('${c.id}')" class="text-[10px] text-gray-300 hover:text-red-500 uppercase font-bold flex items-center gap-1 transition-colors"><i class="ph-bold ph-trash"></i> Eliminar</button>
+                            </div>
                         </div>
                     </div>
                 `;
                 grid.appendChild(card);
             });
+        }
+
+        const savedTheme = localStorage.theme;
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            document.getElementById('theme-icon').className = 'ph-bold ph-sun';
         }
     </script>
 </body>
