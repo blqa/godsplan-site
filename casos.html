@@ -729,14 +729,19 @@
                 toast('Caso liberado');
             },
 
-            resolve: async (id) => {
-                if(!confirm("¿Marcar como resuelto?")) return;
+            // MODIFICADO: Acepta tipo de resolución
+            resolve: async (id, reason) => {
+                const text = reason === 'solved' ? 'marcó como resuelto' : 'cerró el caso (sin respuesta)';
+                const confirmMsg = reason === 'solved' ? "¿Marcar caso como RESUELTO?" : "¿Cerrar caso por FALTA DE RESPUESTA?";
+                
+                if(!confirm(confirmMsg)) return;
+                
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tickets', id), {
                     status: 'resolved',
                     updatedAt: serverTimestamp(),
-                    comments: arrayUnion({ type: 'system', text: 'marcó como resuelto', author: currentUser.displayName || currentUser.email, time: Date.now() })
+                    comments: arrayUnion({ type: 'system', text: text, author: currentUser.displayName || currentUser.email, time: Date.now() })
                 });
-                toast('Caso Resuelto', 'success');
+                toast(reason === 'solved' ? 'Caso Resuelto' : 'Caso Cerrado', 'success');
             },
 
             reopen: async (id) => {
@@ -781,8 +786,8 @@
 
                 const logData = {
                     type: 'interaction',
-                    subtype: type,
-                    text: commentText, // Empty for attempt/failed usually
+                    subtype: type, // 'failed' (no contesta) or 'success' (exitoso)
+                    text: commentText, 
                     author: currentUser.displayName || currentUser.email || 'Agente',
                     time: Date.now()
                 };
@@ -865,6 +870,9 @@
                     borderColor = 'border-green-200 dark:border-green-900/30 bg-green-50/50 dark:bg-green-950/5 opacity-75';
                 }
 
+                // Count attempts (failed interactions)
+                const attempts = c.comments?.filter(co => co.type === 'interaction' && co.subtype === 'failed').length || 0;
+
                 const card = document.createElement('div');
                 card.className = `group relative rounded-2xl border ${borderColor} p-5 flex flex-col md:flex-row gap-6 transition-all hover:shadow-lg dark:hover:shadow-none bg-white dark:bg-[#0f0f11]`;
 
@@ -893,8 +901,7 @@
                         let color = 'text-gray-500';
                         let text = 'Interacción';
                         
-                        if (co.subtype === 'attempt') { icon = 'ph-phone-outgoing'; color = 'text-blue-500'; text = 'Intento de Contacto'; }
-                        else if (co.subtype === 'failed') { icon = 'ph-x-circle'; color = 'text-red-500'; text = 'No Exitoso'; }
+                        if (co.subtype === 'failed') { icon = 'ph-x-circle'; color = 'text-red-500'; text = 'No Contesta'; }
                         else if (co.subtype === 'success') { icon = 'ph-check-circle'; color = 'text-green-500'; text = 'Contacto Exitoso'; }
 
                         return `<div class="text-[11px] mb-2 bg-gray-50 dark:bg-zinc-900 p-2 rounded border border-dashed border-gray-200 dark:border-zinc-800">
@@ -927,10 +934,9 @@
                             <!-- Interaction Controls for Owner -->
                             <div class="mb-3 p-2 bg-gray-50 dark:bg-zinc-900 rounded-lg border border-dashed border-gray-200 dark:border-zinc-700">
                                 <p class="text-[9px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Registrar Interacción</p>
-                                <div class="flex gap-1 mb-2">
-                                    <button onclick="window.app.logInteraction('${c.id}', 'attempt')" class="flex-1 py-1.5 bg-white dark:bg-black border border-gray-200 dark:border-zinc-800 rounded text-[10px] font-bold text-blue-500 hover:border-blue-500 transition-colors" title="Intento de llamada"><i class="ph-bold ph-phone-outgoing"></i> INTENTO</button>
-                                    <button onclick="window.app.logInteraction('${c.id}', 'failed')" class="flex-1 py-1.5 bg-white dark:bg-black border border-gray-200 dark:border-zinc-800 rounded text-[10px] font-bold text-red-500 hover:border-red-500 transition-colors" title="No contestó/Falló"><i class="ph-bold ph-x"></i> FALLIDO</button>
-                                    <button onclick="window.app.toggleSuccessInput('${c.id}')" class="flex-1 py-1.5 bg-white dark:bg-black border border-gray-200 dark:border-zinc-800 rounded text-[10px] font-bold text-green-500 hover:border-green-500 transition-colors" title="Contacto Exitoso"><i class="ph-bold ph-check"></i> EXITOSO</button>
+                                <div class="flex gap-2 mb-2">
+                                    <button onclick="window.app.logInteraction('${c.id}', 'failed')" class="flex-1 py-2 bg-white dark:bg-black border border-gray-200 dark:border-zinc-800 rounded text-[10px] font-bold text-red-500 hover:border-red-500 transition-colors" title="No contestó"><i class="ph-bold ph-phone-slash"></i> NO CONTESTA</button>
+                                    <button onclick="window.app.toggleSuccessInput('${c.id}')" class="flex-1 py-2 bg-white dark:bg-black border border-gray-200 dark:border-zinc-800 rounded text-[10px] font-bold text-green-500 hover:border-green-500 transition-colors" title="Contacto Exitoso"><i class="ph-bold ph-check"></i> EXITOSO</button>
                                 </div>
                                 <div id="success-input-${c.id}" class="hidden animate-fadeIn">
                                     <input type="text" id="comment-success-${c.id}" placeholder="¿Qué acordaron?" class="w-full text-xs bg-white dark:bg-black border border-green-500/30 rounded px-2 py-1 mb-2 focus:outline-none focus:border-green-500">
@@ -938,9 +944,11 @@
                                 </div>
                             </div>
 
-                            <div class="flex gap-2">
-                                <button onclick="window.app.resolve('${c.id}')" class="flex-1 py-2 bg-green-500 text-white font-bold text-xs uppercase rounded-lg hover:bg-green-600 shadow-lg shadow-green-500/20">RESOLVER</button>
-                                <button onclick="window.app.release('${c.id}')" class="px-3 py-2 border border-gray-200 dark:border-zinc-700 text-gray-400 hover:text-red-500 rounded-lg" title="Soltar caso"><i class="ph-bold ph-hand-palm"></i></button>
+                            <!-- Closing Controls -->
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="window.app.resolve('${c.id}', 'solved')" class="col-span-2 md:col-span-1 py-2 bg-green-500 text-white font-bold text-xs uppercase rounded-lg hover:bg-green-600 shadow-lg shadow-green-500/20">RESUELTO</button>
+                                <button onclick="window.app.resolve('${c.id}', 'unresponsive')" class="col-span-2 md:col-span-1 py-2 bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 font-bold text-xs uppercase rounded-lg hover:bg-gray-300 dark:hover:bg-zinc-700">CERRAR (NO CONTESTA)</button>
+                                <button onclick="window.app.release('${c.id}')" class="col-span-2 py-1.5 border border-dashed border-gray-300 dark:border-zinc-700 text-[10px] text-gray-400 hover:text-red-500 rounded-lg" title="Soltar caso">Liberar Caso</button>
                             </div>
                         `;
                     } else {
@@ -957,6 +965,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <span class="text-${statusColor}-500 bg-${statusColor}-100 dark:bg-${statusColor}-900/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${c.status === 'unassigned' ? 'badge-pulse' : ''}">${statusLabel}</span>
+                                ${attempts > 0 ? `<span class="bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-bold" title="Intentos fallidos"><i class="ph-bold ph-phone-slash"></i> ${attempts}</span>` : ''}
                                 <span class="text-[10px] font-mono text-gray-400">${timeAgo(c.updatedAt || c.createdAt)}</span>
                             </div>
                             <i class="${typeIcon} ${typeColor} text-lg opacity-50"></i>
