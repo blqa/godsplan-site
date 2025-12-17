@@ -1,1 +1,281 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLQA | The Architect</title>
+    
+    <!-- LIBRERIAS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    },
+                    colors: { 
+                        brand: '#E70000', 
+                        dark: '#050505' 
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.8s ease-out forwards',
+                        'typewriter': 'blink 1s step-end infinite'
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        blink: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #050505; color: white; overflow-x: hidden; }
+        
+        /* Efecto Ruido de Fondo */
+        .bg-noise {
+            position: fixed; inset: 0; opacity: 0.04; pointer-events: none; z-index: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
 
+        /* Enlaces de Navegación */
+        .nav-link { 
+            position: relative; color: #71717a; font-size: 0.75rem; font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 0.1em; transition: 0.3s;
+        }
+        .nav-link:hover, .nav-link.active { color: white; }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: -4px; left: 0; width: 0%; height: 1px;
+            background: #E70000; transition: 0.3s;
+        }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+
+        /* Tarjetas de Proyecto */
+        .project-card {
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .project-card:hover {
+            border-color: #E70000; transform: translateY(-5px);
+            background: rgba(231,0,0,0.02);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen relative selection:bg-brand selection:text-white">
+
+    <div class="bg-noise"></div>
+
+    <!-- NAVEGACIÓN BLQA -->
+    <nav class="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            
+            <!-- Logo Personal -->
+            <a href="/blqa/" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 bg-white text-black flex items-center justify-center font-black text-xl rounded-sm group-hover:bg-brand group-hover:text-white transition-colors">
+                    B.
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold tracking-tight text-sm">BLQA ARCHITECT</span>
+                    <span class="text-[10px] text-zinc-500 font-mono">EST. 2024</span>
+                </div>
+            </a>
+
+            <!-- Menú Interno (Desktop) -->
+            <div class="hidden md:flex gap-8 items-center">
+                <a href="#about" class="nav-link active">Manifiesto</a>
+                <a href="#stack" class="nav-link">Tecnología</a>
+                <a href="#projects" class="nav-link">Despliegues</a>
+            </div>
+
+            <!-- Salida al Portal -->
+            <a href="/" class="text-[10px] font-bold text-zinc-500 hover:text-white border border-zinc-800 hover:border-white/50 px-4 py-2 rounded-full transition-all flex items-center gap-2 group">
+                <i class="ph-bold ph-squares-four group-hover:text-brand transition-colors"></i> 
+                <span>PORTAL</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-grow pt-32 px-6 relative z-10 max-w-7xl mx-auto w-full">
+
+        <!-- SECTION: HERO (About) -->
+        <section id="about" class="min-h-[60vh] flex flex-col justify-center mb-24 animate-fade-in">
+            <div class="flex items-center gap-2 mb-6">
+                <span class="w-2 h-2 bg-brand rounded-full animate-pulse"></span>
+                <span class="text-brand font-mono text-xs tracking-widest uppercase">System Online</span>
+            </div>
+            
+            <h1 class="text-5xl md:text-8xl font-black leading-[0.9] tracking-tighter mb-8">
+                ORDEN <span class="text-zinc-700">&</span><br>
+                ESTRUCTURA.
+            </h1>
+            
+            <div class="grid md:grid-cols-3 gap-12 border-t border-white/10 pt-8">
+                <div class="md:col-span-2">
+                    <p class="text-xl md:text-2xl text-zinc-400 leading-relaxed font-light">
+                        Soy el arquitecto detrás de <strong class="text-white">God's Plan</strong>. Mi misión es transformar el caos de datos en sistemas visuales, funcionales y estéticamente perfectos.
+                    </p>
+                </div>
+                <div class="font-mono text-xs text-zinc-500 space-y-2">
+                    <p>UBICACIÓN: <span class="text-white">CDMX, MX</span></p>
+                    <p>ROL: <span class="text-white">FULL STACK DEVELOPER</span></p>
+                    <p>ID: <span class="text-white">17620</span></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: STACK -->
+        <section id="stack" class="mb-32">
+            <h2 class="text-xs font-bold text-zinc-600 tracking-widest uppercase mb-8 border-b border-white/5 pb-2">Núcleo Tecnológico</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Tech Item -->
+                <div class="p-6 bg-white/5 rounded-lg border border-white/5 hover:border-brand/50 transition-colors group">
+                    <i class="ph-fill ph-fire text-3xl text-zinc-500 group-hover:text-orange-500 mb-3 transition-colors"></i>
+                    <h3 class="font-bold">Firebase</h3>
+                    <p class="text-xs text-zinc-500 mt-1">Backend & Auth</p>
+                </div>
+                <!-- Tech Item -->
+                <div class="p-6 bg-white/5 rounded-lg border border-white/5 hover:border-brand/50 transition-colors group">
+                    <i class="ph-fill ph-paint-brush text-3xl text-zinc-500 group-hover:text-cyan-400 mb-3 transition-colors"></i>
+                    <h3 class="font-bold">Tailwind</h3>
+                    <p class="text-xs text-zinc-500 mt-1">Styling Engine</p>
+                </div>
+                <!-- Tech Item -->
+                <div class="p-6 bg-white/5 rounded-lg border border-white/5 hover:border-brand/50 transition-colors group">
+                    <i class="ph-fill ph-code text-3xl text-zinc-500 group-hover:text-yellow-400 mb-3 transition-colors"></i>
+                    <h3 class="font-bold">JavaScript</h3>
+                    <p class="text-xs text-zinc-500 mt-1">Logic Core</p>
+                </div>
+                <!-- Tech Item -->
+                <div class="p-6 bg-white/5 rounded-lg border border-white/5 hover:border-brand/50 transition-colors group">
+                    <i class="ph-fill ph-github-logo text-3xl text-zinc-500 group-hover:text-white mb-3 transition-colors"></i>
+                    <h3 class="font-bold">GitHub</h3>
+                    <p class="text-xs text-zinc-500 mt-1">Version Control</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: PROJECTS -->
+        <section id="projects" class="mb-32">
+            <div class="flex justify-between items-end mb-12 border-b border-white/5 pb-4">
+                <h2 class="text-4xl font-black tracking-tight">DESPLIEGUES ACTIVOS</h2>
+                <span class="font-mono text-xs text-brand animate-pulse">LIVE SYSTEM</span>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                
+                <!-- PROYECTO 1: CORPODATOS -->
+                <article class="project-card group rounded-2xl overflow-hidden cursor-pointer relative" onclick="window.location.href='/corpo/adherencia.html'">
+                    <div class="aspect-video bg-zinc-900 relative overflow-hidden">
+                        <!-- Mockup Visual -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+                        <div class="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 transition-opacity group-hover:scale-105 duration-700">
+                            <i class="ph-duotone ph-buildings text-9xl text-white"></i>
+                        </div>
+                        <div class="absolute top-4 right-4 z-20">
+                            <span class="bg-brand text-white text-[10px] font-bold px-3 py-1 rounded-full">PROD</span>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-1 group-hover:text-brand transition-colors">CorpoDatos</h3>
+                                <p class="text-xs font-mono text-zinc-500">HERRAMIENTAS OPERATIVAS</p>
+                            </div>
+                            <i class="ph-bold ph-arrow-up-right text-2xl text-zinc-600 group-hover:text-white transition-colors"></i>
+                        </div>
+                        <p class="text-zinc-400 text-sm leading-relaxed mb-6">
+                            Suite completa para gestión de adherencia, cálculo de nómina y chat en tiempo real.
+                        </p>
+                        <div class="flex gap-2">
+                            <span class="text-[10px] font-bold border border-white/10 px-2 py-1 rounded text-zinc-500">JS</span>
+                            <span class="text-[10px] font-bold border border-white/10 px-2 py-1 rounded text-zinc-500">Firestore</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- PROYECTO 2: GODS PLAN AUTH -->
+                <article class="project-card group rounded-2xl overflow-hidden cursor-pointer relative">
+                    <div class="aspect-video bg-zinc-900 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+                        <div class="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 transition-opacity group-hover:scale-105 duration-700">
+                            <i class="ph-duotone ph-shield-check text-9xl text-white"></i>
+                        </div>
+                        <div class="absolute top-4 right-4 z-20">
+                            <span class="bg-white text-black text-[10px] font-bold px-3 py-1 rounded-full">v2.0</span>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-1 group-hover:text-brand transition-colors">God's Plan Auth</h3>
+                                <p class="text-xs font-mono text-zinc-500">SEGURIDAD CENTRALIZADA</p>
+                            </div>
+                            <i class="ph-bold ph-lock-key text-2xl text-zinc-600 group-hover:text-white transition-colors"></i>
+                        </div>
+                        <p class="text-zinc-400 text-sm leading-relaxed mb-6">
+                            Sistema de autenticación unificado con conversión inteligente de IDs y protección de rutas.
+                        </p>
+                        <div class="flex gap-2">
+                            <span class="text-[10px] font-bold border border-white/10 px-2 py-1 rounded text-zinc-500">Auth</span>
+                            <span class="text-[10px] font-bold border border-white/10 px-2 py-1 rounded text-zinc-500">Security</span>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-white/5 py-12 bg-black relative z-10">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left">
+                <h4 class="font-black text-xl mb-1">GOD'S PLAN</h4>
+                <p class="text-xs text-zinc-500">Arquitectura Digital por BLQA.</p>
+            </div>
+            <div class="flex gap-6">
+                <a href="#" class="text-zinc-500 hover:text-brand transition-colors"><i class="ph-fill ph-github-logo text-2xl"></i></a>
+                <a href="#" class="text-zinc-500 hover:text-brand transition-colors"><i class="ph-fill ph-linkedin-logo text-2xl"></i></a>
+                <a href="mailto:17620@godsplan.site" class="text-zinc-500 hover:text-brand transition-colors"><i class="ph-fill ph-envelope-simple text-2xl"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- LOGICA DE SESIÓN (PROTECCIÓN) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // TUS CREDENCIALES (Las mismas del index.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
+            authDomain: "godsplan-blqa.firebaseapp.com",
+            projectId: "godsplan-blqa",
+            storageBucket: "godsplan-blqa.firebasestorage.app",
+            messagingSenderId: "1008783768310",
+            appId: "1:1008783768310:web:c09fe541a2f4d23e5b8ad7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Verificar sesión. Si no hay, devolver al portal.
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                // Descomenta la siguiente línea para activar la protección real
+                // window.location.href = '/';
+            } else {
+                console.log("Acceso autorizado para:", user.email);
+            }
+        });
+    </script>
+
+</body>
+</html>
