@@ -1,1 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CorpoDatos | Operations Hub</title>
+    
+    <!-- LIBRERIAS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    },
+                    colors: { 
+                        brand: '#E70000', 
+                        dark: '#050505',
+                        panel: '#101010'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #050505; color: white; }
+        
+        /* Grid del Fondo */
+        .bg-grid {
+            position: fixed; inset: 0; z-index: -1;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            mask-image: radial-gradient(circle at center, black 60%, transparent 100%);
+        }
 
+        /* Tarjeta de Herramienta */
+        .tool-card {
+            background: #101010; border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s ease-out; position: relative; overflow: hidden;
+        }
+        .tool-card:hover {
+            border-color: #E70000; transform: translateY(-4px);
+            background: #151515;
+            box-shadow: 0 10px 30px -10px rgba(231,0,0,0.2);
+        }
+        .tool-card::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 2px; height: 100%;
+            background: #E70000; opacity: 0; transition: 0.2s;
+        }
+        .tool-card:hover::after { opacity: 1; }
+
+        /* Badge de Estado */
+        .status-dot {
+            width: 8px; height: 8px; background: #10b981; border-radius: 50%;
+            box-shadow: 0 0 10px #10b981; animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-8">
+
+    <div class="bg-grid"></div>
+
+    <!-- HEADER OPERATIVO -->
+    <header class="flex justify-between items-center mb-8 pb-6 border-b border-white/5">
+        <div class="flex items-center gap-4">
+            <a href="/" class="w-10 h-10 bg-brand/10 border border-brand/20 flex items-center justify-center rounded hover:bg-brand hover:text-white transition-colors">
+                <i class="ph-bold ph-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
+                    CORPODATOS <span class="text-xs bg-white/10 px-2 py-0.5 rounded text-zinc-400 font-mono">HUB v2.0</span>
+                </h1>
+                <p class="text-xs text-zinc-500 font-mono tracking-wider">SISTEMA DE GESTIÓN OPERATIVA</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
+            <div class="status-dot"></div>
+            <span class="text-xs font-bold text-zinc-300">SISTEMAS ONLINE</span>
+        </div>
+    </header>
+
+    <!-- GRID DE HERRAMIENTAS -->
+    <main class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto w-full">
+
+        <!-- 1. ADHERENCIA -->
+        <a href="adherencia.html" class="tool-card rounded-xl p-6 group flex flex-col justify-between h-48">
+            <div class="flex justify-between items-start">
+                <div class="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-500 group-hover:text-white group-hover:bg-blue-600 transition-colors">
+                    <i class="ph-fill ph-clock text-2xl"></i>
+                </div>
+                <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold mb-1 group-hover:text-blue-400 transition-colors">Adherencia</h3>
+                <p class="text-xs text-zinc-500 font-mono">CONTROL DE HORARIOS & ASISTENCIA</p>
+            </div>
+        </a>
+
+        <!-- 2. FINANZAS -->
+        <a href="finanzas.html" class="tool-card rounded-xl p-6 group flex flex-col justify-between h-48">
+            <div class="flex justify-between items-start">
+                <div class="w-12 h-12 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500 group-hover:text-white group-hover:bg-emerald-600 transition-colors">
+                    <i class="ph-fill ph-currency-dollar text-2xl"></i>
+                </div>
+                <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold mb-1 group-hover:text-emerald-400 transition-colors">Finanzas</h3>
+                <p class="text-xs text-zinc-500 font-mono">NÓMINA, GASTOS & PROYECCIÓN</p>
+            </div>
+        </a>
+
+        <!-- 3. CHAT INTERNO -->
+        <a href="chat.html" class="tool-card rounded-xl p-6 group flex flex-col justify-between h-48">
+            <div class="flex justify-between items-start">
+                <div class="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-500 group-hover:text-white group-hover:bg-purple-600 transition-colors">
+                    <i class="ph-fill ph-chats-circle text-2xl"></i>
+                </div>
+                <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold mb-1 group-hover:text-purple-400 transition-colors">Comunicaciones</h3>
+                <p class="text-xs text-zinc-500 font-mono">CHAT ENCRIPTADO & AVISOS</p>
+            </div>
+        </a>
+
+        <!-- 4. CASOS (TICKETS) -->
+        <a href="casos.html" class="tool-card rounded-xl p-6 group flex flex-col justify-between h-48">
+            <div class="flex justify-between items-start">
+                <div class="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center text-orange-500 group-hover:text-white group-hover:bg-orange-600 transition-colors">
+                    <i class="ph-fill ph-clipboard-text text-2xl"></i>
+                </div>
+                <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold mb-1 group-hover:text-orange-400 transition-colors">Gestión de Casos</h3>
+                <p class="text-xs text-zinc-500 font-mono">TICKETS & SEGUIMIENTO</p>
+            </div>
+        </a>
+
+        <!-- 5. MI CUENTA -->
+        <a href="cuenta.html" class="tool-card rounded-xl p-6 group flex flex-col justify-between h-48">
+            <div class="flex justify-between items-start">
+                <div class="w-12 h-12 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-400 group-hover:text-white group-hover:bg-zinc-700 transition-colors">
+                    <i class="ph-fill ph-user-gear text-2xl"></i>
+                </div>
+                <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold mb-1 group-hover:text-white transition-colors">Configuración</h3>
+                <p class="text-xs text-zinc-500 font-mono">PERFIL & AJUSTES</p>
+            </div>
+        </a>
+
+        <!-- 6. GUÍA / DOCUMENTACIÓN -->
+        <a href="guia.html" class="tool-card rounded-xl p-6 group flex flex-col justify-between h-48 opacity-50 hover:opacity-100 transition-opacity">
+            <div class="flex justify-between items-start">
+                <div class="w-12 h-12 bg-transparent border border-white/10 rounded-lg flex items-center justify-center text-zinc-500 group-hover:text-white group-hover:border-white transition-colors">
+                    <i class="ph-bold ph-book-bookmark text-2xl"></i>
+                </div>
+                <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold mb-1 group-hover:text-white transition-colors">Manual de Usuario</h3>
+                <p class="text-xs text-zinc-500 font-mono">DOCUMENTACIÓN</p>
+            </div>
+        </a>
+
+    </main>
+
+    <footer class="mt-8 pt-6 border-t border-white/5 text-center text-[10px] text-zinc-600 font-mono uppercase">
+        CorpoDatos Suite v2.0 • God's Plan Ecosystem
+    </footer>
+</body>
+</html>
