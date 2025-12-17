@@ -19,6 +19,9 @@
                     colors: {
                         dark: { 900: '#050505', 800: '#0a0a0a', 700: '#121212', card: '#18181b' },
                         brand: { 500: '#ef4444', 600: '#dc2626' }
+                    },
+                    animation: {
+                        'bounce-short': 'bounce 0.5s ease-in-out 1'
                     }
                 }
             }
@@ -26,6 +29,7 @@
     </script>
 
     <style>
+        /* ESTILOS DE TEMA */
         :root {
             --bg: #050505; --card: #121212; --text: #e5e5e5; --text-mute: #737373;
             --brand: #ef4444; --brand-glow: rgba(239, 68, 68, 0.3); --border: #27272a; --input-bg: #18181b;
@@ -108,7 +112,9 @@
             <a href="/corpo/index.html" class="g-link">HUB</a>
             <a href="/corpo/adherencia.html" class="g-link">ADHERENCIA</a>
             <a href="#" class="g-link active">CHAT</a>
-            <a href="/corpo/finanzas.html" class="g-link">FINANZAS</a>
+            <!-- ACTUALIZADO: ENLACE A BLQA -->
+            <a href="/blqa/finanzas.html" class="g-link">FINANZAS (BIO)</a>
+            <a href="/corpo/cuenta.html" class="g-link">CUENTA</a>
         </div>
     </nav>
 
@@ -165,7 +171,8 @@
     <!-- FIREBASE MODULAR -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // ✅ [FIX]: Importamos setPersistence y browserLocalPersistence
+        import { getAuth, onAuthStateChanged, signOut, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // CONFIGURACIÓN OFICIAL
@@ -181,6 +188,9 @@
         const fbApp = initializeApp(firebaseConfig);
         const auth = getAuth(fbApp);
         const db = getFirestore(fbApp);
+
+        // ✅ ACTIVAR PERSISTENCIA LOCAL (Fix para móviles)
+        setPersistence(auth, browserLocalPersistence).catch(console.error);
 
         // RUTA ESTRICTA SEGÚN REGLA 1
         const CHAT_PATH = '/artifacts/godsplan/public/data/chat_pro';
