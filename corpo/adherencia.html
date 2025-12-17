@@ -196,6 +196,12 @@
                 <div class="flex flex-col items-center">
                     <div class="text-[0.7rem] uppercase tracking-widest text-text-mute font-extrabold mb-1.5" id="clockStatus">TURNO ACTIVO</div>
                     <div class="text-[clamp(2.5rem,12vw,4rem)] font-extrabold text-text tabular-nums leading-none" id="clockDisplay">00:00</div>
+                    
+                    <!-- HORA DE ENTRADA AGREGADA AQUÍ -->
+                    <div id="shiftStartTime" class="text-[0.7rem] text-text-mute font-bold mt-1.5 uppercase tracking-wide opacity-80" style="display:none;">
+                        ENTRADA: --:--
+                    </div>
+
                     <div id="networkTimeBadge" class="text-[0.65rem] text-money font-bold mt-1.5 opacity-0 transition-opacity duration-500">
                         <i class="ph-bold ph-globe"></i> Local
                     </div>
@@ -633,6 +639,9 @@
                 const btnFood = `${btnBase} bg-bg text-text-mute border border-border`;
                 const btnPause = `${btnBase} col-span-2 bg-bg text-text-mute border border-border`;
 
+                // ELEMENTO HORA ENTRADA
+                const startEl = document.getElementById('shiftStartTime');
+
                 if (!s) {
                     off.style.display = 'block'; on.style.display = 'none';
                     area.innerHTML = `<button class="${btnStart}" onclick="window.app.clockIn()"><i class="ph-bold ph-play"></i> INICIAR JORNADA</button>`;
@@ -640,6 +649,7 @@
                     document.getElementById('clockStatus').textContent = "FUERA DE TURNO";
                     document.getElementById('clockStatus').classList.remove('animate-pulse-custom');
                     document.getElementById('clockStatus').classList.remove('text-warn');
+                    if(startEl) startEl.style.display = 'none';
                 } else {
                     if (!s.breaks) { s.breaks = { bathroom: 0, food: 0, pause: 0 }; this.save(); }
                     if (s.breaks.pause === undefined) s.breaks.pause = 0;
@@ -650,6 +660,12 @@
                     const bathEl = document.getElementById('clockBathContainer');
                     const foodEl = document.getElementById('clockFoodContainer');
                     
+                    // MOSTRAR HORA ENTRADA
+                    if(startEl && s.start) {
+                        startEl.textContent = `ENTRADA: ${this.getCDMXTime(s.start)}`;
+                        startEl.style.display = 'block';
+                    }
+
                     area.innerHTML = `
                         <button class="${btnBath} ${s.breakType === 'bathroom' ? 'active-bath' : ''}" onclick="window.app.toggleBreak('bathroom')"><i class="ph-bold ph-toilet"></i> BAÑO</button>
                         <button class="${btnFood} ${s.breakType === 'food' ? 'active-food' : ''}" onclick="window.app.toggleBreak('food')"><i class="ph-bold ph-hamburger"></i> COMIDA</button>
