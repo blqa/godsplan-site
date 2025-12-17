@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>God's Plan | Portal de Acceso y Principal</title>
-    <!-- Tailwind CSS -->
+    <title>God's Plan | Portal de Acceso</title>
+    
+    <!-- LIBRERIAS (Tailwind + Fuentes + Iconos) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fuentes e Iconos -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
@@ -16,9 +16,17 @@
                 extend: {
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: {
-                        brand: '#E70000', // Rojo Vivo GodsPlan
+                        brand: '#E70000', 
                         dark: '#050505',
-                        glass: 'rgba(255, 255, 255, 0.05)'
+                        card: '#121212'
+                    },
+                    animation: {
+                        'float': 'float 10s infinite ease-in-out',
+                        'fade-in': 'fadeIn 0.5s ease-out'
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translate(0, 0)' }, '50%': { transform: 'translate(20px, -20px)' } },
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
                     }
                 }
             }
@@ -26,494 +34,246 @@
     </script>
 
     <style>
-        body { 
-            background-color: #050505; 
-            color: white; 
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden; /* Prevenir scroll horizontal por las orbes */
-        } 
-
+        body { background-color: #050505; color: white; overflow-x: hidden; }
+        
         /* Fondo Animado */
-        .bg-gradient {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-            background: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 100%);
-        }
         .bg-orb {
-            position: absolute; 
-            width: 150vmax; /* Reducido un poco para mejor performance */
-            height: 150vmax; 
-            background: radial-gradient(circle, rgba(231, 0, 0, 0.15) 0%, rgba(0,0,0,0) 70%);
-            border-radius: 50%; pointer-events: none;
-            animation: float 10s infinite ease-in-out;
-            box-shadow: 0 0 100px rgba(231, 0, 0, 0.2); 
-        }
-        @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -30px); } }
-
-        /* Tarjeta de Acceso (Login) */
-        .card-auth {
-            background: rgba(10, 10, 10, 0.6);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(231, 0, 0, 0.3);
-            box-shadow: 0 0 50px rgba(231, 0, 0, 0.15);
-            transition: transform 0.3s ease, opacity 0.3s ease;
+            position: fixed; width: 100vmax; height: 100vmax;
+            background: radial-gradient(circle, rgba(231, 0, 0, 0.1) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%; pointer-events: none; z-index: -1;
+            animation: float 15s infinite ease-in-out;
         }
 
-        /* Paneles de Características (Nuevo) */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
+        /* Input Estilizado */
+        .input-god {
+            background: rgba(255,255,255,0.03); border: 1px solid #333; color: white;
+            transition: all 0.3s; width: 100%; padding: 12px 16px; border-radius: 12px;
+            font-size: 1rem;
         }
-        .glass-panel:hover {
-            background: rgba(255, 255, 255, 0.07);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-        }
+        .input-god:focus { border-color: #E70000; outline: none; box-shadow: 0 0 0 2px rgba(231,0,0,0.1); background: rgba(231,0,0,0.05); }
 
-        /* Inputs */
-        .input-group { position: relative; margin-bottom: 1.5rem; }
-        .input-style {
-            background-color: rgba(255, 255, 255, 0.03);
-            border: 1px solid #333;
-            color: white;
-            transition: all 0.3s;
-            padding-left: 1rem; 
+        /* Tarjetas del Portal */
+        .portal-card {
+            background: rgba(20,20,20,0.6); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.05); border-radius: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer; position: relative; overflow: hidden;
         }
-        .input-style:focus {
-            border-color: #E70000;
-            background-color: rgba(231, 0, 0, 0.05);
-            box-shadow: 0 0 0 4px rgba(231, 0, 0, 0.1);
-            outline: none;
+        .portal-card:hover {
+            transform: translateY(-5px); border-color: rgba(231,0,0,0.3);
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
         }
-
-        /* Botones */
-        .btn-primary {
-            background: linear-gradient(135deg, #E70000 0%, #990000 100%);
-            transition: all 0.3s;
+        /* Efecto Glow Mouse */
+        .portal-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.06), transparent 40%);
+            opacity: 0; transition: opacity 0.5s; pointer-events: none;
         }
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 5px 10px rgba(231, 0, 0, 0.3);
-        }
-        .text-gradient {
-            background: linear-gradient(to right, #ff4444, #E70000);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Enlaces del Nav */
-        .nav-link {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #71717a;
-            transition: color 0.2s;
-        }
-        .nav-link:hover { color: white; }
-        .nav-link.active { color: white; border-bottom: 2px solid white; padding-bottom: 2px; }
+        .portal-card:hover::before { opacity: 1; }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex items-center justify-center p-6 relative">
 
-    <div class="bg-gradient">
-        <div class="bg-orb" style="top: -50vmax; left: -50vmax;"></div>
-        <div class="bg-orb" style="bottom: -50vmax; right: -50vmax; animation-delay: 5s;"></div>
-    </div>
+    <!-- ELEMENTOS DE FONDO -->
+    <div class="bg-orb" style="top: -50%; left: -20%;"></div>
+    <div class="bg-orb" style="bottom: -50%; right: -20%; animation-delay: -5s;"></div>
 
-    <!-- NAVEGACIÓN GLOBAL UNIFICADA -->
-    <header class="h-14 bg-black/80 border-b border-white/10 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-5">
-        <div class="flex items-center gap-8">
-            <a href="/" class="flex items-center gap-2 font-black tracking-wider text-white group decoration-0">
-                <i class="ph-bold ph-circles-three-plus text-lg text-white group-hover:text-red-500 transition-colors"></i> 
-                GOD'S PLAN
-            </a>
-            <!-- Links Desktop -->
-            <div class="hidden md:flex items-center gap-6">
-                <a href="/adherencia.html" class="nav-link">Adherencia</a>
-                <a href="/chat.html" class="nav-link">Chat</a>
-                <a href="/finanzas.html" class="nav-link">Finanzas</a>
-                <a href="/cuenta.html" class="nav-link">Cuenta</a>
-                <!-- NUEVO BOTÓN NAV -->
-                <a href="/guia.html" class="nav-link text-brand hover:text-red-400 flex items-center gap-1">
-                    <i class="ph-bold ph-question"></i> Ayuda
-                </a>
+    <!-- CONTENEDOR PRINCIPAL -->
+    <main class="w-full max-w-5xl relative z-10">
+
+        <!-- HEADER SIMPLE -->
+        <header class="absolute top-0 left-0 w-full flex justify-between items-center p-4 md:p-0 md:-top-24">
+            <div class="flex items-center gap-2 font-black tracking-wider text-xl">
+                <i class="ph-fill ph-circles-three-plus text-brand"></i> GOD'S PLAN
             </div>
-        </div>
-
-        <div id="auth-status-container" class="flex items-center gap-4">
-            <!-- Botón Login -->
-            <button id="show-login-btn" class="btn-primary text-white font-bold py-1.5 px-4 rounded-lg text-xs transition hidden" onclick="window.location.hash = '#login-section'">
-                <i class="ph-bold ph-sign-in mr-1"></i> Entrar
-            </button>
-            
-            <!-- User Display -->
-            <div id="user-display" class="hidden flex items-center gap-3">
-                <a href="/cuenta.html" class="flex items-center gap-2 hover:bg-white/5 p-1.5 rounded-lg transition-colors group">
-                    <span id="user-initials" class="w-6 h-6 flex items-center justify-center rounded-full bg-brand font-bold text-[10px]"></span>
-                    <span id="user-name" class="font-semibold text-xs hidden sm:block group-hover:text-brand transition-colors"></span>
-                </a>
-                <button id="logout-button" class="text-zinc-500 hover:text-white transition-colors p-1" title="Cerrar Sesión">
-                     <i class="ph-bold ph-sign-out text-lg"></i>
-                </button>
+            <div id="user-badge" class="hidden items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/10">
+                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span id="user-display" class="text-xs font-bold text-gray-300 uppercase">...</span>
+                <button onclick="window.app.logout()" class="text-zinc-500 hover:text-white ml-2"><i class="ph-bold ph-sign-out"></i></button>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <!-- Cambiado flex-grow items-center a flex-col para permitir scroll y nuevas secciones -->
-    <main class="flex-grow flex flex-col items-center w-full">
-        
-        <!-- SECCIÓN HERO + LOGIN -->
-        <div class="w-full min-h-[90vh] flex items-center justify-center p-4 relative z-10">
-            <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 w-full">
-                
-                <!-- SECCIÓN DE BIENVENIDA -->
-                <section class="flex flex-col justify-center text-center md:text-left animate-fade-in-up">
-                    <p class="text-sm font-bold tracking-[0.2em] uppercase text-brand mb-2">Ecosistema Empresarial</p>
-                    <h1 class="text-5xl lg:text-7xl font-black tracking-tighter mb-4 leading-tight">
-                        God's <span class="text-gradient">Plan</span><br>CorpoDatos
-                    </h1>
-                    <p class="text-gray-400 text-lg mb-8 max-w-md mx-auto md:mx-0">
-                        La plataforma unificada para administrar tus procesos clave: finanzas, operaciones y comunicación segura.
-                    </p>
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                        <a href="#features-section" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold py-3 px-6 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
-                            <span>Ver Características</span>
-                            <i class="ph-bold ph-arrow-down"></i>
-                        </a>
-                        <!-- Botón secundario opcional para ayuda -->
-                        <a href="/guia.html" class="text-zinc-500 hover:text-white font-semibold py-3 px-6 rounded-xl text-sm transition-all flex items-center justify-center gap-2">
-                            <i class="ph-bold ph-book-open"></i> Ver Guía
-                        </a>
+        <!-- VISTA 1: LOGIN (Se muestra si no hay sesión) -->
+        <div id="view-login" class="max-w-md mx-auto animate-fade-in hidden">
+            <div class="text-center mb-10">
+                <h1 class="text-5xl font-black mb-4 tracking-tighter">IDENTIFÍCATE</h1>
+                <p class="text-gray-400">Acceso restringido al ecosistema CorpoDatos & BLQA.</p>
+            </div>
+
+            <div class="bg-card/50 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl">
+                <form onsubmit="event.preventDefault(); window.app.login();">
+                    <div class="mb-4">
+                        <label class="text-[10px] font-bold text-brand uppercase tracking-widest mb-2 block">ID de Agente / Acceso</label>
+                        <input type="text" id="login-id" class="input-god text-center text-xl font-bold tracking-widest" placeholder="Ej: 17620" autofocus>
                     </div>
-                </section>
-                
-                <!-- SECCIÓN DE ACCESO / DASHBOARD -->
-                <section id="login-section" class="flex items-center justify-center p-4">
+                    <div class="mb-8">
+                        <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 block">Contraseña</label>
+                        <input type="password" id="login-pass" class="input-god text-center" placeholder="••••••••">
+                    </div>
                     
-                    <!-- 1. FORMULARIO DE LOGIN (Visible si no hay sesión) -->
-                    <div id="auth-card" class="card-auth rounded-2xl p-8 w-full max-w-sm">
-                        <h2 id="form-title" class="text-2xl font-bold text-white mb-6 text-center">Bienvenido</h2>
-            
-                        <form id="auth-form" onsubmit="event.preventDefault(); window.authLogic.processEmailAuth();">
-                            <div id="name-field" class="input-group mb-4 hidden">
-                                <input type="text" id="reg-name" class="input-style w-full p-3 rounded-lg" placeholder="Nombre Completo">
-                            </div>
-                            <div class="input-group mb-4">
-                                <input type="text" id="email" required class="input-style w-full p-3 rounded-lg" placeholder="ID de Empleado o Email">
-                            </div>
-                            <div class="input-group mb-6">
-                                <input type="password" id="password" required class="input-style w-full p-3 rounded-lg" placeholder="Contraseña">
-                            </div>
-                            <div id="error-message" class="text-sm text-red-500 bg-red-900/20 p-3 rounded-lg mb-4 hidden border border-red-500/20 text-center font-bold"></div>
-                            <button type="submit" id="submit-button" class="btn-primary w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase">
-                                ACCEDER
-                            </button>
-                        </form>
-
-                        <div class="relative my-6">
-                            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-800"></div></div>
-                            <div class="relative flex justify-center text-xs uppercase"><span class="bg-black px-2 text-gray-500 font-bold">O continúa con</span></div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3 mb-6">
-                            <button onclick="window.authLogic.loginGoogle()" class="bg-white hover:bg-gray-100 text-[#333] w-full font-bold p-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
-                                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
-                                <span class="text-sm">Google</span>
-                            </button>
-                            <button onclick="window.authLogic.loginGuest()" class="bg-gray-700 hover:bg-gray-600 text-gray-300 w-full font-bold p-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
-                                <i class="ph-bold ph-user-circle text-lg"></i>
-                                <span class="text-sm">Invitado</span>
-                            </button>
-                        </div>
-
-                        <div class="text-center">
-                            <button onclick="window.authLogic.toggleMode()" class="text-xs text-gray-400 hover:text-brand transition-colors font-semibold">
-                                <span id="toggle-text">¿No tienes cuenta? Regístrate aquí</span>
-                            </button>
-                        </div>
+                    <div id="error-msg" class="hidden mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs font-bold text-center">
+                        Error de credenciales
                     </div>
 
-                    <!-- 2. DASHBOARD DE ACCESO RÁPIDO (Visible si hay sesión) -->
-                    <div id="dashboard-info-card" class="card-auth rounded-2xl p-8 w-full max-w-md hidden">
-                          <div class="text-center mb-6 border-b border-white/10 pb-6">
-                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand/10 border border-brand/30 mb-4 animate-pulse">
-                                <i class="ph-fill ph-check-circle text-3xl text-brand"></i>
-                            </div>
-                            <h3 class="text-2xl font-bold text-white">Sesión Activa</h3>
-                            <p id="auth-card-user-name" class="text-gray-400 mt-1">Bienvenido al sistema.</p>
-                          </div>
-                          
-                          <div class="grid grid-cols-2 gap-3">
-                              <!-- Botones de Acceso a Apps -->
-                              <button onclick="window.location.href='/adherencia.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
-                                  <i class="ph-bold ph-clock text-2xl text-zinc-500 group-hover:text-brand"></i>
-                                  <span class="text-xs font-bold uppercase tracking-wider">Adherencia</span>
-                              </button>
-                              
-                              <button onclick="window.location.href='/chat.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
-                                  <i class="ph-bold ph-chat-circle-text text-2xl text-zinc-500 group-hover:text-brand"></i>
-                                  <span class="text-xs font-bold uppercase tracking-wider">Chat</span>
-                              </button>
-
-                              <button onclick="window.location.href='/finanzas.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
-                                  <i class="ph-bold ph-currency-dollar text-2xl text-zinc-500 group-hover:text-brand"></i>
-                                  <span class="text-xs font-bold uppercase tracking-wider">Finanzas</span>
-                              </button>
-
-                              <button onclick="window.location.href='/cuenta.html'" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-4 rounded-xl flex flex-col items-center gap-2 text-center group">
-                                  <i class="ph-bold ph-user-gear text-2xl text-zinc-500 group-hover:text-brand"></i>
-                                  <span class="text-xs font-bold uppercase tracking-wider">Mi Cuenta</span>
-                              </button>
-                              
-                              <!-- NUEVO BOTÓN DASHBOARD -->
-                              <button onclick="window.location.href='/guia.html'" class="col-span-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-brand transition-all p-3 rounded-xl flex flex-row items-center justify-center gap-3 text-center group">
-                                <i class="ph-bold ph-book-open text-xl text-zinc-500 group-hover:text-brand"></i>
-                                <span class="text-xs font-bold uppercase tracking-wider">Ver Guía y Ayuda</span>
-                            </button>
-                          </div>
-                    </div>
-                </section>
+                    <button type="submit" id="btn-login" class="w-full bg-brand hover:bg-red-600 text-white font-black py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(231,0,0,0.3)] hover:shadow-[0_0_30px_rgba(231,0,0,0.5)] active:scale-95 uppercase tracking-wider text-sm flex items-center justify-center gap-2">
+                        <span>Iniciar Sesión</span>
+                        <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                </form>
             </div>
+            <p class="text-center text-zinc-600 text-[10px] mt-6 font-mono">SECURE AUTHENTICATION v2.0</p>
         </div>
 
-        <!-- SECCIÓN 2: COMPONENTES CLAVE (AGREGADA) -->
-        <section id="features-section" class="w-full max-w-7xl mx-auto px-4 pb-24 pt-10">
-            <h2 class="text-3xl font-bold text-white mb-12 flex items-center justify-center md:justify-start gap-3">
-                <i class="ph-fill ph-check-square text-brand"></i>
-                Componentes Clave
-            </h2>
-            
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Feature Card 1: Finanzas -->
-                <div class="glass-panel p-8 rounded-2xl hover:border-brand/30 transition-colors group cursor-default h-full">
-                    <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center mb-6 group-hover:bg-brand/10 transition-colors">
-                        <i class="ph-bold ph-currency-circle-dollar text-2xl text-zinc-400 group-hover:text-brand"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-3">Inteligencia Financiera</h3>
-                    <p class="text-zinc-400 text-sm leading-relaxed">
-                        Control total sobre la gestión de nómina, gastos operativos y análisis de flujo de caja en tiempo real.
-                    </p>
-                </div>
-
-                <!-- Feature Card 2: Seguridad -->
-                <div class="glass-panel p-8 rounded-2xl hover:border-brand/30 transition-colors group cursor-default h-full">
-                    <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center mb-6 group-hover:bg-brand/10 transition-colors">
-                        <i class="ph-bold ph-shield-star text-2xl text-zinc-400 group-hover:text-brand"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-3">Seguridad Proactiva</h3>
-                    <p class="text-zinc-400 text-sm leading-relaxed">
-                        Protección de datos y comunicaciones mediante protocolos de encriptación avanzados y gestión de accesos.
-                    </p>
-                </div>
-
-                <!-- Feature Card 3: Adherencia/Tiempos -->
-                <div class="glass-panel p-8 rounded-2xl hover:border-brand/30 transition-colors group cursor-default h-full">
-                    <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center mb-6 group-hover:bg-brand/10 transition-colors">
-                        <i class="ph-bold ph-clock text-2xl text-zinc-400 group-hover:text-brand"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-3">Gestión de Tiempos</h3>
-                    <p class="text-zinc-400 text-sm leading-relaxed">
-                        Control de asistencia, horarios y adhesión a la jornada laboral de manera precisa y centralizada.
-                    </p>
-                </div>
-
-                <!-- Feature Card 4: Perfil/Cuenta -->
-                <div class="glass-panel p-8 rounded-2xl hover:border-brand/30 transition-colors group cursor-default h-full">
-                    <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center mb-6 group-hover:bg-brand/10 transition-colors">
-                        <i class="ph-bold ph-user-gear text-2xl text-zinc-400 group-hover:text-brand"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-3">Administración de Perfil</h3>
-                    <p class="text-zinc-400 text-sm leading-relaxed">
-                        Accede y administra tus datos personales, permisos de usuario y configuración de notificaciones.
-                    </p>
-                </div>
+        <!-- VISTA 2: DASHBOARD (Se muestra si hay sesión) -->
+        <div id="view-dashboard" class="hidden animate-fade-in w-full">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-5xl font-black mb-2 tracking-tight">SELECCIONA MÓDULO</h2>
+                <p class="text-gray-400">Bienvenido al núcleo operativo.</p>
             </div>
-        </section>
+
+            <div class="grid md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
+                
+                <!-- TARJETA 1: BLQA (Personal) -->
+                <div class="portal-card group h-64 flex flex-col items-center justify-center p-8 text-center" onclick="window.location.href='/blqa/'">
+                    <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border border-white/10 group-hover:border-white/30">
+                        <i class="ph-fill ph-alien text-4xl text-gray-300 group-hover:text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-white mb-2 tracking-wide group-hover:text-brand transition-colors">BLQA CORE</h3>
+                    <p class="text-sm text-gray-500 group-hover:text-gray-300">Identidad Digital, Portfolio & Legacy.</p>
+                </div>
+
+                <!-- TARJETA 2: CORPODATOS (Trabajo) -->
+                <!-- Nota: Redirige a /corpo/adherencia.html que es tu "home" de herramientas actual -->
+                <div class="portal-card group h-64 flex flex-col items-center justify-center p-8 text-center relative" onclick="window.location.href='/corpo/adherencia.html'">
+                    <!-- Badge de Notificación -->
+                    <div class="absolute top-6 right-6 flex gap-1">
+                        <span class="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
+                    </div>
+
+                    <div class="w-20 h-20 rounded-full bg-brand/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border border-brand/20 group-hover:border-brand">
+                        <i class="ph-fill ph-buildings text-4xl text-brand"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-white mb-2 tracking-wide group-hover:text-brand transition-colors">CORPODATOS</h3>
+                    <p class="text-sm text-gray-500 group-hover:text-gray-300">Adherencia, Finanzas, Chat & Casos.</p>
+                </div>
+
+            </div>
+        </div>
 
     </main>
-    
-    <!-- FOOTER -->
-    <footer class="p-6 text-center border-t border-gray-900 mt-auto bg-black z-20">
-        <p class="text-zinc-600 text-[10px] font-mono tracking-widest">
-            // Compromiso con la excelencia operativa. God's Plan SYSTEM © 2025 
-        </p>
-    </footer>
 
-    <!-- LÓGICA DE FIREBASE -->
+    <!-- LOGICA FIREBASE MODULAR -->
     <script type="module">
+        // Importamos desde CDN para que funcione en GitHub Pages sin build
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, updateProfile, signInWithCustomToken, signInAnonymously, signOut,
-            setPersistence, browserLocalPersistence 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        
-        // --- CONFIGURACIÓN DE ENTORNO ---
-        const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
-        let firebaseConfig = fallbackConfig;
-        
-        try { 
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) { 
-                const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; 
-                if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; 
-            } 
-        } catch(e) { console.error("Error cargando config:", e); }
-        
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // ==========================================
+        // ✅ TUS CREDENCIALES OFICIALES (GODSPLAN-BLQA)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
+            authDomain: "godsplan-blqa.firebaseapp.com",
+            projectId: "godsplan-blqa",
+            storageBucket: "godsplan-blqa.firebasestorage.app",
+            messagingSenderId: "1008783768310",
+            appId: "1:1008783768310:web:c09fe541a2f4d23e5b8ad7"
+        };
+
         // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         
-        // ** SOLUCIÓN CLAVE SSO: Persistencia Local (funciona entre directorios) **
+        // Persistencia Local (Mantiene la sesión entre pestañas)
         setPersistence(auth, browserLocalPersistence).catch(console.error);
-        
-        // Elementos de la UI
-        const authCard = document.getElementById('auth-card');
-        const dashboardInfoCard = document.getElementById('dashboard-info-card');
-        const showLoginBtn = document.getElementById('show-login-btn');
-        const userDisplay = document.getElementById('user-display');
-        const userInitialsEl = document.getElementById('user-initials');
-        const userNameEl = document.getElementById('user-name');
-        const authCardUserNameEl = document.getElementById('auth-card-user-name');
-        
-        window.authLogic = {
-            mode: 'login',
-            
-            toggleMode: function() {
-                this.mode = this.mode === 'login' ? 'register' : 'login';
-                const isReg = this.mode === 'register';
-                
-                document.getElementById('form-title').textContent = isReg ? 'Crear Cuenta' : 'Bienvenido';
-                document.getElementById('submit-button').textContent = isReg ? 'REGISTRARME' : 'ACCEDER';
-                document.getElementById('toggle-text').textContent = isReg ? '¿Ya tienes cuenta? Inicia Sesión' : '¿No tienes cuenta? Regístrate aquí';
-                document.getElementById('name-field').classList.toggle('hidden', !isReg);
-                document.getElementById('error-message').classList.add('hidden');
-            },
 
-            showError: function(msg) {
-                const errEl = document.getElementById('error-message');
-                errEl.textContent = msg;
-                errEl.classList.remove('hidden');
-                document.getElementById('submit-button').disabled = false;
-                document.getElementById('submit-button').innerHTML = this.mode === 'login' ? 'ACCEDER' : 'REGISTRARME';
-            },
+        window.app = {
+            user: null,
 
-            // Login con Email/ID
-            processEmailAuth: async function() {
-                const btn = document.getElementById('submit-button');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> PROCESANDO...';
-                document.getElementById('error-message').classList.add('hidden');
+            init() {
+                // Escuchar cambios de sesión
+                onAuthStateChanged(auth, (user) => {
+                    this.user = user;
+                    this.render();
+                });
 
-                let inputVal = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value;
-
-                if (!inputVal.includes('@')) {
-                    inputVal = `${inputVal}@godsplan.site`;
-                }
-
-                try {
-                    await setPersistence(auth, browserLocalPersistence);
-                    if (this.mode === 'login') {
-                        await signInWithEmailAndPassword(auth, inputVal, password);
-                    } else {
-                        const name = document.getElementById('reg-name').value;
-                        const userCredential = await createUserWithEmailAndPassword(auth, inputVal, password);
-                        if (name) await updateProfile(userCredential.user, { displayName: name });
+                // Efecto visual para las tarjetas (Glow del mouse)
+                document.querySelectorAll('.portal-card').forEach(card => {
+                    card.onmousemove = e => {
+                        const rect = card.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        card.style.setProperty('--mouse-x', `${x}px`);
+                        card.style.setProperty('--mouse-y', `${y}px`);
                     }
-                } catch (error) {
-                    console.error("Auth Error:", error);
-                    let msg = "Error desconocido.";
-                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') msg = "Credenciales incorrectas.";
-                    if (error.code === 'auth/email-already-in-use') msg = "Este ID/Email ya está registrado.";
-                    if (error.code === 'auth/weak-password') msg = "La contraseña es muy débil.";
-                    if (error.code === 'auth/invalid-email') msg = "Formato de ID/Email inválido.";
-                    this.showError(msg);
+                });
+            },
+
+            render() {
+                const loginView = document.getElementById('view-login');
+                const dashView = document.getElementById('view-dashboard');
+                const badge = document.getElementById('user-badge');
+
+                if (this.user) {
+                    // SI HAY SESIÓN -> DASHBOARD
+                    loginView.classList.add('hidden');
+                    dashView.classList.remove('hidden');
+                    badge.classList.remove('hidden');
+                    badge.classList.add('flex');
+                    document.getElementById('user-display').textContent = this.user.email.split('@')[0];
+                } else {
+                    // NO HAY SESIÓN -> LOGIN
+                    loginView.classList.remove('hidden');
+                    dashView.classList.add('hidden');
+                    badge.classList.add('hidden');
+                    badge.classList.remove('flex');
                 }
             },
 
-            // Login con Google
-            loginGoogle: async function() {
+            async login() {
+                const btn = document.getElementById('btn-login');
+                const errMsg = document.getElementById('error-msg');
+                let id = document.getElementById('login-id').value.trim();
+                const pass = document.getElementById('login-pass').value;
+
+                if (!id || !pass) return;
+
+                // --- MAGIA: CONVERTIR ID A EMAIL ---
+                // Si el usuario escribe solo "17620", lo convertimos
+                if (!id.includes('@')) {
+                    id = `${id}@godsplan.site`;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> VERIFICANDO...';
+                errMsg.classList.add('hidden');
+
                 try {
-                    await setPersistence(auth, browserLocalPersistence);
-                    const provider = new GoogleAuthProvider();
-                    await signInWithPopup(auth, provider);
+                    await signInWithEmailAndPassword(auth, id, pass);
+                    // El onAuthStateChanged se encargará de cambiar la vista automáticamente
                 } catch (error) {
-                    this.showError("Error con Google: " + error.message);
+                    console.error(error);
+                    errMsg.classList.remove('hidden');
+                    errMsg.textContent = this.mapError(error.code);
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>Intentar de Nuevo</span> <i class="ph-bold ph-arrow-right"></i>';
                 }
             },
 
-            // Login Invitado
-            loginGuest: async function() {
-                try {
-                    await setPersistence(auth, browserLocalPersistence);
-                    await signInAnonymously(auth);
-                } catch (error) {
-                    this.showError("Error invitado: " + error.message);
-                }
+            logout() {
+                signOut(auth);
             },
 
-            // Logout
-            logout: async function() {
-                 try {
-                    await signOut(auth);
-                    window.location.reload(); 
-                } catch (error) {
-                    console.error("Error al cerrar sesión:", error);
-                }
+            mapError(code) {
+                if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') 
+                    return "Credenciales incorrectas";
+                if (code === 'auth/too-many-requests') return "Demasiados intentos. Espera un momento.";
+                return "Error de acceso: " + code;
             }
         };
 
-        // Autenticación inicial (para manejo de token de Canvas)
-        async function handleInitialAuth() {
-            const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            if (initialToken) {
-                try {
-                    await signInWithCustomToken(auth, initialToken);
-                } catch (error) {}
-            }
-        }
-        handleInitialAuth();
-        
-        document.getElementById('logout-button').onclick = window.authLogic.logout;
-        document.getElementById('show-login-btn').onclick = () => {
-             authCard.classList.remove('hidden');
-             dashboardInfoCard.classList.add('hidden');
-             window.location.hash = '#login-section'; 
-        };
-
-        // Listener de Estado: Actualiza la UI
-        onAuthStateChanged(auth, (user) => {
-            if (user && !user.isAnonymous) {
-                // Usuario autenticado
-                const displayName = user.displayName || user.email?.split('@')[0] || 'Usuario';
-                const initial = displayName.charAt(0).toUpperCase();
-
-                // 1. Header UI
-                showLoginBtn.classList.add('hidden');
-                userDisplay.classList.remove('hidden');
-                userInitialsEl.textContent = initial;
-                userNameEl.textContent = displayName;
-
-                // 2. Auth Card UI
-                authCard.classList.add('hidden');
-                dashboardInfoCard.classList.remove('hidden');
-                authCardUserNameEl.textContent = `Bienvenido de vuelta, ${displayName}.`;
-            } else {
-                // Usuario no autenticado (o Anónimo)
-                
-                // 1. Header UI
-                showLoginBtn.classList.remove('hidden');
-                userDisplay.classList.add('hidden');
-                
-                // 2. Auth Card UI
-                authCard.classList.remove('hidden');
-                dashboardInfoCard.classList.add('hidden');
-            }
-        });
+        // Arrancar
+        window.app.init();
     </script>
 </body>
 </html>
