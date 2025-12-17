@@ -46,7 +46,7 @@
         ::-webkit-scrollbar-thumb { background: #52525b; border-radius: 3px; }
         .dark ::-webkit-scrollbar-thumb { background: #3f3f46; }
         
-        /* Scrollbar interna para logs (Más fina) */
+        /* Scrollbar interna para logs */
         .log-scroll::-webkit-scrollbar { width: 4px; }
         .log-scroll::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 2px; }
         .dark .log-scroll::-webkit-scrollbar-thumb { background: #27272a; }
@@ -59,19 +59,17 @@
         .action-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .action-btn:active { transform: scale(0.95); }
         
-        /* Animaciones de estado */
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
         .badge-pulse { animation: pulse-soft 2s infinite; }
         @keyframes pulse-soft { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
-        /* Estilos para pestañas del modal (God's Plan) */
         .tab-active { border-bottom-color: #E70000; color: #E70000; background-color: rgba(231, 0, 0, 0.05); }
         .tab-inactive { border-bottom-color: transparent; color: #9ca3af; }
         .dark .tab-inactive { color: #52525b; }
 
-        /* NAV GLOBAL STYLES */
+        /* NAV GLOBAL */
         #global-nav { height: 56px; background: #000000; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 50; }
         .g-logo { color: #fff; font-weight: 900; text-decoration: none; font-size: 1rem; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
         .g-links { display: flex; align-items: center; gap: 20px; }
@@ -90,7 +88,6 @@
             <a href="/corpo/index.html" class="g-link">HUB</a>
             <a href="/corpo/adherencia.html" class="g-link">ADHERENCIA</a>
             <a href="/corpo/chat.html" class="g-link">CHAT</a>
-            <!-- MOVIDO A BLQA -->
             <a href="/blqa/finanzas.html" class="g-link">FINANZAS (BIO)</a>
             <a href="/corpo/cuenta.html" class="g-link">CUENTA</a>
         </div>
@@ -105,35 +102,35 @@
                     <div class="w-8 h-8 bg-brand rounded flex items-center justify-center shadow-lg shadow-brand/20 group-hover:scale-105 transition-transform">
                         <i class="ph-bold ph-strategy text-white"></i>
                     </div>
-                    <span class="text-white tracking-tight">CASOS</span>
+                    <span class="dark:text-white text-gray-900 tracking-tight">CASOS</span>
                 </div>
                 <!-- Estadísticas rápidas -->
                 <div class="hidden lg:flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                    <div class="px-2 py-1 rounded bg-red-900/20 text-red-400">
+                    <div class="px-2 py-1 rounded bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400">
                         <span id="stat-unassigned">0</span> Libres
                     </div>
-                    <div class="px-2 py-1 rounded bg-yellow-900/20 text-yellow-400">
+                    <div class="px-2 py-1 rounded bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400">
                         <span id="stat-pending">0</span> En Proceso
                     </div>
                 </div>
             </div>
 
             <div class="flex items-center gap-3">
-                <button onclick="window.app.toggleTheme()" class="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center text-gray-300 hover:bg-zinc-700 transition-colors">
+                <button onclick="window.app.toggleTheme()" class="w-9 h-9 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors">
                     <i id="theme-icon" class="ph-bold ph-moon"></i>
                 </button>
-                <button onclick="window.app.toggleImportModal()" class="action-btn bg-white text-black hover:bg-brand hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center gap-2 shadow-lg transition-colors">
+                <button onclick="window.app.toggleImportModal()" class="action-btn bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-brand dark:hover:bg-brand hover:text-white dark:hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center gap-2 shadow-lg">
                     <i class="ph-bold ph-plus"></i> <span class="hidden sm:inline">Nuevo Caso</span>
                 </button>
-                <div id="user-pill" class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-lg border border-zinc-800 group relative cursor-pointer">
+                <div id="user-pill" class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-200 dark:bg-zinc-900 rounded-lg border border-gray-300 dark:border-zinc-800 group relative cursor-pointer">
                     <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span id="username-display" class="text-xs font-bold text-zinc-300">...</span>
+                    <span id="username-display" class="text-xs font-bold text-gray-700 dark:text-zinc-300">...</span>
                 </div>
             </div>
         </header>
 
         <!-- CONTROLS & FILTERS -->
-        <div class="sticky top-28 z-30 bg-[#09090b]/95 backdrop-blur-sm border-b border-zinc-800 py-3 px-4 lg:px-8 shadow-sm">
+        <div class="sticky top-28 z-30 bg-white/80 dark:bg-[#09090b]/95 backdrop-blur-sm border-b border-gray-200 dark:border-zinc-800 py-3 px-4 lg:px-8 shadow-sm">
             <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                 
                 <!-- Main State Filters -->
@@ -147,14 +144,14 @@
                     <button id="filter-resolved" onclick="window.app.setFilter('resolved')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase border flex items-center gap-2">
                         <div class="w-2 h-2 rounded-full bg-green-500"></div> Resueltos
                     </button>
-                    <div class="h-4 w-px bg-zinc-700 mx-1"></div>
+                    <div class="h-4 w-px bg-gray-300 dark:bg-zinc-700 mx-1"></div>
                     <button id="filter-all" onclick="window.app.setFilter('all')" class="action-btn px-3 py-1.5 rounded-full text-xs font-bold uppercase border text-gray-500">Todos</button>
                 </div>
 
                 <!-- Search -->
                 <div class="relative w-full md:w-80 group">
                     <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand transition-colors"></i>
-                    <input type="text" id="search-input" onkeyup="window.app.handleSearch(this.value)" class="block w-full pl-9 pr-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="Buscar cliente, teléfono...">
+                    <input type="text" id="search-input" onkeyup="window.app.handleSearch(this.value)" class="block w-full pl-9 pr-3 py-2 bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="Buscar cliente, teléfono...">
                 </div>
             </div>
         </div>
@@ -163,7 +160,7 @@
         <main class="flex-grow p-4 lg:p-6 w-full max-w-7xl mx-auto">
             <div id="cases-grid" class="grid grid-cols-1 gap-4">
                 <!-- Loader -->
-                <div class="col-span-1 flex flex-col items-center justify-center h-64 text-zinc-600">
+                <div class="col-span-1 flex flex-col items-center justify-center h-64 text-gray-400 dark:text-zinc-600">
                     <i class="ph-duotone ph-spinner-gap text-4xl animate-spin mb-3 text-brand"></i>
                     <span class="text-xs font-mono uppercase tracking-widest">Sincronizando Casos...</span>
                 </div>
@@ -172,16 +169,16 @@
     </div>
 
     <!-- NEW HYBRID MODAL -->
-    <div id="import-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all duration-200 opacity-0 font-sans">
-        <div class="bg-zinc-900 border border-zinc-700 w-full max-w-xl rounded-2xl shadow-2xl transform scale-95 transition-all duration-200 flex flex-col overflow-hidden" id="import-modal-content">
+    <div id="import-modal" class="fixed inset-0 z-[100] bg-black/50 dark:bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all duration-200 opacity-0 font-sans">
+        <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 w-full max-w-xl rounded-2xl shadow-2xl transform scale-95 transition-all duration-200 flex flex-col overflow-hidden" id="import-modal-content">
             <!-- Header -->
-            <div class="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-950">
-                <h3 class="font-black text-lg text-white flex items-center gap-2"><i class="ph-fill ph-plus-circle text-brand"></i> NUEVO CASO</h3>
+            <div class="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-950">
+                <h3 class="font-black text-lg text-gray-900 dark:text-white flex items-center gap-2"><i class="ph-fill ph-plus-circle text-brand"></i> NUEVO CASO</h3>
                 <button onclick="window.app.toggleImportModal()" class="text-gray-400 hover:text-red-500 p-2 rounded-lg transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
             
             <!-- Tabs -->
-            <div class="flex border-b border-zinc-800">
+            <div class="flex border-b border-gray-100 dark:border-zinc-800">
                 <button onclick="window.app.setTab('auto')" id="tab-auto" class="flex-1 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all tab-active">Automático (Pegar)</button>
                 <button onclick="window.app.setTab('manual')" id="tab-manual" class="flex-1 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all tab-inactive">Manual</button>
             </div>
@@ -189,17 +186,17 @@
             <div class="p-6 relative">
                 <!-- VISTA AUTOMÁTICA -->
                 <div id="view-auto" class="transition-all duration-300">
-                    <div class="mb-4 text-xs text-zinc-400 flex items-start gap-2">
+                    <div class="mb-4 text-xs text-gray-500 dark:text-zinc-400 flex items-start gap-2">
                         <i class="ph-bold ph-magic-wand text-brand mt-0.5"></i>
                         Pega el texto crudo (ej: WhatsApp, Email). El sistema extraerá teléfonos y nombres.
                     </div>
-                    <textarea id="raw-input" class="w-full h-40 bg-black border border-zinc-700 rounded-xl p-4 text-sm font-mono text-zinc-300 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/50 resize-none mb-6 placeholder:text-zinc-700" placeholder="Ej: Cliente Juan Perez 5512345678 problema con pantalla..."></textarea>
+                    <textarea id="raw-input" class="w-full h-40 bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-700 rounded-xl p-4 text-sm font-mono text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/50 resize-none mb-6 placeholder:text-gray-400 dark:placeholder:text-zinc-700" placeholder="Ej: Cliente Juan Perez 5512345678 problema con pantalla..."></textarea>
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="window.app.processInput('smartwatch')" class="p-3 rounded-xl border border-zinc-800 hover:border-sky-500 bg-zinc-950 hover:bg-sky-900/10 transition-all text-left group">
+                        <button onclick="window.app.processInput('smartwatch')" class="p-3 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-sky-500 bg-white dark:bg-zinc-950 hover:bg-sky-50 dark:hover:bg-sky-900/10 transition-all text-left group">
                             <span class="text-sky-500 font-black text-xs flex items-center gap-2 mb-1"><i class="ph-fill ph-watch"></i> SMARTWATCH</span>
                             <span class="text-[10px] text-gray-400">Procesar como soporte SW</span>
                         </button>
-                        <button onclick="window.app.processInput('general')" class="p-3 rounded-xl border border-zinc-800 hover:border-yellow-500 bg-zinc-950 hover:bg-yellow-900/10 transition-all text-left group">
+                        <button onclick="window.app.processInput('general')" class="p-3 rounded-xl border border-gray-200 dark:border-zinc-800 hover:border-yellow-500 bg-white dark:bg-zinc-950 hover:bg-yellow-50 dark:hover:bg-yellow-900/10 transition-all text-left group">
                             <span class="text-yellow-500 font-black text-xs flex items-center gap-2 mb-1"><i class="ph-fill ph-globe"></i> GENERAL</span>
                             <span class="text-[10px] text-gray-400">Procesar como ventas/dudas</span>
                         </button>
@@ -209,32 +206,32 @@
                 <!-- VISTA MANUAL -->
                 <div id="view-manual" class="hidden transition-all duration-300 flex flex-col gap-4">
                     <div>
-                        <label class="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Nombre del Cliente</label>
-                        <input type="text" id="man-name" class="w-full bg-black border border-zinc-800 rounded-lg p-2.5 text-sm font-bold text-white focus:outline-none focus:border-brand uppercase" placeholder="Ej: JUAN PEREZ">
+                        <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Nombre del Cliente</label>
+                        <input type="text" id="man-name" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:border-brand uppercase" placeholder="Ej: JUAN PEREZ">
                     </div>
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Tel. Contacto</label>
-                            <input type="text" id="man-contact" class="w-full bg-black border border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-white focus:outline-none focus:border-brand" placeholder="Llamar a...">
+                            <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Tel. Contacto</label>
+                            <input type="text" id="man-contact" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:border-brand" placeholder="Llamar a...">
                         </div>
                         <div>
-                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Tel. Afectado (Opcional)</label>
-                            <input type="text" id="man-affected" class="w-full bg-black border border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-white focus:outline-none focus:border-brand" placeholder="Línea con falla...">
+                            <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Tel. Afectado (Opcional)</label>
+                            <input type="text" id="man-affected" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:border-brand" placeholder="Línea con falla...">
                         </div>
                     </div>
                     
                     <div>
-                        <label class="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Tipo de Caso</label>
-                        <select id="man-type" class="w-full bg-black border border-zinc-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-brand">
+                        <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Tipo de Caso</label>
+                        <select id="man-type" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-brand">
                             <option value="smartwatch">Smartwatch</option>
                             <option value="general">General</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Descripción del Problema</label>
-                        <textarea id="man-desc" rows="3" class="w-full bg-black border border-zinc-800 rounded-lg p-2.5 text-sm text-zinc-300 focus:outline-none focus:border-brand resize-none" placeholder="Detalles del caso..."></textarea>
+                        <label class="text-[10px] uppercase font-bold text-gray-500 dark:text-zinc-500 mb-1 block">Descripción del Problema</label>
+                        <textarea id="man-desc" rows="3" class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-zinc-800 rounded-lg p-2.5 text-sm text-gray-900 dark:text-zinc-300 focus:outline-none focus:border-brand resize-none" placeholder="Detalles del caso..."></textarea>
                     </div>
 
                     <button onclick="window.app.saveManual()" class="w-full py-3 bg-brand hover:bg-red-600 text-white font-bold rounded-xl shadow-lg shadow-brand/20 transition-all uppercase text-sm mt-2">
@@ -248,7 +245,8 @@
     <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // ✅ [FIX]: Importamos setPersistence y browserLocalPersistence
+        import { getAuth, onAuthStateChanged, signOut, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- CONFIGURACIÓN DE ENTORNO UNIFICADA (GODSPLAN BLQA) ---
@@ -265,6 +263,9 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // 🔥 ACTIVAR PERSISTENCIA LOCAL (Fix para móviles)
+        setPersistence(auth, browserLocalPersistence).catch(console.error);
         
         // RUTA DE TICKETS COMPARTIDOS (CorpoDatos Shared Space)
         const TICKETS_PATH = 'artifacts/godsplan/public/data/tickets';
