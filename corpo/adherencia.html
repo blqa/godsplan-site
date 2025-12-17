@@ -587,7 +587,10 @@
             async load() {
                 if (this.offline || !this.userId) return;
                 try {
-                    const docRef = doc(db, "godsPlanData", this.userId);
+                    // SELECCIONADA: Cambiamos la ruta a la especificada por el usuario
+                    // Antes: const docRef = doc(db, "godsPlanData", this.userId);
+                    const docRef = doc(db, "users", this.userId, "attendance", "sync_state");
+                    
                     const snap = await getDoc(docRef);
                     if (snap.exists()) { 
                         this.data = snap.data(); 
@@ -604,7 +607,8 @@
             async save() {
                 localStorage.setItem('godsPlanData', JSON.stringify(this.data));
                 if (!this.offline && this.userId) {
-                    const docRef = doc(db, "godsPlanData", this.userId);
+                    // SELECCIONADA: Cambiamos la ruta de guardado también
+                    const docRef = doc(db, "users", this.userId, "attendance", "sync_state");
                     await setDoc(docRef, this.data);
                 }
             },
