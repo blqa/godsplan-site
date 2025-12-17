@@ -99,6 +99,9 @@
         </div>
     </nav>
     <main id="app-content" class="flex-1 overflow-y-auto pb-36 relative scroll-smooth overflow-x-hidden md:px-6">
+        <!-- Hidden input for file import -->
+        <input type="file" id="importFile" accept=".json" class="hidden">
+        
         <div class="w-full max-w-lg md:max-w-6xl mx-auto h-full pt-4 md:pt-8">
             <div class="hidden md:flex justify-center mb-8 fade-in">
                 <div class="bg-zinc-900/80 border border-white/10 p-1.5 rounded-full flex items-center gap-1 shadow-lg backdrop-blur-sm">
@@ -298,9 +301,17 @@
                                         <div id="userStatusText" class="text-xs text-zinc-500">Estado</div>
                                     </div>
                                 </div>
-                                <button id="btnLogout" onclick="app.logout()" class="text-zinc-500 hover:text-white transition-colors"><i class="ph-bold ph-sign-out text-xl"></i></button>
+                                <button id="btnLogout" onclick="app.logout()" class="text-zinc-500 hover:text-white transition-colors" title="Cerrar Sesión"><i class="ph-bold ph-sign-out text-xl"></i></button>
                             </div>
-                            <button onclick="app.resetData()" class="w-full py-3 rounded-xl border border-red-900/30 text-red-500 text-xs font-bold hover:bg-red-900/10 transition-colors flex items-center justify-center gap-2">
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <button onclick="app.exportData()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-3 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 active:scale-95">
+                                    <i class="ph-bold ph-upload-simple"></i> EXPORTAR
+                                </button>
+                                <button onclick="app.triggerImport()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-3 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 active:scale-95">
+                                    <i class="ph-bold ph-download-simple"></i> IMPORTAR
+                                </button>
+                            </div>
+                            <button onclick="app.resetData()" class="w-full py-3 rounded-xl border border-red-900/30 text-red-500 text-xs font-bold hover:bg-red-900/10 transition-colors flex items-center justify-center gap-2 active:scale-95">
                                 <i class="ph-bold ph-trash"></i> RESETEAR DATOS
                             </button>
                         </div>
@@ -476,6 +487,7 @@
                         this.user = u; this.updateUserUI();
                         document.getElementById('authModal').classList.remove('active');
                         this.setupListeners();
+                        document.getElementById('importFile').addEventListener('change', (e) => this.handleImport(e));
                     } else {
                         const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
                         if(token) await signInWithCustomToken(auth, token); else document.getElementById('authModal').classList.add('active');
@@ -1047,6 +1059,105 @@
             filterTransactions() {
                 this.searchQuery = document.getElementById('searchTx').value;
                 this.renderTransactions();
+            },
+            // --- EXPORT / IMPORT LOGIC ---
+            async exportData() {
+                UI.toast('Preparando exportación...', 'info');
+                try {
+                    // Fetch all transactions to be safe (not just the limited 1500 view)
+                    const q = query(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions'), orderBy('date', 'desc'));
+                    const snap = await getDocs(q);
+                    const allTxs = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    
+                    const data = {
+                        financials: this.data,
+                        transactions: allTxs,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+                    const downloadAnchorNode = document.createElement('a');
+                    const fileName = "gods_plan_backup_" + new Date().toISOString().split('T')[0] + ".json";
+                    downloadAnchorNode.setAttribute("href", dataStr);
+                    downloadAnchorNode.setAttribute("download", fileName);
+                    document.body.appendChild(downloadAnchorNode);
+                    downloadAnchorNode.click();
+                    downloadAnchorNode.remove();
+                    UI.toast('Backup descargado', 'success');
+                } catch(e) {
+                    console.error(e);
+                    UI.toast('Error exportando datos', 'error');
+                }
+            },
+            triggerImport() {
+                document.getElementById('importFile').click();
+            },
+            async handleImport(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const json = JSON.parse(e.target.result);
+                        if (!json.financials || !json.transactions) throw new Error("Formato inválido: Falta estructura base");
+                        
+                        const msg = `Se restaurarán:\n• Configuración financiera\n• ${json.transactions.length} transacciones\n\nLos datos actuales serán sobrescritos/fusionados. ¿Continuar?`;
+                        
+                        if (await UI.confirm('Restaurar Backup', msg)) {
+                            await this.restoreBackup(json);
+                        }
+                    } catch (err) {
+                        UI.toast('Error: ' + err.message, 'error');
+                        console.error(err);
+                    }
+                    event.target.value = ''; // Reset input to allow re-upload same file
+                };
+                reader.readAsText(file);
+            },
+            async restoreBackup(data) {
+                UI.toast('Restaurando datos...', 'info');
+                try {
+                    const uid = this.user.uid;
+                    const batch = writeBatch(db);
+                    
+                    // 1. Restore Financials
+                    const userRef = doc(db, 'artifacts', APP_ID, 'users', uid, 'data', 'financials');
+                    batch.set(userRef, data.financials, {merge: true});
+                    
+                    // 2. Restore Transactions (Batched because limit is 500 writes)
+                    // We'll commit the financials first, then do batches for transactions
+                    await batch.commit();
+                    
+                    const txs = data.transactions;
+                    const BATCH_SIZE = 450; // Safe limit below 500
+                    let restoredCount = 0;
+                    
+                    for (let i = 0; i < txs.length; i += BATCH_SIZE) {
+                        const chunk = txs.slice(i, i + BATCH_SIZE);
+                        const chunkBatch = writeBatch(db);
+                        
+                        chunk.forEach(tx => {
+                            // Use existing ID if available to prevent duplicates, otherwise auto-ID
+                            const txRef = tx.id 
+                                ? doc(db, 'artifacts', APP_ID, 'users', uid, 'transactions', tx.id)
+                                : doc(collection(db, 'artifacts', APP_ID, 'users', uid, 'transactions'));
+                                
+                            // Remove id from data payload if it exists inside
+                            const { id, ...txData } = tx; 
+                            chunkBatch.set(txRef, txData); 
+                        });
+                        
+                        await chunkBatch.commit();
+                        restoredCount += chunk.length;
+                    }
+                    
+                    UI.toast(`Restaurado con éxito (${restoredCount} txs)`, 'success');
+                    setTimeout(() => window.location.reload(), 1500); // Reload to ensure UI state is perfect
+                } catch(e) {
+                    console.error(e);
+                    UI.toast('Error crítico restaurando datos', 'error');
+                }
             }
         };
         // Start App
