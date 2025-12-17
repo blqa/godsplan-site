@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>God's Plan | Adherencia Pro</title>
+    <title>God's Plan | Adherencia</title>
     <!-- FUENTE UNIFICADA: PLUS JAKARTA SANS -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -13,7 +13,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: ['class', '[data-theme="dark"]'],
             theme: {
                 extend: {
                     colors: {
@@ -37,26 +36,66 @@
         }
     </script>
 
+    <!-- FIREBASE MODULAR (v9+) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // ✅ IMPORTANTE: Se agregan setPersistence y browserLocalPersistence
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        window.firebaseImports = {
+            initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
+            GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile,
+            getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where,
+            setPersistence, browserLocalPersistence // ✅ Exportar para usar abajo
+        };
+    </script>
+
     <style>
         /* --- DEFINICIÓN DE VARIABLES DE TEMA --- */
         :root {
-            --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-mute: #64748b;
-            --brand: #2563eb; --money: #059669; --alert: #dc2626; --warn: #f59e0b;
-            --border: #e2e8f0; --input-bg: #f8fafc;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-mute: #64748b;
+            --brand: #2563eb;
+            --money: #059669;
+            --alert: #dc2626;
+            --warn: #f59e0b;
+            --border: #e2e8f0;
+            --input-bg: #f8fafc;
         }
+
         [data-theme="dark"] {
-            --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-mute: #94a3b8;
-            --brand: #3b82f6; --money: #10b981; --alert: #ef4444; --warn: #f59e0b;
-            --border: #334155; --input-bg: #0f172a;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --text-mute: #94a3b8;
+            --brand: #3b82f6;
+            --money: #10b981;
+            --alert: #ef4444;
+            --warn: #f59e0b;
+            --border: #334155;
+            --input-bg: #0f172a;
         }
+
         [data-theme="red"] {
-            --bg: #000000; --card: #111111; --text: #e5e5e5; --text-mute: #737373;
-            --brand: #dc2626; --money: #16a34a; --alert: #b91c1c; --warn: #d97706;
-            --border: #262626; --input-bg: #0a0a0a;
+            --bg: #000000;
+            --card: #111111;
+            --text: #e5e5e5;
+            --text-mute: #737373;
+            --brand: #dc2626;
+            --money: #16a34a;
+            --alert: #b91c1c;
+            --warn: #d97706;
+            --border: #262626;
+            --input-bg: #0a0a0a;
         }
 
         /* RESET & UTILIDADES ESPECÍFICAS */
         * { -webkit-tap-highlight-color: transparent; outline: none; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        
+        /* Ocultar scrollbar en navegación */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -66,18 +105,26 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .spinner { border: 4px solid var(--border); border-top: 4px solid var(--brand); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
 
-        /* ESTADOS ACTIVOS */
+        /* ESTADOS ACTIVOS COMPLEJOS */
         .g-link.active { color: #fff; border-bottom: 2px solid #fff; padding-bottom: 2px; }
+        
+        /* Botones de control de tiempo activos */
         .btn-ctrl.active-bath { background: var(--bg); color: var(--brand) !important; border-color: var(--brand) !important; box-shadow: inset 0 0 0 1px var(--brand); }
         .btn-ctrl.active-food { background: var(--bg); color: var(--warn) !important; border-color: var(--warn) !important; box-shadow: inset 0 0 0 1px var(--warn); }
         .btn-ctrl.active-pause { background: #fff7ed; color: #f97316 !important; border-color: #f97316 !important; box-shadow: inset 0 0 0 1px #f97316; }
+        
         [data-theme="dark"] .btn-ctrl.active-pause, [data-theme="red"] .btn-ctrl.active-pause { background: #431407; color: #fb923c !important; border-color: #fb923c !important; }
         
         .side-clock.active { opacity: 1; transform: scale(1.05); background: transparent; }
         .side-clock.danger .side-val { color: var(--alert) !important; }
+        
+        /* Tabs del modal */
         .tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+        
+        /* Theme buttons */
         .theme-btn.active { border-color: var(--brand); color: var(--brand); background: var(--card); box-shadow: 0 0 0 2px var(--brand); }
         
+        /* Inputs Color Picker */
         input[type="color"] { -webkit-appearance: none; padding: 0; border: none; border-radius: 4px; height: 30px; width: 40px; cursor: pointer; }
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
@@ -92,10 +139,10 @@
             <i class="ph-bold ph-circles-three-plus text-lg text-red-500"></i> God's Plan
         </a>
         <div class="flex items-center gap-5 overflow-x-auto no-scrollbar pr-2.5">
-            <a href="/corpo/index.html" class="g-link text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">HUB</a>
-            <a href="/corpo/adherencia.html" class="g-link active text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">ADHERENCIA</a>
-            <a href="/corpo/finanzas.html" class="g-link text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">FINANZAS</a>
-            <a href="/corpo/cuenta.html" class="g-link text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">CUENTA</a>
+            <a href="/adherencia.html" class="g-link active text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">ADHERENCIA</a>
+            <a href="/chat.html" class="g-link text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">CHAT</a>
+            <a href="/finanzas.html" class="g-link text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">FINANZAS</a>
+            <a href="/cuenta.html" class="g-link text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">CUENTA</a>
             <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] ml-1 shrink-0"></div>
         </div>
     </nav>
@@ -106,7 +153,7 @@
             <i class="ph-fill ph-check-circle text-brand"></i> <span>Adherencia</span>
         </div>
         <div class="flex items-center gap-2 flex-wrap justify-end flex-1 md:flex-none">
-            <!-- RELOJ REAL CDMX -->
+            <!-- NUEVO: RELOJ REAL CDMX (Mejorado para móvil) -->
             <div id="realWorldClock" class="flex flex-col items-end mr-1 px-2 py-0.5 border-r border-border/50 min-w-[70px]">
                 <div class="text-[0.6rem] text-text-mute font-black tracking-wider leading-none mb-0.5 flex items-center gap-1 justify-end">
                      <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> CDMX
@@ -137,6 +184,7 @@
                 <div class="spinner"></div>
             </div>
 
+            <!-- Timer Grid -->
             <div class="grid grid-cols-[1fr_1.2fr_1fr] items-center gap-1.5 mb-5" id="timersDisplay" style="display:none;">
                 <!-- Baño -->
                 <button class="side-clock flex flex-col items-center justify-center opacity-50 p-1.5 rounded-lg relative z-10 w-full h-full border-none hover:bg-bg hover:opacity-80 transition-all cursor-pointer" id="clockBathContainer" onclick="window.app.openTimerEdit('bathroom')" type="button">
@@ -152,13 +200,7 @@
                 <div class="flex flex-col items-center">
                     <div class="text-[0.7rem] uppercase tracking-widest text-text-mute font-extrabold mb-1.5" id="clockStatus">TURNO ACTIVO</div>
                     <div class="text-[clamp(2.5rem,12vw,4rem)] font-extrabold text-text tabular-nums leading-none" id="clockDisplay">00:00</div>
-                    
-                    <!-- NUEVO: HORA DE ENTRADA -->
-                    <div id="startTimeBadge" class="text-[0.75rem] font-bold text-brand mt-1 uppercase tracking-wide opacity-0 transition-opacity">
-                        ENTRADA: --:--
-                    </div>
-
-                    <div id="networkTimeBadge" class="text-[0.65rem] text-money font-bold mt-1.5 opacity-0 transition-opacity duration-500 hidden">
+                    <div id="networkTimeBadge" class="text-[0.65rem] text-money font-bold mt-1.5 opacity-0 transition-opacity duration-500">
                         <i class="ph-bold ph-globe"></i> Local
                     </div>
                 </div>
@@ -174,11 +216,13 @@
                 </button>
             </div>
 
+            <!-- Offline Display -->
             <div id="offlineDisplay" style="display:block;">
                 <div class="text-[0.7rem] uppercase tracking-widest text-text-mute font-extrabold mb-2.5">FUERA DE TURNO</div>
                 <div class="text-[clamp(2.5rem,12vw,4rem)] font-extrabold text-text-mute tabular-nums leading-none mb-5">--:--:--</div>
             </div>
 
+            <!-- Botones de Acción -->
             <div class="grid grid-cols-2 gap-2.5 mt-4" id="actionButtons"></div>
         </div>
 
@@ -221,9 +265,12 @@
             </div>
             <div id="logList"></div>
         </div>
+
+        <!-- GRÁFICOS ELIMINADOS -->
     </div>
 
-    <!-- MODALES (Menu, Config, Log, etc.) -->
+    <!-- MODALES (Usando clases Tailwind para estructura, CSS para funcionalidad display) -->
+    
     <!-- MENU CONFIGURACION -->
     <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="configModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 max-h-[85vh] overflow-y-auto border border-border">
@@ -242,6 +289,12 @@
                     <div id="userProfile" class="font-bold mb-1.5 text-text">...</div>
                     <button class="w-full p-2 rounded-lg font-bold cursor-pointer border border-border bg-transparent text-text-mute hover:bg-white/5" onclick="window.app.logout()">Cerrar Sesión</button>
                 </div>
+                <div id="unauthenticatedView" class="block text-center">
+                    <p class="text-[0.8rem] text-text-mute mb-4">La autenticación es centralizada en GodsPlan.site.</p>
+                    <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-brand text-white hover:opacity-90 transition-opacity" onclick="window.app.redirectToAuth()">
+                        <i class="ph-bold ph-sign-in"></i> Iniciar Sesión en GodsPlan.site
+                    </button>
+                </div>
             </div>
 
             <!-- TAB DISEÑO -->
@@ -253,12 +306,13 @@
                     <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeRed" onclick="window.app.setTheme('red')"><i class="ph-bold ph-fire"></i> Red Core</button>
                     <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeCustom" onclick="window.app.setTheme('custom')"><i class="ph-bold ph-palette"></i> Custom</button>
                 </div>
+
                 <div id="customColorsPanel" class="hidden bg-bg p-2.5 rounded-lg border border-border text-text">
                     <p class="text-[0.7rem] font-bold mb-2.5">COLORES PERSONALIZADOS</p>
-                    <div class="flex items-center justify-between mb-2"><span>Fondo</span> <input type="color" id="ccBg" onchange="window.app.updateCustomTheme()"></div>
+                    <div class="flex items-center justify-between mb-2"><span>Fondo (BG)</span> <input type="color" id="ccBg" onchange="window.app.updateCustomTheme()"></div>
                     <div class="flex items-center justify-between mb-2"><span>Tarjetas</span> <input type="color" id="ccCard" onchange="window.app.updateCustomTheme()"></div>
                     <div class="flex items-center justify-between mb-2"><span>Texto</span> <input type="color" id="ccText" onchange="window.app.updateCustomTheme()"></div>
-                    <div class="flex items-center justify-between mb-2"><span>Marca</span> <input type="color" id="ccBrand" onchange="window.app.updateCustomTheme()"></div>
+                    <div class="flex items-center justify-between mb-2"><span>Marca (Brand)</span> <input type="color" id="ccBrand" onchange="window.app.updateCustomTheme()"></div>
                 </div>
             </div>
 
@@ -279,19 +333,13 @@
             <!-- TAB DATOS -->
             <div id="tData" class="tab-content hidden">
                 <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-brand text-white" onclick="window.app.openImportModal()">Importar Excel</button>
-                
-                <!-- Restaurar Backup JSON -->
-                <input type="file" id="jsonFileInput" accept=".json" class="hidden" onchange="window.app.handleFileImport(event)">
-                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text mb-2.5 hover:bg-white/5" onclick="window.app.triggerFileImport()">Restaurar Backup (JSON)</button>
-                
                 <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute mb-2.5" onclick="window.app.exportBackup()">Descargar Backup</button>
-                
                 <div class="border-t border-border my-4"></div>
-                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer mb-2.5 text-alert border border-alert bg-transparent hover:bg-red-500/10" onclick="window.app.resetData()">Borrar Todo</button>
+                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer mb-2.5 text-alert border border-alert bg-transparent hover:bg-red-500/10" onclick="window.app.resetData()">Borrar Todo y Reiniciar</button>
             </div>
 
             <div class="mt-4 flex gap-2.5">
-                <button class="flex-1 bg-text text-bg p-3 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.saveConfig()">Guardar</button>
+                <button class="flex-1 bg-text text-bg p-3 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.saveConfig()">Guardar Cambios</button>
                 <button class="flex-1 bg-transparent border border-border text-text-mute p-3 rounded-lg font-extrabold cursor-pointer" onclick="window.app.closeModalById('configModal')">Cerrar</button>
             </div>
         </div>
@@ -301,6 +349,7 @@
     <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="logModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border">
             <h3 class="text-text font-bold text-lg mb-4">Registro Manual</h3>
+            
             <label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Fecha</label>
             <input type="date" id="inpDate" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text mb-2.5">
             
@@ -334,7 +383,6 @@
         </div>
     </div>
 
-    <!-- CLOCK OUT MODAL -->
     <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="clockOutModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border text-center">
             <h3 class="text-text font-bold text-lg mb-4">¿Terminar Turno?</h3>
@@ -343,10 +391,14 @@
         </div>
     </div>
 
-    <!-- TIMER EDIT MODAL -->
+    <!-- EDITAR TIEMPO MODAL -->
     <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="timerEditModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border">
             <h3 class="text-text font-bold text-lg mb-4">Ajustar Tiempo</h3>
+            <p class="text-sm mb-2.5 text-text-mute">
+                Ingresa el tiempo acumulado para <strong id="timerEditTitle" class="text-text">--</strong>.
+                <br><span class="text-xs">(Formatos aceptados: "15", "3.5" o "3:14")</span>
+            </p>
             <input type="text" id="inpTimerEdit" placeholder="Ej. 3:14" class="text-lg text-center bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text">
             <div class="flex gap-2.5 mt-4">
                 <button class="flex-1 bg-text text-bg p-3 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.saveTimerEdit()">Actualizar</button>
@@ -355,18 +407,24 @@
         </div>
     </div>
 
-    <!-- EXTENSION MODAL -->
+    <!-- MODAL EXTENSIÓN -->
     <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="extensionModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[400px] p-5 border border-border text-left">
-            <h3 class="text-money font-bold text-lg mb-2.5">✅ Extensión Segura</h3>
-            <p class="font-bold mb-1.5 text-text">TouchPoint Integrado</p>
-            <div class="flex flex-col gap-2.5 mt-4">
+            <h3 class="text-money font-bold text-lg mb-2.5">✅ Aviso de Seguridad</h3>
+            <p class="font-bold mb-1.5 text-text">Integridad de TouchPoint Confirmada.</p>
+            <p class="text-text-mute text-sm mb-4">Esta es una extensión de Solo Lectura (Read-Only) 🔒.</p>
+            <div class="flex flex-col gap-2.5">
+                <a href="https://drive.usercontent.google.com/download?id=1TFqG9DAag7bVGEvt3J9ApXmmLtXNAsWh&export=download&authuser=0&confirm=t&uuid=d30b9e7f-cba4-4fab-b446-f2b8742d671e&at=ALWLOp6ky2w0gxN8yuHKk6f-jMCx:1765495468040" 
+                   class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-brand text-white text-center no-underline block hover:opacity-90" 
+                   download>
+                    <i class="ph-bold ph-download-simple"></i> Agregar Extensión
+                </a>
                 <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="window.app.closeModalById('extensionModal')">Cerrar</button>
             </div>
         </div>
     </div>
 
-    <!-- MSG MODAL -->
+    <!-- UTILS MODALS -->
     <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="msgModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border text-center">
             <i id="msgIcon" class="text-[2.5rem] mb-2.5 block"></i>
@@ -374,8 +432,6 @@
             <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-text text-bg" onclick="window.app.closeModalById('msgModal')">OK</button>
         </div>
     </div>
-    
-    <!-- IMPORT MODAL -->
     <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="importModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border">
             <h3 class="text-text font-bold text-lg mb-4">Importar Excel</h3>
@@ -385,44 +441,69 @@
         </div>
     </div>
 
-    <!-- LOGICA CENTRALIZADA (MODULO JS) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // CONFIGURACIÓN NUEVA (GODSPLAN BLQA)
-        const firebaseConfig = {
-            apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
-            authDomain: "godsplan-blqa.firebaseapp.com",
-            projectId: "godsplan-blqa",
-            storageBucket: "godsplan-blqa.firebasestorage.app",
-            messagingSenderId: "1008783768310",
-            appId: "1:1008783768310:web:c09fe541a2f4d23e5b8ad7"
+        // ✅ [FIX]: Importamos setPersistence y browserLocalPersistence
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        window.firebaseImports = {
+            initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
+            GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile,
+            getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where,
+            setPersistence, browserLocalPersistence // ✅ Exportamos para uso interno
         };
 
-        const fbApp = initializeApp(firebaseConfig);
-        const auth = getAuth(fbApp);
-        const db = getFirestore(fbApp);
+        // ... resto de tu script sin cambios ...
+        const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
+        let firebaseConfig = fallbackConfig;
+        try { if (typeof __firebase_config !== 'undefined' && __firebase_config) { const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; } } catch(e) { console.error(e); }
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let auth, db;
+        function showGlobalError(m) { const x = document.getElementById('msgModal'); if (x) { document.getElementById('msgText').textContent = m; document.getElementById('msgIcon').className = 'ph-fill ph-warning-circle text-alert'; x.classList.remove('hidden'); x.classList.add('flex'); } else alert(m); }
+        window.onerror = function (m) { if (!String(m).includes('popup')) showGlobalError(m); };
+
+        try { 
+            const fbApp = initializeApp(firebaseConfig); 
+            auth = getAuth(fbApp); 
+            
+            // ✅ [FIX]: Activamos persistencia aquí mismo
+            setPersistence(auth, browserLocalPersistence).catch(console.error);
+
+            db = getFirestore(fbApp); 
+        } catch (e) { setTimeout(() => showGlobalError(e.message), 1000); }
 
         window.app = {
             data: { logs: [], config: { rate1: 50, rate2: 75, bathAllow: 15, foodAllow: 45 }, activeShift: null },
-            userId: null, offline: false, editingId: null, date: new Date(), timer: null, processing: false,
-            currentTheme: 'dark', editingTimerType: null, timeOffset: 0,
+            userId: null, offline: false, editingId: null, date: new Date(), timer: null, processing: false, authMode: 'login',
+            currentTheme: 'light', editingTimerType: null, timeOffset: 0, lastSync: 0, isSyncing: false, nextSyncAllowed: 0,
 
             init() {
-                // Reloj Real Header
-                setInterval(() => this.updateRealClockUI(), 1000);
+                // ... (resto de tu init original)
                 this.updateRealClockUI();
+                setInterval(() => this.updateRealClockUI(), 1000);
 
-                // Cargar Tema
+                document.getElementById('auth-status').classList.remove('hidden');
+                document.getElementById('auth-status').classList.add('flex');
                 const savedTheme = localStorage.getItem('gp_theme') || 'dark';
                 this.setTheme(savedTheme);
                 const customColors = JSON.parse(localStorage.getItem('gp_custom_colors'));
                 if (customColors) this.applyCustomColors(customColors);
 
-                document.getElementById('auth-status').classList.remove('hidden');
-                document.getElementById('auth-status').classList.add('flex');
+                window.addEventListener('message', (event) => {
+                    if (event.data && event.data.type === 'GODSPLAN_COMMAND') {
+                        switch(event.data.action) {
+                            case 'START_SHIFT': if (!this.data.activeShift) this.clockIn(); break;
+                            case 'START_BREAK_FOOD': if (this.data.activeShift?.breakType !== 'food') this.toggleBreak('food'); break;
+                            case 'START_BREAK_BATH': if (this.data.activeShift?.breakType !== 'bathroom') this.toggleBreak('bathroom'); break;
+                            case 'RESUME_WORK': if (this.data.activeShift?.breakStart) this.stopBreak(); break;
+                            case 'END_SHIFT': if (this.data.activeShift) this.confirmClockOut(); break;
+                        }
+                    }
+                });
+
+                if (!auth) return this.goOffline();
 
                 onAuthStateChanged(auth, async u => {
                     if (u) { 
@@ -431,24 +512,53 @@
                         this.renderAuth(u); 
                         await this.load(); 
                     } else {
-                        // Si no hay usuario, Login Anónimo para no romper la app (Offline mode essentially)
-                        try { await signInAnonymously(auth); } catch(e) { this.goOffline(); }
+                        if (initialAuthToken) {
+                             try { await signInWithCustomToken(auth, initialAuthToken); return; } catch(e) { await signInAnonymously(auth).catch(() => this.goOffline()); }
+                        } else {
+                            await signInAnonymously(auth).catch(() => this.goOffline());
+                        }
                     }
                     this.loadLocal(); 
                 });
             },
 
+            // ... (resto de tus funciones originales intactas) ...
+            
             updateRealClockUI() {
                 const now = new Date();
                 const clockEl = document.getElementById('realClockTime');
+                
                 if (clockEl) {
                     try {
                         const horaCDMX = new Intl.DateTimeFormat('es-MX', {
-                            timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+                            timeZone: 'America/Mexico_City',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: false
                         }).format(now);
+                        
                         clockEl.textContent = horaCDMX;
-                    } catch (e) { clockEl.textContent = now.toLocaleTimeString(); }
+                    } catch (e) {
+                        clockEl.textContent = now.toLocaleTimeString();
+                    }
                 }
+            },
+
+            // ... (resto de funciones: getNow, getCDMXDate, getCDMXTime, setTheme, etc.) ...
+             getNow() { return Date.now() + this.timeOffset; },
+
+            getCDMXDate(ms) {
+                 return new Date(ms).toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+            },
+
+            getCDMXTime(ms) {
+                return new Date(ms).toLocaleTimeString('es-MX', { 
+                    timeZone: 'America/Mexico_City',
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    hour12: false 
+                }).slice(0, 5);
             },
 
             setTheme(t) {
@@ -460,18 +570,27 @@
                 if (btn) btn.classList.add('active');
                 document.getElementById('customColorsPanel').style.display = t === 'custom' ? 'block' : 'none';
                 if (t !== 'custom') {
-                    const r = document.documentElement.style;
-                    r.removeProperty('--bg'); r.removeProperty('--card'); r.removeProperty('--text'); r.removeProperty('--brand');
+                    document.documentElement.style.removeProperty('--bg'); document.documentElement.style.removeProperty('--card');
+                    document.documentElement.style.removeProperty('--text'); document.documentElement.style.removeProperty('--brand');
                 } else {
                     const cc = JSON.parse(localStorage.getItem('gp_custom_colors'));
                     if (cc) this.applyCustomColors(cc);
                 }
             },
+
+            toggleTheme() {
+                const order = ['light', 'dark', 'red'];
+                let idx = order.indexOf(this.currentTheme);
+                if (idx === -1) idx = 0; 
+                this.setTheme(order[(idx + 1) % order.length]);
+            },
+
             updateCustomTheme() {
                 const colors = { bg: document.getElementById('ccBg').value, card: document.getElementById('ccCard').value, text: document.getElementById('ccText').value, brand: document.getElementById('ccBrand').value };
                 this.applyCustomColors(colors);
                 localStorage.setItem('gp_custom_colors', JSON.stringify(colors));
             },
+
             applyCustomColors(c) {
                 const r = document.documentElement.style;
                 r.setProperty('--bg', c.bg); r.setProperty('--card', c.card); r.setProperty('--text', c.text); r.setProperty('--brand', c.brand);
@@ -483,6 +602,7 @@
             renderAuth(u) {
                 const isRealUser = u && !u.isAnonymous;
                 document.getElementById('authenticatedView').style.display = isRealUser ? 'block' : 'none';
+                document.getElementById('unauthenticatedView').style.display = isRealUser ? 'none' : 'block';
                 let t = u ? (u.isAnonymous ? "ANÓNIMO" : (u.displayName || "Usuario")) : "DESCONECTADO";
                 if (isRealUser && u.email && u.email.includes('@godsplan.site')) t = u.email.split('@')[0];
                 document.getElementById('auth-status').innerHTML = `<i class="ph-fill ph-user-circle"></i> ${t}`;
@@ -491,12 +611,10 @@
 
             loadLocal() { const d = localStorage.getItem('godsPlanData'); if (d) { try { this.data = JSON.parse(d); this.render(); this.uiClock(); } catch (e) { } } },
             
-            // CARGA DE DATOS (NUEVA RUTA)
             async load() {
                 if (this.offline || !this.userId) return;
                 try {
-                    // Ruta limpia: users/{uid}/attendance/sync_state
-                    const docRef = doc(db, "users", this.userId, "attendance", "sync_state");
+                    const docRef = doc(db, "godsPlanData", this.userId);
                     const snap = await getDoc(docRef);
                     if (snap.exists()) { 
                         this.data = snap.data(); 
@@ -507,28 +625,20 @@
                         if (l) { this.data = JSON.parse(l); this.save(); } 
                     }
                     this.render(); this.uiClock();
-                } catch (e) { console.error("Error loading data:", e); }
+                } catch (e) { console.error(e); }
             },
             
-            // GUARDADO DE DATOS (NUEVA RUTA)
             async save() {
                 localStorage.setItem('godsPlanData', JSON.stringify(this.data));
                 if (!this.offline && this.userId) {
-                    const docRef = doc(db, "users", this.userId, "attendance", "sync_state");
-                    // Guardamos todo el objeto data tal cual para mantener compatibilidad con la lógica compleja
+                    const docRef = doc(db, "godsPlanData", this.userId);
                     await setDoc(docRef, this.data);
                 }
             },
             
-            syncData() { this.load(); this.showSuccess("Sincronizado"); },
+            syncData() { this.load(); this.showSuccess("Sincronizado"); this.syncNetworkTime(true); },
+            async syncNetworkTime(force = false) { this.isSyncing = false; },
             openExtensionModal() { document.getElementById('extensionModal').classList.remove('hidden'); document.getElementById('extensionModal').classList.add('flex'); },
-            logout() { signOut(auth).then(() => window.location.href = "/"); },
-            redirectToAuth() { window.location.href = "/"; },
-
-            // --- LÓGICA DEL RELOJ Y UI (IDÉNTICA AL ORIGINAL) ---
-            getNow() { return Date.now() + this.timeOffset; },
-            getCDMXDate(ms) { return new Date(ms).toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' }); },
-            getCDMXTime(ms) { return new Date(ms).toLocaleTimeString('es-MX', { timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit', hour12: false }).slice(0, 5); },
 
             uiClock() {
                 const s = this.data.activeShift;
@@ -539,6 +649,7 @@
                 const bl = config.bathAllow || 15;
                 const fl = config.foodAllow || 45;
 
+                // CLASES DE BOTONES COMUNES
                 const btnBase = "btn-ctrl h-[55px] rounded-lg border-none font-extrabold text-[0.85rem] cursor-pointer flex flex-col items-center justify-center gap-0.5 uppercase transition-all relative overflow-hidden active:scale-95";
                 const btnStart = `${btnBase} col-span-2 text-lg h-[70px] text-white bg-gradient-to-br from-blue-600 to-blue-800`;
                 const btnStop = `${btnBase} col-span-2 text-white bg-gradient-to-br from-red-600 to-red-800`;
@@ -546,26 +657,16 @@
                 const btnFood = `${btnBase} bg-bg text-text-mute border border-border`;
                 const btnPause = `${btnBase} col-span-2 bg-bg text-text-mute border border-border`;
 
-                // Badge de Hora de Entrada
-                const startEl = document.getElementById('startTimeBadge');
-
                 if (!s) {
                     off.style.display = 'block'; on.style.display = 'none';
                     area.innerHTML = `<button class="${btnStart}" onclick="window.app.clockIn()"><i class="ph-bold ph-play"></i> INICIAR JORNADA</button>`;
                     if (this.timer) clearInterval(this.timer);
                     document.getElementById('clockStatus').textContent = "FUERA DE TURNO";
-                    document.getElementById('clockStatus').classList.remove('animate-pulse-custom', 'text-warn');
-                    if(startEl) startEl.classList.add('opacity-0'); // Ocultar hora entrada
+                    document.getElementById('clockStatus').classList.remove('animate-pulse-custom');
+                    document.getElementById('clockStatus').classList.remove('text-warn');
                 } else {
                     if (!s.breaks) { s.breaks = { bathroom: 0, food: 0, pause: 0 }; this.save(); }
                     if (s.breaks.pause === undefined) s.breaks.pause = 0;
-
-                    // Mostrar hora de entrada
-                    const startTime = new Date(s.start).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    if(startEl) {
-                        startEl.textContent = `ENTRADA: ${startTime}`;
-                        startEl.classList.remove('opacity-0');
-                    }
 
                     off.style.display = 'none'; on.style.display = 'grid';
                     document.getElementById('limBath').textContent = bl;
@@ -583,16 +684,20 @@
                     if (this.timer) clearInterval(this.timer);
                     this.timer = setInterval(() => {
                         const now = this.getNow();
+                        
                         let totalPauseAccumulated = (s.breaks.pause || 0) * 60000;
                         let currentPauseDuration = 0;
 
                         if (s.breakType === 'pause') {
                             document.getElementById('clockStatus').textContent = "PAUSADO";
-                            document.getElementById('clockStatus').classList.add('animate-pulse-custom', 'text-warn');
+                            document.getElementById('clockStatus').classList.add('animate-pulse-custom');
+                            document.getElementById('clockStatus').classList.add('text-warn');
+                            
                             currentPauseDuration = now - s.breakStart;
                         } else {
                             document.getElementById('clockStatus').textContent = "TURNO ACTIVO";
-                            document.getElementById('clockStatus').classList.remove('animate-pulse-custom', 'text-warn');
+                            document.getElementById('clockStatus').classList.remove('animate-pulse-custom');
+                            document.getElementById('clockStatus').classList.remove('text-warn');
                         }
 
                         let displayTime = (now - s.start) - totalPauseAccumulated - currentPauseDuration;
@@ -628,7 +733,7 @@
                     }, 1000);
                 }
             },
-
+            
             openTimerEdit(type) {
                 if (!this.data.activeShift) return;
                 this.editingTimerType = type;
@@ -641,9 +746,13 @@
                 const s = Math.floor((currentTotal % 1) * 60);
                 document.getElementById('inpTimerEdit').value = `${m}:${s.toString().padStart(2, '0')}`; 
                 const modal = document.getElementById('timerEditModal');
-                if(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+                if(modal) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
                 setTimeout(() => document.getElementById('inpTimerEdit').focus(), 100);
             },
+
             saveTimerEdit() {
                 if (!this.editingTimerType || !this.data.activeShift) return;
                 const valStr = document.getElementById('inpTimerEdit').value.trim();
@@ -654,6 +763,7 @@
                 } else newVal = parseFloat(valStr);
                 
                 if (isNaN(newVal) || newVal < 0) return this.showMessage("Tiempo inválido");
+
                 if (this.data.activeShift.breakStart && this.data.activeShift.breakType === this.editingTimerType) {
                     this.data.activeShift.breaks[this.editingTimerType] = newVal;
                     this.data.activeShift.breakStart = this.getNow();
@@ -661,11 +771,16 @@
                     this.data.activeShift.breaks[this.editingTimerType] = newVal;
                 }
                 this.save(); this.uiClock();
-                this.closeModalById('timerEditModal');
+                document.getElementById('timerEditModal').classList.remove('flex');
+                document.getElementById('timerEditModal').classList.add('hidden');
             },
 
             clockIn() {
-                if (auth.currentUser?.isAnonymous) return this.showMessage("Modo anónimo: los datos solo se guardarán localmente.");
+                if (auth.currentUser?.isAnonymous) {
+                    this.showMessage("Inicia sesión primero.");
+                    this.redirectToAuth();
+                    return;
+                }
                 if (this.processing) return; this.processing = true;
                 this.stopBreak();
                 this.data.activeShift = { start: this.getNow(), breaks: { bathroom: 0, food: 0, pause: 0 }, breakStart: null, breakType: null };
@@ -699,7 +814,8 @@
                 if (this.data.activeShift.breakStart) this.stopBreak();
                 if (this.data.activeShift) {
                     const m = document.getElementById('clockOutModal');
-                    m.classList.remove('hidden'); m.classList.add('flex');
+                    m.classList.remove('hidden');
+                    m.classList.add('flex');
                 }
             },
             finishShiftReal() {
@@ -722,15 +838,24 @@
                 const logOut = this.getCDMXTime(end);
 
                 this.data.logs.push({
-                    id: this.getNow(), date: logDate, type: 'Laboral',
-                    in: logIn, out: logOut, hours: gross, disconnection: disc,
+                    id: this.getNow(), 
+                    date: logDate, 
+                    type: 'Laboral',
+                    in: logIn, 
+                    out: logOut, 
+                    hours: gross, 
+                    disconnection: disc,
                     details: { bath: b, food: f, pause: pauseTime }
                 });
                 this.data.activeShift = null;
                 this.save(); this.render(); this.uiClock();
-                this.closeModalById('clockOutModal');
+                document.getElementById('clockOutModal').classList.remove('flex');
+                document.getElementById('clockOutModal').classList.add('hidden');
             },
-            cancelClockOut() { this.closeModalById('clockOutModal'); },
+            cancelClockOut() { 
+                document.getElementById('clockOutModal').classList.remove('flex'); 
+                document.getElementById('clockOutModal').classList.add('hidden'); 
+            },
 
             render() {
                 const d = this.date, m = d.getMonth(), y = d.getFullYear();
@@ -767,6 +892,7 @@
                     if (l.details) {
                         const pillClass = "px-1.5 py-0.5 rounded flex items-center gap-1 font-semibold text-[0.7rem] border border-border bg-bg text-text-mute";
                         const excessClass = "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-300 dark:border-red-800";
+
                         if (l.details.bath > 0) chips += `<span class="${pillClass} ${l.details.bath > (config.bathAllow || 15) ? excessClass : ''}"><i class="ph-bold ph-toilet"></i> ${Math.round(l.details.bath)}m</span>`;
                         if (l.details.food > 0) chips += `<span class="${pillClass} ${l.details.food > (config.foodAllow || 45) ? excessClass : ''}"><i class="ph-bold ph-hamburger"></i> ${Math.round(l.details.food)}m</span>`;
                         if (l.details.pause > 0) chips += `<span class="${pillClass} text-warn border-warn"><i class="ph-bold ph-pause-circle"></i> ${Math.round(l.details.pause)}m</span>`;
@@ -822,12 +948,25 @@
             saveConfig() { this.data.config.bathAllow = parseFloat(document.getElementById('cfgBath').value) || 15; this.data.config.foodAllow = parseFloat(document.getElementById('cfgFood').value) || 45; this.data.config.rate1 = parseFloat(document.getElementById('cfgRate1').value) || 50; this.data.config.rate2 = parseFloat(document.getElementById('cfgRate2').value) || 75; this.save(); this.closeModalById('configModal'); },
             switchTab(id) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active', 'block')); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); event.target.classList.add('active'); document.getElementById(id).classList.add('active', 'block'); document.getElementById(id).classList.remove('hidden'); },
             
+            redirectToAuth() {
+                 this.showMessage("Redirigiendo a GodsPlan.site para iniciar sesión...");
+                 setTimeout(() => { window.location.href = "https://godsplan.site"; }, 1500);
+            },
+            
+            openAuthModal(m) { this.redirectToAuth(); },
+            async processAuth() { this.redirectToAuth(); },
+            async loginWithGoogle() { this.redirectToAuth(); },
+            
+            logout() { signOut(auth).then(() => window.location.href = "https://godsplan.site"); }, 
+            
             resetData() { if (confirm("¿Borrar todo?")) { this.data = { logs: [], config: this.data.config, activeShift: null }; this.save(); location.reload(); } },
 
             openModal(id = null) {
                 this.editingId = id; 
                 const m = document.getElementById('logModal');
-                m.classList.remove('hidden'); m.classList.add('flex');
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+
                 const now = new Date().toISOString().split('T')[0];
                 document.getElementById('inpDate').value = now; document.getElementById('inpType').value = 'Laboral';
                 document.getElementById('inpIn').value = ''; document.getElementById('inpOut').value = '';
@@ -845,7 +984,9 @@
                         document.getElementById('inpFoodTime').value = Math.round(l.details.food); 
                         document.getElementById('inpPauseTime').value = l.details.pause ? Math.round(l.details.pause) : 0;
                     }
-                } else { btnDel.classList.add('hidden'); }
+                } else {
+                    btnDel.classList.add('hidden');
+                }
                 this.toggleTimeInputs();
             },
             toggleTimeInputs() { 
@@ -857,74 +998,88 @@
                 const b = parseFloat(document.getElementById('inpBathTime').value) || 0;
                 const f = parseFloat(document.getElementById('inpFoodTime').value) || 0; 
                 const p = parseFloat(document.getElementById('inpPauseTime').value) || 0; 
+
                 const g = this.calcHours(i, o);
                 const config = this.data.config || {};
                 const disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
+                
                 document.getElementById('calcHoursDisplay').textContent = g === -1 ? 'Error' : this.fmt(g - p - disc);
             },
             saveLog() {
                 const d = document.getElementById('inpDate').value, t = document.getElementById('inpType').value, i = document.getElementById('inpIn').value, o = document.getElementById('inpOut').value;
                 const b = parseFloat(document.getElementById('inpBathTime').value) || 0, f = parseFloat(document.getElementById('inpFoodTime').value) || 0;
                 const p = parseFloat(document.getElementById('inpPauseTime').value) || 0;
+
                 if (!d) return this.showMessage("Fecha requerida");
                 let h = 0, disc = 0; 
+                
                 if (t === 'Laboral') {
                     if (!i || !o) return this.showMessage("Laboral requiere entrada y salida");
                     h = this.calcHours(i, o) - p; 
                     if (h <= 0) return this.showMessage("Horario inválido o pausa excede turno"); 
                 } else if (t === 'Descanso') {
-                    if (i && o) { h = this.calcHours(i, o) - p; if (h < 0) return this.showMessage("Horario inválido"); } else { h = 0; }
+                    if (i && o) {
+                        h = this.calcHours(i, o) - p;
+                        if (h < 0) return this.showMessage("Horario inválido");
+                    } else {
+                        h = 0;
+                    }
                 }
+
                 if (t === 'Laboral' || (t === 'Descanso' && h > 0)) {
                         const config = this.data.config || {};
                         disc = Math.max(0, b - (config.bathAllow || 15)) + Math.max(0, f - (config.foodAllow || 45));
                 }
+
                 const log = { id: this.editingId || this.getNow(), date: d, type: t, in: i || '', out: o || '', hours: h, disconnection: disc, details: { bath: b, food: f, pause: p } };
                 if (this.editingId) this.data.logs[this.data.logs.findIndex(x => x.id === this.editingId)] = log; else this.data.logs.push(log);
-                this.save(); this.render(); this.closeModalById('logModal');
+                this.save(); this.render(); 
+                this.closeModalById('logModal');
             },
             deleteLog() { if (confirm("¿Eliminar?")) { this.data.logs = this.data.logs.filter(x => x.id !== this.editingId); this.save(); this.render(); this.closeModalById('logModal'); } },
-            closeModalById(id) { const m = document.getElementById(id); if(m) { m.classList.remove('flex'); m.classList.add('hidden'); } },
-            showMessage(m) { document.getElementById('msgText').textContent = m; document.getElementById('msgIcon').className = 'ph-fill ph-warning-circle text-alert'; const mod = document.getElementById('msgModal'); mod.classList.remove('hidden'); mod.classList.add('flex'); },
-            showSuccess(m) { document.getElementById('msgText').textContent = m; document.getElementById('msgIcon').className = 'ph-fill ph-check-circle text-money'; const mod = document.getElementById('msgModal'); mod.classList.remove('hidden'); mod.classList.add('flex'); },
-            closeMessageModal() { this.closeModalById('msgModal'); },
-            openImportModal() { const m = document.getElementById('importModal'); m.classList.remove('hidden'); m.classList.add('flex'); },
-            processImport() { const t = document.getElementById('importTextArea').value; if (!t) return; const l = t.split('\n'); let c = 0; l.forEach(x => { const p = x.split(/[\t,]+/); if (p.length >= 4) { this.data.logs.push({ id: Date.now() + c, date: p[0], type: p[1], in: p[2], out: p[3], hours: this.calcHours(p[2], p[3]), disconnection: 0 }); c++; } }); this.save(); this.closeModalById('importModal'); this.showSuccess(c + " importados"); },
-            exportBackup() { const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.data)); a.download = 'backup.json'; a.click(); },
             
-            // --- NUEVAS FUNCIONES DE IMPORTACIÓN JSON ---
-            triggerFileImport() { document.getElementById('jsonFileInput').click(); },
-            handleFileImport(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const data = JSON.parse(e.target.result);
-                        if (data && Array.isArray(data.logs)) {
-                            if(confirm("Esto reemplazará los datos actuales. ¿Continuar?")) {
-                                this.data = data;
-                                this.save();
-                                this.render();
-                                this.uiClock();
-                                this.showSuccess("Datos restaurados correctamente.");
-                            }
-                        } else {
-                            this.showMessage("Formato de archivo inválido.");
-                        }
-                    } catch (err) {
-                        this.showMessage("Error al leer el archivo JSON.");
-                    }
-                };
-                reader.readAsText(file);
-                e.target.value = ''; // Resetear input
+            closeModalById(id) {
+                const m = document.getElementById(id);
+                if(m) {
+                    m.classList.remove('flex');
+                    m.classList.add('hidden');
+                }
             },
 
-            calcHours(i, o) { if (!i || !o) return 0; const [h1, m1] = i.split(':'), [h2, m2] = o.split(':'); const d = ((h2 * 60 + +m2) - (h1 * 60 + +m1)); return d < 0 ? -1 : d; },
-            toggleLoader(s) { const l = document.getElementById('mainLoader'); if(s) l.classList.remove('hidden'); else l.classList.add('hidden'); }
-        };
+            showMessage(m) { 
+                document.getElementById('msgText').textContent = m; 
+                document.getElementById('msgIcon').className = 'ph-fill ph-warning-circle text-alert'; 
+                const mod = document.getElementById('msgModal');
+                mod.classList.remove('hidden');
+                mod.classList.add('flex');
+            },
+            showSuccess(m) { 
+                document.getElementById('msgText').textContent = m; 
+                document.getElementById('msgIcon').className = 'ph-fill ph-check-circle text-money'; 
+                const mod = document.getElementById('msgModal');
+                mod.classList.remove('hidden');
+                mod.classList.add('flex');
+            },
+            closeMessageModal() { 
+                this.closeModalById('msgModal');
+            },
 
+            openImportModal() { 
+                const m = document.getElementById('importModal');
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+            },
+            processImport() { const t = document.getElementById('importTextArea').value; if (!t) return; const l = t.split('\n'); let c = 0; l.forEach(x => { const p = x.split(/[\t,]+/); if (p.length >= 4) { this.data.logs.push({ id: Date.now() + c, date: p[0], type: p[1], in: p[2], out: p[3], hours: this.calcHours(p[2], p[3]), disconnection: 0 }); c++; } }); this.save(); this.closeModalById('importModal'); this.showSuccess(c + " importados"); },
+            exportBackup() { const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.data)); a.download = 'backup.json'; a.click(); },
+
+            calcHours(i, o) { if (!i || !o) return 0; const [h1, m1] = i.split(':'), [h2, m2] = o.split(':'); const d = ((h2 * 60 + +m2) - (h1 * 60 + +m1)); return d < 0 ? -1 : d; },
+            toggleLoader(s) { 
+                const l = document.getElementById('mainLoader');
+                if(s) l.classList.remove('hidden'); else l.classList.add('hidden');
+            }
+        };
         document.addEventListener('DOMContentLoaded', () => window.app.init());
     </script>
 </body>
+
 </html>
