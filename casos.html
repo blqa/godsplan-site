@@ -78,17 +78,17 @@
                 <p class="text-xs font-mono text-gray-500 uppercase tracking-widest mt-1">Acceso Restringido</p>
             </div>
 
-            <form onsubmit="event.preventDefault(); window.app.login()" class="space-y-4">
+            <form onsubmit="event.preventDefault(); window.app.handleAuth()" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1.5 ml-1">Agente</label>
+                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1.5 ml-1">Correo Electrónico</label>
                     <div class="relative">
                         <i class="ph-bold ph-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input type="email" id="login-email" class="w-full bg-gray-50 dark:bg-black border border-gray-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" placeholder="correo@agente.com" required>
+                        <input type="email" id="login-email" class="w-full bg-gray-50 dark:bg-black border border-gray-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" placeholder="agente@ejemplo.com" required>
                     </div>
                 </div>
                 
                 <div>
-                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1.5 ml-1">Clave de Acceso</label>
+                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1.5 ml-1">Contraseña</label>
                     <div class="relative">
                         <i class="ph-bold ph-lock-key absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                         <input type="password" id="login-pass" class="w-full bg-gray-50 dark:bg-black border border-gray-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" placeholder="••••••••" required>
@@ -96,12 +96,18 @@
                 </div>
 
                 <button type="submit" id="btn-login" class="w-full py-3.5 bg-brand hover:bg-red-600 text-white font-bold rounded-xl shadow-lg shadow-brand/20 transition-all uppercase tracking-wide text-sm mt-2">
-                    Ingresar al Sistema
+                    Ingresar
                 </button>
             </form>
 
+            <div class="mt-4 text-center">
+                <button onclick="window.app.toggleAuthMode()" id="btn-toggle-mode" class="text-xs text-gray-500 hover:text-brand font-bold uppercase tracking-wide transition-colors">
+                    ¿No tienes cuenta? Regístrate
+                </button>
+            </div>
+
             <div id="login-error" class="mt-4 text-center text-xs text-red-500 font-bold hidden animate-pulse">
-                <i class="ph-bold ph-warning"></i> Credenciales incorrectas
+                <i class="ph-bold ph-warning"></i> <span id="error-msg">Credenciales incorrectas</span>
             </div>
         </div>
     </div>
@@ -269,6 +275,7 @@
             getAuth, 
             onAuthStateChanged, 
             signInWithEmailAndPassword,
+            createUserWithEmailAndPassword,
             signOut,
             setPersistence,
             browserLocalPersistence 
@@ -298,7 +305,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         
-        // Mantener persistencia LOCAL para esta ventana, pero aislado de iframe parents si es posible
+        // -- PERSISTENCIA HABILITADA: La sesión sobrevive al refresco y cierre de pestañas --
         setPersistence(auth, browserLocalPersistence).catch(console.error);
 
         const db = getFirestore(app);
@@ -309,6 +316,7 @@
         let currentFilter = 'unassigned';
         let searchTerm = '';
         let unsubscribeRealtime = null;
+        let authMode = 'login'; // 'login' or 'register'
 
         // --- UI UTILS ---
         const toast = (msg, type = 'success') => {
@@ -340,9 +348,6 @@
 
         // --- AUTH & DATA ---
         
-        // NOTA: Eliminado el inicio de sesión anónimo automático.
-        // Ahora dependemos totalmente de que el usuario haga login manual o tenga sesión guardada.
-
         onAuthStateChanged(auth, (user) => {
             const loginView = document.getElementById('login-view');
             const appView = document.getElementById('app-view');
@@ -402,27 +407,58 @@
 
         // --- APP LOGIC ---
         window.app = {
-            login: async () => {
+            toggleAuthMode: () => {
+                const btnToggle = document.getElementById('btn-toggle-mode');
+                const btnSubmit = document.getElementById('btn-login');
+                const errorMsg = document.getElementById('login-error');
+                
+                errorMsg.classList.add('hidden');
+                
+                if (authMode === 'login') {
+                    authMode = 'register';
+                    btnToggle.textContent = '¿Ya tienes cuenta? Inicia Sesión';
+                    btnSubmit.textContent = 'Crear Cuenta';
+                } else {
+                    authMode = 'login';
+                    btnToggle.textContent = '¿No tienes cuenta? Regístrate';
+                    btnSubmit.textContent = 'Ingresar';
+                }
+            },
+
+            handleAuth: async () => {
                 const email = document.getElementById('login-email').value;
                 const pass = document.getElementById('login-pass').value;
                 const btn = document.getElementById('btn-login');
                 const errDiv = document.getElementById('login-error');
+                const errMsg = document.getElementById('error-msg');
 
                 if(!email || !pass) return;
 
                 btn.disabled = true;
-                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Verificando...';
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Procesando...';
                 errDiv.classList.add('hidden');
 
                 try {
-                    await signInWithEmailAndPassword(auth, email, pass);
-                    // onAuthStateChanged handled the rest
+                    if (authMode === 'login') {
+                        await signInWithEmailAndPassword(auth, email, pass);
+                        // onAuthStateChanged handles UI switch
+                    } else {
+                        await createUserWithEmailAndPassword(auth, email, pass);
+                        toast('¡Cuenta creada con éxito!', 'success');
+                        // onAuthStateChanged handles UI switch
+                    }
                 } catch(e) {
-                    console.error("Login Failed", e);
-                    errDiv.textContent = "Error: Usuario o contraseña inválidos";
+                    console.error("Auth Failed", e);
+                    let msg = "Error: Verifica tus datos";
+                    if (e.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado";
+                    if (e.code === 'auth/weak-password') msg = "La contraseña debe tener al menos 6 caracteres";
+                    if (e.code === 'auth/invalid-email') msg = "Correo inválido";
+                    if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') msg = "Usuario o contraseña incorrectos";
+                    
+                    errMsg.textContent = msg;
                     errDiv.classList.remove('hidden');
                     btn.disabled = false;
-                    btn.innerText = 'INGRESAR AL SISTEMA';
+                    btn.innerText = authMode === 'login' ? 'INGRESAR' : 'CREAR CUENTA';
                     toast('Error de autenticación', 'error');
                 }
             },
