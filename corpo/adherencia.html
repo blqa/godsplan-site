@@ -106,6 +106,7 @@
             <i class="ph-fill ph-check-circle text-brand"></i> <span>Adherencia</span>
         </div>
         <div class="flex items-center gap-2 flex-wrap justify-end flex-1 md:flex-none">
+            <!-- RELOJ REAL CDMX -->
             <div id="realWorldClock" class="flex flex-col items-end mr-1 px-2 py-0.5 border-r border-border/50 min-w-[70px]">
                 <div class="text-[0.6rem] text-text-mute font-black tracking-wider leading-none mb-0.5 flex items-center gap-1 justify-end">
                      <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> CDMX
@@ -131,6 +132,7 @@
 
         <!-- RELOJ -->
         <div class="bg-card rounded-2xl border border-border py-5 px-2.5 text-center mb-5 shadow-sm relative overflow-hidden">
+            <!-- Loader Overlay -->
             <div id="mainLoader" class="absolute inset-0 bg-card/90 flex items-center justify-center z-10 rounded-2xl hidden">
                 <div class="spinner"></div>
             </div>
@@ -150,7 +152,13 @@
                 <div class="flex flex-col items-center">
                     <div class="text-[0.7rem] uppercase tracking-widest text-text-mute font-extrabold mb-1.5" id="clockStatus">TURNO ACTIVO</div>
                     <div class="text-[clamp(2.5rem,12vw,4rem)] font-extrabold text-text tabular-nums leading-none" id="clockDisplay">00:00</div>
-                    <div id="networkTimeBadge" class="text-[0.65rem] text-money font-bold mt-1.5 opacity-0 transition-opacity duration-500">
+                    
+                    <!-- NUEVO: HORA DE ENTRADA -->
+                    <div id="startTimeBadge" class="text-[0.75rem] font-bold text-brand mt-1 uppercase tracking-wide opacity-0 transition-opacity">
+                        ENTRADA: --:--
+                    </div>
+
+                    <div id="networkTimeBadge" class="text-[0.65rem] text-money font-bold mt-1.5 opacity-0 transition-opacity duration-500 hidden">
                         <i class="ph-bold ph-globe"></i> Local
                     </div>
                 </div>
@@ -268,9 +276,9 @@
                 </div>
             </div>
 
-            <!-- TAB DATOS (ACTUALIZADO) -->
+            <!-- TAB DATOS -->
             <div id="tData" class="tab-content hidden">
-                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-brand text-white" onclick="window.app.openImportModal()">Importar Texto (Excel)</button>
+                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-brand text-white" onclick="window.app.openImportModal()">Importar Excel</button>
                 
                 <!-- Restaurar Backup JSON -->
                 <input type="file" id="jsonFileInput" accept=".json" class="hidden" onchange="window.app.handleFileImport(event)">
@@ -538,15 +546,26 @@
                 const btnFood = `${btnBase} bg-bg text-text-mute border border-border`;
                 const btnPause = `${btnBase} col-span-2 bg-bg text-text-mute border border-border`;
 
+                // Badge de Hora de Entrada
+                const startEl = document.getElementById('startTimeBadge');
+
                 if (!s) {
                     off.style.display = 'block'; on.style.display = 'none';
                     area.innerHTML = `<button class="${btnStart}" onclick="window.app.clockIn()"><i class="ph-bold ph-play"></i> INICIAR JORNADA</button>`;
                     if (this.timer) clearInterval(this.timer);
                     document.getElementById('clockStatus').textContent = "FUERA DE TURNO";
                     document.getElementById('clockStatus').classList.remove('animate-pulse-custom', 'text-warn');
+                    if(startEl) startEl.classList.add('opacity-0'); // Ocultar hora entrada
                 } else {
                     if (!s.breaks) { s.breaks = { bathroom: 0, food: 0, pause: 0 }; this.save(); }
                     if (s.breaks.pause === undefined) s.breaks.pause = 0;
+
+                    // Mostrar hora de entrada
+                    const startTime = new Date(s.start).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    if(startEl) {
+                        startEl.textContent = `ENTRADA: ${startTime}`;
+                        startEl.classList.remove('opacity-0');
+                    }
 
                     off.style.display = 'none'; on.style.display = 'grid';
                     document.getElementById('limBath').textContent = bl;
