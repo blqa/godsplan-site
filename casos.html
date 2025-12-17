@@ -115,35 +115,28 @@
 
     <div id="toast-container" class="fixed bottom-6 right-6 z-[300] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- === LOGIN VIEW (PORTAL STYLE) === -->
+    <!-- === LOGIN VIEW (SOLO TARJETA) === -->
     <div id="login-view" class="fixed inset-0 z-[200] flex items-center justify-center p-4 transition-all duration-500 overflow-hidden font-display">
         
-        <!-- Animated Background (Solo visible en login) -->
+        <!-- Animated Background -->
         <div class="bg-gradient-login">
             <div class="bg-orb" style="top: -50vmax; left: -50vmax;"></div>
             <div class="bg-orb" style="bottom: -50vmax; right: -50vmax; animation-delay: 5s;"></div>
         </div>
 
-        <div class="relative z-10 w-full max-w-5xl grid md:grid-cols-2 gap-12 items-center">
+        <div class="relative z-10 w-full flex justify-center">
             
-            <!-- Texto Bienvenida -->
-            <div class="text-center md:text-left hidden md:block">
-                <p class="text-sm font-bold tracking-[0.2em] uppercase text-brand mb-2">Sistema Operativo</p>
-                <h1 class="text-5xl lg:text-7xl font-black tracking-tighter mb-4 leading-tight text-white">
-                    God's <span class="text-gradient">Plan</span><br>War Room
-                </h1>
-                <p class="text-gray-400 text-lg mb-8 max-w-md">
-                    Acceso restringido al sistema central de gestión de tickets y operaciones.
-                </p>
-            </div>
-
-            <!-- Tarjeta de Auth -->
-            <div class="card-auth rounded-2xl p-8 w-full max-w-md mx-auto">
-                <div class="flex flex-col items-center mb-6 md:hidden">
-                     <h1 class="text-3xl font-black tracking-tight text-white">WAR ROOM</h1>
+            <!-- Tarjeta de Auth (El Cuadrito) -->
+            <div class="card-auth rounded-2xl p-8 w-full max-w-sm mx-auto animate-fade-in-up">
+                
+                <div class="flex justify-center mb-6">
+                    <div class="w-12 h-12 bg-brand rounded-xl flex items-center justify-center shadow-lg shadow-brand/20 transform -rotate-3">
+                        <i class="ph-bold ph-strategy text-2xl text-white"></i>
+                    </div>
                 </div>
 
-                <h2 id="form-title" class="text-2xl font-bold text-white mb-6 text-center">Bienvenido</h2>
+                <h2 id="form-title" class="text-2xl font-black text-white mb-1 text-center tracking-tight">WAR ROOM</h2>
+                <p class="text-xs text-gray-500 text-center mb-6 font-mono uppercase tracking-widest">Acceso Restringido</p>
     
                 <form id="auth-form" onsubmit="event.preventDefault(); window.app.handleAuth();">
                     <!-- Campo Nombre (Solo registro) -->
@@ -154,7 +147,8 @@
                     </div>
 
                     <div class="mb-4 relative">
-                        <input type="email" id="login-email" required class="input-style w-full p-3 pl-4 rounded-lg text-sm" placeholder="ID de Empleado o Email">
+                        <!-- type="text" para permitir ID sin @ -->
+                        <input type="text" id="login-email" required class="input-style w-full p-3 pl-4 rounded-lg text-sm" placeholder="ID de Agente (ej: 4251)">
                     </div>
                     
                     <div class="mb-6 relative">
@@ -165,29 +159,25 @@
                          <span id="error-msg">Error</span>
                     </div>
 
-                    <button type="submit" id="btn-login" class="btn-primary-login w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase">
+                    <button type="submit" id="btn-login" class="btn-primary-login w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase shadow-lg shadow-brand/20">
                         ACCEDER
                     </button>
                 </form>
 
                 <div class="relative my-6">
                     <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-800"></div></div>
-                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-black/50 px-2 text-gray-500 font-bold backdrop-blur-sm">O continúa con</span></div>
+                    <div class="relative flex justify-center text-[10px] uppercase tracking-widest"><span class="bg-black/50 px-2 text-gray-600 font-bold backdrop-blur-sm">O ingresa con</span></div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 mb-6">
-                    <button onclick="window.app.loginGoogle()" class="bg-white hover:bg-gray-100 text-[#333] w-full font-bold p-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
-                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
-                        <span class="text-xs font-bold">Google</span>
-                    </button>
-                    <button onclick="window.app.loginGuest()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 w-full font-bold p-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
-                        <i class="ph-bold ph-user-circle text-lg"></i>
-                        <span class="text-xs font-bold">Invitado</span>
+                <div class="mb-6">
+                    <button onclick="window.app.loginGoogle()" class="bg-white hover:bg-gray-100 text-[#333] w-full font-bold p-2.5 rounded-lg flex items-center justify-center gap-2 transition shadow-md group">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4" alt="Google">
+                        <span class="text-xs font-bold group-hover:scale-105 transition-transform">Google</span>
                     </button>
                 </div>
 
                 <div class="text-center">
-                    <button onclick="window.app.toggleAuthMode()" id="btn-toggle-mode" class="text-xs text-gray-400 hover:text-brand transition-colors font-semibold uppercase tracking-wide">
+                    <button onclick="window.app.toggleAuthMode()" id="btn-toggle-mode" class="text-[10px] text-gray-500 hover:text-brand transition-colors font-bold uppercase tracking-widest">
                         ¿No tienes cuenta? Regístrate aquí
                     </button>
                 </div>
@@ -513,19 +503,24 @@
                     authMode = 'login';
                     btnToggle.textContent = '¿No tienes cuenta? Regístrate aquí';
                     btnSubmit.textContent = 'ACCEDER';
-                    title.textContent = 'Bienvenido';
+                    title.textContent = 'WAR ROOM';
                     nameField.classList.add('hidden');
                 }
             },
 
             handleAuth: async () => {
-                const email = document.getElementById('login-email').value;
+                let email = document.getElementById('login-email').value.trim();
                 const pass = document.getElementById('login-pass').value;
                 const btn = document.getElementById('btn-login');
                 const errDiv = document.getElementById('login-error');
                 const errMsg = document.getElementById('error-msg');
 
                 if(!email || !pass) return;
+
+                // CAMBIO: Agregar dominio si no existe
+                if (!email.includes('@')) {
+                    email = `${email}@godsplan.site`;
+                }
 
                 btn.disabled = true;
                 btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> PROCESANDO...';
@@ -543,9 +538,9 @@
                 } catch(e) {
                     console.error("Auth Failed", e);
                     let msg = "Error: Verifica tus datos";
-                    if (e.code === 'auth/email-already-in-use') msg = "Correo ya registrado";
+                    if (e.code === 'auth/email-already-in-use') msg = "ID/Email ya registrado";
                     if (e.code === 'auth/weak-password') msg = "Contraseña débil (min 6 chars)";
-                    if (e.code === 'auth/invalid-email') msg = "Correo inválido";
+                    if (e.code === 'auth/invalid-email') msg = "ID/Email inválido";
                     if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = "Credenciales incorrectas";
                     
                     errMsg.textContent = msg;
@@ -561,14 +556,6 @@
                     await signInWithPopup(auth, provider);
                 } catch(e) {
                     toast('Error con Google: ' + e.message, 'error');
-                }
-            },
-
-            loginGuest: async () => {
-                try {
-                    await signInAnonymously(auth);
-                } catch(e) {
-                    toast('Error modo invitado: ' + e.message, 'error');
                 }
             },
 
