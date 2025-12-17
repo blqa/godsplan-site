@@ -216,13 +216,42 @@
     <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged, 
+            signInWithCustomToken, 
+            signInAnonymously,
+            setPersistence,
+            browserLocalPersistence 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración 
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // --- CONFIGURACIÓN DE ENTORNO UNIFICADA ---
+        const fallbackConfig = { 
+            apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", 
+            authDomain: "god-s-plan-d737b.firebaseapp.com", 
+            projectId: "god-s-plan-d737b", 
+            storageBucket: "god-s-plan-d737b.firebasestorage.app", 
+            messagingSenderId: "458198314028", 
+            appId: "1:458198314028:web:d62b24cee2d19ee5b47589" 
+        };
+        
+        let firebaseConfig = fallbackConfig;
+        
+        try { 
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) { 
+                const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; 
+                if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; 
+            } 
+        } catch(e) { console.error("Error cargando config:", e); }
+        
+        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        
+        // ** SOLUCIÓN CLAVE SSO: Persistencia Local **
+        setPersistence(auth, browserLocalPersistence).catch(console.error);
+
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-default';
 
