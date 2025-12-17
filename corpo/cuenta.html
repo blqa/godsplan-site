@@ -11,18 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- FIREBASE MODULAR (v9+) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, onAuthStateChanged, signOut, updateProfile, 
-            signInWithCustomToken, signInAnonymously 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        
-        // Exportar al scope global para usar en window.app
-        window.firebaseImports = { initializeApp, getAuth, onAuthStateChanged, signOut, updateProfile, signInWithCustomToken, signInAnonymously };
-    </script>
-
     <script>
         tailwind.config = {
             theme: {
@@ -51,7 +39,6 @@
         .g-links { display: flex; align-items: center; gap: 20px; }
         .g-link { color: #71717a; text-decoration: none; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; transition: color 0.2s; }
         .g-link.active { color: #fff; border-bottom: 2px solid #fff; padding-bottom: 2px; }
-        #syncStatus { width: 6px; height: 6px; border-radius: 50%; background-color: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.5); margin-left: 5px; }
 
         /* MAIN LAYOUT */
         .container { max-width: 600px; margin: 0 auto; padding: 20px; flex-grow: 1; }
@@ -63,7 +50,7 @@
         
         .avatar-container { position: relative; width: 100px; height: 100px; margin: 0 auto 15px; }
         .avatar { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #333, #111); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 3.5rem; color: #555; overflow: hidden; transition: all 0.3s ease; }
-        .avatar i { color: #fff; } /* Icon color */
+        .avatar i { color: #fff; } 
         
         /* Edit Avatar Button */
         .edit-avatar-btn {
@@ -122,13 +109,13 @@
 
     <!-- NAV GLOBAL -->
     <nav id="global-nav">
-        <a href="/" class="g-logo"><i class="ph-bold ph-circles-three-plus"></i> God's Plan</a>
+        <a href="/" class="g-logo"><i class="ph-bold ph-circles-three-plus text-brand"></i> God's Plan</a>
         <div class="g-links">
-            <a href="/adherencia.html" class="g-link">ADHERENCIA</a>
-            <a href="/chat.html" class="g-link">CHAT</a>
-            <a href="/finanzas.html" class="g-link">FINANZAS</a>
+            <a href="/corpo/index.html" class="g-link">HUB</a>
+            <a href="/corpo/adherencia.html" class="g-link">ADHERENCIA</a>
+            <a href="/corpo/chat.html" class="g-link">CHAT</a>
+            <a href="/blqa/finanzas.html" class="g-link">FINANZAS (BIO)</a>
             <a href="#" class="g-link active">CUENTA</a>
-            <div id="syncStatus" title="Conectado"></div>
         </div>
     </nav>
 
@@ -228,12 +215,18 @@
     <div id="toast"><i class="ph-bold ph-check-circle"></i> <span id="toastMsg">Guardado</span></div>
 
     <script type="module">
-        const { initializeApp, getAuth, onAuthStateChanged, signOut, updateProfile, signInWithCustomToken, signInAnonymously } = window.firebaseImports;
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, updateProfile, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        const fallbackConfig = { apiKey: "AIzaSyCrHBz94UtgiaYntHCYhC5jNa6auUI63vQ", authDomain: "god-s-plan-d737b.firebaseapp.com", projectId: "god-s-plan-d737b", storageBucket: "god-s-plan-d737b.firebasestorage.app", messagingSenderId: "458198314028", appId: "1:458198314028:web:d62b24cee2d19ee5b47589" };
-        let firebaseConfig = fallbackConfig;
-        try { if (typeof __firebase_config !== 'undefined' && __firebase_config) { const envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; if (envConfig && envConfig.apiKey) firebaseConfig = envConfig; } } catch(e) { console.error(e); }
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // CONFIGURACIÓN OFICIAL
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
+            authDomain: "godsplan-blqa.firebaseapp.com",
+            projectId: "godsplan-blqa",
+            storageBucket: "godsplan-blqa.firebasestorage.app",
+            messagingSenderId: "1008783768310",
+            appId: "1:1008783768310:web:c09fe541a2f4d23e5b8ad7"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -254,14 +247,11 @@
 
             init() {
                 onAuthStateChanged(auth, async (u) => {
-                    if (u && !u.isAnonymous) {
+                    if (u) {
                         this.user = u;
                         this.renderProfile();
                         this.renderIconGrid();
                     } else {
-                        if (!u && initialAuthToken) {
-                            try { await signInWithCustomToken(auth, initialAuthToken); return; } catch(e){}
-                        }
                         document.getElementById('authModal').classList.add('active');
                     }
                 });
