@@ -39,10 +39,18 @@
 
     <style>
         body { transition: background-color 0.3s, color 0.3s; }
+        
+        /* Scrollbar Global */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #52525b; border-radius: 3px; }
         .dark ::-webkit-scrollbar-thumb { background: #3f3f46; }
+        
+        /* Scrollbar interna para logs (Más fina) */
+        .log-scroll::-webkit-scrollbar { width: 4px; }
+        .log-scroll::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 2px; }
+        .dark .log-scroll::-webkit-scrollbar-thumb { background: #27272a; }
+        .log-scroll:hover::-webkit-scrollbar-thumb { background: #a1a1aa; }
         
         .glass-nav { backdrop-filter: blur(12px); border-bottom: 1px solid; }
         .dark .glass-nav { background: rgba(9, 9, 11, 0.85); border-color: rgba(255,255,255,0.05); }
@@ -417,10 +425,11 @@
             return `${Math.floor(hours / 24)} d`;
         };
 
-        const formatTime = (ts) => {
+        const formatDateTime = (ts) => {
             if (!ts) return '';
             const d = new Date(ts);
-            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            // Format: 17/12 14:30
+            return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
         }
 
         // --- AUTH & DATA ---
@@ -870,8 +879,8 @@
                 }
 
                 // Comments Logic (System vs User vs Interaction)
-                const recentComments = c.comments?.slice().reverse().slice(0, 5).map(co => {
-                    const time = formatTime(co.time);
+                const recentComments = c.comments?.slice().reverse().slice(0, 20).map(co => {
+                    const time = formatDateTime(co.time);
                     
                     if (co.type === 'system') {
                         return `<div class="text-[10px] text-gray-400 italic mb-1 pl-1 border-l-2 border-gray-200 dark:border-zinc-800">
@@ -966,10 +975,12 @@
                     <!-- Right: Chat & Actions -->
                     <div class="flex-grow md:max-w-xs min-w-0 md:border-l border-gray-100 dark:border-zinc-800 md:pl-6 flex flex-col gap-3 justify-between">
                         
-                        <!-- Mini Chat History -->
-                        <div class="flex-grow flex flex-col gap-1 overflow-hidden">
+                        <!-- Mini Chat History (FIXED HEIGHT + SCROLL) -->
+                        <div class="flex flex-col gap-1">
                             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Actividad Reciente</div>
-                            ${recentComments}
+                            <div class="max-h-40 overflow-y-auto pr-1 log-scroll flex flex-col-reverse">
+                                ${recentComments}
+                            </div>
                         </div>
 
                         <!-- Inputs area -->
