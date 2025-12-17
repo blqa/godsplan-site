@@ -10,6 +10,7 @@
     
     <!-- Fuentes e Iconos -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
@@ -19,14 +20,16 @@
                 extend: {
                     fontFamily: { 
                         sans: ['"Inter"', 'sans-serif'],
+                        display: ['"Plus Jakarta Sans"', 'sans-serif'],
                         mono: ['"JetBrains Mono"', 'monospace']
                     },
                     colors: {
                         brand: '#E70000',
+                        dark: '#050505',
                         status: {
-                            unassigned: '#ef4444', // Rojo
-                            pending: '#eab308',    // Amarillo
-                            resolved: '#22c55e'    // Verde
+                            unassigned: '#ef4444', 
+                            pending: '#eab308',    
+                            resolved: '#22c55e'    
                         }
                     }
                 }
@@ -55,65 +58,145 @@
         .badge-pulse { animation: pulse-soft 2s infinite; }
         @keyframes pulse-soft { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
-        /* Estilos para pestañas del modal */
+        /* Estilos NUEVOS del Login (Portal) */
+        .bg-gradient-login {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+            background: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 100%);
+        }
+        .bg-orb {
+            position: absolute; 
+            width: 120vmax; height: 120vmax; 
+            background: radial-gradient(circle, rgba(231, 0, 0, 0.15) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%; pointer-events: none;
+            animation: float 10s infinite ease-in-out;
+            box-shadow: 0 0 100px rgba(231, 0, 0, 0.2); 
+        }
+        @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -30px); } }
+
+        .card-auth {
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(231, 0, 0, 0.3);
+            box-shadow: 0 0 50px rgba(231, 0, 0, 0.15);
+        }
+        .input-style {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid #333;
+            color: white;
+            transition: all 0.3s;
+        }
+        .input-style:focus {
+            border-color: #E70000;
+            background-color: rgba(231, 0, 0, 0.05);
+            box-shadow: 0 0 0 4px rgba(231, 0, 0, 0.1);
+            outline: none;
+        }
+        .btn-primary-login {
+            background: linear-gradient(135deg, #E70000 0%, #990000 100%);
+            transition: all 0.3s;
+        }
+        .btn-primary-login:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 10px rgba(231, 0, 0, 0.3);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #ff4444, #E70000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Estilos para pestañas del modal (War Room) */
         .tab-active { border-bottom-color: #E70000; color: #E70000; background-color: rgba(231, 0, 0, 0.05); }
         .tab-inactive { border-bottom-color: transparent; color: #9ca3af; }
         .dark .tab-inactive { color: #52525b; }
-        .tab-inactive:hover { color: #374151; }
-        .dark .tab-inactive:hover { color: #d4d4d8; }
     </style>
 </head>
-<body class="flex flex-col min-h-screen overflow-x-hidden bg-gray-50 text-gray-900 dark:bg-[#09090b] dark:text-gray-200">
+<body class="flex flex-col min-h-screen overflow-x-hidden bg-gray-50 text-gray-900 dark:bg-[#09090b] dark:text-gray-200 font-sans">
 
-    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[300] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- LOGIN VIEW (SHOWN BY DEFAULT) -->
-    <div id="login-view" class="fixed inset-0 z-[200] bg-gray-100 dark:bg-black flex items-center justify-center p-4 transition-all duration-500">
-        <div class="w-full max-w-md bg-white dark:bg-[#0f0f11] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-8 animate-fadeIn">
-            <div class="flex flex-col items-center mb-8">
-                <div class="w-16 h-16 bg-brand rounded-2xl flex items-center justify-center shadow-lg shadow-brand/20 mb-4 transform -rotate-6">
-                    <i class="ph-bold ph-strategy text-3xl text-white"></i>
-                </div>
-                <h1 class="text-2xl font-black tracking-tight text-gray-900 dark:text-white">WAR ROOM</h1>
-                <p class="text-xs font-mono text-gray-500 uppercase tracking-widest mt-1">Acceso Restringido</p>
+    <!-- === LOGIN VIEW (PORTAL STYLE) === -->
+    <div id="login-view" class="fixed inset-0 z-[200] flex items-center justify-center p-4 transition-all duration-500 overflow-hidden font-display">
+        
+        <!-- Animated Background (Solo visible en login) -->
+        <div class="bg-gradient-login">
+            <div class="bg-orb" style="top: -50vmax; left: -50vmax;"></div>
+            <div class="bg-orb" style="bottom: -50vmax; right: -50vmax; animation-delay: 5s;"></div>
+        </div>
+
+        <div class="relative z-10 w-full max-w-5xl grid md:grid-cols-2 gap-12 items-center">
+            
+            <!-- Texto Bienvenida -->
+            <div class="text-center md:text-left hidden md:block">
+                <p class="text-sm font-bold tracking-[0.2em] uppercase text-brand mb-2">Sistema Operativo</p>
+                <h1 class="text-5xl lg:text-7xl font-black tracking-tighter mb-4 leading-tight text-white">
+                    God's <span class="text-gradient">Plan</span><br>War Room
+                </h1>
+                <p class="text-gray-400 text-lg mb-8 max-w-md">
+                    Acceso restringido al sistema central de gestión de tickets y operaciones.
+                </p>
             </div>
 
-            <form onsubmit="event.preventDefault(); window.app.handleAuth()" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1.5 ml-1">Correo Electrónico</label>
-                    <div class="relative">
-                        <i class="ph-bold ph-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input type="email" id="login-email" class="w-full bg-gray-50 dark:bg-black border border-gray-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" placeholder="agente@ejemplo.com" required>
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1.5 ml-1">Contraseña</label>
-                    <div class="relative">
-                        <i class="ph-bold ph-lock-key absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input type="password" id="login-pass" class="w-full bg-gray-50 dark:bg-black border border-gray-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" placeholder="••••••••" required>
-                    </div>
+            <!-- Tarjeta de Auth -->
+            <div class="card-auth rounded-2xl p-8 w-full max-w-md mx-auto">
+                <div class="flex flex-col items-center mb-6 md:hidden">
+                     <h1 class="text-3xl font-black tracking-tight text-white">WAR ROOM</h1>
                 </div>
 
-                <button type="submit" id="btn-login" class="w-full py-3.5 bg-brand hover:bg-red-600 text-white font-bold rounded-xl shadow-lg shadow-brand/20 transition-all uppercase tracking-wide text-sm mt-2">
-                    Ingresar
-                </button>
-            </form>
+                <h2 id="form-title" class="text-2xl font-bold text-white mb-6 text-center">Bienvenido</h2>
+    
+                <form id="auth-form" onsubmit="event.preventDefault(); window.app.handleAuth();">
+                    <!-- Campo Nombre (Solo registro) -->
+                    <div id="name-field" class="mb-4 hidden">
+                        <div class="relative">
+                            <input type="text" id="reg-name" class="input-style w-full p-3 pl-4 rounded-lg text-sm" placeholder="Nombre Completo">
+                        </div>
+                    </div>
 
-            <div class="mt-4 text-center">
-                <button onclick="window.app.toggleAuthMode()" id="btn-toggle-mode" class="text-xs text-gray-500 hover:text-brand font-bold uppercase tracking-wide transition-colors">
-                    ¿No tienes cuenta? Regístrate
-                </button>
-            </div>
+                    <div class="mb-4 relative">
+                        <input type="email" id="login-email" required class="input-style w-full p-3 pl-4 rounded-lg text-sm" placeholder="ID de Empleado o Email">
+                    </div>
+                    
+                    <div class="mb-6 relative">
+                        <input type="password" id="login-pass" required class="input-style w-full p-3 pl-4 rounded-lg text-sm" placeholder="Contraseña">
+                    </div>
+                    
+                    <div id="login-error" class="text-xs text-red-500 bg-red-900/20 p-3 rounded-lg mb-4 hidden border border-red-500/20 text-center font-bold animate-pulse">
+                         <span id="error-msg">Error</span>
+                    </div>
 
-            <div id="login-error" class="mt-4 text-center text-xs text-red-500 font-bold hidden animate-pulse">
-                <i class="ph-bold ph-warning"></i> <span id="error-msg">Credenciales incorrectas</span>
+                    <button type="submit" id="btn-login" class="btn-primary-login w-full text-white font-bold p-3 rounded-lg text-sm tracking-wider uppercase">
+                        ACCEDER
+                    </button>
+                </form>
+
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-800"></div></div>
+                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-black/50 px-2 text-gray-500 font-bold backdrop-blur-sm">O continúa con</span></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button onclick="window.app.loginGoogle()" class="bg-white hover:bg-gray-100 text-[#333] w-full font-bold p-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
+                        <span class="text-xs font-bold">Google</span>
+                    </button>
+                    <button onclick="window.app.loginGuest()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 w-full font-bold p-3 rounded-lg flex items-center justify-center gap-2 transition shadow-md">
+                        <i class="ph-bold ph-user-circle text-lg"></i>
+                        <span class="text-xs font-bold">Invitado</span>
+                    </button>
+                </div>
+
+                <div class="text-center">
+                    <button onclick="window.app.toggleAuthMode()" id="btn-toggle-mode" class="text-xs text-gray-400 hover:text-brand transition-colors font-semibold uppercase tracking-wide">
+                        ¿No tienes cuenta? Regístrate aquí
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- APP VIEW (HIDDEN BY DEFAULT) -->
-    <div id="app-view" class="flex flex-col min-h-screen hidden opacity-0 transition-opacity duration-500">
+    <!-- === APP VIEW (WAR ROOM) === -->
+    <div id="app-view" class="flex flex-col min-h-screen hidden opacity-0 transition-opacity duration-500 relative z-10 bg-gray-50 dark:bg-[#09090b]">
         <!-- HEADER -->
         <header class="h-16 glass-nav sticky top-0 z-50 flex items-center justify-between px-4 lg:px-8 shadow-sm dark:shadow-none transition-colors">
             <div class="flex items-center gap-6">
@@ -195,7 +278,7 @@
     </div>
 
     <!-- NEW HYBRID MODAL -->
-    <div id="import-modal" class="fixed inset-0 z-[100] bg-black/50 dark:bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all duration-200 opacity-0">
+    <div id="import-modal" class="fixed inset-0 z-[100] bg-black/50 dark:bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all duration-200 opacity-0 font-sans">
         <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 w-full max-w-xl rounded-2xl shadow-2xl transform scale-95 transition-all duration-200 flex flex-col overflow-hidden" id="import-modal-content">
             <!-- Header -->
             <div class="p-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-950">
@@ -276,6 +359,10 @@
             onAuthStateChanged, 
             signInWithEmailAndPassword,
             createUserWithEmailAndPassword,
+            signInWithPopup,
+            GoogleAuthProvider,
+            signInAnonymously,
+            updateProfile,
             signOut,
             setPersistence,
             browserLocalPersistence 
@@ -411,17 +498,23 @@
                 const btnToggle = document.getElementById('btn-toggle-mode');
                 const btnSubmit = document.getElementById('btn-login');
                 const errorMsg = document.getElementById('login-error');
+                const title = document.getElementById('form-title');
+                const nameField = document.getElementById('name-field');
                 
                 errorMsg.classList.add('hidden');
                 
                 if (authMode === 'login') {
                     authMode = 'register';
                     btnToggle.textContent = '¿Ya tienes cuenta? Inicia Sesión';
-                    btnSubmit.textContent = 'Crear Cuenta';
+                    btnSubmit.textContent = 'REGISTRARME';
+                    title.textContent = 'Crear Cuenta';
+                    nameField.classList.remove('hidden');
                 } else {
                     authMode = 'login';
-                    btnToggle.textContent = '¿No tienes cuenta? Regístrate';
-                    btnSubmit.textContent = 'Ingresar';
+                    btnToggle.textContent = '¿No tienes cuenta? Regístrate aquí';
+                    btnSubmit.textContent = 'ACCEDER';
+                    title.textContent = 'Bienvenido';
+                    nameField.classList.add('hidden');
                 }
             },
 
@@ -435,31 +528,47 @@
                 if(!email || !pass) return;
 
                 btn.disabled = true;
-                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Procesando...';
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> PROCESANDO...';
                 errDiv.classList.add('hidden');
 
                 try {
                     if (authMode === 'login') {
                         await signInWithEmailAndPassword(auth, email, pass);
-                        // onAuthStateChanged handles UI switch
                     } else {
-                        await createUserWithEmailAndPassword(auth, email, pass);
+                        const name = document.getElementById('reg-name').value;
+                        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                        if(name) await updateProfile(cred.user, { displayName: name });
                         toast('¡Cuenta creada con éxito!', 'success');
-                        // onAuthStateChanged handles UI switch
                     }
                 } catch(e) {
                     console.error("Auth Failed", e);
                     let msg = "Error: Verifica tus datos";
-                    if (e.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado";
-                    if (e.code === 'auth/weak-password') msg = "La contraseña debe tener al menos 6 caracteres";
+                    if (e.code === 'auth/email-already-in-use') msg = "Correo ya registrado";
+                    if (e.code === 'auth/weak-password') msg = "Contraseña débil (min 6 chars)";
                     if (e.code === 'auth/invalid-email') msg = "Correo inválido";
-                    if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') msg = "Usuario o contraseña incorrectos";
+                    if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = "Credenciales incorrectas";
                     
                     errMsg.textContent = msg;
                     errDiv.classList.remove('hidden');
                     btn.disabled = false;
-                    btn.innerText = authMode === 'login' ? 'INGRESAR' : 'CREAR CUENTA';
-                    toast('Error de autenticación', 'error');
+                    btn.innerText = authMode === 'login' ? 'ACCEDER' : 'REGISTRARME';
+                }
+            },
+
+            loginGoogle: async () => {
+                try {
+                    const provider = new GoogleAuthProvider();
+                    await signInWithPopup(auth, provider);
+                } catch(e) {
+                    toast('Error con Google: ' + e.message, 'error');
+                }
+            },
+
+            loginGuest: async () => {
+                try {
+                    await signInAnonymously(auth);
+                } catch(e) {
+                    toast('Error modo invitado: ' + e.message, 'error');
                 }
             },
 
