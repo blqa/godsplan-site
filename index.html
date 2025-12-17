@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>God's Plan | Portal de Acceso</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>God's Plan | Nexus</title>
     
-    <!-- LIBRERIAS (Tailwind + Fuentes + Iconos) -->
+    <!-- LIBRERIAS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
@@ -16,17 +16,24 @@
                 extend: {
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: {
-                        brand: '#E70000', 
-                        dark: '#050505',
-                        card: '#121212'
+                        brand: { DEFAULT: '#E70000', hover: '#cc0000', glow: 'rgba(231,0,0,0.5)' }, 
+                        dark: '#030000',
+                        glass: 'rgba(20, 20, 20, 0.7)'
                     },
                     animation: {
-                        'float': 'float 10s infinite ease-in-out',
-                        'fade-in': 'fadeIn 0.5s ease-out'
+                        'nebula': 'nebula 20s infinite alternate',
+                        'float': 'float 6s ease-in-out infinite',
+                        'spin-slow': 'spin 10s linear infinite'
                     },
                     keyframes: {
-                        float: { '0%, 100%': { transform: 'translate(0, 0)' }, '50%': { transform: 'translate(20px, -20px)' } },
-                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+                        nebula: {
+                            '0%': { transform: 'scale(1)', opacity: '0.3' },
+                            '100%': { transform: 'scale(1.2)', opacity: '0.6' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
                     }
                 }
             }
@@ -34,127 +41,235 @@
     </script>
 
     <style>
-        body { background-color: #050505; color: white; overflow-x: hidden; }
-        
-        /* Fondo Animado */
-        .bg-orb {
-            position: fixed; width: 100vmax; height: 100vmax;
-            background: radial-gradient(circle, rgba(231, 0, 0, 0.1) 0%, rgba(0,0,0,0) 70%);
-            border-radius: 50%; pointer-events: none; z-index: -1;
-            animation: float 15s infinite ease-in-out;
+        body { background-color: #030000; color: white; overflow-x: hidden; }
+
+        /* FONDO DINÁMICO (AURORA) */
+        .aurora-bg {
+            position: fixed; inset: 0; z-index: -2;
+            background: 
+                radial-gradient(circle at 50% 50%, rgba(50, 0, 0, 0.4) 0%, transparent 60%),
+                radial-gradient(circle at 80% 20%, rgba(231, 0, 0, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 20% 80%, rgba(100, 0, 0, 0.2) 0%, transparent 40%);
+            filter: blur(80px);
+            animation: nebula 15s infinite alternate ease-in-out;
         }
 
-        /* Input Estilizado */
-        .input-god {
-            background: rgba(255,255,255,0.03); border: 1px solid #333; color: white;
-            transition: all 0.3s; width: 100%; padding: 12px 16px; border-radius: 12px;
-            font-size: 1rem;
+        /* RED (GRID) */
+        .grid-bg {
+            position: fixed; inset: 0; z-index: -1;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
         }
-        .input-god:focus { border-color: #E70000; outline: none; box-shadow: 0 0 0 2px rgba(231,0,0,0.1); background: rgba(231,0,0,0.05); }
 
-        /* Tarjetas del Portal */
-        .portal-card {
-            background: rgba(20,20,20,0.6); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.05); border-radius: 24px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer; position: relative; overflow: hidden;
+        /* INPUTS MODERNOS */
+        .input-nexus {
+            background: rgba(255,255,255,0.03); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            color: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            width: 100%; padding: 14px 16px; border-radius: 16px;
+            font-size: 0.95rem; font-weight: 500;
         }
-        .portal-card:hover {
-            transform: translateY(-5px); border-color: rgba(231,0,0,0.3);
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+        .input-nexus:focus { 
+            border-color: #E70000; 
+            outline: none; 
+            background: rgba(231,0,0,0.05); 
+            box-shadow: 0 0 20px rgba(231,0,0,0.2);
+            transform: translateY(-2px);
         }
-        /* Efecto Glow Mouse */
-        .portal-card::before {
-            content: ''; position: absolute; inset: 0;
-            background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.06), transparent 40%);
-            opacity: 0; transition: opacity 0.5s; pointer-events: none;
+        .input-nexus::placeholder { color: rgba(255,255,255,0.3); }
+
+        /* TARJETAS DE CRISTAL */
+        .glass-panel {
+            background: rgba(15, 15, 15, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
-        .portal-card:hover::before { opacity: 1; }
+
+        /* SWITCH DE MODO (LOGIN/REGISTER) */
+        .auth-switch {
+            position: relative; display: flex; background: rgba(0,0,0,0.3);
+            border-radius: 12px; padding: 4px; margin-bottom: 24px;
+        }
+        .auth-switch button {
+            flex: 1; padding: 8px; font-size: 0.8rem; font-weight: 700; z-index: 1;
+            color: #666; transition: 0.3s;
+        }
+        .auth-switch button.active { color: white; }
+        .auth-switch-glider {
+            position: absolute; top: 4px; left: 4px; height: calc(100% - 8px); width: calc(50% - 4px);
+            background: #222; border-radius: 8px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .auth-mode-register .auth-switch-glider { transform: translateX(100%); }
+
+        /* GLOW BUTTON */
+        .btn-glow {
+            position: relative; overflow: hidden;
+            background: #E70000; color: white;
+            transition: all 0.3s;
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 30px rgba(231, 0, 0, 0.4);
+            transform: translateY(-2px);
+        }
+        .btn-glow::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(45deg) translate(-100%, -100%);
+            transition: 0.5s;
+        }
+        .btn-glow:hover::after { transform: rotate(45deg) translate(100%, 100%); }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-6 relative">
+<body class="flex flex-col min-h-screen pt-24 selection:bg-brand selection:text-white">
 
-    <!-- ELEMENTOS DE FONDO -->
-    <div class="bg-orb" style="top: -50%; left: -20%;"></div>
-    <div class="bg-orb" style="bottom: -50%; right: -20%; animation-delay: -5s;"></div>
+    <!-- FONDOS -->
+    <div class="aurora-bg"></div>
+    <div class="grid-bg"></div>
+
+    <!-- HEADER FIJO (ZOOM PROOF) -->
+    <nav class="fixed top-0 left-0 w-full z-50 border-b border-white/5 bg-dark/80 backdrop-blur-md h-20 flex items-center">
+        <div class="w-full max-w-6xl mx-auto px-6 flex justify-between items-center">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 group cursor-pointer" onclick="window.location.reload()">
+                <div class="relative w-8 h-8 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-brand rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                    <i class="ph-fill ph-planet text-2xl text-brand relative z-10"></i>
+                </div>
+                <span class="font-bold tracking-widest text-lg">GOD'S PLAN</span>
+            </div>
+
+            <!-- User Badge (Solo visible si logueado) -->
+            <div id="user-badge" class="hidden items-center gap-4 animate-fade-in">
+                <div class="hidden md:flex flex-col text-right">
+                    <span id="user-name" class="text-xs font-bold text-white uppercase tracking-wider">Usuario</span>
+                    <span id="user-role" class="text-[10px] font-mono text-zinc-500">AGENT ACCESS</span>
+                </div>
+                <button onclick="window.app.logout()" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-brand/50 hover:text-brand transition-all">
+                    <i class="ph-bold ph-power"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
 
     <!-- CONTENEDOR PRINCIPAL -->
-    <main class="w-full max-w-5xl relative z-10">
+    <main class="flex-grow flex items-center justify-center p-6 relative z-10">
 
-        <!-- HEADER SIMPLE -->
-        <header class="absolute top-0 left-0 w-full flex justify-between items-center p-4 md:p-0 md:-top-24">
-            <div class="flex items-center gap-2 font-black tracking-wider text-xl">
-                <i class="ph-fill ph-circles-three-plus text-brand"></i> GOD'S PLAN
-            </div>
-            <div id="user-badge" class="hidden items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/10">
-                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span id="user-display" class="text-xs font-bold text-gray-300 uppercase">...</span>
-                <button onclick="window.app.logout()" class="text-zinc-500 hover:text-white ml-2"><i class="ph-bold ph-sign-out"></i></button>
-            </div>
-        </header>
-
-        <!-- VISTA 1: LOGIN (Se muestra si no hay sesión) -->
-        <div id="view-login" class="max-w-md mx-auto animate-fade-in hidden">
-            <div class="text-center mb-10">
-                <h1 class="text-5xl font-black mb-4 tracking-tighter">IDENTIFÍCATE</h1>
-                <p class="text-gray-400">Acceso restringido al ecosistema CorpoDatos & BLQA.</p>
+        <!-- ==================== VISTA: LOGIN / REGISTRO ==================== -->
+        <div id="view-auth" class="w-full max-w-md animate-float">
+            
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-2">NEXUS CORE</h1>
+                <p class="text-zinc-500 text-sm font-mono tracking-widest uppercase">Identificación Requerida</p>
             </div>
 
-            <div class="bg-card/50 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl">
-                <form onsubmit="event.preventDefault(); window.app.login();">
-                    <div class="mb-4">
-                        <label class="text-[10px] font-bold text-brand uppercase tracking-widest mb-2 block">ID de Agente / Acceso</label>
-                        <input type="text" id="login-id" class="input-god text-center text-xl font-bold tracking-widest" placeholder="Ej: 17620" autofocus>
-                    </div>
-                    <div class="mb-8">
-                        <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 block">Contraseña</label>
-                        <input type="password" id="login-pass" class="input-god text-center" placeholder="••••••••">
-                    </div>
-                    
-                    <div id="error-msg" class="hidden mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs font-bold text-center">
-                        Error de credenciales
-                    </div>
+            <div class="glass-panel rounded-3xl p-8 relative overflow-hidden">
+                <!-- Luces decorativas internas -->
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-brand blur-md opacity-50"></div>
 
-                    <button type="submit" id="btn-login" class="w-full bg-brand hover:bg-red-600 text-white font-black py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(231,0,0,0.3)] hover:shadow-[0_0_30px_rgba(231,0,0,0.5)] active:scale-95 uppercase tracking-wider text-sm flex items-center justify-center gap-2">
-                        <span>Iniciar Sesión</span>
-                        <i class="ph-bold ph-arrow-right"></i>
-                    </button>
-                </form>
-            </div>
-            <p class="text-center text-zinc-600 text-[10px] mt-6 font-mono">SECURE AUTHENTICATION v2.0</p>
-        </div>
-
-        <!-- VISTA 2: DASHBOARD (Se muestra si hay sesión) -->
-        <div id="view-dashboard" class="hidden animate-fade-in w-full">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-5xl font-black mb-2 tracking-tight">SELECCIONA MÓDULO</h2>
-                <p class="text-gray-400">Bienvenido al núcleo operativo.</p>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto">
-                
-                <!-- TARJETA 1: BLQA (Personal) -->
-                <div class="portal-card group h-64 flex flex-col items-center justify-center p-8 text-center" onclick="window.location.href='/blqa/'">
-                    <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border border-white/10 group-hover:border-white/30">
-                        <i class="ph-fill ph-alien text-4xl text-gray-300 group-hover:text-white"></i>
-                    </div>
-                    <h3 class="text-2xl font-black text-white mb-2 tracking-wide group-hover:text-brand transition-colors">BLQA CORE</h3>
-                    <p class="text-sm text-gray-500 group-hover:text-gray-300">Identidad Digital, Portfolio & Legacy.</p>
+                <!-- Switcher -->
+                <div class="auth-switch" id="auth-switch-container">
+                    <div class="auth-switch-glider"></div>
+                    <button onclick="window.app.toggleAuth('login')" id="tab-login" class="active">INGRESAR</button>
+                    <button onclick="window.app.toggleAuth('register')" id="tab-register">REGISTRARSE</button>
                 </div>
 
-                <!-- TARJETA 2: CORPODATOS (Trabajo) -->
-                <!-- Nota: Redirige a /corpo/adherencia.html que es tu "home" de herramientas actual -->
-                <div class="portal-card group h-64 flex flex-col items-center justify-center p-8 text-center relative" onclick="window.location.href='/corpo/adherencia.html'">
-                    <!-- Badge de Notificación -->
-                    <div class="absolute top-6 right-6 flex gap-1">
-                        <span class="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
+                <form onsubmit="event.preventDefault(); window.app.handleSubmit();" class="flex flex-col gap-5">
+                    
+                    <!-- Campo Nombre (Solo Registro) -->
+                    <div id="field-name" class="hidden transition-all duration-300">
+                        <div class="relative group">
+                            <i class="ph-bold ph-user absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                            <input type="text" id="input-name" class="input-nexus pl-12" placeholder="Tu Nombre">
+                        </div>
                     </div>
 
-                    <div class="w-20 h-20 rounded-full bg-brand/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border border-brand/20 group-hover:border-brand">
-                        <i class="ph-fill ph-buildings text-4xl text-brand"></i>
+                    <!-- Campo ID/Email -->
+                    <div class="relative group">
+                        <i class="ph-bold ph-identification-card absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                        <input type="text" id="input-id" class="input-nexus pl-12" placeholder="ID (Ej: 17620) o Email" required>
                     </div>
-                    <h3 class="text-2xl font-black text-white mb-2 tracking-wide group-hover:text-brand transition-colors">CORPODATOS</h3>
-                    <p class="text-sm text-gray-500 group-hover:text-gray-300">Adherencia, Finanzas, Chat & Casos.</p>
+
+                    <!-- Campo Password -->
+                    <div class="relative group">
+                        <i class="ph-bold ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                        <input type="password" id="input-pass" class="input-nexus pl-12" placeholder="Contraseña Maestra" required>
+                    </div>
+
+                    <!-- Mensaje Error -->
+                    <div id="error-msg" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold text-center flex items-center justify-center gap-2">
+                        <i class="ph-fill ph-warning-circle"></i> <span id="error-txt">Error</span>
+                    </div>
+
+                    <!-- Botón Acción -->
+                    <button type="submit" id="btn-submit" class="btn-glow w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm mt-2 flex items-center justify-center gap-2 group">
+                        <span id="btn-text">INICIAR SESIÓN</span>
+                        <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </form>
+
+                <div class="relative my-6 text-center">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                    <span class="relative bg-[#0a0a0a] px-2 text-[10px] text-zinc-600 font-bold uppercase tracking-widest">O accede con</span>
+                </div>
+
+                <!-- Botón Google -->
+                <button onclick="window.app.loginGoogle()" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-3 group">
+                    <i class="ph-bold ph-google-logo text-xl group-hover:text-brand transition-colors"></i>
+                    <span>Google Account</span>
+                </button>
+
+            </div>
+        </div>
+
+
+        <!-- ==================== VISTA: DASHBOARD (SELECCIÓN) ==================== -->
+        <div id="view-dashboard" class="w-full max-w-5xl hidden opacity-0 transition-opacity duration-500">
+            
+            <div class="text-center mb-16">
+                <span class="text-brand font-bold tracking-[0.3em] text-xs uppercase mb-2 block animate-pulse">Sistema Verificado</span>
+                <h2 class="text-4xl md:text-6xl font-black tracking-tighter">PROTOCOLO DE ACCESO</h2>
+                <p class="text-zinc-500 mt-2 text-lg">Selecciona tu destino operativo.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 px-4">
+                
+                <!-- CARD BLQA -->
+                <div onclick="window.location.href='/blqa/'" class="glass-panel group p-1 rounded-3xl cursor-pointer hover:-translate-y-2 transition-transform duration-500">
+                    <div class="relative h-64 rounded-[20px] overflow-hidden bg-gradient-to-br from-zinc-900 to-black p-8 flex flex-col items-center justify-center text-center border border-white/5 group-hover:border-white/20 transition-colors">
+                        <!-- Efecto Hover Fondo -->
+                        <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                        
+                        <div class="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-white/10 transition-all duration-500 relative z-10 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+                            <i class="ph-duotone ph-alien text-5xl text-gray-300 group-hover:text-white transition-colors"></i>
+                        </div>
+                        
+                        <h3 class="text-3xl font-black text-white mb-2 relative z-10 group-hover:tracking-wider transition-all">BLQA</h3>
+                        <p class="text-zinc-500 text-sm font-bold tracking-widest uppercase relative z-10 group-hover:text-zinc-300">Portafolio & Identidad</p>
+                    </div>
+                </div>
+
+                <!-- CARD CORPODATOS -->
+                <div onclick="window.location.href='/corpo/adherencia.html'" class="glass-panel group p-1 rounded-3xl cursor-pointer hover:-translate-y-2 transition-transform duration-500">
+                    <div class="relative h-64 rounded-[20px] overflow-hidden bg-gradient-to-br from-zinc-900 to-[#1a0000] p-8 flex flex-col items-center justify-center text-center border border-white/5 group-hover:border-brand/40 transition-colors">
+                        <!-- Efecto Hover Fondo -->
+                        <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                        
+                        <div class="w-24 h-24 rounded-full bg-brand/5 border border-brand/20 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-brand/10 transition-all duration-500 relative z-10 shadow-[0_0_30px_rgba(231,0,0,0.1)]">
+                            <i class="ph-duotone ph-buildings text-5xl text-brand group-hover:text-red-400 transition-colors"></i>
+                        </div>
+                        
+                        <h3 class="text-3xl font-black text-white mb-2 relative z-10 group-hover:tracking-wider transition-all">CORPODATOS</h3>
+                        <p class="text-zinc-500 text-sm font-bold tracking-widest uppercase relative z-10 group-hover:text-brand">Herramientas Operativas</p>
+                    </div>
                 </div>
 
             </div>
@@ -162,14 +277,29 @@
 
     </main>
 
-    <!-- LOGICA FIREBASE MODULAR -->
+    <!-- FOOTER -->
+    <footer class="fixed bottom-4 left-0 w-full text-center pointer-events-none opacity-30 z-0">
+        <p class="text-[10px] font-mono tracking-[0.5em] text-white">SYSTEM v2.0 // SECURE</p>
+    </footer>
+
+    <!-- LOGICA FIREBASE -->
     <script type="module">
-        // Importamos desde CDN para que funcione en GitHub Pages sin build
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword,
+            signInWithPopup,
+            GoogleAuthProvider,
+            updateProfile,
+            onAuthStateChanged, 
+            signOut, 
+            setPersistence, 
+            browserLocalPersistence 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // ==========================================
-        // ✅ TUS CREDENCIALES OFICIALES (GODSPLAN-BLQA)
+        // ⚠️ PEGA AQUÍ TUS CREDENCIALES
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
@@ -180,84 +310,133 @@
             appId: "1:1008783768310:web:c09fe541a2f4d23e5b8ad7"
         };
 
-        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         
-        // Persistencia Local (Mantiene la sesión entre pestañas)
         setPersistence(auth, browserLocalPersistence).catch(console.error);
 
         window.app = {
             user: null,
+            isRegistering: false,
 
             init() {
-                // Escuchar cambios de sesión
                 onAuthStateChanged(auth, (user) => {
                     this.user = user;
                     this.render();
                 });
-
-                // Efecto visual para las tarjetas (Glow del mouse)
-                document.querySelectorAll('.portal-card').forEach(card => {
-                    card.onmousemove = e => {
-                        const rect = card.getBoundingClientRect();
-                        const x = e.clientX - rect.left;
-                        const y = e.clientY - rect.top;
-                        card.style.setProperty('--mouse-x', `${x}px`);
-                        card.style.setProperty('--mouse-y', `${y}px`);
-                    }
-                });
             },
 
+            // Renderizar Vistas
             render() {
-                const loginView = document.getElementById('view-login');
-                const dashView = document.getElementById('view-dashboard');
+                const viewAuth = document.getElementById('view-auth');
+                const viewDash = document.getElementById('view-dashboard');
                 const badge = document.getElementById('user-badge');
 
                 if (this.user) {
-                    // SI HAY SESIÓN -> DASHBOARD
-                    loginView.classList.add('hidden');
-                    dashView.classList.remove('hidden');
+                    // HAY SESIÓN
+                    viewAuth.classList.add('hidden');
+                    
+                    viewDash.classList.remove('hidden');
+                    setTimeout(() => viewDash.classList.remove('opacity-0'), 50); // Fade in suave
+
                     badge.classList.remove('hidden');
                     badge.classList.add('flex');
-                    document.getElementById('user-display').textContent = this.user.email.split('@')[0];
+                    
+                    // Actualizar nombre en el header
+                    const name = this.user.displayName || this.user.email.split('@')[0];
+                    document.getElementById('user-name').textContent = name;
                 } else {
-                    // NO HAY SESIÓN -> LOGIN
-                    loginView.classList.remove('hidden');
-                    dashView.classList.add('hidden');
+                    // NO HAY SESIÓN
+                    viewDash.classList.add('hidden');
+                    viewDash.classList.add('opacity-0');
+                    
+                    viewAuth.classList.remove('hidden');
+                    
                     badge.classList.add('hidden');
                     badge.classList.remove('flex');
                 }
             },
 
-            async login() {
-                const btn = document.getElementById('btn-login');
-                const errMsg = document.getElementById('error-msg');
-                let id = document.getElementById('login-id').value.trim();
-                const pass = document.getElementById('login-pass').value;
+            // Alternar entre Login y Registro
+            toggleAuth(mode) {
+                this.isRegistering = (mode === 'register');
+                const container = document.getElementById('auth-switch-container');
+                const btnText = document.getElementById('btn-text');
+                const nameField = document.getElementById('field-name');
+                
+                // Actualizar Tabs UI
+                document.getElementById('tab-login').classList.toggle('active', !this.isRegistering);
+                document.getElementById('tab-register').classList.toggle('active', this.isRegistering);
+                container.classList.toggle('auth-mode-register', this.isRegistering);
 
-                if (!id || !pass) return;
-
-                // --- MAGIA: CONVERTIR ID A EMAIL ---
-                // Si el usuario escribe solo "17620", lo convertimos
-                if (!id.includes('@')) {
-                    id = `${id}@godsplan.site`;
+                // Mostrar/Ocultar campos
+                if(this.isRegistering) {
+                    btnText.textContent = "CREAR CUENTA";
+                    nameField.classList.remove('hidden');
+                } else {
+                    btnText.textContent = "INICIAR SESIÓN";
+                    nameField.classList.add('hidden');
                 }
+                
+                // Limpiar errores
+                document.getElementById('error-msg').classList.add('hidden');
+            },
+
+            // Manejar Envío del Formulario
+            async handleSubmit() {
+                const btn = document.getElementById('btn-submit');
+                const errMsg = document.getElementById('error-msg');
+                const errTxt = document.getElementById('error-txt');
+                
+                let id = document.getElementById('input-id').value.trim();
+                const pass = document.getElementById('input-pass').value;
+                const name = document.getElementById('input-name').value.trim();
+
+                if (!id || !pass) return this.showError("Completa todos los campos");
+                if (this.isRegistering && !name) return this.showError("El nombre es obligatorio");
+
+                // MAGIA ID: Si es "17620" -> "17620@godsplan.site"
+                if (!id.includes('@')) id = `${id}@godsplan.site`;
 
                 btn.disabled = true;
-                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> VERIFICANDO...';
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> PROCESANDO...';
                 errMsg.classList.add('hidden');
 
                 try {
-                    await signInWithEmailAndPassword(auth, id, pass);
-                    // El onAuthStateChanged se encargará de cambiar la vista automáticamente
+                    if (this.isRegistering) {
+                        // REGISTRO
+                        const userCredential = await createUserWithEmailAndPassword(auth, id, pass);
+                        // Actualizar nombre visible
+                        await updateProfile(userCredential.user, { displayName: name });
+                    } else {
+                        // LOGIN
+                        await signInWithEmailAndPassword(auth, id, pass);
+                    }
+                    // onAuthStateChanged se encarga del resto
                 } catch (error) {
                     console.error(error);
-                    errMsg.classList.remove('hidden');
-                    errMsg.textContent = this.mapError(error.code);
+                    this.showError(this.mapError(error.code));
                     btn.disabled = false;
-                    btn.innerHTML = '<span>Intentar de Nuevo</span> <i class="ph-bold ph-arrow-right"></i>';
+                    btn.innerHTML = `<span>${this.isRegistering ? 'CREAR CUENTA' : 'INICIAR SESIÓN'}</span> <i class="ph-bold ph-arrow-right"></i>`;
                 }
+            },
+
+            // Login con Google
+            async loginGoogle() {
+                const provider = new GoogleAuthProvider();
+                try {
+                    await signInWithPopup(auth, provider);
+                } catch (error) {
+                    console.error("Google Error:", error);
+                    this.showError("Error con Google: Verifica tu configuración en Firebase Console.");
+                }
+            },
+
+            showError(msg) {
+                const errMsg = document.getElementById('error-msg');
+                const errTxt = document.getElementById('error-txt');
+                errTxt.textContent = msg;
+                errMsg.classList.remove('hidden');
             },
 
             logout() {
@@ -265,14 +444,17 @@
             },
 
             mapError(code) {
-                if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') 
-                    return "Credenciales incorrectas";
-                if (code === 'auth/too-many-requests') return "Demasiados intentos. Espera un momento.";
-                return "Error de acceso: " + code;
+                switch(code) {
+                    case 'auth/email-already-in-use': return "Este ID/Email ya está registrado.";
+                    case 'auth/invalid-email': return "Formato de ID inválido.";
+                    case 'auth/user-not-found': return "Usuario no encontrado.";
+                    case 'auth/wrong-password': return "Contraseña incorrecta.";
+                    case 'auth/weak-password': return "La contraseña debe tener al menos 6 caracteres.";
+                    default: return "Error: " + code.split('/')[1];
+                }
             }
         };
 
-        // Arrancar
         window.app.init();
     </script>
 </body>
