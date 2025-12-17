@@ -67,77 +67,126 @@
 
     <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- HEADER -->
-    <header class="h-16 glass-nav sticky top-0 z-50 flex items-center justify-between px-4 lg:px-8 shadow-sm dark:shadow-none transition-colors">
-        <div class="flex items-center gap-6">
-            <a href="/" class="flex items-center gap-3 font-black tracking-tighter text-lg group">
-                <div class="w-8 h-8 bg-brand rounded flex items-center justify-center shadow-lg shadow-brand/20 group-hover:scale-105 transition-transform">
-                    <i class="ph-bold ph-strategy text-white"></i>
+    <!-- LOGIN VIEW (SHOWN BY DEFAULT) -->
+    <div id="login-view" class="fixed inset-0 z-[200] bg-gray-100 dark:bg-black flex items-center justify-center p-4 transition-all duration-500">
+        <div class="w-full max-w-md bg-white dark:bg-[#0f0f11] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-8 animate-fadeIn">
+            <div class="flex flex-col items-center mb-8">
+                <div class="w-16 h-16 bg-brand rounded-2xl flex items-center justify-center shadow-lg shadow-brand/20 mb-4 transform -rotate-6">
+                    <i class="ph-bold ph-strategy text-3xl text-white"></i>
                 </div>
-                <span class="dark:text-white text-gray-900 tracking-tight">WAR ROOM</span>
-            </a>
-            <!-- Estadísticas rápidas -->
-            <div class="hidden lg:flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                <div class="px-2 py-1 rounded bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400">
-                    <span id="stat-unassigned">0</span> Libres
-                </div>
-                <div class="px-2 py-1 rounded bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400">
-                    <span id="stat-pending">0</span> En Proceso
-                </div>
-            </div>
-        </div>
-
-        <div class="flex items-center gap-3">
-            <button onclick="window.app.toggleTheme()" class="w-9 h-9 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors">
-                <i id="theme-icon" class="ph-bold ph-moon"></i>
-            </button>
-            <button onclick="window.app.toggleImportModal()" class="action-btn bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-brand dark:hover:bg-brand hover:text-white dark:hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center gap-2 shadow-lg">
-                <i class="ph-bold ph-plus"></i> <span class="hidden sm:inline">Nuevo Caso</span>
-            </button>
-            <div id="user-pill" class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-200 dark:bg-zinc-900 rounded-lg border border-gray-300 dark:border-zinc-800">
-                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span id="username-display" class="text-xs font-bold text-gray-700 dark:text-zinc-300">...</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- CONTROLS & FILTERS -->
-    <div class="sticky top-16 z-40 bg-white/80 dark:bg-[#09090b]/95 backdrop-blur-sm border-b border-gray-200 dark:border-zinc-800 py-3 px-4 lg:px-8 shadow-sm">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            
-            <!-- Main State Filters -->
-            <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto no-scrollbar pb-1 md:pb-0">
-                <button id="filter-unassigned" onclick="window.app.setFilter('unassigned')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase border flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full bg-red-500"></div> Sin Asignar
-                </button>
-                <button id="filter-mine" onclick="window.app.setFilter('mine')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase border flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full bg-yellow-500"></div> Mis Pendientes
-                </button>
-                <button id="filter-resolved" onclick="window.app.setFilter('resolved')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase border flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full bg-green-500"></div> Resueltos
-                </button>
-                <div class="h-4 w-px bg-gray-300 dark:bg-zinc-700 mx-1"></div>
-                <button id="filter-all" onclick="window.app.setFilter('all')" class="action-btn px-3 py-1.5 rounded-full text-xs font-bold uppercase border text-gray-500">Todos</button>
+                <h1 class="text-2xl font-black tracking-tight text-gray-900 dark:text-white">WAR ROOM</h1>
+                <p class="text-xs font-mono text-gray-500 uppercase tracking-widest mt-1">Acceso Restringido</p>
             </div>
 
-            <!-- Search -->
-            <div class="relative w-full md:w-80 group">
-                <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand transition-colors"></i>
-                <input type="text" id="search-input" onkeyup="window.app.handleSearch(this.value)" class="block w-full pl-9 pr-3 py-2 bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="Buscar cliente, teléfono...">
+            <form onsubmit="event.preventDefault(); window.app.login()" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1.5 ml-1">Agente</label>
+                    <div class="relative">
+                        <i class="ph-bold ph-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="email" id="login-email" class="w-full bg-gray-50 dark:bg-black border border-gray-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" placeholder="correo@agente.com" required>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1.5 ml-1">Clave de Acceso</label>
+                    <div class="relative">
+                        <i class="ph-bold ph-lock-key absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="password" id="login-pass" class="w-full bg-gray-50 dark:bg-black border border-gray-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-login" class="w-full py-3.5 bg-brand hover:bg-red-600 text-white font-bold rounded-xl shadow-lg shadow-brand/20 transition-all uppercase tracking-wide text-sm mt-2">
+                    Ingresar al Sistema
+                </button>
+            </form>
+
+            <div id="login-error" class="mt-4 text-center text-xs text-red-500 font-bold hidden animate-pulse">
+                <i class="ph-bold ph-warning"></i> Credenciales incorrectas
             </div>
         </div>
     </div>
 
-    <!-- MAIN GRID -->
-    <main class="flex-grow p-4 lg:p-6 w-full max-w-7xl mx-auto">
-        <div id="cases-grid" class="grid grid-cols-1 gap-4">
-            <!-- Loader -->
-            <div class="col-span-1 flex flex-col items-center justify-center h-64 text-gray-400 dark:text-zinc-600">
-                <i class="ph-duotone ph-spinner-gap text-4xl animate-spin mb-3 text-brand"></i>
-                <span class="text-xs font-mono uppercase tracking-widest">Sincronizando War Room...</span>
+    <!-- APP VIEW (HIDDEN BY DEFAULT) -->
+    <div id="app-view" class="flex flex-col min-h-screen hidden opacity-0 transition-opacity duration-500">
+        <!-- HEADER -->
+        <header class="h-16 glass-nav sticky top-0 z-50 flex items-center justify-between px-4 lg:px-8 shadow-sm dark:shadow-none transition-colors">
+            <div class="flex items-center gap-6">
+                <a href="/" class="flex items-center gap-3 font-black tracking-tighter text-lg group">
+                    <div class="w-8 h-8 bg-brand rounded flex items-center justify-center shadow-lg shadow-brand/20 group-hover:scale-105 transition-transform">
+                        <i class="ph-bold ph-strategy text-white"></i>
+                    </div>
+                    <span class="dark:text-white text-gray-900 tracking-tight">WAR ROOM</span>
+                </a>
+                <!-- Estadísticas rápidas -->
+                <div class="hidden lg:flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                    <div class="px-2 py-1 rounded bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+                        <span id="stat-unassigned">0</span> Libres
+                    </div>
+                    <div class="px-2 py-1 rounded bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400">
+                        <span id="stat-pending">0</span> En Proceso
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="window.app.toggleTheme()" class="w-9 h-9 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors">
+                    <i id="theme-icon" class="ph-bold ph-moon"></i>
+                </button>
+                <button onclick="window.app.toggleImportModal()" class="action-btn bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-brand dark:hover:bg-brand hover:text-white dark:hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center gap-2 shadow-lg">
+                    <i class="ph-bold ph-plus"></i> <span class="hidden sm:inline">Nuevo Caso</span>
+                </button>
+                <div id="user-pill" class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-200 dark:bg-zinc-900 rounded-lg border border-gray-300 dark:border-zinc-800 group relative cursor-pointer">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span id="username-display" class="text-xs font-bold text-gray-700 dark:text-zinc-300">...</span>
+                    
+                    <!-- Logout Dropdown -->
+                    <div class="absolute top-full right-0 mt-2 w-32 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg shadow-xl hidden group-hover:block z-50 overflow-hidden">
+                        <button onclick="window.app.logout()" class="w-full text-left px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2">
+                            <i class="ph-bold ph-sign-out"></i> Salir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTROLS & FILTERS -->
+        <div class="sticky top-16 z-40 bg-white/80 dark:bg-[#09090b]/95 backdrop-blur-sm border-b border-gray-200 dark:border-zinc-800 py-3 px-4 lg:px-8 shadow-sm">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+                
+                <!-- Main State Filters -->
+                <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto no-scrollbar pb-1 md:pb-0">
+                    <button id="filter-unassigned" onclick="window.app.setFilter('unassigned')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase border flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-red-500"></div> Sin Asignar
+                    </button>
+                    <button id="filter-mine" onclick="window.app.setFilter('mine')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase border flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-yellow-500"></div> Mis Pendientes
+                    </button>
+                    <button id="filter-resolved" onclick="window.app.setFilter('resolved')" class="action-btn px-4 py-1.5 rounded-full text-xs font-bold uppercase border flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div> Resueltos
+                    </button>
+                    <div class="h-4 w-px bg-gray-300 dark:bg-zinc-700 mx-1"></div>
+                    <button id="filter-all" onclick="window.app.setFilter('all')" class="action-btn px-3 py-1.5 rounded-full text-xs font-bold uppercase border text-gray-500">Todos</button>
+                </div>
+
+                <!-- Search -->
+                <div class="relative w-full md:w-80 group">
+                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand transition-colors"></i>
+                    <input type="text" id="search-input" onkeyup="window.app.handleSearch(this.value)" class="block w-full pl-9 pr-3 py-2 bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="Buscar cliente, teléfono...">
+                </div>
             </div>
         </div>
-    </main>
+
+        <!-- MAIN GRID -->
+        <main class="flex-grow p-4 lg:p-6 w-full max-w-7xl mx-auto">
+            <div id="cases-grid" class="grid grid-cols-1 gap-4">
+                <!-- Loader -->
+                <div class="col-span-1 flex flex-col items-center justify-center h-64 text-gray-400 dark:text-zinc-600">
+                    <i class="ph-duotone ph-spinner-gap text-4xl animate-spin mb-3 text-brand"></i>
+                    <span class="text-xs font-mono uppercase tracking-widest">Sincronizando War Room...</span>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <!-- NEW HYBRID MODAL -->
     <div id="import-modal" class="fixed inset-0 z-[100] bg-black/50 dark:bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all duration-200 opacity-0">
@@ -219,8 +268,8 @@
         import { 
             getAuth, 
             onAuthStateChanged, 
-            signInWithCustomToken, 
-            signInAnonymously,
+            signInWithEmailAndPassword,
+            signOut,
             setPersistence,
             browserLocalPersistence 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -249,7 +298,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         
-        // ** SOLUCIÓN CLAVE SSO: Persistencia Local **
+        // Mantener persistencia LOCAL para esta ventana, pero aislado de iframe parents si es posible
         setPersistence(auth, browserLocalPersistence).catch(console.error);
 
         const db = getFirestore(app);
@@ -259,6 +308,7 @@
         let casesData = [];
         let currentFilter = 'unassigned';
         let searchTerm = '';
+        let unsubscribeRealtime = null;
 
         // --- UI UTILS ---
         const toast = (msg, type = 'success') => {
@@ -289,27 +339,47 @@
         }
 
         // --- AUTH & DATA ---
-        const initAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-        };
-
-        initAuth();
+        
+        // NOTA: Eliminado el inicio de sesión anónimo automático.
+        // Ahora dependemos totalmente de que el usuario haga login manual o tenga sesión guardada.
 
         onAuthStateChanged(auth, (user) => {
+            const loginView = document.getElementById('login-view');
+            const appView = document.getElementById('app-view');
+            
             if (user) {
+                // LOGGED IN
                 currentUser = user;
-                document.getElementById('username-display').textContent = (user.displayName || 'AGENTE').toUpperCase();
+                document.getElementById('username-display').textContent = (user.displayName || user.email?.split('@')[0] || 'AGENTE').toUpperCase();
+                
+                // Switch Views
+                loginView.style.opacity = '0';
+                setTimeout(() => loginView.classList.add('hidden'), 500);
+                
+                appView.classList.remove('hidden');
+                // Small delay to allow CSS transition
+                setTimeout(() => appView.style.opacity = '1', 50);
+
                 initRealtime();
+            } else {
+                // LOGGED OUT
+                currentUser = null;
+                
+                // Cleanup listeners
+                if(unsubscribeRealtime) unsubscribeRealtime();
+                
+                // Switch Views
+                appView.style.opacity = '0';
+                setTimeout(() => appView.classList.add('hidden'), 500);
+
+                loginView.classList.remove('hidden');
+                setTimeout(() => loginView.style.opacity = '1', 50);
             }
         });
 
         function initRealtime() {
             const q = collection(db, 'artifacts', appId, 'public', 'data', 'tickets');
-            onSnapshot(q, (snap) => {
+            unsubscribeRealtime = onSnapshot(q, (snap) => {
                 casesData = [];
                 snap.forEach(d => casesData.push({ id: d.id, ...d.data() }));
                 
@@ -324,11 +394,46 @@
                 render();
             }, (error) => {
                 console.error("Error fetching tickets:", error);
+                if(error.code === 'permission-denied') {
+                    toast('Sesión expirada o sin permisos', 'error');
+                }
             });
         }
 
         // --- APP LOGIC ---
         window.app = {
+            login: async () => {
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-pass').value;
+                const btn = document.getElementById('btn-login');
+                const errDiv = document.getElementById('login-error');
+
+                if(!email || !pass) return;
+
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Verificando...';
+                errDiv.classList.add('hidden');
+
+                try {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    // onAuthStateChanged handled the rest
+                } catch(e) {
+                    console.error("Login Failed", e);
+                    errDiv.textContent = "Error: Usuario o contraseña inválidos";
+                    errDiv.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerText = 'INGRESAR AL SISTEMA';
+                    toast('Error de autenticación', 'error');
+                }
+            },
+
+            logout: async () => {
+                try {
+                    await signOut(auth);
+                    toast('Sesión Cerrada');
+                } catch(e) { console.error(e); }
+            },
+
             toggleTheme: () => {
                 document.documentElement.classList.toggle('dark');
                 const isDark = document.documentElement.classList.contains('dark');
@@ -464,9 +569,9 @@
                 try {
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tickets', id), {
                         status: 'pending',
-                        assignedTo: { uid: currentUser.uid, name: currentUser.displayName || 'Agente' },
+                        assignedTo: { uid: currentUser.uid, name: currentUser.displayName || currentUser.email || 'Agente' },
                         updatedAt: serverTimestamp(),
-                        comments: arrayUnion({ type: 'system', text: 'tomó el caso', author: currentUser.displayName || 'Agente', time: Date.now() })
+                        comments: arrayUnion({ type: 'system', text: 'tomó el caso', author: currentUser.displayName || currentUser.email || 'Agente', time: Date.now() })
                     });
                     toast('Caso asignado a ti');
                 } catch(e) { toast('Error al asignar', 'error'); }
@@ -478,7 +583,7 @@
                     status: 'unassigned',
                     assignedTo: null,
                     updatedAt: serverTimestamp(),
-                    comments: arrayUnion({ type: 'system', text: 'liberó el caso', author: currentUser.displayName, time: Date.now() })
+                    comments: arrayUnion({ type: 'system', text: 'liberó el caso', author: currentUser.displayName || currentUser.email, time: Date.now() })
                 });
                 toast('Caso liberado');
             },
@@ -488,7 +593,7 @@
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tickets', id), {
                     status: 'resolved',
                     updatedAt: serverTimestamp(),
-                    comments: arrayUnion({ type: 'system', text: 'marcó como resuelto', author: currentUser.displayName, time: Date.now() })
+                    comments: arrayUnion({ type: 'system', text: 'marcó como resuelto', author: currentUser.displayName || currentUser.email, time: Date.now() })
                 });
                 toast('Caso Resuelto', 'success');
             },
@@ -498,7 +603,7 @@
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tickets', id), {
                     status: 'pending',
                     updatedAt: serverTimestamp(),
-                    comments: arrayUnion({ type: 'system', text: 'reabrió el caso', author: currentUser.displayName, time: Date.now() })
+                    comments: arrayUnion({ type: 'system', text: 'reabrió el caso', author: currentUser.displayName || currentUser.email, time: Date.now() })
                 });
                 toast('Caso Reabierto');
             },
@@ -509,7 +614,7 @@
                 if(!txt) return;
                 
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tickets', id), {
-                    comments: arrayUnion({ type: 'user', text: txt, author: currentUser.displayName?.split(' ')[0] || 'Yo', time: Date.now() })
+                    comments: arrayUnion({ type: 'user', text: txt, author: currentUser.displayName?.split(' ')[0] || currentUser.email?.split('@')[0] || 'Yo', time: Date.now() })
                 });
                 input.value = '';
             },
@@ -537,7 +642,7 @@
                     type: 'interaction',
                     subtype: type,
                     text: commentText, // Empty for attempt/failed usually
-                    author: currentUser.displayName || 'Agente',
+                    author: currentUser.displayName || currentUser.email || 'Agente',
                     time: Date.now()
                 };
 
