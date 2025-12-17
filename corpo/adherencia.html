@@ -268,10 +268,16 @@
                 </div>
             </div>
 
-            <!-- TAB DATOS -->
+            <!-- TAB DATOS (ACTUALIZADO) -->
             <div id="tData" class="tab-content hidden">
-                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-brand text-white" onclick="window.app.openImportModal()">Importar Excel</button>
+                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-brand text-white" onclick="window.app.openImportModal()">Importar Texto (Excel)</button>
+                
+                <!-- Restaurar Backup JSON -->
+                <input type="file" id="jsonFileInput" accept=".json" class="hidden" onchange="window.app.handleFileImport(event)">
+                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text mb-2.5 hover:bg-white/5" onclick="window.app.triggerFileImport()">Restaurar Backup (JSON)</button>
+                
                 <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute mb-2.5" onclick="window.app.exportBackup()">Descargar Backup</button>
+                
                 <div class="border-t border-border my-4"></div>
                 <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer mb-2.5 text-alert border border-alert bg-transparent hover:bg-red-500/10" onclick="window.app.resetData()">Borrar Todo</button>
             </div>
@@ -866,6 +872,35 @@
             openImportModal() { const m = document.getElementById('importModal'); m.classList.remove('hidden'); m.classList.add('flex'); },
             processImport() { const t = document.getElementById('importTextArea').value; if (!t) return; const l = t.split('\n'); let c = 0; l.forEach(x => { const p = x.split(/[\t,]+/); if (p.length >= 4) { this.data.logs.push({ id: Date.now() + c, date: p[0], type: p[1], in: p[2], out: p[3], hours: this.calcHours(p[2], p[3]), disconnection: 0 }); c++; } }); this.save(); this.closeModalById('importModal'); this.showSuccess(c + " importados"); },
             exportBackup() { const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.data)); a.download = 'backup.json'; a.click(); },
+            
+            // --- NUEVAS FUNCIONES DE IMPORTACIÓN JSON ---
+            triggerFileImport() { document.getElementById('jsonFileInput').click(); },
+            handleFileImport(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data && Array.isArray(data.logs)) {
+                            if(confirm("Esto reemplazará los datos actuales. ¿Continuar?")) {
+                                this.data = data;
+                                this.save();
+                                this.render();
+                                this.uiClock();
+                                this.showSuccess("Datos restaurados correctamente.");
+                            }
+                        } else {
+                            this.showMessage("Formato de archivo inválido.");
+                        }
+                    } catch (err) {
+                        this.showMessage("Error al leer el archivo JSON.");
+                    }
+                };
+                reader.readAsText(file);
+                e.target.value = ''; // Resetear input
+            },
+
             calcHours(i, o) { if (!i || !o) return 0; const [h1, m1] = i.split(':'), [h2, m2] = o.split(':'); const d = ((h2 * 60 + +m2) - (h1 * 60 + +m1)); return d < 0 ? -1 : d; },
             toggleLoader(s) { const l = document.getElementById('mainLoader'); if(s) l.classList.remove('hidden'); else l.classList.add('hidden'); }
         };
