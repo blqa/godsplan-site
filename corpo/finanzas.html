@@ -826,7 +826,7 @@
                         this.updateExtraUI();
                     } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
                 });
-                const q = query(logsRef, orderBy('date', 'desc'), limit(1500));
+                const q = query(logsRef, orderBy('date', 'desc'), limit(150));
                 onSnapshot(q, (snap) => {
                     this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
                     this.calcBalance();
