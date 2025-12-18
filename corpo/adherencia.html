@@ -18,6 +18,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class', // Activamos dark mode por clase/atributo
             theme: {
                 extend: {
                     colors: {
@@ -57,34 +58,35 @@
 
     <style>
         /* --- DEFINICIÓN DE VARIABLES DE TEMA --- */
+        
+        /* TEMA BLUE (DEFAULT) - CORREGIDO A DARK SLATE PARA LEGIBILIDAD */
         :root {
-            /* TEMA LIGHT (AZULITO POR DEFECTO) */
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #0f172a;
-            --text-mute: #64748b;
-            --brand: #2563eb; /* Azul */
-            --money: #059669;
-            --alert: #dc2626;
-            --warn: #f59e0b;
-            --border: #e2e8f0;
-            --input-bg: #f8fafc;
-            --header-bg: rgba(37, 99, 235, 0.95); /* Header Azul en Light */
+            --bg: #0f172a;        /* Slate 900 - Fondo Azul Oscuro */
+            --card: #1e293b;      /* Slate 800 - Tarjetas un poco más claras */
+            --text: #f1f5f9;      /* Slate 100 - Texto Blanco Suave */
+            --text-mute: #94a3b8; /* Slate 400 - Texto secundario */
+            --brand: #3b82f6;     /* Blue 500 - Marca Azul Vibrante */
+            --money: #34d399;     /* Emerald 400 */
+            --alert: #f87171;     /* Red 400 */
+            --warn: #fbbf24;      /* Amber 400 */
+            --border: #334155;    /* Slate 700 - Bordes sutiles */
+            --input-bg: #020617;  /* Slate 950 - Inputs muy oscuros */
+            --header-bg: rgba(15, 23, 42, 0.85); /* Header semitransparente */
         }
 
-        /* TEMA SANGRE (ROJO DARK) */
+        /* TEMA SANGRE (RED/BLACK) - MANTENIDO IGUAL */
         [data-theme="red"] {
             --bg: #000000;
             --card: #111111;
             --text: #e5e5e5;
             --text-mute: #737373;
-            --brand: #dc2626; /* Rojo */
+            --brand: #dc2626; 
             --money: #16a34a;
             --alert: #b91c1c;
             --warn: #d97706;
             --border: #262626;
             --input-bg: #0a0a0a;
-            --header-bg: rgba(0, 0, 0, 0.9); /* Header Negro */
+            --header-bg: rgba(0, 0, 0, 0.9);
         }
 
         /* RESET & UTILIDADES ESPECÍFICAS */
@@ -106,26 +108,28 @@
         .g-link.active { color: #fff; border-bottom: 2px solid #fff; padding-bottom: 2px; }
         
         /* Botones de control de tiempo activos */
-        .btn-ctrl.active-bath { background: var(--bg); color: var(--brand) !important; border-color: var(--brand) !important; box-shadow: inset 0 0 0 1px var(--brand); }
-        .btn-ctrl.active-food { background: var(--bg); color: var(--warn) !important; border-color: var(--warn) !important; box-shadow: inset 0 0 0 1px var(--warn); }
-        .btn-ctrl.active-pause { background: #fff7ed; color: #f97316 !important; border-color: #f97316 !important; box-shadow: inset 0 0 0 1px #f97316; }
+        .btn-ctrl.active-bath { background: var(--card); color: var(--brand) !important; border-color: var(--brand) !important; box-shadow: inset 0 0 0 1px var(--brand); }
+        .btn-ctrl.active-food { background: var(--card); color: var(--warn) !important; border-color: var(--warn) !important; box-shadow: inset 0 0 0 1px var(--warn); }
+        .btn-ctrl.active-pause { background: #431407; color: #fb923c !important; border-color: #fb923c !important; box-shadow: inset 0 0 0 1px #f97316; }
         
-        [data-theme="red"] .btn-ctrl.active-pause { background: #431407; color: #fb923c !important; border-color: #fb923c !important; }
-        
+        /* Ajuste específico para tema azul en pausa */
+        :root .btn-ctrl.active-pause { background: #451a03; }
+
         .side-clock.active { opacity: 1; transform: scale(1.05); background: transparent; }
         .side-clock.danger .side-val { color: var(--alert) !important; }
         
         /* Tabs del modal (Estilo Segmentado Moderno) */
         .tab { @apply text-text-mute rounded-md transition-all; }
-        .tab.active { @apply bg-card text-text shadow-sm ring-1 ring-black/5 font-bold; }
-        [data-theme="red"] .tab.active { @apply bg-white/10 text-white ring-white/10; }
+        .tab.active { @apply bg-white/10 text-white shadow-sm ring-1 ring-white/10 font-bold; }
+        
+        /* Ajuste para inputs en modo oscuro para que sean legibles */
+        input, select, textarea { color: var(--text) !important; }
     </style>
 </head>
 
-<!-- AGREGADO pt-20 PARA COMPENSAR EL HEADER FIJO -->
 <body class="bg-bg text-text font-sans pb-24 pt-20 text-sm font-normal selection:bg-brand selection:text-white">
 
-    <!-- HEADER FIJO (ZOOM PROOF) - NUEVO DISEÑO -->
+    <!-- HEADER FIJO -->
     <nav class="fixed top-0 left-0 w-full z-[100] border-b border-white/5 bg-[var(--header-bg)] backdrop-blur-md h-20 flex items-center shadow-lg transition-all duration-300">
         <div class="w-full max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center h-full">
             <!-- Logo -->
@@ -136,11 +140,11 @@
                 </div>
                 <div class="flex flex-col justify-center">
                     <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
-                    <span class="text-[0.6rem] text-zinc-500 font-mono tracking-widest uppercase hidden sm:block">System v2.5</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v2.5</span>
                 </div>
             </div>
 
-            <!-- Navegación Central (Subpáginas Adaptadas) -->
+            <!-- Navegación Central -->
             <div class="hidden md:flex items-center bg-white/5 rounded-full p-1 border border-white/5">
                 <a href="#" class="px-4 py-1.5 rounded-full bg-brand text-white text-xs font-bold tracking-wide shadow-lg shadow-brand/20 transition-all">ADHERENCIA</a>
                 <a href="#" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">FINANZAS</a>
@@ -149,16 +153,16 @@
                 <a href="#" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CUENTA</a>
             </div>
 
-            <!-- User Badge (Solo visible si logueado) -->
+            <!-- User Badge -->
             <div id="user-badge" class="hidden items-center gap-2 animate-fade-in pl-4 border-l border-white/10 ml-2">
                 <div class="hidden lg:flex flex-col text-right mr-2">
                     <span id="user-name" class="text-xs font-bold text-white uppercase tracking-wider max-w-[100px] truncate">Usuario</span>
                     <span id="user-role" class="text-[9px] font-mono text-emerald-500 tracking-wide">SYSTEM ACCESS</span>
                 </div>
 
-                <!-- BOTÓN SOL Y SANGRE (TOGGLE THEME) -->
-                <button onclick="window.app.toggleTheme()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-yellow-400 transition-all group" title="Sol y Sangre (Cambiar Tema)">
-                    <i id="themeIcon" class="ph-fill ph-drop text-lg transition-transform duration-500 rotate-0"></i>
+                <!-- BOTÓN AZUL Y SANGRE (TOGGLE THEME) -->
+                <button onclick="window.app.toggleTheme()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-brand transition-all group" title="Cambiar Tema (Azul/Sangre)">
+                    <i id="themeIcon" class="ph-fill ph-drop-half-bottom text-lg transition-transform duration-500 rotate-0"></i>
                 </button>
 
                 <button onclick="window.app.logout()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 transition-all group" title="Cerrar Sesión">
@@ -166,20 +170,20 @@
                 </button>
             </div>
             
-            <!-- Mobile Menu Toggle (Visible solo en movil) -->
+            <!-- Mobile Menu Toggle -->
             <button class="md:hidden w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400" onclick="window.app.openConfigModal()">
                  <i class="ph-bold ph-list text-lg"></i>
             </button>
         </div>
     </nav>
 
-    <!-- HEADER APP (CONTROLES SECUNDARIOS) - Ajustado top-20 para ir debajo del nav fijo -->
+    <!-- HEADER APP -->
     <header class="bg-card border-b border-border py-2.5 px-4 sticky top-20 z-40 flex justify-between items-center shadow-sm flex-wrap gap-2.5 transition-all">
         <div class="text-[1.1rem] font-extrabold flex items-center gap-2 text-text uppercase">
             <i class="ph-fill ph-check-circle text-brand"></i> <span class="hidden sm:inline">Panel de Control</span>
         </div>
         <div class="flex items-center gap-2 flex-wrap justify-end flex-1 md:flex-none">
-            <!-- RELOJ REAL CDMX (Mejorado para móvil) -->
+            <!-- RELOJ REAL CDMX -->
             <div id="realWorldClock" class="flex flex-col items-end mr-1 px-2 py-0.5 border-r border-border/50 min-w-[70px]">
                 <div class="text-[0.6rem] text-text-mute font-black tracking-wider leading-none mb-0.5 flex items-center gap-1 justify-end">
                      <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> CDMX
@@ -187,14 +191,14 @@
                 <div class="text-[0.9rem] font-mono font-bold text-text leading-none tabular-nums text-right" id="realClockTime">--:--:--</div>
             </div>
 
-            <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.syncData()" title="Sincronizar"><i class="ph-bold ph-arrows-clockwise"></i></button>
-            <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.openConfigModal()" title="Menú"><i class="ph-bold ph-gear"></i></button>
+            <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg hover:text-text" onclick="window.app.syncData()" title="Sincronizar"><i class="ph-bold ph-arrows-clockwise"></i></button>
+            <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg hover:text-text" onclick="window.app.openConfigModal()" title="Menú"><i class="ph-bold ph-gear"></i></button>
             
             <div class="flex items-center gap-1 bg-bg px-2 py-1 rounded-full border border-border">
-                <button class="bg-transparent border-none text-text-mute cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center" onclick="window.app.changeMonth(-1)"><i class="ph-bold ph-caret-left"></i></button>
+                <button class="bg-transparent border-none text-text-mute cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center hover:text-text" onclick="window.app.changeMonth(-1)"><i class="ph-bold ph-caret-left"></i></button>
                 <span class="text-[0.85rem] font-extrabold uppercase text-text min-w-[75px] text-center" id="monthLabel">--</span>
-                <button class="bg-transparent border-none text-text-mute cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center" onclick="window.app.changeMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
-                <button class="bg-transparent border-none text-brand cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center" onclick="window.app.goToday()"><i class="ph-bold ph-calendar-check"></i></button>
+                <button class="bg-transparent border-none text-text-mute cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center hover:text-text" onclick="window.app.changeMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
+                <button class="bg-transparent border-none text-brand cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center hover:scale-110 transition-transform" onclick="window.app.goToday()"><i class="ph-bold ph-calendar-check"></i></button>
             </div>
         </div>
     </header>
@@ -204,7 +208,6 @@
 
         <!-- RELOJ -->
         <div class="bg-card rounded-2xl border border-border py-5 px-2.5 text-center mb-5 shadow-sm relative overflow-hidden">
-            <!-- Loader Overlay -->
             <div id="mainLoader" class="absolute inset-0 bg-card/90 flex items-center justify-center z-10 rounded-2xl hidden">
                 <div class="spinner"></div>
             </div>
@@ -212,7 +215,7 @@
             <!-- Timer Grid -->
             <div class="grid grid-cols-[1fr_1.2fr_1fr] items-center gap-1.5 mb-5" id="timersDisplay" style="display:none;">
                 <!-- Baño -->
-                <button class="side-clock flex flex-col items-center justify-center opacity-50 p-1.5 rounded-lg relative z-10 w-full h-full border-none hover:bg-bg hover:opacity-80 transition-all cursor-pointer" id="clockBathContainer" onclick="window.app.openTimerEdit('bathroom')" type="button">
+                <button class="side-clock flex flex-col items-center justify-center opacity-50 p-1.5 rounded-lg relative z-10 w-full h-full border-none hover:bg-bg hover:opacity-100 hover:scale-105 transition-all cursor-pointer" id="clockBathContainer" onclick="window.app.openTimerEdit('bathroom')" type="button">
                     <div class="text-[0.65rem] font-extrabold uppercase text-text-mute mb-1 flex items-center justify-center gap-1">
                         <i class="ph-bold ph-toilet"></i> Baño <i class="ph-bold ph-pencil-simple text-brand text-[0.9em]"></i>
                     </div>
@@ -226,7 +229,6 @@
                     <div class="text-[0.7rem] uppercase tracking-widest text-text-mute font-extrabold mb-1.5" id="clockStatus">TURNO ACTIVO</div>
                     <div class="text-[clamp(2.5rem,12vw,4rem)] font-extrabold text-text tabular-nums leading-none" id="clockDisplay">00:00</div>
                     
-                    <!-- HORA DE ENTRADA -->
                     <div id="shiftStartTime" class="text-[0.7rem] text-text-mute font-bold mt-1.5 uppercase tracking-wide opacity-80" style="display:none;">
                         ENTRADA: --:--
                     </div>
@@ -237,7 +239,7 @@
                 </div>
 
                 <!-- Comida -->
-                <button class="side-clock flex flex-col items-center justify-center opacity-50 p-1.5 rounded-lg relative z-10 w-full h-full border-none hover:bg-bg hover:opacity-80 transition-all cursor-pointer" id="clockFoodContainer" onclick="window.app.openTimerEdit('food')" type="button">
+                <button class="side-clock flex flex-col items-center justify-center opacity-50 p-1.5 rounded-lg relative z-10 w-full h-full border-none hover:bg-bg hover:opacity-100 hover:scale-105 transition-all cursor-pointer" id="clockFoodContainer" onclick="window.app.openTimerEdit('food')" type="button">
                     <div class="text-[0.65rem] font-extrabold uppercase text-text-mute mb-1 flex items-center justify-center gap-1">
                         <i class="ph-bold ph-hamburger"></i> Comida <i class="ph-bold ph-pencil-simple text-brand text-[0.9em]"></i>
                     </div>
@@ -263,11 +265,11 @@
             <div class="bg-card border border-border rounded-xl p-4">
                 <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-border">
                     <div class="flex items-center gap-2">
-                        <button class="bg-transparent border-none text-brand cursor-pointer text-base p-0" onclick="window.app.changeWeek(-1)"><i class="ph-bold ph-caret-left"></i></button>
+                        <button class="bg-transparent border-none text-brand cursor-pointer text-base p-0 hover:text-white" onclick="window.app.changeWeek(-1)"><i class="ph-bold ph-caret-left"></i></button>
                         <span class="text-[0.9rem] font-extrabold text-text">Semana <span id="weekNum">--</span></span>
-                        <button class="bg-transparent border-none text-brand cursor-pointer text-base p-0" onclick="window.app.changeWeek(1)"><i class="ph-bold ph-caret-right"></i></button>
+                        <button class="bg-transparent border-none text-brand cursor-pointer text-base p-0 hover:text-white" onclick="window.app.changeWeek(1)"><i class="ph-bold ph-caret-right"></i></button>
                     </div>
-                    <span id="weekBalance" class="px-2 py-0.5 rounded-md font-extrabold text-[0.8rem] bg-emerald-100 text-emerald-700">0h</span>
+                    <span id="weekBalance" class="px-2 py-0.5 rounded-md font-extrabold text-[0.8rem] bg-emerald-900/30 text-emerald-400">0h</span>
                 </div>
                 <div class="flex justify-between items-center mb-1 text-[0.9rem]"><span class="text-text-mute">Meta</span><strong id="weekTarget" class="text-text">0:00</strong></div>
                 <div class="flex justify-between items-center mb-1 text-[0.9rem]"><span class="text-text-mute">Trabajado</span><strong class="text-brand" id="weekWorked">0:00</strong></div>
@@ -280,7 +282,7 @@
             <div class="bg-card border border-border rounded-xl p-4">
                 <div class="flex justify-between items-center mb-2.5 pb-2 border-b border-border">
                     <span class="text-[0.9rem] font-extrabold text-text">Quincena <span id="qName">--</span></span>
-                    <span id="qBalance" class="px-2 py-0.5 rounded-md font-extrabold text-[0.8rem] bg-emerald-100 text-emerald-700">0h</span>
+                    <span id="qBalance" class="px-2 py-0.5 rounded-md font-extrabold text-[0.8rem] bg-emerald-900/30 text-emerald-400">0h</span>
                 </div>
                 <div class="flex justify-between items-center mb-1 text-[0.9rem]"><span class="text-text-mute">Meta</span><strong id="qTarget" class="text-text">0:00</strong></div>
                 <div class="flex justify-between items-center mb-1 text-[0.9rem]"><span class="text-text-mute">Trabajado</span><strong class="text-brand" id="qWorked">0:00</strong></div>
@@ -290,7 +292,7 @@
 
         <!-- LISTA HISTORIAL -->
         <div class="bg-card border border-border rounded-2xl overflow-hidden shadow-sm mb-6">
-            <div class="px-5 py-4 bg-bg font-extrabold text-text-mute text-[0.75rem] border-b border-border flex justify-between items-center tracking-wide">
+            <div class="px-5 py-4 bg-bg/50 font-extrabold text-text-mute text-[0.75rem] border-b border-border flex justify-between items-center tracking-wide">
                 <span id="logListTitle">HISTORIAL</span>
                 <button onclick="window.app.openModal()" class="border-none bg-transparent text-brand font-extrabold cursor-pointer hover:underline">+ MANUAL</button>
             </div>
@@ -300,8 +302,8 @@
 
     <!-- MODALES -->
     
-    <!-- MENU CONFIGURACION REDISEÑADO -->
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="configModal">
+    <!-- MENU CONFIGURACION -->
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="configModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[400px] max-h-[90vh] overflow-hidden flex flex-col border border-border shadow-2xl relative">
             <!-- Modal Header -->
             <div class="p-4 border-b border-border flex justify-between items-center bg-bg/50 backdrop-blur-sm sticky top-0 z-10">
@@ -316,13 +318,11 @@
 
             <!-- Content Area -->
             <div class="p-5 overflow-y-auto flex-1">
-                <!-- Segmented Control Tabs (SIMPLIFICADO: Solo Ajustes y Datos) -->
                 <div class="flex p-1 bg-input-bg rounded-xl mb-6 border border-border/50">
                     <div class="tab active flex-1 text-center py-2 text-[0.75rem] font-bold cursor-pointer hover:text-text" onclick="window.app.switchTab('tSettings')">Ajustes</div>
                     <div class="tab flex-1 text-center py-2 text-[0.75rem] font-bold cursor-pointer hover:text-text" onclick="window.app.switchTab('tData')">Datos</div>
                 </div>
 
-                <!-- TABS ELIMINADAS (Cuenta y Diseño) - Contenido oculto o removido del UI, lógica mantenida por seguridad -->
                 <div id="tAccount" class="tab-content hidden"></div>
                 <div id="tDesign" class="tab-content hidden"></div>
 
@@ -333,11 +333,11 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div class="bg-input-bg p-3 rounded-xl border border-border">
                                 <label class="block text-text-mute text-[0.65rem] font-bold mb-1 uppercase">Baño</label>
-                                <input type="number" id="cfgBath" class="bg-transparent w-full font-bold text-lg text-text focus:outline-none">
+                                <input type="number" id="cfgBath" class="bg-transparent w-full font-bold text-lg text-text focus:outline-none placeholder-zinc-700">
                             </div>
                             <div class="bg-input-bg p-3 rounded-xl border border-border">
                                 <label class="block text-text-mute text-[0.65rem] font-bold mb-1 uppercase">Comida</label>
-                                <input type="number" id="cfgFood" class="bg-transparent w-full font-bold text-lg text-text focus:outline-none">
+                                <input type="number" id="cfgFood" class="bg-transparent w-full font-bold text-lg text-text focus:outline-none placeholder-zinc-700">
                             </div>
                         </div>
                     </div>
@@ -347,11 +347,11 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div class="bg-input-bg p-3 rounded-xl border border-border">
                                 <label class="block text-text-mute text-[0.65rem] font-bold mb-1 uppercase">Tarifa Base</label>
-                                <input type="number" id="cfgRate1" class="bg-transparent w-full font-bold text-lg text-text focus:outline-none">
+                                <input type="number" id="cfgRate1" class="bg-transparent w-full font-bold text-lg text-text focus:outline-none placeholder-zinc-700">
                             </div>
                             <div class="bg-input-bg p-3 rounded-xl border border-border">
                                 <label class="block text-text-mute text-[0.65rem] font-bold mb-1 uppercase">Tarifa Extra</label>
-                                <input type="number" id="cfgRate2" class="bg-transparent w-full font-bold text-lg text-text focus:outline-none">
+                                <input type="number" id="cfgRate2" class="bg-transparent w-full font-bold text-lg text-text focus:outline-none placeholder-zinc-700">
                             </div>
                         </div>
                     </div>
@@ -360,8 +360,8 @@
                 <!-- TAB DATOS -->
                 <div id="tData" class="tab-content hidden animate-fade-in">
                     <div class="space-y-3">
-                        <button class="w-full p-4 rounded-xl font-bold cursor-pointer border border-border bg-card hover:bg-bg transition-colors flex items-center gap-3 text-left group" onclick="window.app.openImportModal()">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <button class="w-full p-4 rounded-xl font-bold cursor-pointer border border-border bg-input-bg hover:bg-bg transition-colors flex items-center gap-3 text-left group" onclick="window.app.openImportModal()">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-900/30 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                                 <i class="ph-bold ph-file-csv text-xl"></i>
                             </div>
                             <div>
@@ -370,8 +370,8 @@
                             </div>
                         </button>
 
-                        <button class="w-full p-4 rounded-xl font-bold cursor-pointer border border-border bg-card hover:bg-bg transition-colors flex items-center gap-3 text-left group" onclick="window.app.exportBackup()">
-                             <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <button class="w-full p-4 rounded-xl font-bold cursor-pointer border border-border bg-input-bg hover:bg-bg transition-colors flex items-center gap-3 text-left group" onclick="window.app.exportBackup()">
+                             <div class="w-10 h-10 rounded-lg bg-blue-900/30 text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                                 <i class="ph-bold ph-download-simple text-xl"></i>
                             </div>
                             <div>
@@ -383,7 +383,7 @@
 
                     <div class="border-t border-border my-6"></div>
                     
-                    <button class="w-full p-4 rounded-xl font-bold cursor-pointer border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/10 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors flex items-center justify-center gap-2" onclick="window.app.resetData()">
+                    <button class="w-full p-4 rounded-xl font-bold cursor-pointer border border-red-900 bg-red-900/10 text-red-500 hover:bg-red-900/20 transition-colors flex items-center justify-center gap-2" onclick="window.app.resetData()">
                         <i class="ph-bold ph-trash"></i> Reiniciar Aplicación
                     </button>
                 </div>
@@ -391,7 +391,7 @@
 
             <!-- Modal Footer -->
              <div class="p-4 border-t border-border bg-card">
-                <button class="w-full bg-text text-bg p-3.5 rounded-xl font-extrabold cursor-pointer border-none hover:opacity-90 transition-opacity shadow-lg" onclick="window.app.saveConfig()">
+                <button class="w-full bg-brand text-white p-3.5 rounded-xl font-extrabold cursor-pointer border-none hover:bg-blue-600 transition-colors shadow-lg shadow-brand/20" onclick="window.app.saveConfig()">
                     GUARDAR CAMBIOS
                 </button>
             </div>
@@ -399,12 +399,12 @@
     </div>
 
     <!-- LOG MODAL -->
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="logModal">
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="logModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border">
             <h3 class="text-text font-bold text-lg mb-4">Registro Manual</h3>
             
             <label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Fecha</label>
-            <input type="date" id="inpDate" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text mb-2.5">
+            <input type="date" id="inpDate" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text mb-2.5 [color-scheme:dark]">
             
             <label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Tipo</label>
             <select id="inpType" onchange="window.app.toggleTimeInputs()" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text mb-2.5">
@@ -416,36 +416,36 @@
 
             <div id="timeInputs">
                 <div class="grid grid-cols-2 gap-2.5 mb-2.5">
-                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Entrada</label><input type="time" id="inpIn" onchange="window.app.calcPreview()" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
-                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Salida</label><input type="time" id="inpOut" onchange="window.app.calcPreview()" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
+                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Entrada</label><input type="time" id="inpIn" onchange="window.app.calcPreview()" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text [color-scheme:dark]"></div>
+                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Salida</label><input type="time" id="inpOut" onchange="window.app.calcPreview()" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text [color-scheme:dark]"></div>
                 </div>
-                <div class="bg-bg p-2.5 rounded-lg mb-2.5 border border-border">
+                <div class="bg-bg/50 p-2.5 rounded-lg mb-2.5 border border-border">
                     <label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Minutos Reales:</label>
                     <div class="grid grid-cols-3 gap-1.5">
-                        <div><label class="block text-text-mute text-[0.65rem] font-bold mb-1">Baño</label><input type="number" id="inpBathTime" value="0" oninput="window.app.calcPreview()" class="bg-card border border-border w-full p-1.5 rounded text-sm text-text"></div>
-                        <div><label class="block text-text-mute text-[0.65rem] font-bold mb-1">Comida</label><input type="number" id="inpFoodTime" value="0" oninput="window.app.calcPreview()" class="bg-card border border-border w-full p-1.5 rounded text-sm text-text"></div>
-                        <div><label class="block text-text-mute text-[0.65rem] font-bold mb-1">Pausa</label><input type="number" id="inpPauseTime" value="0" oninput="window.app.calcPreview()" class="bg-card border border-border w-full p-1.5 rounded text-sm text-text"></div>
+                        <div><label class="block text-text-mute text-[0.65rem] font-bold mb-1">Baño</label><input type="number" id="inpBathTime" value="0" oninput="window.app.calcPreview()" class="bg-input-bg border border-border w-full p-1.5 rounded text-sm text-text"></div>
+                        <div><label class="block text-text-mute text-[0.65rem] font-bold mb-1">Comida</label><input type="number" id="inpFoodTime" value="0" oninput="window.app.calcPreview()" class="bg-input-bg border border-border w-full p-1.5 rounded text-sm text-text"></div>
+                        <div><label class="block text-text-mute text-[0.65rem] font-bold mb-1">Pausa</label><input type="number" id="inpPauseTime" value="0" oninput="window.app.calcPreview()" class="bg-input-bg border border-border w-full p-1.5 rounded text-sm text-text"></div>
                     </div>
                 </div>
                 <p class="text-right text-text-mute text-sm">Neto Calculado: <strong id="calcHoursDisplay" class="text-text">0:00</strong></p>
             </div>
 
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-text text-bg mt-4" onclick="window.app.saveLog()">Guardar</button>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer mb-2.5 text-alert border border-alert bg-transparent hidden" id="btnDelete" onclick="window.app.deleteLog()">Eliminar</button>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="window.app.closeModalById('logModal')">Cancelar</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-brand text-white hover:bg-blue-600 transition-colors mt-4" onclick="window.app.saveLog()">Guardar</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer mb-2.5 text-alert border border-alert bg-transparent hidden hover:bg-alert/10" id="btnDelete" onclick="window.app.deleteLog()">Eliminar</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute hover:text-text hover:bg-white/5" onclick="window.app.closeModalById('logModal')">Cancelar</button>
         </div>
     </div>
 
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="clockOutModal">
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="clockOutModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border text-center">
             <h3 class="text-text font-bold text-lg mb-4">¿Terminar Turno?</h3>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-alert text-white mt-4 mb-2.5" onclick="window.app.finishShiftReal()">TERMINAR</button>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="window.app.cancelClockOut()">Cancelar</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-alert text-white mt-4 mb-2.5 hover:bg-red-600 transition-colors" onclick="window.app.finishShiftReal()">TERMINAR</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute hover:text-text hover:bg-white/5" onclick="window.app.cancelClockOut()">Cancelar</button>
         </div>
     </div>
 
     <!-- EDITAR TIEMPO MODAL -->
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="timerEditModal">
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="timerEditModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border">
             <h3 class="text-text font-bold text-lg mb-4">Ajustar Tiempo</h3>
             <p class="text-sm mb-2.5 text-text-mute">
@@ -454,32 +454,31 @@
             </p>
             <input type="text" id="inpTimerEdit" placeholder="Ej. 3:14" class="text-lg text-center bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text">
             <div class="flex gap-2.5 mt-4">
-                <button class="flex-1 bg-text text-bg p-3 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.saveTimerEdit()">Actualizar</button>
-                <button class="flex-1 bg-transparent border border-border text-text-mute p-3 rounded-lg font-extrabold cursor-pointer" onclick="window.app.closeModalById('timerEditModal')">Cancelar</button>
+                <button class="flex-1 bg-brand text-white p-3 rounded-lg font-extrabold cursor-pointer border-none hover:bg-blue-600 transition-colors" onclick="window.app.saveTimerEdit()">Actualizar</button>
+                <button class="flex-1 bg-transparent border border-border text-text-mute p-3 rounded-lg font-extrabold cursor-pointer hover:text-text hover:bg-white/5" onclick="window.app.closeModalById('timerEditModal')">Cancelar</button>
             </div>
         </div>
     </div>
 
     <!-- UTILS MODALS -->
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="msgModal">
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="msgModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border text-center">
             <i id="msgIcon" class="text-[2.5rem] mb-2.5 block"></i>
             <p id="msgText" class="font-bold mb-5 text-text"></p>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-text text-bg" onclick="window.app.closeModalById('msgModal')">OK</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-brand text-white hover:bg-blue-600 transition-colors" onclick="window.app.closeModalById('msgModal')">OK</button>
         </div>
     </div>
-    <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="importModal">
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="importModal">
         <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border">
             <h3 class="text-text font-bold text-lg mb-4">Importar Excel</h3>
-            <textarea id="importTextArea" rows="6" class="font-mono text-xs w-full bg-input-bg border border-border p-2.5 rounded-lg text-text mb-4"></textarea>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-text text-bg" onclick="window.app.processImport()">Procesar</button>
-            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute" onclick="window.app.closeModalById('importModal')">Cancelar</button>
+            <textarea id="importTextArea" rows="6" class="font-mono text-xs w-full bg-input-bg border border-border p-2.5 rounded-lg text-text mb-4 placeholder-zinc-700" placeholder="Pegar CSV aquí..."></textarea>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-brand text-white hover:bg-blue-600 transition-colors" onclick="window.app.processImport()">Procesar</button>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute hover:text-text hover:bg-white/5" onclick="window.app.closeModalById('importModal')">Cancelar</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // ✅ [FIX]: Importamos setPersistence y browserLocalPersistence
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
@@ -487,12 +486,9 @@
             initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
             GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile,
             getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where,
-            setPersistence, browserLocalPersistence // ✅ Exportamos para uso interno
+            setPersistence, browserLocalPersistence
         };
 
-        // ==========================================
-        // CONFIGURACIÓN UNIFICADA (IGUAL QUE INDEX.HTML)
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
             authDomain: "godsplan-blqa.firebaseapp.com",
@@ -510,10 +506,7 @@
         try { 
             const fbApp = initializeApp(firebaseConfig); 
             auth = getAuth(fbApp); 
-            
-            // ✅ [FIX]: Activamos persistencia aquí mismo para que detecte el login del index.html
             setPersistence(auth, browserLocalPersistence).catch(console.error);
-
             db = getFirestore(fbApp); 
         } catch (e) { setTimeout(() => showGlobalError(e.message), 1000); }
 
@@ -529,13 +522,10 @@
                 document.getElementById('auth-status').classList.remove('hidden');
                 document.getElementById('auth-status').classList.add('flex');
                 
-                // Cargar tema guardado o default
-                // CAMBIO: Default a 'red' (Sangre/Rojo Dark) como solicitado
+                // Cargar tema guardado o default a 'red' (Sangre)
                 const savedTheme = localStorage.getItem('gp_theme') || 'red';
                 this.setTheme(savedTheme);
                 
-                // No cargamos custom colors porque ya no los usamos
-
                 if (!auth) return this.goOffline();
 
                 onAuthStateChanged(auth, async u => {
@@ -545,33 +535,24 @@
                         this.renderAuth(u); 
                         await this.load(); 
                     } else {
-                        // SI NO HAY USUARIO, REDIRIGIR AL INDEX (PORTAL DE ACCESO)
                          if (!window.location.pathname.endsWith('index.html')) {
-                            // Opcional: Permitir modo offline si se desea, pero para conectar:
-                            // window.location.href = "index.html"; 
+                             // console.log("Redirigiendo...");
                          }
-                        this.goOffline(); // O mantenerse offline
+                        this.goOffline();
                     }
                     this.loadLocal(); 
                 });
             },
 
-            // ... funciones del reloj ...
-            
             updateRealClockUI() {
                 const now = new Date();
                 const clockEl = document.getElementById('realClockTime');
-                
                 if (clockEl) {
                     try {
                         const horaCDMX = new Intl.DateTimeFormat('es-MX', {
                             timeZone: 'America/Mexico_City',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                            hour12: false
+                            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
                         }).format(now);
-                        
                         clockEl.textContent = horaCDMX;
                     } catch (e) {
                         clockEl.textContent = now.toLocaleTimeString();
@@ -579,7 +560,7 @@
                 }
             },
 
-             getNow() { return Date.now() + this.timeOffset; },
+            getNow() { return Date.now() + this.timeOffset; },
 
             getCDMXDate(ms) {
                  return new Date(ms).toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
@@ -587,10 +568,7 @@
 
             getCDMXTime(ms) {
                 return new Date(ms).toLocaleTimeString('es-MX', { 
-                    timeZone: 'America/Mexico_City',
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    hour12: false 
+                    timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit', hour12: false 
                 }).slice(0, 5);
             },
 
@@ -599,53 +577,38 @@
                 document.documentElement.setAttribute('data-theme', t);
                 localStorage.setItem('gp_theme', t);
                 
-                // Actualizar icono del Header "Sol y Sangre"
                 const icon = document.getElementById('themeIcon');
                 if (icon) {
                     if (t === 'light') {
-                        // Sol (Azulito/Claro)
-                        icon.className = 'ph-fill ph-sun text-lg transition-transform duration-500 rotate-0';
+                        // Blue Theme (Ahora es Dark Blue) - Icono Gota Media
+                        icon.className = 'ph-fill ph-drop-half-bottom text-lg transition-transform duration-500 rotate-0';
                     } else {
-                        // Sangre (Rojo/Dark) - Usamos ph-drop (Gota) para representar sangre
-                        icon.className = 'ph-fill ph-drop text-lg transition-transform duration-500 rotate-0'; 
+                        // Sangre Theme - Icono Fuego/Gota
+                        icon.className = 'ph-fill ph-fire text-lg transition-transform duration-500 rotate-0'; 
                     }
                 }
-                
-                // No necesitamos actualizar customColorsPanel porque ya no existe
             },
 
             toggleTheme() {
-                // Alternar entre Light (Azulito) y Red (Sangre)
-                // Si es light, va a red. Si es cualquier otro, va a light.
                 const newTheme = this.currentTheme === 'light' ? 'red' : 'light';
                 this.setTheme(newTheme);
             },
-
-            // Funciones de tema personalizado eliminadas
 
             goOffline() { this.offline = true; document.getElementById('auth-status').innerHTML = `<i class="ph-bold ph-wifi-slash"></i> Offline`; this.loadLocal(); },
             
             renderAuth(u) {
                 const isRealUser = u && !u.isAnonymous;
-                
-                // Como quitamos el tab de Cuenta, ya no necesitamos actualizar authenticatedView
-                
                 let t = u ? (u.isAnonymous ? "ANÓNIMO" : (u.displayName || "Usuario")) : "DESCONECTADO";
                 if (isRealUser && u.email && u.email.includes('@godsplan.site')) t = u.email.split('@')[0];
-                
-                // Actualizar barra de estado y modal
                 document.getElementById('auth-status').innerHTML = `<i class="ph-fill ph-user-circle"></i> ${t}`;
                 
-                // Actualizar Nuevo Header
                 const badge = document.getElementById('user-badge');
                 const nameLabel = document.getElementById('user-name');
                 if (isRealUser) {
-                    badge.classList.remove('hidden');
-                    badge.classList.add('flex');
+                    badge.classList.remove('hidden'); badge.classList.add('flex');
                     if (nameLabel) nameLabel.textContent = t;
                 } else {
-                    badge.classList.add('hidden');
-                    badge.classList.remove('flex');
+                    badge.classList.add('hidden'); badge.classList.remove('flex');
                 }
             },
 
@@ -654,10 +617,7 @@
             async load() {
                 if (this.offline || !this.userId) return;
                 try {
-                    // SELECCIONADA: Cambiamos la ruta a la especificada por el usuario
-                    // Antes: const docRef = doc(db, "godsPlanData", this.userId);
                     const docRef = doc(db, "users", this.userId, "attendance", "sync_state");
-                    
                     const snap = await getDoc(docRef);
                     if (snap.exists()) { 
                         this.data = snap.data(); 
@@ -674,7 +634,6 @@
             async save() {
                 localStorage.setItem('godsPlanData', JSON.stringify(this.data));
                 if (!this.offline && this.userId) {
-                    // SELECCIONADA: Cambiamos la ruta de guardado también
                     const docRef = doc(db, "users", this.userId, "attendance", "sync_state");
                     await setDoc(docRef, this.data);
                 }
@@ -692,15 +651,13 @@
                 const bl = config.bathAllow || 15;
                 const fl = config.foodAllow || 45;
 
-                // CLASES DE BOTONES COMUNES
                 const btnBase = "btn-ctrl h-[55px] rounded-lg border-none font-extrabold text-[0.85rem] cursor-pointer flex flex-col items-center justify-center gap-0.5 uppercase transition-all relative overflow-hidden active:scale-95";
-                const btnStart = `${btnBase} col-span-2 text-lg h-[70px] text-white bg-gradient-to-br from-blue-600 to-blue-800`;
-                const btnStop = `${btnBase} col-span-2 text-white bg-gradient-to-br from-red-600 to-red-800`;
-                const btnBath = `${btnBase} bg-bg text-text-mute border border-border`;
-                const btnFood = `${btnBase} bg-bg text-text-mute border border-border`;
-                const btnPause = `${btnBase} col-span-2 bg-bg text-text-mute border border-border`;
+                const btnStart = `${btnBase} col-span-2 text-lg h-[70px] text-white bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700`;
+                const btnStop = `${btnBase} col-span-2 text-white bg-gradient-to-br from-red-600 to-red-800 hover:from-red-500 hover:to-red-700`;
+                const btnBath = `${btnBase} bg-card text-text-mute border border-border hover:bg-bg hover:text-text hover:border-text`;
+                const btnFood = `${btnBase} bg-card text-text-mute border border-border hover:bg-bg hover:text-text hover:border-text`;
+                const btnPause = `${btnBase} col-span-2 bg-card text-text-mute border border-border hover:bg-bg hover:text-text hover:border-text`;
 
-                // ELEMENTO HORA ENTRADA
                 const startEl = document.getElementById('shiftStartTime');
 
                 if (!s) {
@@ -721,7 +678,6 @@
                     const bathEl = document.getElementById('clockBathContainer');
                     const foodEl = document.getElementById('clockFoodContainer');
                     
-                    // MOSTRAR HORA ENTRADA
                     if(startEl && s.start) {
                         startEl.textContent = `ENTRADA: ${this.getCDMXTime(s.start)}`;
                         startEl.style.display = 'block';
@@ -943,8 +899,8 @@
                     const bal = net - ((l.type === 'Laboral' || l.type === 'Falta') ? 480 : 0);
                     let chips = '';
                     if (l.details) {
-                        const pillClass = "px-1.5 py-0.5 rounded flex items-center gap-1 font-semibold text-[0.7rem] border border-border bg-bg text-text-mute";
-                        const excessClass = "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-300 dark:border-red-800";
+                        const pillClass = "px-1.5 py-0.5 rounded flex items-center gap-1 font-semibold text-[0.7rem] border border-border bg-bg/50 text-text-mute";
+                        const excessClass = "bg-red-900/40 text-red-300 border-red-900";
 
                         if (l.details.bath > 0) chips += `<span class="${pillClass} ${l.details.bath > (config.bathAllow || 15) ? excessClass : ''}"><i class="ph-bold ph-toilet"></i> ${Math.round(l.details.bath)}m</span>`;
                         if (l.details.food > 0) chips += `<span class="${pillClass} ${l.details.food > (config.foodAllow || 45) ? excessClass : ''}"><i class="ph-bold ph-hamburger"></i> ${Math.round(l.details.food)}m</span>`;
@@ -953,15 +909,15 @@
                     const hourText = (l.type === 'Laboral' || (l.type === 'Descanso' && l.hours > 0)) ? `${l.in ? l.in + '-' + l.out + ' • ' : ''}<b>${this.fmt(net)}</b>` : '';
 
                     let tagClass = "px-2.5 py-1 rounded-md text-[0.7rem] font-extrabold uppercase inline-flex items-center justify-center leading-none tracking-wide ";
-                    if(l.type === 'Laboral') tagClass += "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-                    else if(l.type === 'Descanso') tagClass += "bg-slate-100 text-slate-600 border border-border dark:bg-slate-800 dark:text-slate-300 dark:border-transparent";
-                    else if(l.type === 'Falta') tagClass += "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-                    else if(l.type === 'Vacaciones') tagClass += "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
+                    if(l.type === 'Laboral') tagClass += "bg-blue-900/30 text-blue-200";
+                    else if(l.type === 'Descanso') tagClass += "bg-slate-800 text-slate-300 border border-white/5";
+                    else if(l.type === 'Falta') tagClass += "bg-red-900/30 text-red-200";
+                    else if(l.type === 'Vacaciones') tagClass += "bg-amber-900/30 text-amber-200";
 
-                    const balClass = bal >= 0 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+                    const balClass = bal >= 0 ? "bg-emerald-900/30 text-emerald-300" : "bg-red-900/30 text-red-300";
 
                     const html = `
-                    <div class="bg-bg border border-border rounded-lg text-center py-1.5 flex flex-col items-center justify-center">
+                    <div class="bg-card border border-border rounded-lg text-center py-1.5 flex flex-col items-center justify-center">
                         <div class="text-base font-extrabold text-text leading-none mb-0.5">${x.getDate()}</div>
                         <div class="text-[0.65rem] uppercase text-text-mute font-bold">${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][x.getDay()]}</div>
                     </div>
@@ -972,7 +928,7 @@
                     </div>
                     <div class="text-center font-extrabold text-[0.8rem] px-2 py-1 rounded-md justify-self-end min-w-[60px] ${balClass}">${bal > 0 ? '+' : ''}${this.fmt(bal)}</div>`;
                     const div = document.createElement('div'); 
-                    div.className = 'p-4 border-b border-border grid grid-cols-[45px_1fr_auto] gap-4 items-center hover:bg-bg transition-colors cursor-pointer last:border-b-0'; 
+                    div.className = 'p-4 border-b border-border grid grid-cols-[45px_1fr_auto] gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer last:border-b-0'; 
                     div.onclick = () => window.app.openModal(l.id); 
                     div.innerHTML = html;
                     list.appendChild(div);
@@ -987,7 +943,7 @@
             setBadge(id, v) { 
                 const e = document.getElementById(id); 
                 e.textContent = (v > 0 ? '+' : '') + this.fmt(v); 
-                e.className = `px-2 py-0.5 rounded-md font-extrabold text-[0.8rem] ${v >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}`; 
+                e.className = `px-2 py-0.5 rounded-md font-extrabold text-[0.8rem] ${v >= 0 ? 'bg-emerald-900/30 text-emerald-300' : 'bg-red-900/30 text-red-300'}`; 
             },
             changeMonth(n) { this.date.setMonth(this.date.getMonth() + n); this.date.setDate(1); this.render(); },
             changeWeek(n) { this.date.setDate(this.date.getDate() + (n * 7)); this.render(); },
@@ -997,17 +953,12 @@
                 const m = document.getElementById('configModal');
                 m.classList.remove('hidden'); m.classList.add('flex');
                 document.getElementById('cfgBath').value = this.data.config.bathAllow || 15; document.getElementById('cfgFood').value = this.data.config.foodAllow || 45; document.getElementById('cfgRate1').value = this.data.config.rate1; document.getElementById('cfgRate2').value = this.data.config.rate2; 
-                
-                // MODIFICADO: Abre directamente en Ajustes (Settings) ya que quitamos Cuenta
                 this.switchTab('tSettings'); 
             },
             saveConfig() { this.data.config.bathAllow = parseFloat(document.getElementById('cfgBath').value) || 15; this.data.config.foodAllow = parseFloat(document.getElementById('cfgFood').value) || 45; this.data.config.rate1 = parseFloat(document.getElementById('cfgRate1').value) || 50; this.data.config.rate2 = parseFloat(document.getElementById('cfgRate2').value) || 75; this.save(); this.closeModalById('configModal'); },
             switchTab(id) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active', 'block')); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); event.target.classList.add('active'); document.getElementById(id).classList.add('active', 'block'); document.getElementById(id).classList.remove('hidden'); },
             
-            redirectToAuth() {
-                 window.location.href = "index.html";
-            },
-            
+            redirectToAuth() { window.location.href = "index.html"; },
             openAuthModal(m) { this.redirectToAuth(); },
             processAuth() { this.redirectToAuth(); },
             loginWithGoogle() { this.redirectToAuth(); },
