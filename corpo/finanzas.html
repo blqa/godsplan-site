@@ -1,17 +1,61 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>God's Plan | Finanzas</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fonts -->
+    
+    <!-- FAVICON (IMPORTADO) -->
+    <link rel="shortcut icon" href="./favicon.ico?v=2" type="image/x-icon">
+    <link rel="icon" href="./favicon.ico?v=2" type="image/x-icon">
+
+    <!-- FUENTE UNIFICADA: PLUS JAKARTA SANS -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Icons -->
+    
+    <!-- ICONS -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Firebase Imports (Modular) -->
+    <!-- TAILWIND CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        bg: 'var(--bg)',
+                        card: 'var(--card)',
+                        text: 'var(--text)',
+                        'text-mute': 'var(--text-mute)',
+                        brand: 'var(--brand)',
+                        money: 'var(--money)',
+                        alert: 'var(--alert)',
+                        warn: 'var(--warn)',
+                        border: 'var(--border)',
+                        'input-bg': 'var(--input-bg)',
+                        // Colores específicos de finanzas mantenidos
+                        dark: { 900: '#050505', card: '#18181b' }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'],
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.3s ease-out forwards',
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'pulse-red': 'pulseRed 2s infinite',
+                    },
+                    keyframes: {
+                        slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } },
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        pulseRed: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.5' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FIREBASE MODULAR -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
@@ -30,7 +74,6 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        // Expose Firebase to global scope
         window.firebaseImports = {
             initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
             signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile, setPersistence, browserLocalPersistence,
@@ -38,92 +81,125 @@
         };
     </script>
 
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
-                    colors: { dark: { 900: '#050505', card: '#18181b' } },
-                    animation: {
-                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                        'pulse-red': 'pulseRed 2s infinite',
-                    },
-                    keyframes: {
-                        slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } },
-                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-                        pulseRed: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.5' } }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        :root { --sat: env(safe-area-inset-top); --sab: env(safe-area-inset-bottom); }
-        body { background-color: #050505; color: #e5e5e5; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; height: 100dvh; }
-        input, select, textarea { font-size: 16px !important; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        /* --- VARIABLES DEL TEMA (IMPORTADAS DEL HEADER) --- */
+        :root {
+            --bg: #0f172a;        /* Slate 900 */
+            --card: #1e293b;      /* Slate 800 */
+            --text: #f1f5f9;      /* Slate 100 */
+            --text-mute: #94a3b8; /* Slate 400 */
+            --brand: #3b82f6;     /* Blue 500 */
+            --money: #34d399;     /* Emerald 400 */
+            --alert: #f87171;     /* Red 400 */
+            --warn: #fbbf24;      /* Amber 400 */
+            --border: #334155;    /* Slate 700 */
+            --input-bg: #020617;  /* Slate 950 */
+            --header-bg: rgba(15, 23, 42, 0.85);
+            --sat: env(safe-area-inset-top); 
+            --sab: env(safe-area-inset-bottom);
+        }
+
+        /* Estilos base de Finanzas */
+        body { background-color: #050505; color: #e5e5e5; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; min-height: 100dvh; }
+        
+        /* Utilidades */
+        input, select, textarea { font-size: 16px !important; outline: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Glassmorphism específico de Finanzas */
         .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
         .glass-highlight { background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.08); }
         .glass-nav { background: rgba(5, 5, 5, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: var(--sab); }
-        .g-links { display: flex; align-items: center; gap: 20px; overflow-x: auto; }
-        .g-link { font-size: 10px; font-weight: 800; letter-spacing: 0.05em; color: #71717a; transition: color 0.2s; text-decoration: none; white-space: nowrap; }
-        .g-link:hover, .g-link.active { color: white; }
+
         .input-modern { background: #09090b; border: 1px solid #27272a; color: white; border-radius: 16px; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); font-size: 16px !important; }
         .input-modern:focus { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); outline: none; background: #18181b; }
+        
         .toggle-checkbox:checked { right: 0; border-color: #10b981; }
         .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
+        
         .chip { transition: all 0.2s; user-select: none; white-space: nowrap; }
         .chip.active { background: #ef4444; color: white; transform: scale(1.02); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); border-color: #ef4444; }
-        #toast-container { position: fixed; top: calc(20px + var(--sat)); left: 50%; transform: translateX(-50%); z-index: 2000; pointer-events: none; width: 90%; max-width: 400px; }
+        
+        #toast-container { position: fixed; top: calc(80px + var(--sat)); left: 50%; transform: translateX(-50%); z-index: 2000; pointer-events: none; width: 90%; max-width: 400px; }
         .toast { background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 30px; border: 1px solid #333; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 10px; animation: fadeIn 0.3s forwards; pointer-events: auto; }
-        #global-nav { position: sticky; top: 0; z-index: 1000; }
-        .g-logo { color: #fff; font-weight: 800; text-decoration: none; font-size: 1.1rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; position: relative; z-index: 1001; cursor: pointer; white-space: nowrap; }
+        
+        /* Modal Styles */
         #modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; display: flex; align-items: flex-end; justify-content: center; }
         #modalOverlay.is-open { opacity: 1; pointer-events: auto; }
         #modalSheet { background: #121212; width: 100%; max-height: 85dvh; border-top-left-radius: 32px; border-top-right-radius: 32px; border-top: 1px solid #27272a; padding: 20px 24px; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding-bottom: calc(40px + var(--sab)); }
         #modalOverlay.is-open #modalSheet { transform: translateY(0); }
         @media (min-width: 768px) {
             #modalOverlay { align-items: center; padding: 20px; }
-            #modalSheet {
-                width: 100%; max-width: 360px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); max-height: 85vh; padding: 20px;
-                transform: scale(0.95); opacity: 0; transition: all 0.2s ease-out;
-            }
+            #modalSheet { width: 100%; max-width: 360px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); max-height: 85vh; padding: 20px; transform: scale(0.95); opacity: 0; transition: all 0.2s ease-out; }
             #modalOverlay.is-open #modalSheet { transform: scale(1); opacity: 1; }
-            main { padding-bottom: 20px !important; }
         }
+
         .nav-link-desk { color: #71717a; padding: 6px 16px; border-radius: 99px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s; }
         .nav-link-desk:hover { color: white; background: rgba(255,255,255,0.05); }
         .nav-link-desk.active { color: white; background: #27272a; }
+
         .modal-auth { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 2000; }
         .modal-auth.active { display: flex; }
-
-        /* Auth Styles adapted for this app */
         .auth-switch { position: relative; display: flex; background: rgba(30,30,30,0.5); border-radius: 12px; padding: 4px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
         .auth-switch button { flex: 1; padding: 8px; font-size: 0.75rem; font-weight: 700; z-index: 1; color: #71717a; transition: 0.3s; }
         .auth-switch button.active { color: white; }
         .auth-switch-glider { position: absolute; top: 4px; left: 4px; height: calc(100% - 8px); width: calc(50% - 4px); background: #27272a; border-radius: 8px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.1); }
         .auth-mode-register .auth-switch-glider { transform: translateX(100%); }
+        
+        /* Animaciones para el Mobile Nav Modal importado */
+        @keyframes slideUp { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
     </style>
 </head>
-<body class="flex flex-col overflow-hidden text-sm sm:text-base bg-[#050505] text-[#e5e5e5]">
-    <nav id="global-nav" class="h-14 bg-black border-b border-white/5 flex items-center justify-between px-5 shrink-0 z-50">
-        <a href="#" class="g-logo"><i class="ph-bold ph-circles-three-plus text-lg text-red-500"></i> God's Plan</a>
-        <div class="g-links no-scrollbar">
-            <a href="#" class="g-link">ADHERENCIA</a>
-            <a href="#" class="g-link">CHAT</a>
-            <a href="#" class="g-link active">FINANZAS</a>
-            <a href="#" class="g-link">CUENTA</a>
-            <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-zinc-800 ml-1 flex-shrink-0 transition-all duration-500" title="Estado"></div>
+
+<body class="bg-[#050505] text-[#e5e5e5] font-sans pb-24 pt-20 text-sm font-normal">
+
+    <!-- HEADER FIJO (IMPORTADO Y ADAPTADO) -->
+    <nav class="fixed top-0 left-0 w-full z-[100] border-b border-white/5 bg-[var(--header-bg)] backdrop-blur-md h-20 flex items-center shadow-lg transition-all duration-300">
+        <div class="w-full max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center h-full">
+            <!-- Logo -->
+            <a href="/corpo/index.html" class="flex items-center gap-3 group">
+                <div class="relative w-9 h-9 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-brand rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                    <i class="ph-fill ph-planet text-3xl text-brand relative z-10"></i>
+                </div>
+                <div class="flex flex-col justify-center">
+                    <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">Finance v2.0</span>
+                </div>
+            </a>
+
+            <!-- Navegación Central (Desktop) - FINANZAS ACTIVO -->
+            <div class="hidden md:flex items-center bg-white/5 rounded-full p-1 border border-white/5">
+                <a href="/corpo/index.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">ADHERENCIA</a>
+                <a href="#" class="px-4 py-1.5 rounded-full bg-brand text-white text-xs font-bold tracking-wide shadow-lg shadow-brand/20 transition-all">FINANZAS</a>
+                <a href="/corpo/chat.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CHAT</a>
+                <a href="/corpo/casos.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CASOS</a>
+                <a href="/corpo/cuenta.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CUENTA</a>
+            </div>
+
+            <!-- User Badge -->
+            <div id="user-badge" class="hidden items-center gap-2 animate-fade-in pl-4 border-l border-white/10 ml-2">
+                <div class="hidden lg:flex flex-col text-right mr-2">
+                    <span id="user-name" class="text-xs font-bold text-white uppercase tracking-wider max-w-[100px] truncate">Usuario</span>
+                    <span id="user-role" class="text-[9px] font-mono text-emerald-500 tracking-wide">CONNECTED</span>
+                </div>
+
+                <button onclick="window.app.logout()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 transition-all group" title="Cerrar Sesión">
+                    <i class="ph-bold ph-power text-lg group-hover:scale-110 transition-transform"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="md:hidden w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-white transition-colors" onclick="window.app.openNavModal()">
+                 <i class="ph-bold ph-list text-lg"></i>
+            </button>
         </div>
     </nav>
 
-    <main id="app-content" class="flex-1 overflow-y-auto pb-36 relative scroll-smooth overflow-x-hidden md:px-6">
+    <!-- MAIN CONTENT -->
+    <main id="app-content" class="flex-1 overflow-y-auto relative scroll-smooth overflow-x-hidden md:px-6">
         <!-- Hidden input for file import -->
         <input type="file" id="importFile" accept=".json" class="hidden">
         
@@ -138,7 +214,7 @@
             <!-- VISTA: BALANCE -->
             <section id="view-balance" class="p-4 sm:p-0 fade-in">
                 <div class="grid grid-cols-1 md:grid-cols-12 md:gap-8 items-start">
-                    <div class="md:col-span-5 lg:col-span-4 md:sticky md:top-4">
+                    <div class="md:col-span-5 lg:col-span-4 md:sticky md:top-24">
                         <div class="flex justify-between items-end mb-4 px-1">
                             <div onclick="app.openModal('config')" class="cursor-pointer group py-2">
                                 <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mb-1 group-hover:text-red-500 transition-colors">
@@ -331,16 +407,6 @@
                         </div>
 
                         <div class="p-6 rounded-3xl bg-zinc-900/30 border border-zinc-800/50">
-                            <div class="flex items-center justify-between mb-6">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400"><i class="ph-fill ph-user text-2xl"></i></div>
-                                    <div>
-                                        <div id="userName" class="font-bold text-white">Usuario</div>
-                                        <div id="userStatusText" class="text-xs text-zinc-500">Estado</div>
-                                    </div>
-                                </div>
-                                <button id="btnLogout" onclick="app.logout()" class="text-zinc-500 hover:text-white transition-colors" title="Cerrar Sesión"><i class="ph-bold ph-sign-out text-xl"></i></button>
-                            </div>
                             <div class="grid grid-cols-2 gap-3 mb-4">
                                 <button onclick="app.exportData()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-3 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 active:scale-95">
                                     <i class="ph-bold ph-upload-simple"></i> EXPORTAR
@@ -367,7 +433,7 @@
         </button>
     </div>
 
-    <!-- NAV INFERIOR - MÓVIL -->
+    <!-- NAV INFERIOR - MÓVIL (Simple para vistas de finanzas) -->
     <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-2 z-50 pb-2">
         <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance', this)">
             <div class="relative p-1"><i class="ph-fill ph-wallet text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
@@ -379,7 +445,34 @@
         </button>
     </div>
 
-    <!-- MODAL PRINCIPAL -->
+    <!-- MODAL DE NAVEGACIÓN MÓVIL (IMPORTADO) -->
+    <div class="modal fixed inset-0 w-screen h-screen z-[1000] hidden bg-black/80 backdrop-blur-sm" id="navModal" onclick="window.app.closeModalById('navModal')">
+        <div class="absolute bottom-0 left-0 w-full bg-card rounded-t-2xl p-6 border-t border-border animate-slide-up" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6">
+                <span class="font-bold text-lg text-text">Navegación</span>
+                 <button onclick="window.app.closeModalById('navModal')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-text-mute hover:text-text"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+            <div class="grid gap-3">
+                <a href="/corpo/index.html" class="p-3.5 rounded-xl bg-input-bg border border-border hover:bg-white/5 text-text-mute hover:text-text font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
+                    <i class="ph-fill ph-check-circle text-lg"></i> ADHERENCIA
+                </a>
+                <a href="#" class="p-3.5 rounded-xl bg-brand/10 text-brand border border-brand/20 font-extrabold flex items-center gap-3 text-sm tracking-wide">
+                    <i class="ph-bold ph-currency-dollar text-lg"></i> FINANZAS
+                </a>
+                <a href="/corpo/chat.html" class="p-3.5 rounded-xl bg-input-bg border border-border hover:bg-white/5 text-text-mute hover:text-text font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
+                    <i class="ph-bold ph-chat-circle-dots text-lg"></i> CHAT
+                </a>
+                <a href="/corpo/casos.html" class="p-3.5 rounded-xl bg-input-bg border border-border hover:bg-white/5 text-text-mute hover:text-text font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
+                    <i class="ph-bold ph-briefcase text-lg"></i> CASOS
+                </a>
+                <a href="/corpo/cuenta.html" class="p-3.5 rounded-xl bg-input-bg border border-border hover:bg-white/5 text-text-mute hover:text-text font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
+                    <i class="ph-bold ph-user-circle text-lg"></i> CUENTA
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PRINCIPAL FINANZAS -->
     <div id="modalOverlay" onclick="if(event.target === this) app.closeModal()">
         <div id="modalSheet">
             <div class="md:hidden w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0"></div>
@@ -600,7 +693,7 @@
             currentDailyLimit: 0,
             isSimulating: false,
             
-            async init() {
+            init() {
                 if(!auth) return;
                 onAuthStateChanged(auth, async (u) => {
                     if (u) {
@@ -609,7 +702,8 @@
                         this.setupListeners();
                         document.getElementById('importFile').addEventListener('change', (e) => this.handleImport(e));
                     } else {
-                        document.getElementById('authModal').classList.add('active');
+                        // Redirect if not logged in
+                        window.location.href = "https://godsplan.site";
                     }
                 });
             },
@@ -699,9 +793,19 @@
 
             // === APP LOGIC ===
             updateUserUI() {
-                document.getElementById('userName').textContent = this.user.displayName || this.user.email.split('@')[0];
-                document.getElementById('userStatusText').textContent = 'Conectado'; document.getElementById('userStatusText').className = 'text-[10px] text-emerald-500 font-bold';
-                document.getElementById('syncStatus').classList.add('bg-emerald-500');
+                // Actualiza el User Badge en el Header
+                const badge = document.getElementById('user-badge');
+                const nameLabel = document.getElementById('user-name');
+                const roleLabel = document.getElementById('user-role');
+                
+                if (this.user) {
+                     badge.classList.remove('hidden'); 
+                     badge.classList.add('flex');
+                     nameLabel.textContent = this.user.displayName || this.user.email.split('@')[0];
+                } else {
+                    badge.classList.add('hidden'); 
+                    badge.classList.remove('flex');
+                }
             },
             setupListeners() {
                 const uid = this.user.uid;
@@ -1346,6 +1450,19 @@
                 } catch(e) {
                     console.error(e);
                     UI.toast('Error crítico restaurando datos', 'error');
+                }
+            },
+            // Funciones añadidas para el Header de Adherencia
+            openNavModal() {
+                 const m = document.getElementById('navModal');
+                 m.classList.remove('hidden');
+                 m.classList.add('flex');
+            },
+            closeModalById(id) {
+                const m = document.getElementById(id);
+                if(m) {
+                    m.classList.remove('flex');
+                    m.classList.add('hidden');
                 }
             }
         };
