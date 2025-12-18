@@ -124,8 +124,10 @@
         .side-clock.active { opacity: 1; transform: scale(1.05); background: transparent; }
         .side-clock.danger .side-val { color: var(--alert) !important; }
         
-        /* Tabs del modal */
-        .tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+        /* Tabs del modal (Estilo Segmentado Moderno) */
+        .tab { @apply text-text-mute rounded-md transition-all; }
+        .tab.active { @apply bg-card text-text shadow-sm ring-1 ring-black/5 font-bold; }
+        [data-theme="dark"] .tab.active { @apply bg-white/10 text-white ring-white/10; }
         
         /* Theme buttons */
         .theme-btn.active { border-color: var(--brand); color: var(--brand); background: var(--card); box-shadow: 0 0 0 2px var(--brand); }
@@ -309,76 +311,171 @@
 
     <!-- MODALES -->
     
-    <!-- MENU CONFIGURACION -->
+    <!-- MENU CONFIGURACION REDISEÑADO -->
     <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="configModal">
-        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 max-h-[85vh] overflow-y-auto border border-border">
-            <h3 class="text-center mb-4 text-text font-bold text-lg">Configuración</h3>
-            
-            <div class="flex border-b border-border mb-4">
-                <div class="tab active flex-1 text-center p-2.5 text-[0.8rem] font-extrabold text-text-mute cursor-pointer border-b-[3px] border-transparent" onclick="window.app.switchTab('tAccount')">Cuenta</div>
-                <div class="tab flex-1 text-center p-2.5 text-[0.8rem] font-extrabold text-text-mute cursor-pointer border-b-[3px] border-transparent" onclick="window.app.switchTab('tDesign')">Diseño</div>
-                <div class="tab flex-1 text-center p-2.5 text-[0.8rem] font-extrabold text-text-mute cursor-pointer border-b-[3px] border-transparent" onclick="window.app.switchTab('tSettings')">Ajustes</div>
-                <div class="tab flex-1 text-center p-2.5 text-[0.8rem] font-extrabold text-text-mute cursor-pointer border-b-[3px] border-transparent" onclick="window.app.switchTab('tData')">Datos</div>
+        <div class="bg-card rounded-2xl w-[90%] max-w-[400px] max-h-[90vh] overflow-hidden flex flex-col border border-border shadow-2xl relative">
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-border flex justify-between items-center bg-bg/50 backdrop-blur-sm sticky top-0 z-10">
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-planet text-xl text-brand"></i>
+                    <span class="font-bold text-text text-sm tracking-wide">CONFIGURACIÓN</span>
+                </div>
+                <button onclick="window.app.closeModalById('configModal')" class="text-text-mute hover:text-text transition-colors">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
             </div>
 
-            <!-- TAB CUENTA -->
-            <div id="tAccount" class="tab-content active block">
-                <div id="authenticatedView" class="hidden bg-bg p-2.5 rounded-lg mb-4 border border-border">
-                    <div id="userProfile" class="font-bold mb-1.5 text-text">...</div>
-                    <button class="w-full p-2 rounded-lg font-bold cursor-pointer border border-border bg-transparent text-text-mute hover:bg-white/5" onclick="window.app.logout()">Cerrar Sesión</button>
+            <!-- Content Area -->
+            <div class="p-5 overflow-y-auto flex-1">
+                <!-- Segmented Control Tabs -->
+                <div class="flex p-1 bg-input-bg rounded-xl mb-6 border border-border/50">
+                    <div class="tab active flex-1 text-center py-2 text-[0.75rem] font-bold cursor-pointer hover:text-text" onclick="window.app.switchTab('tAccount')">Cuenta</div>
+                    <div class="tab flex-1 text-center py-2 text-[0.75rem] font-bold cursor-pointer hover:text-text" onclick="window.app.switchTab('tDesign')">Diseño</div>
+                    <div class="tab flex-1 text-center py-2 text-[0.75rem] font-bold cursor-pointer hover:text-text" onclick="window.app.switchTab('tSettings')">Ajustes</div>
+                    <div class="tab flex-1 text-center py-2 text-[0.75rem] font-bold cursor-pointer hover:text-text" onclick="window.app.switchTab('tData')">Datos</div>
                 </div>
-                <div id="unauthenticatedView" class="block text-center">
-                    <p class="text-[0.8rem] text-text-mute mb-4">Debes iniciar sesión en el portal.</p>
-                    <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-brand text-white hover:opacity-90 transition-opacity" onclick="window.app.redirectToAuth()">
-                        <i class="ph-bold ph-sign-in"></i> Ir al Portal de Acceso
+
+                <!-- TAB CUENTA -->
+                <div id="tAccount" class="tab-content active block animate-fade-in">
+                    <div id="authenticatedView" class="hidden">
+                         <div class="bg-gradient-to-br from-brand/10 to-transparent p-4 rounded-xl border border-brand/20 mb-4 text-center">
+                            <div class="w-16 h-16 bg-brand/20 rounded-full flex items-center justify-center mx-auto mb-3 text-brand">
+                                <i class="ph-fill ph-user text-3xl"></i>
+                            </div>
+                            <div id="userProfile" class="font-extrabold text-lg text-text mb-0.5">Usuario</div>
+                            <div class="text-xs font-mono text-brand mb-4">SYSTEM ACCESS GRANTED</div>
+                            
+                            <button class="w-full py-2.5 px-4 rounded-lg font-bold cursor-pointer border border-border bg-card text-alert hover:bg-alert/5 transition-all text-xs uppercase tracking-wider" onclick="window.app.logout()">
+                                <i class="ph-bold ph-sign-out mr-1"></i> Cerrar Sesión
+                            </button>
+                        </div>
+                        <div class="text-center text-[0.7rem] text-text-mute">
+                            ID: <span class="font-mono opacity-50">USER-SESSION-ACTIVE</span>
+                        </div>
+                    </div>
+                    <div id="unauthenticatedView" class="block text-center py-8">
+                        <div class="w-16 h-16 bg-input-bg rounded-full flex items-center justify-center mx-auto mb-4 text-text-mute">
+                             <i class="ph-duotone ph-lock-key text-3xl"></i>
+                        </div>
+                        <h4 class="text-text font-bold mb-2">Acceso Requerido</h4>
+                        <p class="text-[0.8rem] text-text-mute mb-6 px-4">Inicia sesión para sincronizar tus datos y acceder a todas las funciones.</p>
+                        <button class="w-full p-3 rounded-xl font-extrabold cursor-pointer border-none bg-brand text-white hover:opacity-90 transition-opacity shadow-lg shadow-brand/20" onclick="window.app.redirectToAuth()">
+                            <i class="ph-bold ph-sign-in mr-2"></i> IR AL PORTAL
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAB DISEÑO -->
+                <div id="tDesign" class="tab-content hidden animate-fade-in">
+                    <div class="mb-5">
+                        <p class="text-[0.65rem] font-black text-text-mute mb-3 uppercase tracking-wider">Apariencia</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button class="theme-btn p-3 rounded-xl border border-border bg-card text-text-mute hover:text-text cursor-pointer text-xs font-bold flex flex-col items-center gap-2 transition-all" id="btnThemeLight" onclick="window.app.setTheme('light')">
+                                <i class="ph-fill ph-sun text-xl"></i> Claro
+                            </button>
+                            <button class="theme-btn p-3 rounded-xl border border-border bg-card text-text-mute hover:text-text cursor-pointer text-xs font-bold flex flex-col items-center gap-2 transition-all" id="btnThemeDark" onclick="window.app.setTheme('dark')">
+                                <i class="ph-fill ph-moon text-xl"></i> Oscuro
+                            </button>
+                            <button class="theme-btn p-3 rounded-xl border border-border bg-card text-text-mute hover:text-text cursor-pointer text-xs font-bold flex flex-col items-center gap-2 transition-all" id="btnThemeRed" onclick="window.app.setTheme('red')">
+                                <i class="ph-fill ph-fire text-xl"></i> Red Core
+                            </button>
+                            <button class="theme-btn p-3 rounded-xl border border-border bg-card text-text-mute hover:text-text cursor-pointer text-xs font-bold flex flex-col items-center gap-2 transition-all" id="btnThemeCustom" onclick="window.app.setTheme('custom')">
+                                <i class="ph-fill ph-palette text-xl"></i> Personal
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="customColorsPanel" class="hidden bg-input-bg p-4 rounded-xl border border-border text-text">
+                        <p class="text-[0.65rem] font-black mb-3 uppercase tracking-wider">Personalización</p>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold">Fondo</span> 
+                                <input type="color" id="ccBg" onchange="window.app.updateCustomTheme()" class="h-8 w-12 rounded cursor-pointer">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold">Tarjetas</span> 
+                                <input type="color" id="ccCard" onchange="window.app.updateCustomTheme()" class="h-8 w-12 rounded cursor-pointer">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold">Texto</span> 
+                                <input type="color" id="ccText" onchange="window.app.updateCustomTheme()" class="h-8 w-12 rounded cursor-pointer">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold">Acento</span> 
+                                <input type="color" id="ccBrand" onchange="window.app.updateCustomTheme()" class="h-8 w-12 rounded cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB AJUSTES -->
+                <div id="tSettings" class="tab-content hidden animate-fade-in">
+                    <div class="mb-6">
+                        <p class="text-[0.65rem] font-black text-brand mb-3 uppercase tracking-wider flex items-center gap-1"><i class="ph-bold ph-clock"></i> Límites de Tiempo (Min)</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-input-bg p-3 rounded-xl border border-border">
+                                <label class="block text-text-mute text-[0.65rem] font-bold mb-1 uppercase">Baño</label>
+                                <input type="number" id="cfgBath" class="bg-transparent w-full font-bold text-lg text-text focus:outline-none">
+                            </div>
+                            <div class="bg-input-bg p-3 rounded-xl border border-border">
+                                <label class="block text-text-mute text-[0.65rem] font-bold mb-1 uppercase">Comida</label>
+                                <input type="number" id="cfgFood" class="bg-transparent w-full font-bold text-lg text-text focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <p class="text-[0.65rem] font-black text-money mb-3 uppercase tracking-wider flex items-center gap-1"><i class="ph-bold ph-currency-dollar"></i> Configuración de Pagos</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-input-bg p-3 rounded-xl border border-border">
+                                <label class="block text-text-mute text-[0.65rem] font-bold mb-1 uppercase">Tarifa Base</label>
+                                <input type="number" id="cfgRate1" class="bg-transparent w-full font-bold text-lg text-text focus:outline-none">
+                            </div>
+                            <div class="bg-input-bg p-3 rounded-xl border border-border">
+                                <label class="block text-text-mute text-[0.65rem] font-bold mb-1 uppercase">Tarifa Extra</label>
+                                <input type="number" id="cfgRate2" class="bg-transparent w-full font-bold text-lg text-text focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB DATOS -->
+                <div id="tData" class="tab-content hidden animate-fade-in">
+                    <div class="space-y-3">
+                        <button class="w-full p-4 rounded-xl font-bold cursor-pointer border border-border bg-card hover:bg-bg transition-colors flex items-center gap-3 text-left group" onclick="window.app.openImportModal()">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i class="ph-bold ph-file-csv text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm text-text">Importar Excel</div>
+                                <div class="text-[0.65rem] text-text-mute">Cargar datos masivos</div>
+                            </div>
+                        </button>
+
+                        <button class="w-full p-4 rounded-xl font-bold cursor-pointer border border-border bg-card hover:bg-bg transition-colors flex items-center gap-3 text-left group" onclick="window.app.exportBackup()">
+                             <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i class="ph-bold ph-download-simple text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm text-text">Descargar Backup</div>
+                                <div class="text-[0.65rem] text-text-mute">Guardar copia de seguridad</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="border-t border-border my-6"></div>
+                    
+                    <button class="w-full p-4 rounded-xl font-bold cursor-pointer border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/10 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors flex items-center justify-center gap-2" onclick="window.app.resetData()">
+                        <i class="ph-bold ph-trash"></i> Reiniciar Aplicación
                     </button>
                 </div>
             </div>
 
-            <!-- TAB DISEÑO -->
-            <div id="tDesign" class="tab-content hidden">
-                <p class="text-[0.7rem] font-bold text-text-mute mb-2.5">TEMA DE LA APP</p>
-                <div class="grid grid-cols-2 gap-2.5 mb-4">
-                    <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeLight" onclick="window.app.setTheme('light')"><i class="ph-bold ph-sun"></i> Claro</button>
-                    <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeDark" onclick="window.app.setTheme('dark')"><i class="ph-bold ph-moon"></i> Oscuro</button>
-                    <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeRed" onclick="window.app.setTheme('red')"><i class="ph-bold ph-fire"></i> Red Core</button>
-                    <button class="theme-btn p-2.5 rounded-lg border border-border bg-bg text-text cursor-pointer text-[0.8rem] font-bold flex items-center justify-center gap-1.5" id="btnThemeCustom" onclick="window.app.setTheme('custom')"><i class="ph-bold ph-palette"></i> Custom</button>
-                </div>
-
-                <div id="customColorsPanel" class="hidden bg-bg p-2.5 rounded-lg border border-border text-text">
-                    <p class="text-[0.7rem] font-bold mb-2.5">COLORES PERSONALIZADOS</p>
-                    <div class="flex items-center justify-between mb-2"><span>Fondo (BG)</span> <input type="color" id="ccBg" onchange="window.app.updateCustomTheme()"></div>
-                    <div class="flex items-center justify-between mb-2"><span>Tarjetas</span> <input type="color" id="ccCard" onchange="window.app.updateCustomTheme()"></div>
-                    <div class="flex items-center justify-between mb-2"><span>Texto</span> <input type="color" id="ccText" onchange="window.app.updateCustomTheme()"></div>
-                    <div class="flex items-center justify-between mb-2"><span>Marca (Brand)</span> <input type="color" id="ccBrand" onchange="window.app.updateCustomTheme()"></div>
-                </div>
-            </div>
-
-            <!-- TAB AJUSTES -->
-            <div id="tSettings" class="tab-content hidden">
-                <p class="text-[0.7rem] font-bold text-brand mb-1.5">TIEMPOS (MIN)</p>
-                <div class="grid grid-cols-2 gap-2.5">
-                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Baño</label><input type="number" id="cfgBath" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
-                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Comida</label><input type="number" id="cfgFood" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
-                </div>
-                <p class="text-[0.7rem] font-bold text-money my-2.5 mb-1.5">PAGOS ($)</p>
-                <div class="grid grid-cols-2 gap-2.5">
-                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Base</label><input type="number" id="cfgRate1" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
-                    <div><label class="block text-text-mute text-xs font-extrabold mb-1 uppercase">Excedente</label><input type="number" id="cfgRate2" class="bg-input-bg border border-border w-full p-2.5 rounded-lg font-semibold text-text"></div>
-                </div>
-            </div>
-
-            <!-- TAB DATOS -->
-            <div id="tData" class="tab-content hidden">
-                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none mb-2.5 bg-brand text-white" onclick="window.app.openImportModal()">Importar Excel</button>
-                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border border-border bg-transparent text-text-mute mb-2.5" onclick="window.app.exportBackup()">Descargar Backup</button>
-                <div class="border-t border-border my-4"></div>
-                <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer mb-2.5 text-alert border border-alert bg-transparent hover:bg-red-500/10" onclick="window.app.resetData()">Borrar Todo y Reiniciar</button>
-            </div>
-
-            <div class="mt-4 flex gap-2.5">
-                <button class="flex-1 bg-text text-bg p-3 rounded-lg font-extrabold cursor-pointer border-none" onclick="window.app.saveConfig()">Guardar Cambios</button>
-                <button class="flex-1 bg-transparent border border-border text-text-mute p-3 rounded-lg font-extrabold cursor-pointer" onclick="window.app.closeModalById('configModal')">Cerrar</button>
+            <!-- Modal Footer -->
+             <div class="p-4 border-t border-border bg-card">
+                <button class="w-full bg-text text-bg p-3.5 rounded-xl font-extrabold cursor-pointer border-none hover:opacity-90 transition-opacity shadow-lg" onclick="window.app.saveConfig()">
+                    GUARDAR CAMBIOS
+                </button>
             </div>
         </div>
     </div>
