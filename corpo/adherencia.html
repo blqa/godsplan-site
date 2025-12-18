@@ -18,7 +18,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class', // Activamos dark mode por clase/atributo
+            darkMode: 'class', 
             theme: {
                 extend: {
                     colors: {
@@ -66,30 +66,13 @@
     </script>
 
     <style>
-        /* --- DEFINICIÓN DE VARIABLES DE TEMA --- */
-        
-        /* TEMA BLUE (DEFAULT) - CORREGIDO A DARK SLATE PARA LEGIBILIDAD */
+        /* --- DEFINICIÓN DE VARIABLES DE TEMA ÚNICO (RED/DARK) --- */
         :root {
-            --bg: #0f172a;        /* Slate 900 - Fondo Azul Oscuro */
-            --card: #1e293b;      /* Slate 800 - Tarjetas un poco más claras */
-            --text: #f1f5f9;      /* Slate 100 - Texto Blanco Suave */
-            --text-mute: #94a3b8; /* Slate 400 - Texto secundario */
-            --brand: #3b82f6;     /* Blue 500 - Marca Azul Vibrante */
-            --money: #34d399;     /* Emerald 400 */
-            --alert: #f87171;     /* Red 400 */
-            --warn: #fbbf24;      /* Amber 400 */
-            --border: #334155;    /* Slate 700 - Bordes sutiles */
-            --input-bg: #020617;  /* Slate 950 - Inputs muy oscuros */
-            --header-bg: rgba(15, 23, 42, 0.85); /* Header semitransparente */
-        }
-
-        /* TEMA SANGRE (RED/BLACK) - MANTENIDO IGUAL */
-        [data-theme="red"] {
             --bg: #000000;
             --card: #111111;
             --text: #e5e5e5;
             --text-mute: #737373;
-            --brand: #dc2626; 
+            --brand: #dc2626;  /* Rojo Sangre */
             --money: #16a34a;
             --alert: #b91c1c;
             --warn: #d97706;
@@ -119,11 +102,8 @@
         /* Botones de control de tiempo activos */
         .btn-ctrl.active-bath { background: var(--card); color: var(--brand) !important; border-color: var(--brand) !important; box-shadow: inset 0 0 0 1px var(--brand); }
         .btn-ctrl.active-food { background: var(--card); color: var(--warn) !important; border-color: var(--warn) !important; box-shadow: inset 0 0 0 1px var(--warn); }
-        .btn-ctrl.active-pause { background: #431407; color: #fb923c !important; border-color: #fb923c !important; box-shadow: inset 0 0 0 1px #f97316; }
+        .btn-ctrl.active-pause { background: #451a03; color: #fb923c !important; border-color: #fb923c !important; box-shadow: inset 0 0 0 1px #f97316; }
         
-        /* Ajuste específico para tema azul en pausa */
-        :root .btn-ctrl.active-pause { background: #451a03; }
-
         .side-clock.active { opacity: 1; transform: scale(1.05); background: transparent; }
         .side-clock.danger .side-val { color: var(--alert) !important; }
         
@@ -168,11 +148,6 @@
                     <span id="user-name" class="text-xs font-bold text-white uppercase tracking-wider max-w-[100px] truncate">Usuario</span>
                     <span id="user-role" class="text-[9px] font-mono text-emerald-500 tracking-wide">SYSTEM ACCESS</span>
                 </div>
-
-                <!-- BOTÓN AZUL Y SANGRE (TOGGLE THEME) -->
-                <button onclick="window.app.toggleTheme()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-brand transition-all group" title="Cambiar Tema (Azul/Sangre)">
-                    <i id="themeIcon" class="ph-fill ph-drop-half-bottom text-lg transition-transform duration-500 rotate-0"></i>
-                </button>
 
                 <button onclick="window.app.logout()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 transition-all group" title="Cerrar Sesión">
                     <i class="ph-bold ph-power text-lg group-hover:scale-110 transition-transform"></i>
@@ -565,7 +540,7 @@
         window.app = {
             data: { logs: [], config: { rate1: 50, rate2: 75, bathAllow: 15, foodAllow: 45 }, activeShift: null },
             userId: null, offline: false, editingId: null, date: new Date(), timer: null, processing: false, authMode: 'login',
-            currentTheme: 'light', editingTimerType: null, timeOffset: 0, lastSync: 0, isSyncing: false, nextSyncAllowed: 0,
+            editingTimerType: null, timeOffset: 0, lastSync: 0, isSyncing: false, nextSyncAllowed: 0,
 
             init() {
                 this.updateRealClockUI();
@@ -574,10 +549,6 @@
                 document.getElementById('auth-status').classList.remove('hidden');
                 document.getElementById('auth-status').classList.add('flex');
                 
-                // Cargar tema guardado o default a 'red' (Sangre)
-                const savedTheme = localStorage.getItem('gp_theme') || 'red';
-                this.setTheme(savedTheme);
-
                 // --- AGREGADO: Lógica del Scroll ---
                 window.addEventListener('scroll', () => {
                     const btn = document.getElementById('scrollTopBtn');
@@ -632,28 +603,6 @@
                 return new Date(ms).toLocaleTimeString('es-MX', { 
                     timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit', hour12: false 
                 }).slice(0, 5);
-            },
-
-            setTheme(t) {
-                this.currentTheme = t;
-                document.documentElement.setAttribute('data-theme', t);
-                localStorage.setItem('gp_theme', t);
-                
-                const icon = document.getElementById('themeIcon');
-                if (icon) {
-                    if (t === 'light') {
-                        // Blue Theme (Ahora es Dark Blue) - Icono Gota Media
-                        icon.className = 'ph-fill ph-drop-half-bottom text-lg transition-transform duration-500 rotate-0';
-                    } else {
-                        // Sangre Theme - Icono Fuego/Gota
-                        icon.className = 'ph-fill ph-fire text-lg transition-transform duration-500 rotate-0'; 
-                    }
-                }
-            },
-
-            toggleTheme() {
-                const newTheme = this.currentTheme === 'light' ? 'red' : 'light';
-                this.setTheme(newTheme);
             },
 
             goOffline() { this.offline = true; document.getElementById('auth-status').innerHTML = `<i class="ph-bold ph-wifi-slash"></i> Offline`; this.loadLocal(); },
