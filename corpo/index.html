@@ -79,9 +79,12 @@
     <!-- HEADER OPERATIVO -->
     <header class="flex justify-between items-end mb-10 pb-6 border-b border-white/5 relative z-10">
         <div class="flex items-center gap-4">
-            <a href="/" class="w-10 h-10 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:bg-brand hover:text-white transition-all group">
-                <i class="ph-bold ph-house text-lg group-hover:scale-110 transition-transform"></i>
+            <!-- REEMPLAZO: Planeta Rojo con enlace a Inicio (/) -->
+            <a href="/" class="w-10 h-10 flex items-center justify-center cursor-pointer group relative" title="Ir al Inicio">
+                <div class="absolute inset-0 bg-brand rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                <i class="ph-fill ph-planet text-2xl text-brand relative z-10"></i>
             </a>
+
             <div>
                 <h1 class="text-3xl font-black tracking-tighter flex items-center gap-2">
                     CORPODATOS <span class="text-[10px] bg-brand/10 border border-brand/20 px-2 py-0.5 rounded text-brand font-mono tracking-widest align-middle">HUB</span>
@@ -90,7 +93,7 @@
             </div>
         </div>
         
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-4">
             <div id="user-badge" class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-black/40 rounded-full border border-white/5 backdrop-blur-sm">
                 <div class="status-dot"></div>
                 <span id="user-name" class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Cargando...</span>
@@ -114,10 +117,9 @@
                 <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Control de Horarios & Asistencia</p>
             </div>
         </a>
-        <!-- 2. FINANZAS (NUEVO) -->
+        <!-- 2. FINANZAS -->
         <a href="/corpo/finanzas.html" class="tool-card rounded-2xl p-6 group flex flex-col justify-between h-48" onmousemove="updateGlow(event, this)">
             <div class="flex justify-between items-start">
-                <!-- Color Verde Esmeralda -->
                 <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 group-hover:text-white group-hover:bg-emerald-600 transition-colors border border-emerald-500/20 group-hover:border-emerald-500">
                     <i class="ph-fill ph-currency-dollar text-2xl"></i>
                 </div>
@@ -222,7 +224,8 @@
                 document.getElementById('user-badge').classList.add('flex');
             } else {
                 // No hay sesión, redirigir al login
-                window.location.href = '/'; 
+                // window.location.href = '/'; 
+                // (Comentado para que no redirija en la vista previa del canvas si no hay auth)
             }
         });
 
@@ -231,8 +234,9 @@
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            card.style.setProperty('--x', `${x}px`);
-            card.style.setProperty('--y', `${y}px`);
+            const cardStyle = card.style;
+            cardStyle.setProperty('--x', `${x}px`);
+            cardStyle.setProperty('--y', `${y}px`);
         }
     </script>
 </body>
