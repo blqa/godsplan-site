@@ -58,11 +58,12 @@
     <style>
         /* --- DEFINICIÓN DE VARIABLES DE TEMA --- */
         :root {
+            /* TEMA LIGHT (AZULITO POR DEFECTO) */
             --bg: #f8fafc;
             --card: #ffffff;
             --text: #0f172a;
             --text-mute: #64748b;
-            --brand: #2563eb;
+            --brand: #2563eb; /* Azul */
             --money: #059669;
             --alert: #dc2626;
             --warn: #f59e0b;
@@ -71,6 +72,7 @@
         }
 
         [data-theme="dark"] {
+            /* Dark Azulito (Legacy) */
             --bg: #0f172a;
             --card: #1e293b;
             --text: #f1f5f9;
@@ -84,11 +86,12 @@
         }
 
         [data-theme="red"] {
+            /* TEMA SANGRE (ROJO DARK) */
             --bg: #000000;
             --card: #111111;
             --text: #e5e5e5;
             --text-mute: #737373;
-            --brand: #dc2626;
+            --brand: #dc2626; /* Rojo */
             --money: #16a34a;
             --alert: #b91c1c;
             --warn: #d97706;
@@ -127,7 +130,7 @@
         /* Tabs del modal (Estilo Segmentado Moderno) */
         .tab { @apply text-text-mute rounded-md transition-all; }
         .tab.active { @apply bg-card text-text shadow-sm ring-1 ring-black/5 font-bold; }
-        [data-theme="dark"] .tab.active { @apply bg-white/10 text-white ring-white/10; }
+        [data-theme="dark"] .tab.active, [data-theme="red"] .tab.active { @apply bg-white/10 text-white ring-white/10; }
         
         /* Theme buttons */
         .theme-btn.active { border-color: var(--brand); color: var(--brand); background: var(--card); box-shadow: 0 0 0 2px var(--brand); }
@@ -175,7 +178,7 @@
 
                 <!-- BOTÓN SOL Y SANGRE (TOGGLE THEME) -->
                 <button onclick="window.app.toggleTheme()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-yellow-400 transition-all group" title="Sol y Sangre (Cambiar Tema)">
-                    <i id="themeIcon" class="ph-fill ph-sun text-lg transition-transform duration-500 rotate-0"></i>
+                    <i id="themeIcon" class="ph-fill ph-drop text-lg transition-transform duration-500 rotate-0"></i>
                 </button>
 
                 <button onclick="window.app.logout()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 transition-all group" title="Cerrar Sesión">
@@ -580,7 +583,8 @@
                 document.getElementById('auth-status').classList.add('flex');
                 
                 // Cargar tema guardado o default
-                const savedTheme = localStorage.getItem('gp_theme') || 'dark';
+                // CAMBIO: Default a 'red' (Sangre/Rojo Dark) como solicitado
+                const savedTheme = localStorage.getItem('gp_theme') || 'red';
                 this.setTheme(savedTheme);
                 
                 const customColors = JSON.parse(localStorage.getItem('gp_custom_colors'));
@@ -657,14 +661,12 @@
                 // Actualizar icono del Header "Sol y Sangre"
                 const icon = document.getElementById('themeIcon');
                 if (icon) {
-                    // Si es light, mostrar Sol. Si es Dark o Red, mostrar "Sangre" (Drop o Moon)
-                    // Solicitud: "Cambiar el tema de Dark a Claro". 
-                    // Sol = Claro, Sangre/Moon = Oscuro.
                     if (t === 'light') {
+                        // Sol (Azulito/Claro)
                         icon.className = 'ph-fill ph-sun text-lg transition-transform duration-500 rotate-0';
                     } else {
-                        // Usamos un icono de Luna para "Noche" o Fuego para "Sangre" dependiendo del estilo
-                        icon.className = 'ph-fill ph-moon-stars text-lg transition-transform duration-500 rotate-180';
+                        // Sangre (Rojo/Dark) - Usamos ph-drop (Gota) para representar sangre
+                        icon.className = 'ph-fill ph-drop text-lg transition-transform duration-500 rotate-0'; 
                     }
                 }
 
@@ -679,9 +681,9 @@
             },
 
             toggleTheme() {
-                // Lógica de "Sol y Sangre": Alternar entre Light y Dark/Red
-                // Si está en Light, va a Dark. Si está en Dark o Red, va a Light.
-                const newTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+                // Alternar entre Light (Azulito) y Red (Sangre)
+                // Si es light, va a red. Si es cualquier otro, va a light.
+                const newTheme = this.currentTheme === 'light' ? 'red' : 'light';
                 this.setTheme(newTheme);
             },
 
