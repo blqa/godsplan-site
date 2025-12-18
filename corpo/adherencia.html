@@ -72,23 +72,8 @@
             --header-bg: rgba(37, 99, 235, 0.95); /* Header Azul en Light */
         }
 
-        [data-theme="dark"] {
-            /* Dark Azulito (Legacy) */
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f1f5f9;
-            --text-mute: #94a3b8;
-            --brand: #3b82f6;
-            --money: #10b981;
-            --alert: #ef4444;
-            --warn: #f59e0b;
-            --border: #334155;
-            --input-bg: #0f172a;
-            --header-bg: rgba(0, 0, 0, 0.9); /* Header Negro */
-        }
-
+        /* TEMA SANGRE (ROJO DARK) */
         [data-theme="red"] {
-            /* TEMA SANGRE (ROJO DARK) */
             --bg: #000000;
             --card: #111111;
             --text: #e5e5e5;
@@ -125,7 +110,7 @@
         .btn-ctrl.active-food { background: var(--bg); color: var(--warn) !important; border-color: var(--warn) !important; box-shadow: inset 0 0 0 1px var(--warn); }
         .btn-ctrl.active-pause { background: #fff7ed; color: #f97316 !important; border-color: #f97316 !important; box-shadow: inset 0 0 0 1px #f97316; }
         
-        [data-theme="dark"] .btn-ctrl.active-pause, [data-theme="red"] .btn-ctrl.active-pause { background: #431407; color: #fb923c !important; border-color: #fb923c !important; }
+        [data-theme="red"] .btn-ctrl.active-pause { background: #431407; color: #fb923c !important; border-color: #fb923c !important; }
         
         .side-clock.active { opacity: 1; transform: scale(1.05); background: transparent; }
         .side-clock.danger .side-val { color: var(--alert) !important; }
@@ -133,15 +118,7 @@
         /* Tabs del modal (Estilo Segmentado Moderno) */
         .tab { @apply text-text-mute rounded-md transition-all; }
         .tab.active { @apply bg-card text-text shadow-sm ring-1 ring-black/5 font-bold; }
-        [data-theme="dark"] .tab.active, [data-theme="red"] .tab.active { @apply bg-white/10 text-white ring-white/10; }
-        
-        /* Theme buttons */
-        .theme-btn.active { border-color: var(--brand); color: var(--brand); background: var(--card); box-shadow: 0 0 0 2px var(--brand); }
-        
-        /* Inputs Color Picker */
-        input[type="color"] { -webkit-appearance: none; padding: 0; border: none; border-radius: 4px; height: 30px; width: 40px; cursor: pointer; }
-        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
+        [data-theme="red"] .tab.active { @apply bg-white/10 text-white ring-white/10; }
     </style>
 </head>
 
@@ -378,39 +355,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- OPCIONES DE TEMA AVANZADAS (Opcional, ya que tenemos el botón en el header) -->
-                    <div class="mt-6 pt-6 border-t border-border">
-                        <p class="text-[0.65rem] font-black text-text-mute mb-3 uppercase tracking-wider">Ajuste de Color</p>
-                        <div class="grid grid-cols-2 gap-3">
-                            <button class="theme-btn p-3 rounded-xl border border-border bg-card text-text-mute hover:text-text cursor-pointer text-xs font-bold flex flex-col items-center gap-2 transition-all" id="btnThemeRed" onclick="window.app.setTheme('red')">
-                                <i class="ph-fill ph-fire text-xl"></i> Red Core
-                            </button>
-                            <button class="theme-btn p-3 rounded-xl border border-border bg-card text-text-mute hover:text-text cursor-pointer text-xs font-bold flex flex-col items-center gap-2 transition-all" id="btnThemeCustom" onclick="window.app.setTheme('custom')">
-                                <i class="ph-fill ph-palette text-xl"></i> Personal
-                            </button>
-                        </div>
-                        <div id="customColorsPanel" class="hidden bg-input-bg p-4 rounded-xl border border-border text-text mt-3">
-                            <div class="space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold">Fondo</span> 
-                                    <input type="color" id="ccBg" onchange="window.app.updateCustomTheme()" class="h-8 w-12 rounded cursor-pointer">
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold">Tarjetas</span> 
-                                    <input type="color" id="ccCard" onchange="window.app.updateCustomTheme()" class="h-8 w-12 rounded cursor-pointer">
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold">Texto</span> 
-                                    <input type="color" id="ccText" onchange="window.app.updateCustomTheme()" class="h-8 w-12 rounded cursor-pointer">
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold">Acento</span> 
-                                    <input type="color" id="ccBrand" onchange="window.app.updateCustomTheme()" class="h-8 w-12 rounded cursor-pointer">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- TAB DATOS -->
@@ -590,8 +534,7 @@
                 const savedTheme = localStorage.getItem('gp_theme') || 'red';
                 this.setTheme(savedTheme);
                 
-                const customColors = JSON.parse(localStorage.getItem('gp_custom_colors'));
-                if (customColors) this.applyCustomColors(customColors);
+                // No cargamos custom colors porque ya no los usamos
 
                 if (!auth) return this.goOffline();
 
@@ -655,11 +598,6 @@
                 this.currentTheme = t;
                 document.documentElement.setAttribute('data-theme', t);
                 localStorage.setItem('gp_theme', t);
-                document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-                
-                // Actualizar botón de tema específico si existe en el panel avanzado
-                const btn = document.getElementById(t === 'light' ? 'btnThemeLight' : t === 'dark' ? 'btnThemeDark' : t === 'red' ? 'btnThemeRed' : 'btnThemeCustom');
-                if (btn) btn.classList.add('active');
                 
                 // Actualizar icono del Header "Sol y Sangre"
                 const icon = document.getElementById('themeIcon');
@@ -672,15 +610,8 @@
                         icon.className = 'ph-fill ph-drop text-lg transition-transform duration-500 rotate-0'; 
                     }
                 }
-
-                document.getElementById('customColorsPanel').style.display = t === 'custom' ? 'block' : 'none';
-                if (t !== 'custom') {
-                    document.documentElement.style.removeProperty('--bg'); document.documentElement.style.removeProperty('--card');
-                    document.documentElement.style.removeProperty('--text'); document.documentElement.style.removeProperty('--brand');
-                } else {
-                    const cc = JSON.parse(localStorage.getItem('gp_custom_colors'));
-                    if (cc) this.applyCustomColors(cc);
-                }
+                
+                // No necesitamos actualizar customColorsPanel porque ya no existe
             },
 
             toggleTheme() {
@@ -690,17 +621,7 @@
                 this.setTheme(newTheme);
             },
 
-            updateCustomTheme() {
-                const colors = { bg: document.getElementById('ccBg').value, card: document.getElementById('ccCard').value, text: document.getElementById('ccText').value, brand: document.getElementById('ccBrand').value };
-                this.applyCustomColors(colors);
-                localStorage.setItem('gp_custom_colors', JSON.stringify(colors));
-            },
-
-            applyCustomColors(c) {
-                const r = document.documentElement.style;
-                r.setProperty('--bg', c.bg); r.setProperty('--card', c.card); r.setProperty('--text', c.text); r.setProperty('--brand', c.brand);
-                document.getElementById('ccBg').value = c.bg; document.getElementById('ccCard').value = c.card; document.getElementById('ccText').value = c.text; document.getElementById('ccBrand').value = c.brand;
-            },
+            // Funciones de tema personalizado eliminadas
 
             goOffline() { this.offline = true; document.getElementById('auth-status').innerHTML = `<i class="ph-bold ph-wifi-slash"></i> Offline`; this.loadLocal(); },
             
