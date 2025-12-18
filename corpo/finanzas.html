@@ -679,6 +679,13 @@
             { id: 'Otro', icon: 'ph-dots-three-circle', color: 'text-gray-400' }
         ];
 
+        // Días festivos oficiales y comunes bancarios en México (Formato YYYY-MM-DD)
+        const MX_HOLIDAYS = [
+            '2024-01-01', '2024-02-05', '2024-03-18', '2024-05-01', '2024-09-16', '2024-10-01', '2024-11-18', '2024-12-25',
+            '2025-01-01', '2025-02-03', '2025-03-17', '2025-05-01', '2025-09-16', '2025-11-17', '2025-12-25',
+            '2026-01-01'
+        ];
+
         window.app = {
             user: null,
             isRegistering: false,
@@ -919,6 +926,37 @@
                     UI.toast('Dinero sumado a billetera', 'success');
                 }
             },
+            // NUEVO: Función para saltar días inhábiles
+            getNextBusinessDay(date) {
+                let d = new Date(date);
+                // Intentar hasta 14 días para evitar loops infinitos (suficiente para vacaciones largas)
+                for(let i=0; i<14; i++) {
+                    const day = d.getDay();
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const dayNum = String(d.getDate()).padStart(2, '0');
+                    const dateStr = `${year}-${month}-${dayNum}`;
+
+                    // Si es Domingo (0)
+                    if (day === 0) {
+                        d.setDate(d.getDate() + 1);
+                        continue;
+                    }
+                    // Si es Sábado (6)
+                    if (day === 6) {
+                        d.setDate(d.getDate() + 2);
+                        continue;
+                    }
+                    // Si es Festivo en México
+                    if (MX_HOLIDAYS.includes(dateStr)) {
+                        d.setDate(d.getDate() + 1);
+                        continue;
+                    }
+                    // Si pasa todas las pruebas, es día hábil
+                    return d;
+                }
+                return d;
+            },
             getCycleParams(dateInput) {
                 const d = new Date(dateInput);
                 const day = d.getDate();
@@ -927,6 +965,8 @@
                 const startDay = this.data.startDay || 1;
                 let start, end;
                 let isQ2 = false;
+                
+                // 1. Calcular fechas teóricas
                 if (this.data.cycle === 'monthly') {
                     if (day >= startDay) {
                         start = new Date(y, m, startDay);
@@ -951,6 +991,11 @@
                         isQ2 = true;
                     }
                 }
+
+                // 2. Aplicar inteligencia de días hábiles
+                start = this.getNextBusinessDay(start);
+                end = this.getNextBusinessDay(end);
+
                 start.setHours(0,0,0,0);
                 end.setHours(23,59,59,999);
                 return { start, end, isQ2 };
