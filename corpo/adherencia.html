@@ -186,7 +186,7 @@
             <!-- RELOJ REAL CDMX -->
             <div id="realWorldClock" class="flex flex-col items-end mr-1 px-2 py-0.5 border-r border-border/50 min-w-[70px]">
                 <div class="text-[0.6rem] text-text-mute font-black tracking-wider leading-none mb-0.5 flex items-center gap-1 justify-end">
-                     <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> CDMX
+                      <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> CDMX
                 </div>
                 <div class="text-[0.9rem] font-mono font-bold text-text leading-none tabular-nums text-right" id="realClockTime">--:--:--</div>
             </div>
@@ -360,6 +360,19 @@
                 <!-- TAB DATOS -->
                 <div id="tData" class="tab-content hidden animate-fade-in">
                     <div class="space-y-3">
+                        <!-- BOTON IMPORTAR BACKUP JSON -->
+                        <button class="w-full p-4 rounded-xl font-bold cursor-pointer border border-border bg-input-bg hover:bg-bg transition-colors flex items-center gap-3 text-left group" onclick="document.getElementById('importJsonInput').click()">
+                            <div class="w-10 h-10 rounded-lg bg-violet-900/30 text-violet-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <i class="ph-bold ph-upload-simple text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm text-text">Importar Backup (JSON)</div>
+                                <div class="text-[0.65rem] text-text-mute">Restaurar desde archivo</div>
+                            </div>
+                        </button>
+                        <input type="file" id="importJsonInput" accept=".json" class="hidden" onchange="window.app.importJson(this)">
+
+                        <!-- BOTON IMPORTAR EXCEL -->
                         <button class="w-full p-4 rounded-xl font-bold cursor-pointer border border-border bg-input-bg hover:bg-bg transition-colors flex items-center gap-3 text-left group" onclick="window.app.openImportModal()">
                             <div class="w-10 h-10 rounded-lg bg-emerald-900/30 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                                 <i class="ph-bold ph-file-csv text-xl"></i>
@@ -651,12 +664,14 @@
                 const bl = config.bathAllow || 15;
                 const fl = config.foodAllow || 45;
 
-                const btnBase = "btn-ctrl h-[55px] rounded-lg border-none font-extrabold text-[0.85rem] cursor-pointer flex flex-col items-center justify-center gap-0.5 uppercase transition-all relative overflow-hidden active:scale-95";
-                const btnStart = `${btnBase} col-span-2 text-lg h-[70px] text-white bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700`;
-                const btnStop = `${btnBase} col-span-2 text-white bg-gradient-to-br from-red-600 to-red-800 hover:from-red-500 hover:to-red-700`;
-                const btnBath = `${btnBase} bg-card text-text-mute border border-border hover:bg-bg hover:text-text hover:border-text`;
-                const btnFood = `${btnBase} bg-card text-text-mute border border-border hover:bg-bg hover:text-text hover:border-text`;
-                const btnPause = `${btnBase} col-span-2 bg-card text-text-mute border border-border hover:bg-bg hover:text-text hover:border-text`;
+                const btnBase = "btn-ctrl h-[55px] rounded-lg font-extrabold text-[0.85rem] cursor-pointer flex flex-col items-center justify-center gap-0.5 uppercase transition-all relative overflow-hidden active:scale-95";
+                const btnStart = `${btnBase} col-span-2 text-lg h-[70px] text-white bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 border-none`;
+                const btnStop = `${btnBase} col-span-2 text-white bg-gradient-to-br from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 border-none`;
+                
+                // ACTUALIZACIÓN DE BORDES SOLICITADA
+                const btnBath = `${btnBase} bg-card text-text-mute border-2 border-blue-500/40 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-500/10`;
+                const btnFood = `${btnBase} bg-card text-text-mute border-2 border-amber-500/40 hover:border-amber-500 hover:text-amber-500 hover:bg-amber-500/10`;
+                const btnPause = `${btnBase} col-span-2 bg-card text-text-mute border-2 border-orange-600/40 hover:border-orange-500 hover:text-orange-500 hover:bg-orange-500/10`;
 
                 const startEl = document.getElementById('shiftStartTime');
 
@@ -1076,6 +1091,41 @@
                 m.classList.add('flex');
             },
             processImport() { const t = document.getElementById('importTextArea').value; if (!t) return; const l = t.split('\n'); let c = 0; l.forEach(x => { const p = x.split(/[\t,]+/); if (p.length >= 4) { this.data.logs.push({ id: Date.now() + c, date: p[0], type: p[1], in: p[2], out: p[3], hours: this.calcHours(p[2], p[3]), disconnection: 0 }); c++; } }); this.save(); this.closeModalById('importModal'); this.showSuccess(c + " importados"); },
+            
+            // NUEVA FUNCIÓN DE IMPORTAR JSON
+            importJson(input) {
+                const file = input.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const json = JSON.parse(e.target.result);
+                        if (Array.isArray(json.logs)) {
+                            // Merge logs based on ID to avoid duplicates
+                            let count = 0;
+                            json.logs.forEach(l => {
+                                if (!this.data.logs.find(x => x.id === l.id)) {
+                                    this.data.logs.push(l);
+                                    count++;
+                                }
+                            });
+                            // Update config if exists
+                            if(json.config) this.data.config = { ...this.data.config, ...json.config };
+                            
+                            this.save();
+                            this.render();
+                            this.showSuccess(count > 0 ? `${count} registros recuperados` : "Datos actualizados (Sin nuevos registros)");
+                        } else {
+                            this.showMessage("Archivo inválido");
+                        }
+                    } catch (err) {
+                        this.showMessage("Error al leer JSON");
+                    }
+                    input.value = ''; // Reset
+                };
+                reader.readAsText(file);
+            },
+
             exportBackup() { const a = document.createElement('a'); a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.data)); a.download = 'backup.json'; a.click(); },
 
             calcHours(i, o) { if (!i || !o) return 0; const [h1, m1] = i.split(':'), [h2, m2] = o.split(':'); const d = ((h2 * 60 + +m2) - (h1 * 60 + +m1)); return d < 0 ? -1 : d; },
