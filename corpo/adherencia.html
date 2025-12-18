@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>God's Plan | Adherencia</title>
+    
+    <!-- FAVICON -->
+    <link rel="shortcut icon" href="./favicon.ico?v=2" type="image/x-icon">
+    <link rel="icon" href="./favicon.ico?v=2" type="image/x-icon">
+
     <!-- FUENTE UNIFICADA: PLUS JAKARTA SANS -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -39,7 +44,6 @@
     <!-- FIREBASE MODULAR (v9+) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // ✅ IMPORTANTE: Se agregan setPersistence y browserLocalPersistence
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
@@ -47,7 +51,7 @@
             initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
             GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile,
             getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where,
-            setPersistence, browserLocalPersistence // ✅ Exportar para usar abajo
+            setPersistence, browserLocalPersistence
         };
     </script>
 
@@ -104,6 +108,8 @@
         .animate-pulse-custom { animation: pulse 2s infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .spinner { border: 4px solid var(--border); border-top: 4px solid var(--brand); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
 
         /* ESTADOS ACTIVOS COMPLEJOS */
         .g-link.active { color: #fff; border-bottom: 2px solid #fff; padding-bottom: 2px; }
@@ -131,23 +137,55 @@
     </style>
 </head>
 
-<body class="bg-bg text-text font-sans pb-24 text-sm font-normal selection:bg-brand selection:text-white">
+<!-- AGREGADO pt-20 PARA COMPENSAR EL HEADER FIJO -->
+<body class="bg-bg text-text font-sans pb-24 pt-20 text-sm font-normal selection:bg-brand selection:text-white">
 
-    <!-- NAV GLOBAL -->
-    <nav id="global-nav" class="sticky top-0 z-[100] h-14 bg-black border-b border-white/5 flex items-center justify-between px-5 shrink-0 shadow-md">
-        <a href="index.html" class="text-white font-black text-base tracking-wide flex items-center gap-2 no-underline hover:text-red-500 transition-colors">
-            <i class="ph-bold ph-circles-three-plus text-lg text-red-500"></i> God's Plan
-        </a>
-        <div class="flex items-center gap-5 overflow-x-auto no-scrollbar pr-2.5">
-            <a href="#" class="g-link active text-zinc-500 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap hover:text-white transition-colors">ADHERENCIA</a>
-            <div id="syncStatus" class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] ml-1 shrink-0"></div>
+    <!-- HEADER FIJO (ZOOM PROOF) - NUEVO DISEÑO -->
+    <nav class="fixed top-0 left-0 w-full z-[100] border-b border-white/5 bg-black/90 backdrop-blur-md h-20 flex items-center shadow-lg transition-all duration-300">
+        <div class="w-full max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center h-full">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 group cursor-pointer" onclick="window.location.reload()">
+                <div class="relative w-9 h-9 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-brand rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                    <i class="ph-fill ph-planet text-3xl text-brand relative z-10"></i>
+                </div>
+                <div class="flex flex-col justify-center">
+                    <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
+                    <span class="text-[0.6rem] text-zinc-500 font-mono tracking-widest uppercase hidden sm:block">System v2.5</span>
+                </div>
+            </div>
+
+            <!-- Navegación Central (Subpáginas Adaptadas) -->
+            <div class="hidden md:flex items-center bg-white/5 rounded-full p-1 border border-white/5">
+                <a href="#" class="px-4 py-1.5 rounded-full bg-brand text-white text-xs font-bold tracking-wide shadow-lg shadow-brand/20 transition-all">ADHERENCIA</a>
+                <a href="#" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">FINANZAS</a>
+                <a href="#" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CHAT</a>
+                <a href="#" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CASOS</a>
+                <a href="#" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CUENTA</a>
+            </div>
+
+            <!-- User Badge (Solo visible si logueado) -->
+            <div id="user-badge" class="hidden items-center gap-4 animate-fade-in pl-4 border-l border-white/10 ml-2">
+                <div class="hidden lg:flex flex-col text-right">
+                    <span id="user-name" class="text-xs font-bold text-white uppercase tracking-wider max-w-[100px] truncate">Usuario</span>
+                    <span id="user-role" class="text-[9px] font-mono text-emerald-500 tracking-wide">SYSTEM ACCESS</span>
+                </div>
+                <button onclick="window.app.logout()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 transition-all group" title="Cerrar Sesión">
+                    <i class="ph-bold ph-power text-lg group-hover:scale-110 transition-transform"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu Toggle (Visible solo en movil) -->
+            <button class="md:hidden w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400" onclick="window.app.openConfigModal()">
+                 <i class="ph-bold ph-list text-lg"></i>
+            </button>
         </div>
     </nav>
 
-    <!-- HEADER APP -->
-    <header class="bg-card border-b border-border py-2.5 px-4 sticky top-14 z-50 flex justify-between items-center shadow-sm flex-wrap gap-2.5">
+    <!-- HEADER APP (CONTROLES SECUNDARIOS) - Ajustado top-20 para ir debajo del nav fijo -->
+    <header class="bg-card border-b border-border py-2.5 px-4 sticky top-20 z-40 flex justify-between items-center shadow-sm flex-wrap gap-2.5 transition-all">
         <div class="text-[1.1rem] font-extrabold flex items-center gap-2 text-text uppercase">
-            <i class="ph-fill ph-check-circle text-brand"></i> <span>Adherencia</span>
+            <i class="ph-fill ph-check-circle text-brand"></i> <span class="hidden sm:inline">Panel de Control</span>
         </div>
         <div class="flex items-center gap-2 flex-wrap justify-end flex-1 md:flex-none">
             <!-- RELOJ REAL CDMX (Mejorado para móvil) -->
@@ -159,7 +197,7 @@
             </div>
 
             <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.syncData()" title="Sincronizar"><i class="ph-bold ph-arrows-clockwise"></i></button>
-            <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.openConfigModal()" title="Menú"><i class="ph-bold ph-list"></i></button>
+            <button class="bg-transparent border border-border text-text-mute text-base p-1.5 rounded-lg flex items-center justify-center hover:bg-bg" onclick="window.app.openConfigModal()" title="Menú"><i class="ph-bold ph-gear"></i></button>
             
             <div class="flex items-center gap-1 bg-bg px-2 py-1 rounded-full border border-border">
                 <button class="bg-transparent border-none text-text-mute cursor-pointer text-[1.1rem] p-1 rounded-full flex items-center justify-center" onclick="window.app.changeMonth(-1)"><i class="ph-bold ph-caret-left"></i></button>
@@ -197,7 +235,7 @@
                     <div class="text-[0.7rem] uppercase tracking-widest text-text-mute font-extrabold mb-1.5" id="clockStatus">TURNO ACTIVO</div>
                     <div class="text-[clamp(2.5rem,12vw,4rem)] font-extrabold text-text tabular-nums leading-none" id="clockDisplay">00:00</div>
                     
-                    <!-- HORA DE ENTRADA AGREGADA AQUÍ -->
+                    <!-- HORA DE ENTRADA -->
                     <div id="shiftStartTime" class="text-[0.7rem] text-text-mute font-bold mt-1.5 uppercase tracking-wide opacity-80" style="display:none;">
                         ENTRADA: --:--
                     </div>
@@ -267,11 +305,9 @@
             </div>
             <div id="logList"></div>
         </div>
-
-        <!-- GRÁFICOS ELIMINADOS -->
     </div>
 
-    <!-- MODALES (Usando clases Tailwind para estructura, CSS para funcionalidad display) -->
+    <!-- MODALES -->
     
     <!-- MENU CONFIGURACION -->
     <div class="modal fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="configModal">
@@ -580,12 +616,29 @@
             
             renderAuth(u) {
                 const isRealUser = u && !u.isAnonymous;
+                
+                // Actualizar vistas del modal de configuración
                 document.getElementById('authenticatedView').style.display = isRealUser ? 'block' : 'none';
                 document.getElementById('unauthenticatedView').style.display = isRealUser ? 'none' : 'block';
+                
                 let t = u ? (u.isAnonymous ? "ANÓNIMO" : (u.displayName || "Usuario")) : "DESCONECTADO";
                 if (isRealUser && u.email && u.email.includes('@godsplan.site')) t = u.email.split('@')[0];
+                
+                // Actualizar barra de estado y modal
                 document.getElementById('auth-status').innerHTML = `<i class="ph-fill ph-user-circle"></i> ${t}`;
                 document.getElementById('userProfile').textContent = t;
+
+                // Actualizar Nuevo Header
+                const badge = document.getElementById('user-badge');
+                const nameLabel = document.getElementById('user-name');
+                if (isRealUser) {
+                    badge.classList.remove('hidden');
+                    badge.classList.add('flex');
+                    if (nameLabel) nameLabel.textContent = t;
+                } else {
+                    badge.classList.add('hidden');
+                    badge.classList.remove('flex');
+                }
             },
 
             loadLocal() { const d = localStorage.getItem('godsPlanData'); if (d) { try { this.data = JSON.parse(d); this.render(); this.uiClock(); } catch (e) { } } },
