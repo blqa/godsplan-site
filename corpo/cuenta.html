@@ -14,14 +14,13 @@
     <!-- FIREBASE MODULAR -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // ✅ [FIX] Importamos setPersistence y browserLocalPersistence
         import { getAuth, onAuthStateChanged, signOut, updateProfile, signInWithCustomToken, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // Exportar al scope global para usar en window.app
         window.firebaseImports = { 
             initializeApp, getAuth, onAuthStateChanged, signOut, updateProfile, 
             signInWithCustomToken, signInAnonymously,
-            setPersistence, browserLocalPersistence // ✅ Exportado
+            setPersistence, browserLocalPersistence
         };
     </script>
 
@@ -36,10 +35,26 @@
                     colors: {
                         brand: { DEFAULT: '#E70000', hover: '#cc0000', glow: 'rgba(231,0,0,0.5)' }, 
                         dark: '#050505',
-                        card: '#121212'
+                        card: '#121212',
+                        'input-bg': 'rgba(255,255,255,0.03)',
+                        border: 'rgba(255,255,255,0.1)',
+                        text: '#ffffff',
+                        'text-mute': '#a1a1aa'
                     },
                     animation: {
                         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'slide-up': 'slideUp 0.3s ease-out forwards'
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)' },
+                            '100%': { transform: 'translateY(0)' },
+                        }
                     }
                 }
             }
@@ -47,6 +62,10 @@
     </script>
 
     <style>
+        :root {
+            --header-bg: rgba(5, 5, 5, 0.85);
+        }
+
         body { background-color: #050505; color: white; overflow-x: hidden; }
 
         /* FONDO TÁCTICO */
@@ -95,6 +114,12 @@
         /* MODAL */
         .modal-overlay { background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); }
         .modal-content { border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        
+        /* SCROLLBAR */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -102,24 +127,49 @@
     <div class="bg-grid"></div>
     <div class="glow-spot"></div>
 
-    <!-- NAV GLOBAL -->
-    <nav class="sticky top-0 z-50 h-16 border-b border-white/5 bg-dark/80 backdrop-blur-md flex items-center justify-between px-6">
-        <a href="/" class="flex items-center gap-2 group">
-            <i class="ph-fill ph-planet text-2xl text-brand group-hover:text-white transition-colors"></i>
-            <span class="font-black tracking-widest text-sm">GOD'S PLAN</span>
-        </a>
-        <div class="hidden md:flex items-center gap-6">
-            <a href="/corpo/index.html" class="text-xs font-bold text-zinc-500 hover:text-white transition-colors tracking-widest">HUB</a>
-            <a href="/corpo/adherencia.html" class="text-xs font-bold text-zinc-500 hover:text-white transition-colors tracking-widest">ADHERENCIA</a>
-            <a href="/corpo/chat.html" class="text-xs font-bold text-zinc-500 hover:text-white transition-colors tracking-widest">CHAT</a>
-            <a href="/blqa/finanzas.html" class="text-xs font-bold text-zinc-500 hover:text-white transition-colors tracking-widest">FINANZAS</a>
-            <a href="#" class="text-xs font-bold text-brand tracking-widest flex items-center gap-1"><span class="w-1.5 h-1.5 bg-brand rounded-full animate-pulse"></span> CUENTA</a>
+    <!-- HEADER FIJO -->
+    <nav class="fixed top-0 left-0 w-full z-[100] border-b border-white/5 bg-[var(--header-bg)] backdrop-blur-md h-20 flex items-center shadow-lg transition-all duration-300">
+        <div class="w-full max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center h-full">
+            <!-- Logo (ICONO + TEXTO AGRUPADOS EN EL LINK) -->
+            <a href="/corpo/index.html" class="flex items-center gap-3 group">
+                <div class="relative w-9 h-9 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-brand rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                    <i class="ph-fill ph-planet text-3xl text-brand relative z-10"></i>
+                </div>
+                <div class="flex flex-col justify-center">
+                    <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v2.6</span>
+                </div>
+            </a>
+
+            <!-- Navegación Central (Desktop) -->
+            <div class="hidden md:flex items-center bg-white/5 rounded-full p-1 border border-white/5">
+                <a href="/corpo/adherencia.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">ADHERENCIA</a>
+                <a href="/corpo/finanzas.html" class="px-4 py-1.5 rounded-full bg-brand text-white text-xs font-bold tracking-wide shadow-lg shadow-brand/20 transition-all">FINANZAS</a>
+                <a href="/corpo/cuenta.html" class="px-4 py-1.5 rounded-full text-white bg-white/10 text-xs font-bold tracking-wide transition-all">CUENTA</a>
+            </div>
+
+            <!-- User Badge -->
+            <div id="user-badge" class="hidden items-center gap-2 animate-fade-in pl-4 border-l border-white/10 ml-2">
+                <div class="hidden lg:flex flex-col text-right mr-2">
+                    <span id="user-name" class="text-xs font-bold text-white uppercase tracking-wider max-w-[100px] truncate">Usuario</span>
+                    <span id="user-role" class="text-[9px] font-mono text-emerald-500 tracking-wide">SYSTEM ACCESS</span>
+                </div>
+
+                <button onclick="window.app.logout()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 transition-all group" title="Cerrar Sesión">
+                    <i class="ph-bold ph-power text-lg group-hover:scale-110 transition-transform"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="md:hidden w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-white transition-colors" onclick="window.app.openNavModal()">
+                 <i class="ph-bold ph-list text-lg"></i>
+            </button>
         </div>
-        <!-- Mobile Menu Icon (Placeholder) -->
-        <button class="md:hidden text-zinc-400 hover:text-white"><i class="ph-bold ph-list text-xl"></i></button>
     </nav>
 
-    <main class="flex-grow flex items-center justify-center p-4 md:p-8 relative z-10">
+    <!-- PADDING TOP para compensar header fijo -->
+    <main class="flex-grow flex items-center justify-center p-4 md:p-8 relative z-10 pt-24">
         
         <div class="w-full max-w-4xl grid md:grid-cols-[1fr_1.5fr] gap-8">
             
@@ -226,6 +276,31 @@
         <p class="text-[10px] font-mono text-zinc-600 uppercase tracking-[0.2em]">System ID: <span id="footerUid" class="text-zinc-500">...</span></p>
     </footer>
 
+    <!-- MODAL DE NAVEGACIÓN MÓVIL (NUEVO) -->
+    <div class="modal fixed inset-0 w-screen h-screen z-[1000] hidden bg-black/80 backdrop-blur-sm" id="navModal" onclick="window.app.closeModalById('navModal')">
+        <div class="absolute bottom-0 left-0 w-full bg-card rounded-t-2xl p-6 border-t border-border animate-slide-up" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6">
+                <span class="font-bold text-lg text-text">Navegación</span>
+                 <button onclick="window.app.closeModalById('navModal')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-text-mute hover:text-text"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+            <div class="grid gap-3">
+                <a href="/corpo/index.html" class="p-3.5 rounded-xl bg-input-bg border border-border hover:bg-white/5 text-text-mute hover:text-text font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
+                    <i class="ph-fill ph-squares-four text-lg"></i> HUB PRINCIPAL
+                </a>
+                <a href="/corpo/adherencia.html" class="p-3.5 rounded-xl bg-input-bg border border-border hover:bg-white/5 text-text-mute hover:text-text font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
+                    <i class="ph-fill ph-check-circle text-lg"></i> ADHERENCIA
+                </a>
+                <a href="/corpo/finanzas.html" class="p-3.5 rounded-xl bg-brand/10 text-brand border border-brand/20 font-extrabold flex items-center gap-3 text-sm tracking-wide">
+                    <i class="ph-bold ph-currency-dollar text-lg"></i> FINANZAS
+                </a>
+                
+                <a href="/corpo/cuenta.html" class="p-3.5 rounded-xl bg-input-bg border border-border hover:bg-white/5 text-white font-bold flex items-center gap-3 transition-colors text-sm tracking-wide shadow-inner bg-white/5">
+                    <i class="ph-bold ph-user-circle text-lg"></i> CUENTA
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL ICONOS -->
     <div id="iconModal" class="fixed inset-0 z-[100] modal-overlay hidden items-center justify-center p-4 transition-opacity opacity-0">
         <div class="modal-content bg-[#121212] w-full max-w-md rounded-2xl p-6 transform scale-95 transition-transform duration-200" id="iconModalContent">
@@ -301,13 +376,24 @@
                 const name = u.displayName || u.email?.split('@')[0] || "Agente";
                 const email = u.email || "N/A";
                 
-                // Render Texts
+                // Render Texts (Profile Card)
                 document.getElementById('displayName').textContent = name;
                 document.getElementById('inputName').value = name;
                 document.getElementById('displayEmail').textContent = email;
                 document.getElementById('inputEmail').value = email;
                 document.getElementById('displayUid').textContent = u.uid;
                 document.getElementById('footerUid').textContent = u.uid;
+
+                // Render Texts (Header)
+                const headerName = document.getElementById('user-name');
+                if(headerName) headerName.textContent = name;
+                
+                // Show Header Badge
+                const headerBadge = document.getElementById('user-badge');
+                if(headerBadge) {
+                    headerBadge.classList.remove('hidden');
+                    headerBadge.classList.add('flex');
+                }
 
                 // Render Dates
                 if (u.metadata) {
@@ -326,6 +412,17 @@
                 } else {
                     el.innerHTML = `<i class="ph-fill ph-user"></i>`;
                 }
+            },
+
+            // --- NAVEGACIÓN MÓVIL ---
+            openNavModal() {
+                const m = document.getElementById('navModal');
+                if(m) m.classList.remove('hidden');
+            },
+
+            closeModalById(id) {
+                const m = document.getElementById(id);
+                if(m) m.classList.add('hidden');
             },
 
             // --- MODAL ICONOS ---
@@ -372,6 +469,7 @@
                 try {
                     await updateProfile(this.user, { displayName: name });
                     document.getElementById('displayName').textContent = name;
+                    document.getElementById('user-name').textContent = name; // Actualizar header
                     this.showToast("Perfil guardado correctamente");
                 } catch(e) { alert(e.message); }
             },
