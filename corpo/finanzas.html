@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>God's Plan | Finanzas</title>
     
-    <!-- FAVICON -->
+    <!-- FAVICON (IMPORTADO) -->
     <link rel="shortcut icon" href="./favicon.ico?v=2" type="image/x-icon">
     <link rel="icon" href="./favicon.ico?v=2" type="image/x-icon">
 
-    <!-- FUENTE -->
+    <!-- FUENTE UNIFICADA: PLUS JAKARTA SANS -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- ICONS -->
@@ -23,14 +23,22 @@
             theme: {
                 extend: {
                     colors: {
-                        bg: '#000000',
-                        card: '#111111',
-                        brand: '#dc2626',
-                        'text-mute': '#737373',
+                        bg: 'var(--bg)',
+                        card: 'var(--card)',
+                        text: 'var(--text)',
+                        'text-mute': 'var(--text-mute)',
+                        brand: 'var(--brand)',
+                        money: 'var(--money)',
+                        alert: 'var(--alert)',
+                        warn: 'var(--warn)',
+                        border: 'var(--border)',
+                        'input-bg': 'var(--input-bg)',
+                        // Colores específicos de finanzas mantenidos
+                        dark: { 900: '#050505', card: '#18181b' }
                     },
                     fontFamily: {
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        mono: ['ui-monospace', 'monospace'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'],
                     },
                     animation: {
                         'slide-up': 'slideUp 0.3s ease-out forwards',
@@ -50,7 +58,20 @@
     <!-- FIREBASE MODULAR -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged, 
+            signOut,
+            signInWithEmailAndPassword,
+            createUserWithEmailAndPassword,
+            signInWithPopup,
+            GoogleAuthProvider,
+            updateProfile,
+            setPersistence, 
+            browserLocalPersistence 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         window.firebaseImports = {
@@ -61,14 +82,30 @@
     </script>
 
     <style>
-        /* ESTILOS BASE */
-        :root { --sab: env(safe-area-inset-bottom); --sat: env(safe-area-inset-top); }
+        /* --- DEFINICIÓN DE VARIABLES DE TEMA ÚNICO (RED/DARK) --- */
+        :root {
+            --bg: #000000;
+            --card: #111111;
+            --text: #e5e5e5;
+            --text-mute: #737373;
+            --brand: #dc2626;  /* Rojo Sangre */
+            --money: #16a34a;
+            --alert: #b91c1c;
+            --warn: #d97706;
+            --border: #262626;
+            --input-bg: #0a0a0a;
+            --header-bg: rgba(0, 0, 0, 0.9);
+        }
+
+        /* Estilos base de Finanzas */
         body { background-color: #050505; color: #e5e5e5; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; min-height: 100dvh; }
+        
+        /* Utilidades */
         input, select, textarea { font-size: 16px !important; outline: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* UTILIDADES VISUALES */
+        /* Glassmorphism específico de Finanzas */
         .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
         .glass-highlight { background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.08); }
         .glass-nav { background: rgba(5, 5, 5, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: var(--sab); }
@@ -100,7 +137,6 @@
         .nav-link-desk:hover { color: white; background: rgba(255,255,255,0.05); }
         .nav-link-desk.active { color: white; background: #27272a; }
 
-        /* AUTH STYLES */
         .modal-auth { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 2000; }
         .modal-auth.active { display: flex; }
         .auth-switch { position: relative; display: flex; background: rgba(30,30,30,0.5); border-radius: 12px; padding: 4px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
@@ -108,14 +144,19 @@
         .auth-switch button.active { color: white; }
         .auth-switch-glider { position: absolute; top: 4px; left: 4px; height: calc(100% - 8px); width: calc(50% - 4px); background: #27272a; border-radius: 8px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.1); }
         .auth-mode-register .auth-switch-glider { transform: translateX(100%); }
+        
+        /* Animaciones para el Mobile Nav Modal importado */
+        @keyframes slideUp { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
     </style>
 </head>
 
 <body class="bg-[#050505] text-[#e5e5e5] font-sans pb-24 pt-20 text-sm font-normal">
 
     <!-- HEADER FIJO -->
-    <nav class="fixed top-0 left-0 w-full z-[100] border-b border-white/5 bg-[rgba(0,0,0,0.9)] backdrop-blur-md h-20 flex items-center shadow-lg transition-all duration-300">
+    <nav class="fixed top-0 left-0 w-full z-[100] border-b border-white/5 bg-[var(--header-bg)] backdrop-blur-md h-20 flex items-center shadow-lg transition-all duration-300">
         <div class="w-full max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center h-full">
+            <!-- Logo (ICONO + TEXTO AGRUPADOS EN EL LINK) -->
             <a href="/corpo/index.html" class="flex items-center gap-3 group">
                 <div class="relative w-9 h-9 flex items-center justify-center">
                     <div class="absolute inset-0 bg-brand rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
@@ -123,16 +164,17 @@
                 </div>
                 <div class="flex flex-col justify-center">
                     <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
-                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v3.0</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v2.5</span>
                 </div>
             </a>
 
-            <!-- Navegación Central (Desktop - Sincronizado) -->
+            <!-- Navegación Central (Desktop) -->
             <div class="hidden md:flex items-center bg-white/5 rounded-full p-1 border border-white/5">
-                <button onclick="app.switchView('balance')" class="nav-link-desk active px-4" data-view="balance">BILLETERA</button>
-                <button onclick="app.switchView('loans')" class="nav-link-desk px-4" data-view="loans">PRÉSTAMOS</button>
-                <button onclick="app.switchView('future')" class="nav-link-desk px-4" data-view="future">FUTURO</button>
-                <button onclick="app.switchView('plan')" class="nav-link-desk px-4" data-view="plan">PLANIFICACIÓN</button>
+                <a href="/corpo/adherencia.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">ADHERENCIA</a>
+                <a href="/corpo/finanzas.html" class="px-4 py-1.5 rounded-full bg-brand text-white text-xs font-bold tracking-wide shadow-lg shadow-brand/20 transition-all">FINANZAS</a>
+                <a href="/corpo/chat.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CHAT</a>
+                <a href="/corpo/casos.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CASOS</a>
+                <a href="/corpo/cuenta.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CUENTA</a>
             </div>
 
             <!-- User Badge -->
@@ -141,24 +183,34 @@
                     <span id="user-name" class="text-xs font-bold text-white uppercase tracking-wider max-w-[100px] truncate">Usuario</span>
                     <span id="user-role" class="text-[9px] font-mono text-emerald-500 tracking-wide">SYSTEM ACCESS</span>
                 </div>
+
                 <button onclick="window.app.logout()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-500 transition-all group" title="Cerrar Sesión">
                     <i class="ph-bold ph-power text-lg group-hover:scale-110 transition-transform"></i>
                 </button>
             </div>
             
+            <!-- Mobile Menu Toggle (MODIFICADO) -->
             <button class="md:hidden w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-white transition-colors" onclick="window.app.openNavModal()">
                  <i class="ph-bold ph-list text-lg"></i>
             </button>
         </div>
     </nav>
 
+
     <!-- MAIN CONTENT -->
     <main id="app-content" class="flex-1 overflow-y-auto relative scroll-smooth overflow-x-hidden md:px-6">
+        <!-- Hidden input for file import -->
         <input type="file" id="importFile" accept=".json" class="hidden">
         
         <div class="w-full max-w-lg md:max-w-6xl mx-auto h-full pt-4 md:pt-8">
-            
-            <!-- VISTA 1: BILLETERA (HOME) - Preservada -->
+            <div class="hidden md:flex justify-center mb-8 fade-in">
+                <div class="bg-zinc-900/80 border border-white/10 p-1.5 rounded-full flex items-center gap-1 shadow-lg backdrop-blur-sm">
+                    <button onclick="app.switchView('balance')" class="nav-link-desk active px-5" data-view="balance">Billetera</button>
+                    <button onclick="app.switchView('plan')" class="nav-link-desk px-5" data-view="plan">Planificación</button>
+                </div>
+            </div>
+
+            <!-- VISTA: BALANCE -->
             <section id="view-balance" class="p-4 sm:p-0 fade-in">
                 <div class="grid grid-cols-1 md:grid-cols-12 md:gap-8 items-start">
                     <div class="md:col-span-5 lg:col-span-4 md:sticky md:top-24">
@@ -273,70 +325,126 @@
                 </div>
             </section>
 
-            <!-- VISTA 2: PRÉSTAMOS (Placeholder) -->
-            <section id="view-loans" class="p-4 sm:p-0 hidden fade-in max-w-5xl mx-auto pb-24">
-                <div class="flex flex-col items-center justify-center h-[60vh] text-zinc-600 text-center">
-                    <div class="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center mb-6 border border-zinc-800">
-                        <i class="ph-duotone ph-hand-coins text-4xl text-zinc-500"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-white mb-2">Gestión de Préstamos</h2>
-                    <p class="text-sm max-w-xs mx-auto">Próximamente podrás gestionar tus deudas y pagos aquí.</p>
-                </div>
-            </section>
-
-            <!-- VISTA 3: FUTURO (Placeholder) -->
-            <section id="view-future" class="p-4 sm:p-0 hidden fade-in max-w-5xl mx-auto pb-24">
-                <div class="flex flex-col items-center justify-center h-[60vh] text-zinc-600 text-center">
-                    <div class="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center mb-6 border border-zinc-800">
-                        <i class="ph-duotone ph-chart-line-up text-4xl text-zinc-500"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-white mb-2">Proyecciones</h2>
-                    <p class="text-sm max-w-xs mx-auto">Visualiza tu crecimiento financiero a largo plazo.</p>
-                </div>
-            </section>
-
-            <!-- VISTA 4: PLANIFICACIÓN (Empty Reset) -->
+            <!-- VISTA: PLAN -->
             <section id="view-plan" class="p-4 sm:p-0 hidden fade-in max-w-5xl mx-auto pb-24">
-                <div class="flex flex-col items-center justify-center h-[60vh] text-zinc-600 text-center">
-                    <div class="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center mb-6 border border-zinc-800">
-                        <i class="ph-duotone ph-gear text-4xl text-zinc-500"></i>
+                <div class="mb-8">
+                    <h2 class="text-3xl font-black text-white mb-2">Planificación</h2>
+                    <p class="text-zinc-500 text-sm">Define tus reglas de juego: ingresos, fijos y deudas.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- COLUMNA IZQUIERDA -->
+                    <div class="space-y-6">
+                        <div class="glass p-6 rounded-3xl relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 p-4 opacity-10 text-emerald-500"><i class="ph-fill ph-money text-6xl"></i></div>
+                            <div class="flex items-center gap-3 mb-6 relative z-10">
+                                <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500"><i class="ph-bold ph-wallet text-xl"></i></div>
+                                <h3 class="text-lg font-bold text-white">Ingresos Base</h3>
+                            </div>
+                            <div class="space-y-5 relative z-10">
+                                <div>
+                                    <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 block" id="lblIncome1">Ingreso Mensual / Q1</label>
+                                    <div class="relative group">
+                                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold group-focus-within:text-emerald-500 transition-colors">$</span>
+                                        <input type="number" id="inpIncome" inputmode="decimal" class="w-full bg-zinc-900/50 border border-zinc-700 rounded-xl py-3 pl-8 pr-4 font-bold text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder-zinc-700" placeholder="0.00" onblur="app.saveConfig()">
+                                    </div>
+                                </div>
+                                <div id="divIncomeQ2" class="hidden pt-2 border-t border-zinc-800">
+                                    <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Ingreso Q2 (Opcional)</label>
+                                    <div class="relative group">
+                                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold group-focus-within:text-emerald-500 transition-colors">$</span>
+                                        <input type="number" id="inpIncomeQ2" inputmode="decimal" class="w-full bg-zinc-900/50 border border-zinc-700 rounded-xl py-3 pl-8 pr-4 font-bold text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder-zinc-700" placeholder="Igual al Q1" onblur="app.saveConfig()">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass p-6 rounded-3xl">
+                            <div class="flex justify-between items-center mb-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-500"><i class="ph-bold ph-calendar-check text-xl"></i></div>
+                                    <div><h3 class="text-lg font-bold text-white">Gastos Fijos</h3><p class="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Recurrentes</p></div>
+                                </div>
+                                <button onclick="app.openModal('fixed')" class="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-colors active:scale-90"><i class="ph-bold ph-plus"></i></button>
+                            </div>
+                            <div id="fixedExpensesList" class="space-y-3"></div>
+                        </div>
                     </div>
-                    <h2 class="text-2xl font-bold text-white mb-2">Planificación</h2>
-                    <p class="text-sm max-w-xs mx-auto">Aquí configurarás tus valores fijos y reglas del juego.</p>
+
+                    <!-- COLUMNA DERECHA -->
+                    <div class="space-y-6">
+                        <div class="glass-highlight p-6 rounded-3xl relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-zinc-900/50 to-transparent"></div>
+                            <div class="relative z-10">
+                                <h3 class="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Impacto Mensual</h3>
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-sm text-zinc-300">Total Fijos</span>
+                                    <span id="summaryFixed" class="font-bold text-white text-lg font-mono">---</span>
+                                </div>
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-sm text-zinc-300">Deudas (Ciclo)</span>
+                                    <span id="summaryShortLoans" class="font-bold text-orange-400 text-lg font-mono">---</span>
+                                </div>
+                                <div class="mt-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs font-bold text-red-400 uppercase">Total Comprometido</span>
+                                        <span id="totalObligations" class="font-black text-red-500 text-xl font-mono">---</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass p-6 rounded-3xl">
+                            <div class="flex justify-between items-center mb-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500"><i class="ph-bold ph-receipt text-xl"></i></div>
+                                    <div><h3 class="text-lg font-bold text-white">Deudas Activas</h3><p class="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Pendientes</p></div>
+                                </div>
+                                <button onclick="app.openModal('loan')" class="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-colors active:scale-90"><i class="ph-bold ph-plus"></i></button>
+                            </div>
+                            <div id="loansList" class="space-y-3"></div>
+                        </div>
+
+                        <div class="p-6 rounded-3xl bg-zinc-900/30 border border-zinc-800/50">
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <button onclick="app.exportData()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-3 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 active:scale-95">
+                                    <i class="ph-bold ph-upload-simple"></i> EXPORTAR
+                                </button>
+                                <button onclick="app.triggerImport()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-3 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 active:scale-95">
+                                    <i class="ph-bold ph-download-simple"></i> IMPORTAR
+                                </button>
+                            </div>
+                            <button onclick="app.resetData()" class="w-full py-3 rounded-xl border border-red-900/30 text-red-500 text-xs font-bold hover:bg-red-900/10 transition-colors flex items-center justify-center gap-2 active:scale-95">
+                                <i class="ph-bold ph-trash"></i> RESETEAR DATOS
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
     </main>
 
     <!-- FAB (MÓVIL) -->
-    <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40 transition-transform duration-300">
+    <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40">
         <button onclick="app.openModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
             <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
             <i class="ph-bold ph-plus text-3xl group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
         </button>
     </div>
 
-    <!-- NAV INFERIOR - MÓVIL (4 Secciones) -->
-    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-4 z-50 pb-2">
+    <!-- NAV INFERIOR - MÓVIL (Simple para vistas de finanzas) -->
+    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-2 z-50 pb-2">
         <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance', this)">
-            <div class="relative p-1"><i class="ph-fill ph-wallet text-2xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
-            <span class="text-[9px] font-bold group-[.active]:text-red-500 transition-colors">Balance</span>
-        </button>
-        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('loans', this)">
-            <div class="relative p-1"><i class="ph-fill ph-hand-coins text-2xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
-            <span class="text-[9px] font-bold group-[.active]:text-red-500 transition-colors">Préstamos</span>
-        </button>
-        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('future', this)">
-            <div class="relative p-1"><i class="ph-fill ph-chart-line-up text-2xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
-            <span class="text-[9px] font-bold group-[.active]:text-red-500 transition-colors">Futuro</span>
+            <div class="relative p-1"><i class="ph-fill ph-wallet text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Balance</span>
         </button>
         <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('plan', this)">
-            <div class="relative p-1"><i class="ph-fill ph-gear text-2xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
-            <span class="text-[9px] font-bold group-[.active]:text-red-500 transition-colors">Plan</span>
+            <div class="relative p-1"><i class="ph-fill ph-sliders-horizontal text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Plan</span>
         </button>
     </div>
 
-    <!-- MODAL DE NAVEGACIÓN MÓVIL -->
+    <!-- MODAL DE NAVEGACIÓN MÓVIL (IMPORTADO) -->
     <div class="modal fixed inset-0 w-screen h-screen z-[1000] hidden bg-black/80 backdrop-blur-sm" id="navModal" onclick="window.app.closeModalById('navModal')">
         <div class="absolute bottom-0 left-0 w-full bg-card rounded-t-2xl p-6 border-t border-border animate-slide-up" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-6">
@@ -402,6 +510,15 @@
                 <button id="btnDeleteFix" onclick="app.deleteFixedConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
             </div>
 
+            <!-- Formulario Deuda -->
+            <div id="formLoan" class="hidden space-y-4 md:space-y-2 pb-4">
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Concepto</label><input type="text" id="loanName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Visa"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto Pendiente</label><input type="number" id="loanAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha Límite</label><input type="date" id="loanDueDate" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm cursor-pointer"></div>
+                <button onclick="app.saveLoan()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR DEUDA</button>
+                <button id="btnDeleteLoan" onclick="app.deleteLoanConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">LIQUIDAR / BORRAR</button>
+            </div>
+
             <!-- Formulario Configuración -->
             <div id="formConfig" class="hidden space-y-4 pb-4">
                 <p class="text-zinc-400 text-xs text-center mb-4">Define cómo y cuándo recibes tus ingresos.</p>
@@ -437,10 +554,12 @@
         </div>
     </div>
 
-    <!-- MODAL AUTH -->
+    <!-- MODAL AUTHENTICATION (New Style) -->
     <div class="modal-auth" id="authModal">
         <div class="rounded-3xl p-6 bg-[#121212] border border-zinc-800 max-w-sm w-full mx-4 shadow-2xl relative overflow-hidden">
+            <!-- Decorative blur -->
             <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-red-600 blur-md opacity-50"></div>
+            
             <div class="text-center mb-6">
                 <div class="w-14 h-14 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-red-500/20">
                     <i class="ph-fill ph-planet text-red-500 text-2xl"></i>
@@ -448,27 +567,41 @@
                 <h2 class="text-xl font-bold text-white mb-1">GOD'S PLAN</h2>
                 <p class="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">Portal de Acceso</p>
             </div>
+
+            <!-- Switcher Login/Register -->
             <div class="auth-switch" id="auth-switch-container">
                 <div class="auth-switch-glider"></div>
                 <button onclick="app.toggleAuthMode('login')" id="tab-login" class="active">INGRESAR</button>
                 <button onclick="app.toggleAuthMode('register')" id="tab-register">REGISTRARSE</button>
             </div>
+
             <form onsubmit="event.preventDefault(); app.handleAuthSubmit();" class="space-y-3">
-                <div id="field-name" class="hidden"><input type="text" id="input-name" class="input-modern w-full p-3 pl-4 text-sm" placeholder="Tu Nombre"></div>
+                <!-- Name Field (Register only) -->
+                <div id="field-name" class="hidden">
+                    <input type="text" id="input-name" class="input-modern w-full p-3 pl-4 text-sm" placeholder="Tu Nombre">
+                </div>
+                <!-- ID/Email Field -->
                 <input type="text" id="input-id" class="input-modern w-full p-3 pl-4 text-sm" placeholder="ID o Email" required>
+                <!-- Password Field -->
                 <input type="password" id="input-pass" class="input-modern w-full p-3 pl-4 text-sm" placeholder="Contraseña" required>
+
+                <!-- Error Msg -->
                 <div id="error-msg" class="hidden p-2.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-[10px] font-bold text-center flex items-center justify-center gap-2">
                     <i class="ph-fill ph-warning-circle"></i> <span id="error-txt">Error</span>
                 </div>
+
+                <!-- Submit Button -->
                 <button type="submit" id="btn-submit" class="w-full bg-white hover:bg-zinc-200 text-black py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 group mt-2">
                     <span id="btn-text">INICIAR SESIÓN</span>
                     <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
                 </button>
             </form>
+
             <div class="relative my-4 text-center">
                 <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-zinc-800"></div></div>
                 <span class="relative bg-[#121212] px-2 text-[9px] text-zinc-600 font-bold uppercase">O accede con</span>
             </div>
+
             <button onclick="app.loginGoogle()" class="w-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-xs">
                 <i class="ph-bold ph-google-logo text-lg text-white"></i>
                 <span>Google Account</span>
@@ -494,6 +627,8 @@
         const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile, setPersistence, browserLocalPersistence } = window.firebaseImports;
         
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-finance';
+
+        // === FIREBASE CONFIGURATION (GODSPLAN-BLQA) ===
         const firebaseConfig = {
             apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
             authDomain: "godsplan-blqa.firebaseapp.com",
@@ -507,6 +642,7 @@
         try { 
             fbApp = initializeApp(firebaseConfig); 
             auth = getAuth(fbApp); 
+            // Explicitly set persistence
             setPersistence(auth, browserLocalPersistence).catch(console.error);
             db = getFirestore(fbApp); 
         } catch(e) { console.error("Error initializing Firebase:", e); }
@@ -538,24 +674,29 @@
             { id: 'Compras', icon: 'ph-shopping-bag', color: 'text-pink-400' },
             { id: 'Salud', icon: 'ph-heartbeat', color: 'text-red-400' },
             { id: 'Super', icon: 'ph-basket', color: 'text-emerald-400' },
+            { id: 'Deuda', icon: 'ph-receipt', color: 'text-indigo-400' },
             { id: 'Ajuste', icon: 'ph-scales', color: 'text-zinc-300' },
             { id: 'Otro', icon: 'ph-dots-three-circle', color: 'text-gray-400' }
         ];
 
+        // Días festivos oficiales y comunes bancarios en México (Formato YYYY-MM-DD)
         const MX_HOLIDAYS = [
             '2024-01-01', '2024-02-05', '2024-03-18', '2024-05-01', '2024-09-16', '2024-10-01', '2024-11-18', '2024-12-25',
-            '2025-01-01', '2025-02-03', '2025-03-17', '2025-05-01', '2025-09-16', '2025-11-17', '2025-12-25', '2026-01-01'
+            '2025-01-01', '2025-02-03', '2025-03-17', '2025-05-01', '2025-09-16', '2025-11-17', '2025-12-25',
+            '2026-01-01'
         ];
 
         window.app = {
             user: null,
             isRegistering: false,
-            data: { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 },
+            data: { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 },
             logs: [],
             currentPeriod: null,
             searchQuery: '',
             filterDate: null,
+            historyData: {},
             currentWalletBalance: 0,
+            currentDailyLimit: 0,
             isSimulating: false,
             
             init() {
@@ -567,11 +708,13 @@
                         this.setupListeners();
                         document.getElementById('importFile').addEventListener('change', (e) => this.handleImport(e));
                     } else {
-                         document.getElementById('authModal').classList.add('active');
+                        // Redirect if not logged in
+                        window.location.href = "https://godsplan.site";
                     }
                 });
             },
 
+            // === AUTHENTICATION LOGIC ===
             toggleAuthMode(mode) {
                 this.isRegistering = (mode === 'register');
                 const container = document.getElementById('auth-switch-container');
@@ -618,7 +761,8 @@
                         await signInWithEmailAndPassword(auth, id, pass);
                     }
                 } catch (error) {
-                    this.showAuthError(error.message);
+                    console.error(error);
+                    this.showAuthError(this.mapAuthError(error.code));
                     btn.disabled = false;
                     btn.innerHTML = `<span id="btn-text">${this.isRegistering ? 'CREAR CUENTA' : 'INICIAR SESIÓN'}</span> <i class="ph-bold ph-arrow-right"></i>`;
                 }
@@ -626,7 +770,10 @@
 
             async loginGoogle() {
                 const provider = new GoogleAuthProvider();
-                try { await signInWithPopup(auth, provider); } catch (error) { this.showAuthError("Error con Google."); }
+                try { await signInWithPopup(auth, provider); } catch (error) { 
+                    console.error(error); 
+                    this.showAuthError("Error con Google."); 
+                }
             },
 
             showAuthError(msg) {
@@ -636,59 +783,87 @@
                 errMsg.classList.remove('hidden');
             },
 
-            logout() { if(confirm("¿Salir?")) signOut(auth).then(() => window.location.reload()); },
-
-            updateUserUI() {
-                const badge = document.getElementById('user-badge');
-                if (this.user) {
-                     badge.classList.remove('hidden'); badge.classList.add('flex');
-                     document.getElementById('user-name').textContent = this.user.displayName || this.user.email.split('@')[0];
-                } else {
-                    badge.classList.add('hidden'); badge.classList.remove('flex');
+            mapAuthError(code) {
+                switch(code) {
+                    case 'auth/email-already-in-use': return "ID/Email ya registrado.";
+                    case 'auth/invalid-email': return "Formato inválido.";
+                    case 'auth/user-not-found': return "Usuario no encontrado.";
+                    case 'auth/wrong-password': return "Contraseña incorrecta.";
+                    case 'auth/weak-password': return "Contraseña muy débil.";
+                    case 'auth/invalid-credential': return "Credenciales inválidas.";
+                    default: return "Error de acceso.";
                 }
             },
 
+            logout() { if(confirm("¿Salir?")) signOut(auth).then(() => window.location.reload()); },
+
+            // === APP LOGIC ===
+            updateUserUI() {
+                // Actualiza el User Badge en el Header
+                const badge = document.getElementById('user-badge');
+                const nameLabel = document.getElementById('user-name');
+                const roleLabel = document.getElementById('user-role');
+                
+                if (this.user) {
+                     badge.classList.remove('hidden'); 
+                     badge.classList.add('flex');
+                     nameLabel.textContent = this.user.displayName || this.user.email.split('@')[0];
+                } else {
+                    badge.classList.add('hidden'); 
+                    badge.classList.remove('flex');
+                }
+            },
             setupListeners() {
                 const uid = this.user.uid;
+                // CLEAN PATHS: users/{uid}/finance/data AND users/{uid}/finance/data/transactions
                 const userRef = doc(db, 'users', uid, 'finance', 'data');
                 const logsRef = collection(db, 'users', uid, 'finance', 'data', 'transactions');
                 
                 onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
-                        this.data = { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
+                        this.data = { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
                         document.getElementById('inpIncome').value = this.data.income || '';
                         document.getElementById('inpIncomeQ2').value = this.data.incomeQ2 || '';
                         document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
                         document.getElementById('manualExtraPay').value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
-                        // this.renderPlanInputs(); // TEMPORARILY DISABLED AS UI IS HIDDEN
-                        // this.renderFixed(); // TEMPORARILY DISABLED AS UI IS HIDDEN
+                        this.renderPlanInputs();
+                        this.renderFixed(); this.renderLoans();
                         this.calcPeriod();
                         this.updateExtraUI();
-                    } else setDoc(userRef, { income: 0, fixed: [] });
+                    } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
                 });
                 const q = query(logsRef, orderBy('date', 'desc'), limit(150));
                 onSnapshot(q, (snap) => {
                     this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
                     this.calcBalance();
                     this.renderTransactions();
+                    this.processHistory();
                 });
             },
-
+            processHistory() {
+                this.historyData = {};
+                this.logs.forEach(log => {
+                    const d = new Date(log.date);
+                    const key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+                    if (!this.historyData[key]) {
+                        this.historyData[key] = { month: d.getMonth(), year: d.getFullYear(), income: 0, expense: 0, txs: [] };
+                    }
+                    if (log.type === 'income') this.historyData[key].income += log.amount;
+                    else this.historyData[key].expense += log.amount;
+                    this.historyData[key].txs.push(log);
+                });
+            },
             renderPlanInputs() {
                 const isBi = this.data.cycle === 'biweekly';
-                const elQ2 = document.getElementById('divIncomeQ2');
-                const elLbl = document.getElementById('lblIncome1');
-                if(elQ2) elQ2.classList.toggle('hidden', !isBi);
-                if(elLbl) elLbl.textContent = isBi ? 'Ingreso 1ra Quincena (Q1)' : 'Ingreso Mensual Base';
+                document.getElementById('divIncomeQ2').classList.toggle('hidden', !isBi);
+                document.getElementById('lblIncome1').textContent = isBi ? 'Ingreso 1ra Quincena (Q1)' : 'Ingreso Mensual Base';
             },
-
             toggleExtrasMenu() {
                 const menu = document.getElementById('extraMenu');
                 const icon = document.getElementById('extraMenuIcon');
                 menu.classList.toggle('hidden');
                 icon.classList.toggle('rotate-180');
             },
-
             updateExtraUI() {
                 const triggerBtn = document.getElementById('extraMenuTrigger');
                 const menu = document.getElementById('extraMenu');
@@ -704,7 +879,6 @@
                 this.pendingExtraPay = this.data.extraPayAmount || 0;
                 this.resolvePayDate();
             },
-
             resolvePayDate() {
                 const input = document.getElementById('extraPayDateInput');
                 const badge = document.getElementById('daysToTuesday');
@@ -715,16 +889,33 @@
                     input.value = this.data.nextExtraPayDate;
                     badge.textContent = daysDiff === 0 ? '¡Es Hoy!' : (daysDiff < 0 ? 'Pasado' : `Faltan ${daysDiff} días`);
                 } else {
-                    input.value = new Date().toISOString().split('T')[0];
-                    badge.textContent = `Sin fecha`;
+                    const now = new Date(); const resultDate = new Date();
+                    const diff = 2 - now.getDay() + 7;
+                    resultDate.setDate(now.getDate() + (diff % 7 === 0 ? 0 : (2 - now.getDay() + 7) % 7));
+                    if (resultDate <= now) resultDate.setDate(resultDate.getDate() + 7);
+                    const dateStr = resultDate.toISOString().split('T')[0];
+                    input.value = dateStr;
+                    const daysDiff = Math.ceil((resultDate - now) / (1000 * 60 * 60 * 24));
+                    badge.textContent = `Faltan ${daysDiff} días`;
                 }
             },
-
-            async saveExtraPayDate(val) { await updateDoc(doc(db,'users',this.user.uid,'finance','data'), { nextExtraPayDate: val }); this.resolvePayDate(); },
-            async saveExtraPayValue(val) { const amount = parseFloat(val) || 0; await updateDoc(doc(db,'users',this.user.uid,'finance','data'), { extraPayAmount: amount }); this.calcBalance(); },
-            toggleAdherenceModule() { const isEnabled = document.getElementById('adhToggle').checked; updateDoc(doc(db,'users',this.user.uid,'finance','data'), { enableAdherence: isEnabled }); },
-            toggleSimulation() { this.isSimulating = document.getElementById('simToggle').checked; this.calcBalance(); },
-            
+            async saveExtraPayDate(val) {
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'), { nextExtraPayDate: val });
+                this.resolvePayDate();
+            },
+            async saveExtraPayValue(val) {
+                const amount = parseFloat(val) || 0;
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'), { extraPayAmount: amount });
+                this.calcBalance();
+            },
+            toggleAdherenceModule() {
+                const isEnabled = document.getElementById('adhToggle').checked;
+                updateDoc(doc(db,'users',this.user.uid,'finance','data'), { enableAdherence: isEnabled });
+            },
+            toggleSimulation() {
+                this.isSimulating = document.getElementById('simToggle').checked;
+                this.calcBalance();
+            },
             async importExtraMoney() {
                 const amount = this.data.extraPayAmount || 0;
                 if (amount <= 0) return UI.toast('Monto debe ser mayor a 0', 'error');
@@ -735,20 +926,37 @@
                     UI.toast('Dinero sumado a billetera', 'success');
                 }
             },
-
+            // NUEVO: Función para saltar días inhábiles
             getNextBusinessDay(date) {
                 let d = new Date(date);
+                // Intentar hasta 14 días para evitar loops infinitos (suficiente para vacaciones largas)
                 for(let i=0; i<14; i++) {
                     const day = d.getDay();
-                    const dateStr = d.toISOString().split('T')[0];
-                    if (day === 0) { d.setDate(d.getDate() + 1); continue; }
-                    if (day === 6) { d.setDate(d.getDate() + 2); continue; }
-                    if (MX_HOLIDAYS.includes(dateStr)) { d.setDate(d.getDate() + 1); continue; }
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const dayNum = String(d.getDate()).padStart(2, '0');
+                    const dateStr = `${year}-${month}-${dayNum}`;
+
+                    // Si es Domingo (0)
+                    if (day === 0) {
+                        d.setDate(d.getDate() + 1);
+                        continue;
+                    }
+                    // Si es Sábado (6)
+                    if (day === 6) {
+                        d.setDate(d.getDate() + 2);
+                        continue;
+                    }
+                    // Si es Festivo en México
+                    if (MX_HOLIDAYS.includes(dateStr)) {
+                        d.setDate(d.getDate() + 1);
+                        continue;
+                    }
+                    // Si pasa todas las pruebas, es día hábil
                     return d;
                 }
                 return d;
             },
-
             getCycleParams(dateInput) {
                 const d = new Date(dateInput);
                 const day = d.getDate();
@@ -758,25 +966,40 @@
                 let start, end;
                 let isQ2 = false;
                 
+                // 1. Calcular fechas teóricas
                 if (this.data.cycle === 'monthly') {
-                    if (day >= startDay) { start = new Date(y, m, startDay); end = new Date(y, m + 1, startDay - 1); } 
-                    else { start = new Date(y, m - 1, startDay); end = new Date(y, m, startDay - 1); }
+                    if (day >= startDay) {
+                        start = new Date(y, m, startDay);
+                        end = new Date(y, m + 1, startDay - 1);
+                    } else {
+                        start = new Date(y, m - 1, startDay);
+                        end = new Date(y, m, startDay - 1);
+                    }
                 } else {
                     const midDay = startDay + 15;
-                    if (day >= startDay && day < midDay) { start = new Date(y, m, startDay); end = new Date(y, m, midDay - 1); } 
-                    else {
-                        if (day >= midDay) { start = new Date(y, m, midDay); end = new Date(y, m + 1, startDay - 1); } 
-                        else { start = new Date(y, m - 1, midDay); end = new Date(y, m, startDay - 1); }
+                    if (day >= startDay && day < midDay) {
+                        start = new Date(y, m, startDay);
+                        end = new Date(y, m, midDay - 1);
+                    } else {
+                        if (day >= midDay) {
+                            start = new Date(y, m, midDay);
+                            end = new Date(y, m + 1, startDay - 1);
+                        } else {
+                            start = new Date(y, m - 1, midDay);
+                            end = new Date(y, m, startDay - 1);
+                        }
                         isQ2 = true;
                     }
                 }
+
+                // 2. Aplicar inteligencia de días hábiles
                 start = this.getNextBusinessDay(start);
                 end = this.getNextBusinessDay(end);
+
                 start.setHours(0,0,0,0);
                 end.setHours(23,59,59,999);
                 return { start, end, isQ2 };
             },
-
             calcPeriod() {
                 const now = new Date();
                 const cycle = this.getCycleParams(now);
@@ -790,7 +1013,6 @@
                 document.getElementById('periodProgress').style.width = `${progress}%`;
                 this.calcBalance();
             },
-
             calcBalance() {
                 if(!this.currentPeriod) return;
                 const { start: pStart, end: pEnd } = this.currentPeriod;
@@ -816,33 +1038,35 @@
                         fixedStatus.push({ name: f.name, paid: 'n/a' });
                     }
                 });
-                // this.updateFixedUI(fixedStatus); // TEMPORARILY DISABLED
-
+                this.updateFixedUI(fixedStatus);
+                const totalLoans = (this.data.loans || []).reduce((acc, loan) => {
+                    const amount = parseFloat(loan.amount) || 0;
+                    if (!loan.dueDate) return acc;
+                    const [y, m, d] = loan.dueDate.split('-').map(Number);
+                    const due = new Date(y, m - 1, d, 23, 59, 59, 999);
+                    if (due >= pStart && due <= pEnd) return acc + amount;
+                    return acc;
+                }, 0);
                 let baseInc = parseFloat(this.data.income) || 0;
                 if (this.data.cycle === 'biweekly') {
                     const pStartDay = this.currentPeriod.start.getDate();
                     const triggerQ2 = (this.data.startDay || 1) + 14;
                     if (pStartDay >= triggerQ2) { baseInc = parseFloat(this.data.incomeQ2) || baseInc; }
                 }
-                
                 const liquidIncome = (baseInc + extraInc);
-                const remainingTotal = liquidIncome - fixedReserve - totalSpentInCycle;
-                
+                const remainingTotal = liquidIncome - fixedReserve - totalLoans - totalSpentInCycle;
                 const daysLeft = this.currentPeriod.daysLeft;
                 const virtualAvailableStartOfDay = remainingTotal + todaySpent;
                 const dailyLimit = virtualAvailableStartOfDay / daysLeft;
                 const balanceToday = dailyLimit - todaySpent;
-                
                 this.currentWalletBalance = remainingTotal;
-                
-                // UI UPDATE
+                this.currentDailyLimit = dailyLimit;
                 const dailyEl = document.getElementById('dailyFree');
                 const labelState = document.getElementById('labelDailyState');
                 const cardBg = document.getElementById('mainCardBg');
                 const mainCard = document.getElementById('mainCard');
                 mainCard.style.border = ''; mainCard.style.boxShadow = '';
                 dailyEl.textContent = UI.fmtMoney(balanceToday);
-                
                 if (this.isSimulating) {
                     cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl transition-colors duration-500 bg-emerald-500/40 animate-pulse';
                     labelState.textContent = 'SIMULACIÓN ACTIVA';
@@ -861,22 +1085,19 @@
                     labelState.className = 'text-xs font-bold text-zinc-400 uppercase tracking-widest transition-colors group-hover:text-white';
                     dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-white font-black';
                 }
-                
                 document.getElementById('valDailyLimit').textContent = UI.fmtMoney(dailyLimit);
                 document.getElementById('valTodaySpent').textContent = UI.fmtMoney(todaySpent);
                 document.getElementById('totalFree').textContent = UI.fmtMoney(remainingTotal);
                 document.getElementById('totalFree').className = remainingTotal < 0 ? 'text-lg font-bold text-red-500' : 'text-lg font-bold text-zinc-200';
                 document.getElementById('cycleSpent').textContent = `-${UI.fmtMoney(totalSpentInCycle)}`;
-                
                 const sumFixed = document.getElementById('summaryFixed');
                 if(sumFixed) sumFixed.textContent = UI.fmtMoney(fixedReserve);
-                
+                const sumLoans = document.getElementById('summaryShortLoans');
+                if(sumLoans) sumLoans.textContent = UI.fmtMoney(totalLoans);
                 const sumTotal = document.getElementById('totalObligations');
-                if(sumTotal) sumTotal.textContent = UI.fmtMoney(fixedReserve);
-                
+                if(sumTotal) sumTotal.textContent = UI.fmtMoney(fixedReserve + totalLoans);
                 this.renderTransactions();
             },
-
             setFilterDate(dateString) {
                 if (!dateString) return;
                 this.filterDate = dateString;
@@ -888,7 +1109,6 @@
                 labelEl.textContent = `Filtro Activo: ${dateObj.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}`;
                 displayEl.classList.remove('hidden'); displayEl.classList.add('flex');
             },
-
             clearDateFilter() {
                 this.filterDate = null;
                 document.getElementById('dateFilterDisplay').classList.remove('flex');
@@ -896,7 +1116,6 @@
                 this.renderTransactions();
                 UI.toast('Filtro de fecha eliminado', 'info');
             },
-
             groupTransactionsByDate(logs) {
                 const groups = {};
                 logs.forEach(log => {
@@ -909,7 +1128,6 @@
                 });
                 return groups;
             },
-
             renderTransactions() {
                 const list = document.getElementById('transactionsList'); list.innerHTML = '';
                 let visibleLogs = this.logs;
@@ -975,11 +1193,8 @@
                     `;
                 });
             },
-
             renderFixed() {
-                const el = document.getElementById('fixedExpensesList'); 
-                if(!el) return;
-                el.innerHTML='';
+                const el = document.getElementById('fixedExpensesList'); el.innerHTML='';
                 (this.data.fixed || []).sort((a,b)=>a.day-b.day).forEach((f,i) => {
                     el.innerHTML += `
                     <div class="fixed-item-row flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl mb-2 active:scale-[0.99] transition-transform hover:border-zinc-700" data-name="${f.name}">
@@ -992,26 +1207,35 @@
                 });
                 if((this.data.fixed || []).length === 0) { el.innerHTML = '<div class="text-center py-8 text-zinc-600 italic text-xs">Sin gastos fijos configurados</div>'; }
             },
-
             updateFixedUI(statusArray) {
                 const rows = document.querySelectorAll('.fixed-item-row');
                 rows.forEach(row => {
                     const name = row.dataset.name; const status = statusArray.find(s => s.name === name);
                     const dot = row.querySelector('.status-dot'); const btn = row.querySelector('button');
-                    if(!dot || !btn) return;
                     if (status && status.paid === true) { dot.classList.remove('hidden', 'bg-zinc-700'); dot.classList.add('bg-emerald-500'); btn.classList.add('opacity-50', 'pointer-events-none'); btn.textContent = 'LISTO'; }
                     else if (status && status.paid === false) { dot.classList.remove('hidden', 'bg-emerald-500'); dot.classList.add('bg-zinc-700'); btn.classList.remove('opacity-50', 'pointer-events-none'); btn.textContent = 'PAGAR'; }
                     else { dot.classList.add('hidden'); }
                 });
             },
-
+            renderLoans() {
+                const el = document.getElementById('loansList'); el.innerHTML='';
+                if(!this.data.loans?.length) el.innerHTML = '<div class="text-center py-8 text-zinc-600 italic text-xs">¡Libre de deudas!</div>';
+                const pEnd = this.currentPeriod ? this.currentPeriod.end : new Date(2100,0,1);
+                (this.data.loans || []).forEach((l,i) => {
+                    const [y, m, d] = l.dueDate ? l.dueDate.split('-').map(Number) : [0,0,0];
+                    const due = l.dueDate ? new Date(y, m-1, d, 23, 59, 59) : new Date(0);
+                    const affectsBudget = !l.dueDate || due <= pEnd;
+                    const opacityClass = affectsBudget ? '' : 'opacity-50 grayscale';
+                    const badge = affectsBudget ? '' : '<span class="text-[9px] bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded ml-2 border border-zinc-700">Próx. Ciclo</span>';
+                    el.innerHTML += `<div onclick="app.openModal('loan', ${i})" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center mb-2 active:scale-[0.99] ${opacityClass}"><div><div class="font-bold text-sm text-white flex items-center">${l.name} ${badge}</div><div class="text-xs text-red-400">Vence: ${l.dueDate||'Sin fecha'}</div></div><div class="text-right font-bold text-base text-zinc-300">${UI.fmtMoney(l.amount)}</div></div>`;
+                });
+            },
             openModal(type, id=null) {
                 this.modalType = type; this.editId = id;
                 document.querySelectorAll('#modalSheet > div[id^="form"]').forEach(d => d.classList.add('hidden'));
                 document.getElementById('modalOverlay').classList.add('is-open');
                 const title = document.getElementById('modalTitle');
                 document.getElementById('categorySelectionContainer').classList.remove('hidden');
-                
                 if(type === 'expense' || type === 'extra' || type === 'adjustment') {
                     document.getElementById('formTransaction').classList.remove('hidden');
                     if (type === 'expense') title.textContent = 'Registrar Gasto';
@@ -1044,14 +1268,25 @@
                         document.getElementById('txAmount').placeholder = "0";
                         document.getElementById('txDesc').placeholder = "Nota opcional...";
                     }
-                    if(log) { setTimeout(()=> { Array.from(chips.children).find(c => c.querySelector('span')?.textContent.trim() === log.category)?.classList.add('active'); }, 50); } 
-                    else if (type === 'expense') { setTimeout(()=> { chips.children[0]?.classList.add('active') }, 50); }
+                    if(log) {
+                        setTimeout(()=> {
+                            Array.from(chips.children).find(c => c.querySelector('span')?.textContent.trim() === log.category)?.classList.add('active');
+                        }, 50);
+                    } else if (type === 'expense') {
+                        setTimeout(()=> { chips.children[0]?.classList.add('active') }, 50);
+                    }
                 }
                 else if (type === 'fixed') {
                     document.getElementById('formFixed').classList.remove('hidden'); title.textContent = 'Gasto Fijo';
                     const f = id !== null ? this.data.fixed[id] : {};
                     document.getElementById('fixName').value = f.name||''; document.getElementById('fixAmount').value=f.amount||''; document.getElementById('fixDay').value=f.day||'';
                     document.getElementById('btnDeleteFix').classList.toggle('hidden', id===null);
+                }
+                else if (type === 'loan') {
+                    document.getElementById('formLoan').classList.remove('hidden'); title.textContent = 'Deuda';
+                    const l = id !== null ? this.data.loans[id] : {};
+                    document.getElementById('loanName').value = l.name||''; document.getElementById('loanAmount').value=l.amount||''; document.getElementById('loanDueDate').value=l.dueDate||'';
+                    document.getElementById('btnDeleteLoan').classList.toggle('hidden', id===null);
                 }
                 else if (type === 'config') {
                     document.getElementById('formConfig').classList.remove('hidden'); title.textContent = 'Configuración Ciclo';
@@ -1060,10 +1295,8 @@
                     document.getElementById('configStartDay').value = this.data.startDay || 1;
                 }
             },
-
             closeModal() { document.getElementById('modalOverlay').classList.remove('is-open'); },
             selCat(el) { document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); },
-            
             async saveTransaction() {
                 const amtVal = parseFloat(document.getElementById('txAmount').value);
                 const desc = document.getElementById('txDesc').value;
@@ -1088,38 +1321,51 @@
                     payload.category = cat;
                     payload.type = this.modalType === 'extra' ? 'income' : 'expense';
                 }
+                // NEW PATH
                 const ref = collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions');
                 if(this.editId) await updateDoc(doc(ref, this.editId), payload);
                 else await addDoc(ref, payload);
                 UI.toast(this.modalType === 'adjustment' ? 'Saldo Ajustado' : 'Guardado', 'success');
                 this.closeModal();
             },
-
             async saveFixed() {
                 const arr = [...(this.data.fixed||[])];
                 const item = { name: document.getElementById('fixName').value, amount: parseFloat(document.getElementById('fixAmount').value), day: parseInt(document.getElementById('fixDay').value) };
                 if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
+                // NEW PATH
                 await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{fixed:arr});
                 this.closeModal(); UI.toast('Fijo guardado','success');
             },
-
             async payFixed(idx) {
                 const f = this.data.fixed[idx];
                 if(await UI.confirm('Pagar Fijo', `¿Registrar pago de ${f.name} por ${UI.fmtMoney(f.amount)}?`)) {
+                    // NEW PATH
                     await addDoc(collection(db,'users',this.user.uid,'finance','data','transactions'), {
-                        amount: parseFloat(f.amount), desc: `Pago Fijo: ${f.name}`, category: 'Servicios', type: 'expense', date: new Date().toISOString(), meta_related_fixed: f.name
+                        amount: parseFloat(f.amount),
+                        desc: `Pago Fijo: ${f.name}`,
+                        category: 'Servicios',
+                        type: 'expense',
+                        date: new Date().toISOString(),
+                        meta_related_fixed: f.name
                     });
                     UI.toast('Pago registrado','success');
                 }
             },
-
+            async saveLoan() {
+                const arr = [...(this.data.loans||[])];
+                const item = { name: document.getElementById('loanName').value, amount: parseFloat(document.getElementById('loanAmount').value), dueDate: document.getElementById('loanDueDate').value };
+                if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
+                // NEW PATH
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{loans:arr});
+                this.closeModal();
+            },
             async saveConfig() {
                 const inc = parseFloat(document.getElementById('inpIncome').value);
                 const incQ2 = parseFloat(document.getElementById('inpIncomeQ2').value);
+                // NEW PATH
                 await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{income:inc, incomeQ2: incQ2});
                 UI.toast('Ingresos actualizados','success');
             },
-
             setCycleMode(mode) {
                 this.tempCycle = mode;
                 document.getElementById('btnCycleBi').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95 ${mode==='biweekly' ? 'border-emerald-500 bg-emerald-500/10' : 'border-zinc-700'}`;
@@ -1135,58 +1381,46 @@
                     div.querySelector('p').textContent = 'Tu mes financiero iniciará en este día.';
                 }
             },
-
             async saveCycleConfig() {
                 const mode = this.tempCycle || this.data.cycle || 'biweekly';
                 const startDay = parseInt(document.getElementById('configStartDay').value) || 1;
+                // NEW PATH
                 await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{cycle: mode, startDay: startDay});
                 UI.toast('Ciclo actualizado','success'); this.closeModal();
             },
-
+            // NEW PATHS FOR DELETIONS
             async deleteTxConfirm() { if(await UI.confirm('Borrar','¿Eliminar esta transacción?')) { await deleteDoc(doc(db,'users',this.user.uid,'finance','data','transactions',this.editId)); this.closeModal(); } },
             async deleteFixedConfirm() { if(await UI.confirm('Borrar','¿Eliminar gasto fijo?')) { const arr=this.data.fixed.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{fixed:arr}); this.closeModal(); } },
-            
+            async deleteLoanConfirm() { if(await UI.confirm('Liquidar','¿Marcar como pagado y borrar?')) { const arr=this.data.loans.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{loans:arr}); this.closeModal(); } },
             async resetData() {
                  if(await UI.confirm('RESETEO TOTAL','¿Estás seguro? Se borrará TODO.')) {
                      const uid = this.user.uid; const batch = writeBatch(db);
-                     batch.set(doc(db,'users',uid,'finance','data'), {income:0,fixed:[], categories:[]});
+                     // NEW PATHS
+                     batch.set(doc(db,'users',uid,'finance','data'), {income:0,fixed:[],loans:[],goals:[], categories:[]});
                      const q = await getDocs(collection(db,'users',uid,'finance','data','transactions'));
                      q.forEach(d => batch.delete(d.ref));
                      await batch.commit(); window.location.reload();
                  }
             },
-
             switchView(v, btnRef) {
                 document.querySelectorAll('section[id^="view-"]').forEach(s => s.classList.add('hidden'));
                 const target = document.getElementById('view-'+v);
                 if(target) target.classList.remove('hidden');
-                
-                // Actualizar estilo botones móvil
                 document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-                if(btnRef && btnRef.classList.contains('nav-btn')) btnRef.classList.add('active');
-                else {
-                    // Si se llama desde escritorio o programmaticamente, buscar el botón móvil correspondiente
-                    const mobBtn = document.querySelector(`.nav-btn[onclick*="'${v}'"]`);
-                    if(mobBtn) mobBtn.classList.add('active');
-                }
-
-                // Actualizar estilo links escritorio
+                if(btnRef) btnRef.classList.add('active');
                 document.querySelectorAll('.nav-link-desk').forEach(b => {
                     b.classList.toggle('active', b.dataset.view === v);
                 });
-                
-                // Toggle FAB solo en balance
                 document.getElementById('fabContainer').classList.toggle('scale-0', v !== 'balance');
             },
-
             filterTransactions() {
                 this.searchQuery = document.getElementById('searchTx').value;
                 this.renderTransactions();
             },
-
             async exportData() {
                 UI.toast('Preparando exportación...', 'info');
                 try {
+                    // NEW PATH
                     const q = query(collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions'), orderBy('date', 'desc'));
                     const snap = await getDocs(q);
                     const allTxs = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -1204,9 +1438,11 @@
                     downloadAnchorNode.click();
                     downloadAnchorNode.remove();
                     UI.toast('Backup descargado', 'success');
-                } catch(e) { console.error(e); UI.toast('Error exportando datos', 'error'); }
+                } catch(e) {
+                    console.error(e);
+                    UI.toast('Error exportando datos', 'error');
+                }
             },
-
             triggerImport() { document.getElementById('importFile').click(); },
             async handleImport(event) {
                 const file = event.target.files[0];
@@ -1217,18 +1453,23 @@
                         const json = JSON.parse(e.target.result);
                         if (!json.financials || !json.transactions) throw new Error("Formato inválido: Falta estructura base");
                         const msg = `Se restaurarán:\n• Configuración financiera\n• ${json.transactions.length} transacciones\n\nLos datos actuales serán sobrescritos/fusionados. ¿Continuar?`;
-                        if (await UI.confirm('Restaurar Backup', msg)) { await this.restoreBackup(json); }
-                    } catch (err) { UI.toast('Error: ' + err.message, 'error'); console.error(err); }
+                        if (await UI.confirm('Restaurar Backup', msg)) {
+                            await this.restoreBackup(json);
+                        }
+                    } catch (err) {
+                        UI.toast('Error: ' + err.message, 'error');
+                        console.error(err);
+                    }
                     event.target.value = '';
                 };
                 reader.readAsText(file);
             },
-
             async restoreBackup(data) {
                 UI.toast('Restaurando datos...', 'info');
                 try {
                     const uid = this.user.uid;
                     const batch = writeBatch(db);
+                    // NEW PATHS
                     const userRef = doc(db, 'users', uid, 'finance', 'data');
                     batch.set(userRef, data.financials, {merge: true});
                     await batch.commit();
@@ -1239,7 +1480,9 @@
                         const chunk = txs.slice(i, i + BATCH_SIZE);
                         const chunkBatch = writeBatch(db);
                         chunk.forEach(tx => {
-                            const txRef = tx.id ? doc(db, 'users', uid, 'finance', 'data', 'transactions', tx.id) : doc(collection(db, 'users', uid, 'finance', 'data', 'transactions'));
+                            const txRef = tx.id 
+                                ? doc(db, 'users', uid, 'finance', 'data', 'transactions', tx.id)
+                                : doc(collection(db, 'users', uid, 'finance', 'data', 'transactions'));
                             const { id, ...txData } = tx; 
                             chunkBatch.set(txRef, txData); 
                         });
@@ -1248,15 +1491,17 @@
                     }
                     UI.toast(`Restaurado con éxito (${restoredCount} txs)`, 'success');
                     setTimeout(() => window.location.reload(), 1500);
-                } catch(e) { console.error(e); UI.toast('Error crítico restaurando datos', 'error'); }
+                } catch(e) {
+                    console.error(e);
+                    UI.toast('Error crítico restaurando datos', 'error');
+                }
             },
-            
+            // Funciones añadidas para el Header de Adherencia
             openNavModal() {
                  const m = document.getElementById('navModal');
                  m.classList.remove('hidden');
                  m.classList.add('flex');
             },
-            
             closeModalById(id) {
                 const m = document.getElementById(id);
                 if(m) {
