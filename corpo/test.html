@@ -338,7 +338,7 @@
                             <span class="text-xs font-bold text-white bg-zinc-800 px-2 py-1 rounded-lg border border-zinc-700" id="totalLoansAmount">$0.00</span>
                         </div>
                         <div id="loansList" class="space-y-3">
-                            <div class="text-center py-10 text-zinc-700 text-xs italic">No hay préstamos activos.</div>
+                            <div class="text-center py-10 text-zinc-700 text-xs italic">Sincronizando lista...</div>
                         </div>
                     </div>
                 </div>
@@ -751,10 +751,14 @@
                     this.renderTransactions();
                 });
 
-                // Escuchar Préstamos Activos
-                const qLoans = query(loansRef, where('status', '==', 'active'), orderBy('deadline', 'asc'));
+                // Escuchar Préstamos Activos - CONSULTA SIMPLIFICADA (Sin where ni orderBy)
+                const qLoans = query(loansRef);
                 onSnapshot(qLoans, (snap) => {
-                    this.loans = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    const allLoans = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    // Filtrar y ordenar en memoria para evitar índices compuestos
+                    this.loans = allLoans
+                        .filter(l => l.status === 'active')
+                        .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
                     this.renderLoans();
                 });
             },
@@ -834,13 +838,13 @@
 
                 try {
                     await batch.commit();
-                    UI.toast('Préstamo registrado y saldo actualizado', 'success');
+                    UI.toast('Préstamo registrado correctamente', 'success');
                     
-                    // Limpiar formulario
+                    // Limpiar formulario solamente (NO cambiar de vista para ver la lista actualizarse)
                     document.getElementById('loanSource').value = '';
                     document.getElementById('loanAmount').value = '';
                     document.getElementById('loanDeadline').value = '';
-                    app.switchView('balance'); // Volver a la billetera para ver el dinero
+                    
                 } catch (e) {
                     console.error(e);
                     UI.toast('Error al guardar préstamo', 'error');
