@@ -119,7 +119,7 @@
     <!-- HEADER FIJO -->
     <nav class="fixed top-0 left-0 w-full z-[100] border-b border-white/5 bg-[rgba(0,0,0,0.9)] backdrop-blur-md h-20 flex items-center shadow-lg transition-all duration-300">
         <div class="w-full max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center h-full">
-            <a href="#" class="flex items-center gap-3 group">
+            <a href="/corpo/index.html" class="flex items-center gap-3 group">
                 <div class="relative w-9 h-9 flex items-center justify-center">
                     <div class="absolute inset-0 bg-brand rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
                     <i class="ph-fill ph-planet text-3xl text-brand relative z-10"></i>
@@ -130,12 +130,13 @@
                 </div>
             </a>
 
-            <!-- Navegación Central (Desktop) -->
+            <!-- Navegación Central (Desktop) - RESTAURADA -->
             <div class="hidden md:flex items-center bg-white/5 rounded-full p-1 border border-white/5">
-                <div onclick="app.switchView('balance')" class="nav-link-desk active" data-view="balance">BILLETERA</div>
-                <div onclick="app.switchView('loans')" class="nav-link-desk" data-view="loans">PRÉSTAMOS</div>
-                <div onclick="app.switchView('future')" class="nav-link-desk" data-view="future">FUTURO</div>
-                <div onclick="app.switchView('plan')" class="nav-link-desk" data-view="plan">PLANIFICACIÓN</div>
+                <a href="/corpo/adherencia.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">ADHERENCIA</a>
+                <a href="/corpo/finanzas.html" class="px-4 py-1.5 rounded-full bg-brand text-white text-xs font-bold tracking-wide shadow-lg shadow-brand/20 transition-all">FINANZAS</a>
+                <a href="/corpo/chat.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CHAT</a>
+                <a href="/corpo/casos.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CASOS</a>
+                <a href="/corpo/cuenta.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CUENTA</a>
             </div>
 
             <!-- User Badge -->
@@ -148,6 +149,10 @@
                     <i class="ph-bold ph-power text-lg group-hover:scale-110 transition-transform"></i>
                 </button>
             </div>
+            
+            <button class="md:hidden w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-white transition-colors" onclick="window.app.openNavModal()">
+                 <i class="ph-bold ph-list text-lg"></i>
+            </button>
         </div>
     </nav>
 
@@ -156,6 +161,16 @@
         <input type="file" id="importFile" accept=".json" class="hidden">
         
         <div class="w-full max-w-lg md:max-w-6xl mx-auto h-full pt-4 md:pt-8">
+            
+            <!-- SUB-NAVEGACIÓN INTERNA (DESKTOP) -->
+            <div class="hidden md:flex justify-center mb-8 fade-in">
+                <div class="bg-zinc-900/80 border border-white/10 p-1.5 rounded-full flex items-center gap-1 shadow-lg backdrop-blur-sm">
+                    <button onclick="app.switchView('balance')" class="nav-link-desk active px-5" data-view="balance">Billetera</button>
+                    <button onclick="app.switchView('loans')" class="nav-link-desk px-5" data-view="loans">Préstamos</button>
+                    <button onclick="app.switchView('future')" class="nav-link-desk px-5" data-view="future">Futuro</button>
+                    <button onclick="app.switchView('plan')" class="nav-link-desk px-5" data-view="plan">Planificación</button>
+                </div>
+            </div>
 
             <!-- VISTA 1: BILLETERA (HOME) -->
             <section id="view-balance" class="p-4 sm:p-0 fade-in">
@@ -342,6 +357,33 @@
             <div class="relative p-1"><i class="ph-fill ph-gear text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
             <span class="text-[9px] font-bold group-[.active]:text-red-500 transition-colors">Plan</span>
         </button>
+    </div>
+
+    <!-- MODAL DE NAVEGACIÓN MÓVIL (Restaurado para funcionalidad de hamburguesa) -->
+    <div class="modal fixed inset-0 w-screen h-screen z-[1000] hidden bg-black/80 backdrop-blur-sm" id="navModal" onclick="window.app.closeModalById('navModal')">
+        <div class="absolute bottom-0 left-0 w-full bg-card rounded-t-2xl p-6 border-t border-white/5 animate-slide-up" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6">
+                <span class="font-bold text-lg text-white">Navegación</span>
+                 <button onclick="window.app.closeModalById('navModal')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-zinc-400 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+            <div class="grid gap-3">
+                <a href="/corpo/index.html" class="p-3.5 rounded-xl bg-zinc-900/50 border border-white/5 hover:bg-white/5 text-zinc-400 hover:text-white font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
+                    <i class="ph-fill ph-check-circle text-lg"></i> ADHERENCIA
+                </a>
+                <a href="#" class="p-3.5 rounded-xl bg-brand/10 text-brand border border-brand/20 font-extrabold flex items-center gap-3 text-sm tracking-wide">
+                    <i class="ph-bold ph-currency-dollar text-lg"></i> FINANZAS
+                </a>
+                <a href="/corpo/chat.html" class="p-3.5 rounded-xl bg-zinc-900/50 border border-white/5 hover:bg-white/5 text-zinc-400 hover:text-white font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
+                    <i class="ph-bold ph-chat-circle-dots text-lg"></i> CHAT
+                </a>
+                <a href="/corpo/casos.html" class="p-3.5 rounded-xl bg-zinc-900/50 border border-white/5 hover:bg-white/5 text-zinc-400 hover:text-white font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
+                    <i class="ph-bold ph-briefcase text-lg"></i> CASOS
+                </a>
+                <a href="/corpo/cuenta.html" class="p-3.5 rounded-xl bg-zinc-900/50 border border-white/5 hover:bg-white/5 text-zinc-400 hover:text-white font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
+                    <i class="ph-bold ph-user-circle text-lg"></i> CUENTA
+                </a>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL PRINCIPAL FINANZAS -->
@@ -1243,6 +1285,22 @@
                     UI.toast(`Restaurado con éxito (${restoredCount} txs)`, 'success');
                     setTimeout(() => window.location.reload(), 1500);
                 } catch(e) { console.error(e); UI.toast('Error crítico restaurando datos', 'error'); }
+            },
+            
+            openNavModal() {
+                 const m = document.getElementById('navModal');
+                 if(m) {
+                     m.classList.remove('hidden');
+                     m.classList.add('flex');
+                 }
+            },
+            
+            closeModalById(id) {
+                const m = document.getElementById(id);
+                if(m) {
+                    m.classList.remove('flex');
+                    m.classList.add('hidden');
+                }
             }
         };
         document.addEventListener('DOMContentLoaded', () => window.app.init());
