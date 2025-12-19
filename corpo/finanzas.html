@@ -33,10 +33,10 @@
     <!-- FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        window.firebaseImports = { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch };
+        window.firebaseImports = { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, setPersistence, browserLocalPersistence };
     </script>
 
     <style>
@@ -317,7 +317,7 @@
     <div id="toast-container"></div>
 
     <script type="module">
-        const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch } = window.firebaseImports;
+        const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, setPersistence, browserLocalPersistence } = window.firebaseImports;
 
         const firebaseConfig = {
             apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g", // Public Demo Key (Restricted)
@@ -330,6 +330,7 @@
 
         const appInit = initializeApp(firebaseConfig);
         const auth = getAuth(appInit);
+        setPersistence(auth, browserLocalPersistence).catch(console.error);
         const db = getFirestore(appInit);
 
         const UI = {
@@ -396,7 +397,8 @@
             logout() { signOut(auth); },
 
             listen() {
-                const userRef = doc(db, 'users', this.user.uid, 'financeV3', 'config');
+                // RUTAS ACTUALIZADAS: users/{uid}/finance/data
+                const userRef = doc(db, 'users', this.user.uid, 'finance', 'data');
                 onSnapshot(userRef, s => {
                     if(s.exists()) {
                         this.data = { income1:0, income2:0, fixed:[], activeLoans:[], ...s.data() };
@@ -405,7 +407,8 @@
                     } else setDoc(userRef, this.data);
                 });
 
-                const q = query(collection(db, 'users', this.user.uid, 'financeV3', 'txs'), orderBy('date', 'desc'), limit(100));
+                // RUTAS ACTUALIZADAS: users/{uid}/finance/data/transactions
+                const q = query(collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions'), orderBy('date', 'desc'), limit(100));
                 onSnapshot(q, s => {
                     this.txs = s.docs.map(d => ({id:d.id, ...d.data()}));
                     this.renderTxs();
@@ -687,7 +690,7 @@
                 const desc = document.getElementById('txDesc').value;
                 if(!amt || !desc) return UI.toast('Faltan datos', 'err');
                 
-                await addDoc(collection(db, 'users', this.user.uid, 'financeV3', 'txs'), {
+                await addDoc(collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions'), {
                     amount: amt, desc, cat: this.tempCat, type: this.modalType, date: new Date().toISOString()
                 });
                 this.closeModal(); UI.toast('Guardado');
@@ -697,12 +700,12 @@
                 const arr = [...this.data.fixed];
                 const item = { name: document.getElementById('fixName').value, amount: parseFloat(document.getElementById('fixAmount').value), day: parseInt(document.getElementById('fixDay').value) };
                 if(this.editIdx!==null) arr[this.editIdx] = item; else arr.push(item);
-                await updateDoc(doc(db,'users',this.user.uid,'financeV3','config'), {fixed: arr});
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'), {fixed: arr});
                 this.closeModal(); UI.toast('Fijo actualizado');
             },
             async delFixed() {
                 const arr = this.data.fixed.filter((_,i)=>i!==this.editIdx);
-                await updateDoc(doc(db,'users',this.user.uid,'financeV3','config'), {fixed: arr});
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'), {fixed: arr});
                 this.closeModal(); UI.toast('Eliminado');
             },
 
@@ -715,11 +718,11 @@
                 if(!name || !amt || !date) return UI.toast('Completa todo', 'err');
 
                 const batch = writeBatch(db);
-                const configRef = doc(db, 'users', this.user.uid, 'financeV3', 'config');
+                const configRef = doc(db, 'users', this.user.uid, 'finance', 'data');
                 
                 // Si es nuevo, agregamos el dinero a la billetera hoy
                 if (this.editIdx === null) {
-                    const txRef = doc(collection(db, 'users', this.user.uid, 'financeV3', 'txs'));
+                    const txRef = doc(collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions'));
                     batch.set(txRef, {
                         amount: amt,
                         desc: `Préstamo: ${name}`,
@@ -746,23 +749,23 @@
             async delLoan() {
                 // Eliminar deuda (Ya pagué)
                 const arr = this.data.activeLoans.filter((_,i)=>i!==this.editIdx);
-                await updateDoc(doc(db,'users',this.user.uid,'financeV3','config'), {activeLoans: arr});
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'), {activeLoans: arr});
                 this.closeModal(); UI.toast('Deuda saldada/eliminada');
             },
 
             async saveConfig() {
                 const i1 = parseFloat(document.getElementById('inpIncome1').value);
                 const i2 = parseFloat(document.getElementById('inpIncome2').value);
-                await updateDoc(doc(db,'users',this.user.uid,'financeV3','config'), {income1: i1, income2: i2});
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'), {income1: i1, income2: i2});
                 UI.toast('Ingresos guardados');
             },
             async saveCycleConfig() {
                 const sd = parseInt(document.getElementById('inpStartDay').value);
-                await updateDoc(doc(db,'users',this.user.uid,'financeV3','config'), {startDay: sd});
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'), {startDay: sd});
                 UI.toast('Día de inicio actualizado');
             },
             async setCycle(c) {
-                await updateDoc(doc(db,'users',this.user.uid,'financeV3','config'), {cycle: c});
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'), {cycle: c});
             },
 
             switchView(v) { UI.toggleNav(v); },
