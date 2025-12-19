@@ -523,25 +523,47 @@
 
             <!-- Formulario Configuración -->
             <div id="formConfig" class="hidden space-y-4 pb-4">
-                <p class="text-zinc-400 text-xs text-center mb-4">Define cómo y cuándo recibes tus ingresos.</p>
+                <p class="text-zinc-400 text-xs text-center mb-4">Elige tu esquema de pagos:</p>
+                
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
-                        <i class="ph-bold ph-calendar-check text-3xl text-emerald-500 mb-2"></i>
-                        <div class="font-bold text-sm text-white">Quincenal</div>
-                        <div class="text-[10px] text-zinc-500 mt-1">2 Pagos al mes</div>
+                    <!-- Opción 5 y 20 -->
+                    <button onclick="app.setCycleMode('biweekly_5')" id="btnCycle5_20" class="cycle-btn border border-zinc-700 p-4 rounded-2xl text-center transition-colors active:scale-95 flex flex-col items-center justify-center gap-2">
+                        <div class="flex gap-1">
+                            <span class="w-6 h-6 rounded bg-zinc-800 flex items-center justify-center text-xs font-bold text-white">5</span>
+                            <span class="w-6 h-6 rounded bg-zinc-800 flex items-center justify-center text-xs font-bold text-white">20</span>
+                        </div>
+                        <div class="font-bold text-xs text-zinc-300">5 y 20</div>
                     </button>
-                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
-                        <i class="ph-bold ph-calendar text-3xl text-blue-500 mb-2"></i>
-                        <div class="font-bold text-sm text-white">Mensual</div>
-                        <div class="text-[10px] text-zinc-500 mt-1">Pago único (Día 1)</div>
+
+                    <!-- Opción 15 y Fin -->
+                    <button onclick="app.setCycleMode('biweekly_15')" id="btnCycle15_End" class="cycle-btn border border-zinc-700 p-4 rounded-2xl text-center transition-colors active:scale-95 flex flex-col items-center justify-center gap-2">
+                        <div class="flex gap-1">
+                            <span class="w-6 h-6 rounded bg-zinc-800 flex items-center justify-center text-xs font-bold text-white">15</span>
+                            <span class="w-6 h-6 rounded bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-white leading-tight">Fin</span>
+                        </div>
+                        <div class="font-bold text-xs text-zinc-300">15 y Fin de Mes</div>
+                    </button>
+
+                    <!-- Opción Manual -->
+                    <button onclick="app.setCycleMode('biweekly_manual')" id="btnCycleManual" class="cycle-btn border border-zinc-700 p-4 rounded-2xl text-center transition-colors active:scale-95 flex flex-col items-center justify-center gap-2">
+                        <i class="ph-bold ph-sliders text-2xl text-zinc-500"></i>
+                        <div class="font-bold text-xs text-zinc-300">Manual</div>
+                    </button>
+
+                    <!-- Opción Mensual -->
+                    <button onclick="app.setCycleMode('monthly')" id="btnCycleMonthly" class="cycle-btn border border-zinc-700 p-4 rounded-2xl text-center transition-colors active:scale-95 flex flex-col items-center justify-center gap-2">
+                        <i class="ph-bold ph-calendar text-2xl text-blue-500"></i>
+                        <div class="font-bold text-xs text-zinc-300">Mensual</div>
                     </button>
                 </div>
-                <div id="customStartDayDiv" class="hidden mt-6">
-                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block" id="lblStartDay">Día de Inicio</label>
-                    <input type="number" id="configStartDay" class="input-modern w-full p-4 mt-1 text-center" placeholder="Día del mes (ej: 1, 5, 15)" value="1" min="1" max="28">
-                    <p class="text-[10px] text-zinc-600 mt-2 text-center">Si eliges 10, tus cortes serán 10 y 25.</p>
+
+                <div id="customStartDayDiv" class="hidden mt-4 bg-zinc-900/50 p-4 rounded-xl border border-zinc-800 animate-fade-in">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block text-center" id="lblStartDay">Día de Inicio</label>
+                    <input type="number" id="configStartDay" class="bg-zinc-950 border border-zinc-700 rounded-lg py-3 px-4 text-center text-white font-bold w-full focus:border-white transition-colors outline-none" placeholder="Ej: 1" value="1" min="1" max="30">
+                    <p class="text-[10px] text-zinc-600 mt-2 text-center" id="lblStartHelp">Define el primer día de cobro.</p>
                 </div>
-                <div class="mt-6 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+
+                <div class="mt-4 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
                     <div>
                         <div class="text-sm font-bold text-white">Módulo Adherencia</div>
                         <div class="text-xs text-zinc-500">Mostrar panel de horas extras</div>
@@ -1323,10 +1345,25 @@
                     document.getElementById('btnDeleteLoan').classList.toggle('hidden', id===null);
                 }
                 else if (type === 'config') {
-                    document.getElementById('formConfig').classList.remove('hidden'); title.textContent = 'Configuración Ciclo';
-                    const currentMode = this.data.cycle || 'biweekly';
-                    this.setCycleMode(currentMode);
-                    document.getElementById('configStartDay').value = this.data.startDay || 1;
+                    document.getElementById('formConfig').classList.remove('hidden'); 
+                    title.textContent = 'Configuración Ciclo';
+                    
+                    // Determine current mode from data
+                    const currentCycle = this.data.cycle || 'biweekly';
+                    const currentStart = this.data.startDay || 1;
+                    
+                    let targetMode = 'biweekly_manual';
+                    if (currentCycle === 'monthly') {
+                        targetMode = 'monthly';
+                    } else {
+                        // Biweekly checks
+                        if (currentStart === 5) targetMode = 'biweekly_5';
+                        else if (currentStart === 15) targetMode = 'biweekly_15';
+                        else targetMode = 'biweekly_manual';
+                    }
+                    
+                    document.getElementById('configStartDay').value = currentStart;
+                    this.setCycleMode(targetMode);
                 }
             },
             closeModal() { document.getElementById('modalOverlay').classList.remove('is-open'); },
@@ -1401,26 +1438,69 @@
                 UI.toast('Ingresos actualizados','success');
             },
             setCycleMode(mode) {
-                this.tempCycle = mode;
-                document.getElementById('btnCycleBi').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95 ${mode==='biweekly' ? 'border-emerald-500 bg-emerald-500/10' : 'border-zinc-700'}`;
-                document.getElementById('btnCycleMo').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95 ${mode==='monthly' ? 'border-blue-500 bg-blue-500/10' : 'border-zinc-700'}`;
+                this.tempCycleMode = mode;
+                
+                // Reset all buttons
+                document.querySelectorAll('.cycle-btn').forEach(btn => {
+                    btn.classList.remove('border-emerald-500', 'bg-emerald-500/10', 'border-blue-500', 'bg-blue-500/10', 'border-white');
+                    btn.classList.add('border-zinc-700');
+                });
+
                 const div = document.getElementById('customStartDayDiv');
-                div.classList.remove('hidden');
                 const lbl = document.getElementById('lblStartDay');
-                if(mode === 'biweekly') {
-                    lbl.textContent = 'Día Inicio 1er Periodo';
-                    div.querySelector('p').textContent = 'El segundo periodo iniciará 15 días después.';
-                } else {
-                    lbl.textContent = 'Día de Corte / Inicio Mes';
-                    div.querySelector('p').textContent = 'Tu mes financiero iniciará en este día.';
+                const help = document.getElementById('lblStartHelp');
+                
+                div.classList.add('hidden'); // Hide by default
+
+                if (mode === 'biweekly_5') {
+                    document.getElementById('btnCycle5_20').classList.add('border-emerald-500', 'bg-emerald-500/10');
+                    document.getElementById('btnCycle5_20').classList.remove('border-zinc-700');
+                    this.tempStartDay = 5;
+                    this.tempCycleType = 'biweekly';
+                } 
+                else if (mode === 'biweekly_15') {
+                    document.getElementById('btnCycle15_End').classList.add('border-emerald-500', 'bg-emerald-500/10');
+                    document.getElementById('btnCycle15_End').classList.remove('border-zinc-700');
+                    this.tempStartDay = 15;
+                    this.tempCycleType = 'biweekly';
+                }
+                else if (mode === 'biweekly_manual') {
+                    document.getElementById('btnCycleManual').classList.add('border-white', 'bg-white/5');
+                    document.getElementById('btnCycleManual').classList.remove('border-zinc-700');
+                    div.classList.remove('hidden');
+                    lbl.textContent = 'Día de Inicio (Quincenal)';
+                    help.textContent = 'Ej: Si pones 1, cortes serán 1 y 16.';
+                    this.tempCycleType = 'biweekly';
+                    // We don't set tempStartDay here, we read from input on save
+                }
+                else if (mode === 'monthly') {
+                    document.getElementById('btnCycleMonthly').classList.add('border-blue-500', 'bg-blue-500/10');
+                    document.getElementById('btnCycleMonthly').classList.remove('border-zinc-700');
+                    div.classList.remove('hidden');
+                    lbl.textContent = 'Día de Cobro (Mensual)';
+                    help.textContent = 'Tu mes financiero inicia este día.';
+                    this.tempCycleType = 'monthly';
                 }
             },
             async saveCycleConfig() {
-                const mode = this.tempCycle || this.data.cycle || 'biweekly';
-                const startDay = parseInt(document.getElementById('configStartDay').value) || 1;
-                // NEW PATH
-                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{cycle: mode, startDay: startDay});
-                UI.toast('Ciclo actualizado','success'); this.closeModal();
+                const mode = this.tempCycleMode || 'biweekly_5'; // Default fallback
+                let startDay = 1;
+                let cycle = 'biweekly';
+
+                if (mode === 'biweekly_5') { startDay = 5; cycle = 'biweekly'; }
+                else if (mode === 'biweekly_15') { startDay = 15; cycle = 'biweekly'; }
+                else if (mode === 'biweekly_manual') { 
+                    startDay = parseInt(document.getElementById('configStartDay').value) || 1; 
+                    cycle = 'biweekly'; 
+                }
+                else if (mode === 'monthly') { 
+                    startDay = parseInt(document.getElementById('configStartDay').value) || 1; 
+                    cycle = 'monthly'; 
+                }
+
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{ cycle: cycle, startDay: startDay });
+                UI.toast('Ciclo actualizado','success'); 
+                this.closeModal();
             },
             // NEW PATHS FOR DELETIONS
             async deleteTxConfirm() { if(await UI.confirm('Borrar','¿Eliminar esta transacción?')) { await deleteDoc(doc(db,'users',this.user.uid,'finance','data','transactions',this.editId)); this.closeModal(); } },
