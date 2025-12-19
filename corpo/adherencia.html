@@ -1130,10 +1130,52 @@
                 if(s) l.classList.remove('hidden'); else l.classList.add('hidden');
             }
         };
+        
+        // --- EVENT LISTENER PARA LA EXTENSIÓN (GOD'S PLAN CONNECTOR) ---
+        // Este bloque escucha los mensajes de la extensión y ejecuta las acciones en la app
+        window.addEventListener("message", (event) => {
+            // 1. Filtro de seguridad: Solo aceptar mensajes de la extensión
+            if (event.data.type !== "GODSPLAN_COMMAND") return;
+        
+            console.log("Web God's Plan: Comando recibido del Content Script:", event.data.action);
+        
+            const action = event.data.action;
+        
+            // 2. Ejecutar la lógica de tu web según la acción
+            switch(action) {
+                case 'RESUME_WORK':
+                    // Lógica inteligente: Si ya hay turno activo, solo paramos el break.
+                    // Si NO hay turno, iniciamos uno nuevo (Clock In).
+                    if (window.app.data.activeShift) {
+                        window.app.stopBreak();
+                    } else {
+                        window.app.clockIn();
+                    }
+                    break;
+                    
+                case 'START_BREAK_FOOD':
+                    // Si intentan ir a comer sin haber iniciado turno, iniciamos turno primero
+                    if (!window.app.data.activeShift) window.app.clockIn();
+                    window.app.startBreak('food');
+                    break;
+                    
+                case 'START_BREAK_BATH':
+                    if (!window.app.data.activeShift) window.app.clockIn();
+                    window.app.startBreak('bathroom');
+                    break;
+                    
+                case 'END_SHIFT':
+                    // Finalizar turno real (guardar log y detener contador)
+                    if (window.app.data.activeShift) window.app.finishShiftReal();
+                    break;
+                    
+                default:
+                    console.log("Acción desconocida:", action);
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', () => window.app.init());
     </script>
 </body>
 
 </html>
-
-
