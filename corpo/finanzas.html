@@ -219,7 +219,9 @@
                                 <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mb-1 group-hover:text-red-500 transition-colors">
                                     CICLO ACTUAL <i class="ph-bold ph-gear inline align-middle ml-1"></i>
                                 </p>
-                                <h2 class="text-base font-bold text-white flex items-center gap-2" id="periodDates">Cargando...</h2>
+                                <div id="periodDates" class="min-h-[20px] flex items-center">
+                                    <h2 class="text-base font-bold text-white flex items-center gap-2">Cargando...</h2>
+                                </div>
                             </div>
                             <div id="daysLeftBadge" class="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full font-mono font-bold whitespace-nowrap shadow-[0_0_10px_rgba(239,68,68,0.1)]">
                                 -- Días
@@ -1015,7 +1017,7 @@
                 actualStart.setHours(0,0,0,0);
                 actualEnd.setHours(23,59,59,999);
 
-                return { start: actualStart, end: actualEnd, isQ2 };
+                return { start: actualStart, end: actualEnd, isQ2, paymentDate: actualNextPay };
             },
             calcPeriod() {
                 const now = new Date();
@@ -1024,8 +1026,20 @@
                 const elapsed = now - cycle.start;
                 const progress = Math.min(100, Math.max(0, (elapsed / totalMs) * 100));
                 const daysLeft = Math.ceil((cycle.end - now) / (86400000));
-                this.currentPeriod = { start: cycle.start, end: cycle.end, daysLeft: Math.max(1, daysLeft), progress };
-                document.getElementById('periodDates').innerHTML = `<span class="text-zinc-400 text-sm font-normal">${cycle.start.getDate()} ${cycle.start.toLocaleString('es',{month:'short'})}</span> <i class="ph-bold ph-arrow-right text-zinc-600 text-xs"></i> <span class="text-white text-sm">${cycle.end.getDate()} ${cycle.end.toLocaleString('es',{month:'short'})}</span>`;
+                this.currentPeriod = { start: cycle.start, end: cycle.end, daysLeft: Math.max(1, daysLeft), progress, isQ2: cycle.isQ2 };
+                
+                const payDateStr = cycle.paymentDate.toLocaleDateString('es-MX', {weekday: 'short', day: 'numeric'});
+                document.getElementById('periodDates').innerHTML = `
+                    <div class="flex flex-col justify-center h-full">
+                        <div class="flex items-center gap-2">
+                            <span class="text-zinc-400 text-sm font-normal">${cycle.start.getDate()} ${cycle.start.toLocaleString('es',{month:'short'})}</span>
+                            <i class="ph-bold ph-arrow-right text-zinc-600 text-xs"></i>
+                            <span class="text-white text-sm">${cycle.end.getDate()} ${cycle.end.toLocaleString('es',{month:'short'})}</span>
+                        </div>
+                        <div class="text-[9px] text-zinc-500 font-mono mt-0.5 uppercase tracking-wide">Cobro: ${payDateStr}</div>
+                    </div>
+                `;
+                
                 document.getElementById('daysLeftBadge').textContent = `Faltan ${this.currentPeriod.daysLeft} días`;
                 document.getElementById('periodProgress').style.width = `${progress}%`;
                 this.calcBalance();
