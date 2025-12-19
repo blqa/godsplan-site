@@ -164,7 +164,7 @@
                 </div>
                 <div class="flex flex-col justify-center">
                     <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
-                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v2.5</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v2.6</span>
                 </div>
             </a>
 
@@ -805,9 +805,9 @@
                 const roleLabel = document.getElementById('user-role');
                 
                 if (this.user) {
-                     badge.classList.remove('hidden'); 
-                     badge.classList.add('flex');
-                     nameLabel.textContent = this.user.displayName || this.user.email.split('@')[0];
+                      badge.classList.remove('hidden'); 
+                      badge.classList.add('flex');
+                      nameLabel.textContent = this.user.displayName || this.user.email.split('@')[0];
                 } else {
                     badge.classList.add('hidden'); 
                     badge.classList.remove('flex');
@@ -963,42 +963,59 @@
                 const m = d.getMonth();
                 const y = d.getFullYear();
                 const startDay = this.data.startDay || 1;
-                let start, end;
-                let isQ2 = false;
                 
-                // 1. Calcular fechas teóricas
+                let currentCycleStart;
+                let nextCycleTheoreticalStart;
+                let isQ2 = false;
+
+                // --- 1. Determinar Fechas CRUDAS (Teóricas) ---
                 if (this.data.cycle === 'monthly') {
                     if (day >= startDay) {
-                        start = new Date(y, m, startDay);
-                        end = new Date(y, m + 1, startDay - 1);
+                        currentCycleStart = new Date(y, m, startDay);
+                        nextCycleTheoreticalStart = new Date(y, m + 1, startDay);
                     } else {
-                        start = new Date(y, m - 1, startDay);
-                        end = new Date(y, m, startDay - 1);
+                        currentCycleStart = new Date(y, m - 1, startDay);
+                        nextCycleTheoreticalStart = new Date(y, m, startDay);
                     }
                 } else {
+                    // Lógica Quincenal
                     const midDay = startDay + 15;
                     if (day >= startDay && day < midDay) {
-                        start = new Date(y, m, startDay);
-                        end = new Date(y, m, midDay - 1);
+                        // Q1 (ej: 5 al 19)
+                        currentCycleStart = new Date(y, m, startDay);
+                        nextCycleTheoreticalStart = new Date(y, m, midDay);
                     } else {
-                        if (day >= midDay) {
-                            start = new Date(y, m, midDay);
-                            end = new Date(y, m + 1, startDay - 1);
-                        } else {
-                            start = new Date(y, m - 1, midDay);
-                            end = new Date(y, m, startDay - 1);
-                        }
+                        // Q2 (ej: 20 al 4 del sig mes)
                         isQ2 = true;
+                        if (day >= midDay) {
+                             // Finales de mes
+                             currentCycleStart = new Date(y, m, midDay);
+                             nextCycleTheoreticalStart = new Date(y, m + 1, startDay);
+                        } else {
+                             // Principios de mes (pertenece a Q2 del mes anterior)
+                             currentCycleStart = new Date(y, m - 1, midDay);
+                             nextCycleTheoreticalStart = new Date(y, m, startDay);
+                        }
                     }
                 }
 
-                // 2. Aplicar inteligencia de días hábiles
-                start = this.getNextBusinessDay(start);
-                end = this.getNextBusinessDay(end);
+                // --- 2. Aplicar Lógica de Días Hábiles ---
+                // El inicio real del ciclo actual puede haberse movido por fin de semana
+                const actualStart = this.getNextBusinessDay(currentCycleStart);
+                
+                // Lo más importante: El siguiente pago REAL
+                const actualNextPay = this.getNextBusinessDay(nextCycleTheoreticalStart);
 
-                start.setHours(0,0,0,0);
-                end.setHours(23,59,59,999);
-                return { start, end, isQ2 };
+                // --- 3. Calcular Fin del Ciclo Actual ---
+                // El ciclo termina UN DÍA ANTES de que caiga el siguiente pago real
+                const actualEnd = new Date(actualNextPay);
+                actualEnd.setDate(actualEnd.getDate() - 1);
+                
+                // Ajustar horas para comparación exacta
+                actualStart.setHours(0,0,0,0);
+                actualEnd.setHours(23,59,59,999);
+
+                return { start: actualStart, end: actualEnd, isQ2 };
             },
             calcPeriod() {
                 const now = new Date();
@@ -1049,9 +1066,9 @@
                 }, 0);
                 let baseInc = parseFloat(this.data.income) || 0;
                 if (this.data.cycle === 'biweekly') {
-                    const pStartDay = this.currentPeriod.start.getDate();
-                    const triggerQ2 = (this.data.startDay || 1) + 14;
-                    if (pStartDay >= triggerQ2) { baseInc = parseFloat(this.data.incomeQ2) || baseInc; }
+                    // Logic for Q2 check adjusted slightly for business days
+                    // We assume baseInc is for the CURRENT period detected
+                    if (this.currentPeriod.isQ2) { baseInc = parseFloat(this.data.incomeQ2) || baseInc; }
                 }
                 const liquidIncome = (baseInc + extraInc);
                 const remainingTotal = liquidIncome - fixedReserve - totalLoans - totalSpentInCycle;
@@ -1181,7 +1198,10 @@
                                 <div class="flex items-center gap-3 overflow-hidden">
                                     <div class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform md:bg-black"><i class="ph-fill ${icon} ${color} text-xl"></i></div>
                                     <div class="min-w-0">
-                                        <h4 class="font-bold text-zinc-300 text-sm truncate flex items-center">${l.desc || l.category || 'Movimiento'} ${isFixedLink}</h4>
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="font-bold text-zinc-300 text-sm truncate flex items-center">${l.desc || l.category || 'Movimiento'} ${isFixedLink}</h4>
+                                            <button onclick="event.stopPropagation(); app.setFilterDate('${l.date.split('T')[0]}')" class="md:hidden text-zinc-600 hover:text-white transition-colors"><i class="ph-bold ph-funnel text-xs"></i></button>
+                                        </div>
                                         <p class="text-xs text-zinc-500">${time}</p>
                                     </div>
                                 </div>
