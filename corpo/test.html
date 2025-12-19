@@ -71,7 +71,7 @@
         /* UTILIDADES VISUALES */
         .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
         .glass-highlight { background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.08); }
-        .glass-nav { background: rgba(5, 5, 5, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: var(--sab); }
+        .glass-nav { background: rgba(5, 5, 5, 0.98); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: max(10px, var(--sab)); height: calc(70px + var(--sab)); }
 
         .input-modern { background: #09090b; border: 1px solid #27272a; color: white; border-radius: 16px; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); font-size: 16px !important; }
         .input-modern:focus { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); outline: none; background: #18181b; }
@@ -96,7 +96,7 @@
             #modalOverlay.is-open #modalSheet { transform: scale(1); opacity: 1; }
         }
 
-        .nav-link-desk { color: #71717a; padding: 6px 16px; border-radius: 99px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s; }
+        .nav-link-desk { color: #71717a; padding: 6px 16px; border-radius: 99px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s; cursor: pointer; }
         .nav-link-desk:hover { color: white; background: rgba(255,255,255,0.05); }
         .nav-link-desk.active { color: white; background: #27272a; }
 
@@ -108,32 +108,34 @@
         .auth-switch button.active { color: white; }
         .auth-switch-glider { position: absolute; top: 4px; left: 4px; height: calc(100% - 8px); width: calc(50% - 4px); background: #27272a; border-radius: 8px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.1); }
         .auth-mode-register .auth-switch-glider { transform: translateX(100%); }
+
+        /* Screen Transitions */
+        section { animation: fadeIn 0.4s ease-out; }
     </style>
 </head>
 
-<body class="bg-[#050505] text-[#e5e5e5] font-sans pb-24 pt-20 text-sm font-normal">
+<body class="bg-[#050505] text-[#e5e5e5] font-sans pb-28 pt-20 text-sm font-normal">
 
     <!-- HEADER FIJO -->
     <nav class="fixed top-0 left-0 w-full z-[100] border-b border-white/5 bg-[rgba(0,0,0,0.9)] backdrop-blur-md h-20 flex items-center shadow-lg transition-all duration-300">
         <div class="w-full max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center h-full">
-            <a href="/corpo/index.html" class="flex items-center gap-3 group">
+            <a href="#" class="flex items-center gap-3 group">
                 <div class="relative w-9 h-9 flex items-center justify-center">
                     <div class="absolute inset-0 bg-brand rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
                     <i class="ph-fill ph-planet text-3xl text-brand relative z-10"></i>
                 </div>
                 <div class="flex flex-col justify-center">
                     <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
-                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v3.0</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v4.0</span>
                 </div>
             </a>
 
             <!-- Navegación Central (Desktop) -->
             <div class="hidden md:flex items-center bg-white/5 rounded-full p-1 border border-white/5">
-                <a href="/corpo/adherencia.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">ADHERENCIA</a>
-                <a href="/corpo/finanzas.html" class="px-4 py-1.5 rounded-full bg-brand text-white text-xs font-bold tracking-wide shadow-lg shadow-brand/20 transition-all">FINANZAS</a>
-                <a href="/corpo/chat.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CHAT</a>
-                <a href="/corpo/casos.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CASOS</a>
-                <a href="/corpo/cuenta.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">CUENTA</a>
+                <div onclick="app.switchView('balance')" class="nav-link-desk active" data-view="balance">BILLETERA</div>
+                <div onclick="app.switchView('loans')" class="nav-link-desk" data-view="loans">PRÉSTAMOS</div>
+                <div onclick="app.switchView('future')" class="nav-link-desk" data-view="future">FUTURO</div>
+                <div onclick="app.switchView('plan')" class="nav-link-desk" data-view="plan">PLANIFICACIÓN</div>
             </div>
 
             <!-- User Badge -->
@@ -146,10 +148,6 @@
                     <i class="ph-bold ph-power text-lg group-hover:scale-110 transition-transform"></i>
                 </button>
             </div>
-            
-            <button class="md:hidden w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-white transition-colors" onclick="window.app.openNavModal()">
-                 <i class="ph-bold ph-list text-lg"></i>
-            </button>
         </div>
     </nav>
 
@@ -158,14 +156,8 @@
         <input type="file" id="importFile" accept=".json" class="hidden">
         
         <div class="w-full max-w-lg md:max-w-6xl mx-auto h-full pt-4 md:pt-8">
-            <div class="hidden md:flex justify-center mb-8 fade-in">
-                <div class="bg-zinc-900/80 border border-white/10 p-1.5 rounded-full flex items-center gap-1 shadow-lg backdrop-blur-sm">
-                    <button onclick="app.switchView('balance')" class="nav-link-desk active px-5" data-view="balance">Billetera</button>
-                    <button onclick="app.switchView('plan')" class="nav-link-desk px-5" data-view="plan">Planificación</button>
-                </div>
-            </div>
 
-            <!-- VISTA: BALANCE -->
+            <!-- VISTA 1: BILLETERA (HOME) -->
             <section id="view-balance" class="p-4 sm:p-0 fade-in">
                 <div class="grid grid-cols-1 md:grid-cols-12 md:gap-8 items-start">
                     <div class="md:col-span-5 lg:col-span-4 md:sticky md:top-24">
@@ -206,7 +198,7 @@
                                         </button>
                                     </div>
                                     <div class="flex justify-between items-center mb-4">
-                                        <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-2"><i class="ph-fill ph-magic-wand"></i> Simulador &amp; Extras</div>
+                                        <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-2"><i class="ph-fill ph-magic-wand"></i> Simulador & Extras</div>
                                         <div class="flex items-center gap-2">
                                             <span class="text-[9px] font-bold text-zinc-500 uppercase">Simular</span>
                                             <div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
@@ -280,135 +272,76 @@
                 </div>
             </section>
 
-            <!-- VISTA: PLAN -->
-            <section id="view-plan" class="p-4 sm:p-0 hidden fade-in max-w-5xl mx-auto pb-24">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-black text-white mb-2">Planificación</h2>
-                    <p class="text-zinc-500 text-sm">Gestiona tus ingresos y gastos fijos.</p>
+            <!-- VISTA 2: PRÉSTAMOS (LOANS) -->
+            <section id="view-loans" class="hidden p-4 sm:p-0 fade-in max-w-5xl mx-auto h-[70vh] flex flex-col justify-center items-center text-center">
+                <div class="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center mb-6 border border-zinc-800">
+                    <i class="ph-fill ph-hand-coins text-4xl text-zinc-600"></i>
                 </div>
+                <h2 class="text-3xl font-black text-white mb-2">Gestión de Préstamos</h2>
+                <p class="text-zinc-500 text-sm max-w-xs mx-auto">Controla tus deudas y créditos en un solo lugar. Próximamente disponible.</p>
+            </section>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- COLUMNA IZQUIERDA -->
-                    <div class="space-y-6">
-                        <div class="glass p-6 rounded-3xl relative overflow-hidden group">
-                            <div class="absolute top-0 right-0 p-4 opacity-10 text-emerald-500"><i class="ph-fill ph-money text-6xl"></i></div>
-                            <div class="flex items-center gap-3 mb-6 relative z-10">
-                                <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500"><i class="ph-bold ph-wallet text-xl"></i></div>
-                                <h3 class="text-lg font-bold text-white">Ingresos Base</h3>
-                            </div>
-                            <div class="space-y-5 relative z-10">
-                                <div>
-                                    <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 block" id="lblIncome1">Ingreso Mensual / Q1</label>
-                                    <div class="relative group">
-                                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold group-focus-within:text-emerald-500 transition-colors">$</span>
-                                        <input type="number" id="inpIncome" inputmode="decimal" class="w-full bg-zinc-900/50 border border-zinc-700 rounded-xl py-3 pl-8 pr-4 font-bold text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder-zinc-700" placeholder="0.00" onblur="app.saveConfig()">
-                                    </div>
-                                </div>
-                                <div id="divIncomeQ2" class="hidden pt-2 border-t border-zinc-800">
-                                    <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Ingreso Q2 (Opcional)</label>
-                                    <div class="relative group">
-                                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold group-focus-within:text-emerald-500 transition-colors">$</span>
-                                        <input type="number" id="inpIncomeQ2" inputmode="decimal" class="w-full bg-zinc-900/50 border border-zinc-700 rounded-xl py-3 pl-8 pr-4 font-bold text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder-zinc-700" placeholder="Igual al Q1" onblur="app.saveConfig()">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            <!-- VISTA 3: FUTURO (FUTURE) -->
+            <section id="view-future" class="hidden p-4 sm:p-0 fade-in max-w-5xl mx-auto h-[70vh] flex flex-col justify-center items-center text-center">
+                <div class="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center mb-6 border border-zinc-800">
+                    <i class="ph-fill ph-chart-line-up text-4xl text-zinc-600"></i>
+                </div>
+                <h2 class="text-3xl font-black text-white mb-2">Proyecciones</h2>
+                <p class="text-zinc-500 text-sm max-w-xs mx-auto">Visualiza tu crecimiento financiero a largo plazo. Próximamente disponible.</p>
+            </section>
 
-                        <div class="glass p-6 rounded-3xl">
-                            <div class="flex justify-between items-center mb-6">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-500"><i class="ph-bold ph-calendar-check text-xl"></i></div>
-                                    <div><h3 class="text-lg font-bold text-white">Gastos Fijos</h3><p class="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Recurrentes</p></div>
-                                </div>
-                                <button onclick="app.openModal('fixed')" class="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center transition-colors active:scale-90"><i class="ph-bold ph-plus"></i></button>
-                            </div>
-                            <div id="fixedExpensesList" class="space-y-3"></div>
-                        </div>
-                    </div>
-
-                    <!-- COLUMNA DERECHA -->
-                    <div class="space-y-6">
-                        <div class="glass-highlight p-6 rounded-3xl relative overflow-hidden">
-                            <div class="absolute inset-0 bg-gradient-to-br from-zinc-900/50 to-transparent"></div>
-                            <div class="relative z-10">
-                                <h3 class="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Resumen Fijos</h3>
-                                <div class="flex justify-between items-center mb-4">
-                                    <span class="text-sm text-zinc-300">Total Gastos Fijos</span>
-                                    <span id="summaryFixed" class="font-bold text-white text-lg font-mono">---</span>
-                                </div>
-                                <div class="mt-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-xs font-bold text-red-400 uppercase">Comprometido</span>
-                                        <span id="totalObligations" class="font-black text-red-500 text-xl font-mono">---</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-6 rounded-3xl bg-zinc-900/30 border border-zinc-800/50">
-                            <div class="grid grid-cols-2 gap-3 mb-4">
-                                <button onclick="app.exportData()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-3 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 active:scale-95">
-                                    <i class="ph-bold ph-upload-simple"></i> EXPORTAR
-                                </button>
-                                <button onclick="app.triggerImport()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-3 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 active:scale-95">
-                                    <i class="ph-bold ph-download-simple"></i> IMPORTAR
-                                </button>
-                            </div>
-                            <button onclick="app.resetData()" class="w-full py-3 rounded-xl border border-red-900/30 text-red-500 text-xs font-bold hover:bg-red-900/10 transition-colors flex items-center justify-center gap-2 active:scale-95">
-                                <i class="ph-bold ph-trash"></i> RESETEAR DATOS
-                            </button>
-                        </div>
-                    </div>
+            <!-- VISTA 4: PLANIFICACIÓN (PLAN) -->
+            <section id="view-plan" class="hidden p-4 sm:p-0 fade-in max-w-5xl mx-auto pb-24 h-[70vh] flex flex-col justify-center items-center text-center">
+                <div class="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center mb-6 border border-zinc-800">
+                    <i class="ph-fill ph-gear text-4xl text-zinc-600"></i>
+                </div>
+                <h2 class="text-3xl font-black text-white mb-2">Planificación</h2>
+                <p class="text-zinc-500 text-sm max-w-xs mx-auto">Configura tus ingresos fijos y gastos recurrentes. Próximamente disponible.</p>
+                
+                <!-- 
+                     NOTA: He comentado el contenido antiguo para que no sea visible, 
+                     cumpliendo el requisito de "pantalla vacía", pero el HTML sigue aquí 
+                     para referencia futura si necesitas restaurar lógica. 
+                -->
+                <div id="legacy-plan-content" class="hidden">
+                    <!-- Contenido antiguo oculto -->
+                    <input type="number" id="inpIncome">
+                    <input type="number" id="inpIncomeQ2">
+                    <div id="fixedExpensesList"></div>
+                    <span id="summaryFixed"></span>
+                    <span id="totalObligations"></span>
                 </div>
             </section>
+
         </div>
     </main>
 
-    <!-- FAB (MÓVIL) -->
-    <div id="fabContainer" class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40">
-        <button onclick="app.openModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
+    <!-- FAB (MÓVIL) - Lo mantengo centrado por encima de la barra -->
+    <div id="fabContainer" class="md:hidden fixed bottom-[calc(85px+var(--sab))] left-1/2 -translate-x-1/2 z-40 transition-transform duration-300">
+        <button onclick="app.openModal('expense')" class="w-14 h-14 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[4px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
             <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
-            <i class="ph-bold ph-plus text-3xl group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
+            <i class="ph-bold ph-plus text-2xl group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
         </button>
     </div>
 
-    <!-- NAV INFERIOR - MÓVIL -->
-    <div class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-2 z-50 pb-2">
+    <!-- NAV INFERIOR - MÓVIL (4 SECCIONES) -->
+    <div class="md:hidden glass-nav fixed bottom-0 w-full grid grid-cols-4 z-50">
         <button class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('balance', this)">
             <div class="relative p-1"><i class="ph-fill ph-wallet text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
-            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Balance</span>
+            <span class="text-[9px] font-bold group-[.active]:text-red-500 transition-colors">Billetera</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('loans', this)">
+            <div class="relative p-1"><i class="ph-fill ph-hand-coins text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[9px] font-bold group-[.active]:text-red-500 transition-colors">Préstamos</span>
+        </button>
+        <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('future', this)">
+            <div class="relative p-1"><i class="ph-fill ph-chart-line-up text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[9px] font-bold group-[.active]:text-red-500 transition-colors">Futuro</span>
         </button>
         <button class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" onclick="app.switchView('plan', this)">
-            <div class="relative p-1"><i class="ph-fill ph-sliders-horizontal text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
-            <span class="text-[10px] font-bold group-[.active]:text-red-500 transition-colors">Plan</span>
+            <div class="relative p-1"><i class="ph-fill ph-gear text-xl group-[.active]:text-red-500 transition-colors duration-300"></i></div>
+            <span class="text-[9px] font-bold group-[.active]:text-red-500 transition-colors">Plan</span>
         </button>
-    </div>
-
-    <!-- MODAL DE NAVEGACIÓN MÓVIL -->
-    <div class="modal fixed inset-0 w-screen h-screen z-[1000] hidden bg-black/80 backdrop-blur-sm" id="navModal" onclick="window.app.closeModalById('navModal')">
-        <div class="absolute bottom-0 left-0 w-full bg-card rounded-t-2xl p-6 border-t border-border animate-slide-up" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center mb-6">
-                <span class="font-bold text-lg text-text">Navegación</span>
-                 <button onclick="window.app.closeModalById('navModal')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-text-mute hover:text-text"><i class="ph-bold ph-x text-lg"></i></button>
-            </div>
-            <div class="grid gap-3">
-                <a href="/corpo/index.html" class="p-3.5 rounded-xl bg-input-bg border border-border hover:bg-white/5 text-text-mute hover:text-text font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
-                    <i class="ph-fill ph-check-circle text-lg"></i> ADHERENCIA
-                </a>
-                <a href="#" class="p-3.5 rounded-xl bg-brand/10 text-brand border border-brand/20 font-extrabold flex items-center gap-3 text-sm tracking-wide">
-                    <i class="ph-bold ph-currency-dollar text-lg"></i> FINANZAS
-                </a>
-                <a href="/corpo/chat.html" class="p-3.5 rounded-xl bg-input-bg border border-border hover:bg-white/5 text-text-mute hover:text-text font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
-                    <i class="ph-bold ph-chat-circle-dots text-lg"></i> CHAT
-                </a>
-                <a href="/corpo/casos.html" class="p-3.5 rounded-xl bg-input-bg border border-border hover:bg-white/5 text-text-mute hover:text-text font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
-                    <i class="ph-bold ph-briefcase text-lg"></i> CASOS
-                </a>
-                <a href="/corpo/cuenta.html" class="p-3.5 rounded-xl bg-input-bg border border-border hover:bg-white/5 text-text-mute hover:text-text font-bold flex items-center gap-3 transition-colors text-sm tracking-wide">
-                    <i class="ph-bold ph-user-circle text-lg"></i> CUENTA
-                </a>
-            </div>
-        </div>
     </div>
 
     <!-- MODAL PRINCIPAL FINANZAS -->
@@ -689,8 +622,8 @@
             updateUserUI() {
                 const badge = document.getElementById('user-badge');
                 if (this.user) {
-                     badge.classList.remove('hidden'); badge.classList.add('flex');
-                     document.getElementById('user-name').textContent = this.user.displayName || this.user.email.split('@')[0];
+                      badge.classList.remove('hidden'); badge.classList.add('flex');
+                      document.getElementById('user-name').textContent = this.user.displayName || this.user.email.split('@')[0];
                 } else {
                     badge.classList.add('hidden'); badge.classList.remove('flex');
                 }
@@ -704,10 +637,20 @@
                 onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
                         this.data = { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
-                        document.getElementById('inpIncome').value = this.data.income || '';
-                        document.getElementById('inpIncomeQ2').value = this.data.incomeQ2 || '';
-                        document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
-                        document.getElementById('manualExtraPay').value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
+                        
+                        // Safety checks for elements that might not be in the visible DOM anymore
+                        const inpInc = document.getElementById('inpIncome');
+                        if (inpInc) inpInc.value = this.data.income || '';
+                        
+                        const inpIncQ2 = document.getElementById('inpIncomeQ2');
+                        if (inpIncQ2) inpIncQ2.value = this.data.incomeQ2 || '';
+                        
+                        const adhToggle = document.getElementById('adhToggle');
+                        if (adhToggle) adhToggle.checked = this.data.enableAdherence !== false;
+                        
+                        const extraPayInput = document.getElementById('manualExtraPay');
+                        if (extraPayInput) extraPayInput.value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
+
                         this.renderPlanInputs();
                         this.renderFixed();
                         this.calcPeriod();
@@ -724,8 +667,11 @@
 
             renderPlanInputs() {
                 const isBi = this.data.cycle === 'biweekly';
-                document.getElementById('divIncomeQ2').classList.toggle('hidden', !isBi);
-                document.getElementById('lblIncome1').textContent = isBi ? 'Ingreso 1ra Quincena (Q1)' : 'Ingreso Mensual Base';
+                const divQ2 = document.getElementById('divIncomeQ2');
+                if (divQ2) divQ2.classList.toggle('hidden', !isBi);
+                
+                const lblInc = document.getElementById('lblIncome1');
+                if (lblInc) lblInc.textContent = isBi ? 'Ingreso 1ra Quincena (Q1)' : 'Ingreso Mensual Base';
             },
 
             toggleExtrasMenu() {
@@ -1023,7 +969,10 @@
             },
 
             renderFixed() {
-                const el = document.getElementById('fixedExpensesList'); el.innerHTML='';
+                const el = document.getElementById('fixedExpensesList');
+                if(!el) return;
+                
+                el.innerHTML='';
                 (this.data.fixed || []).sort((a,b)=>a.day-b.day).forEach((f,i) => {
                     el.innerHTML += `
                     <div class="fixed-item-row flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl mb-2 active:scale-[0.99] transition-transform hover:border-zinc-700" data-name="${f.name}">
@@ -1157,8 +1106,12 @@
             },
 
             async saveConfig() {
-                const inc = parseFloat(document.getElementById('inpIncome').value);
-                const incQ2 = parseFloat(document.getElementById('inpIncomeQ2').value);
+                const inpInc = document.getElementById('inpIncome');
+                const inpIncQ2 = document.getElementById('inpIncomeQ2');
+                if (!inpInc) return; 
+
+                const inc = parseFloat(inpInc.value);
+                const incQ2 = parseFloat(inpIncQ2 ? inpIncQ2.value : 0);
                 await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{income:inc, incomeQ2: incQ2});
                 UI.toast('Ingresos actualizados','success');
             },
@@ -1200,14 +1153,23 @@
             },
 
             switchView(v, btnRef) {
+                // Ocultar todas las secciones
                 document.querySelectorAll('section[id^="view-"]').forEach(s => s.classList.add('hidden'));
+                
+                // Mostrar la seleccionada
                 const target = document.getElementById('view-'+v);
                 if(target) target.classList.remove('hidden');
+                
+                // Actualizar estado de botones navegación móvil
                 document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
                 if(btnRef) btnRef.classList.add('active');
+                
+                // Actualizar estado botones navegación desktop
                 document.querySelectorAll('.nav-link-desk').forEach(b => {
                     b.classList.toggle('active', b.dataset.view === v);
                 });
+                
+                // Ajustar el FAB
                 document.getElementById('fabContainer').classList.toggle('scale-0', v !== 'balance');
             },
 
@@ -1281,20 +1243,6 @@
                     UI.toast(`Restaurado con éxito (${restoredCount} txs)`, 'success');
                     setTimeout(() => window.location.reload(), 1500);
                 } catch(e) { console.error(e); UI.toast('Error crítico restaurando datos', 'error'); }
-            },
-            
-            openNavModal() {
-                 const m = document.getElementById('navModal');
-                 m.classList.remove('hidden');
-                 m.classList.add('flex');
-            },
-            
-            closeModalById(id) {
-                const m = document.getElementById(id);
-                if(m) {
-                    m.classList.remove('flex');
-                    m.classList.add('hidden');
-                }
             }
         };
         document.addEventListener('DOMContentLoaded', () => window.app.init());
