@@ -126,7 +126,7 @@
                 </div>
                 <div class="flex flex-col justify-center">
                     <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
-                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v4.1</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v4.2</span>
                 </div>
             </a>
 
@@ -337,8 +337,18 @@
                             <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Préstamos Activos</h3>
                             <span class="text-xs font-bold text-white bg-zinc-800 px-2 py-1 rounded-lg border border-zinc-700" id="totalLoansAmount">$0.00</span>
                         </div>
-                        <div id="loansList" class="space-y-3">
+                        <div id="loansList" class="space-y-3 mb-8">
                             <div class="text-center py-10 text-zinc-700 text-xs italic">Sincronizando lista...</div>
+                        </div>
+
+                        <!-- Lista de Préstamos Pagados -->
+                        <div class="border-t border-white/5 pt-6 px-2">
+                             <div class="mb-4 flex items-center justify-between">
+                                <h3 class="text-xs font-bold text-zinc-600 uppercase tracking-widest"><i class="ph-bold ph-clock-counter-clockwise mr-1"></i> Historial de Pagados</h3>
+                            </div>
+                            <div id="loansHistoryList" class="space-y-3 opacity-60 hover:opacity-100 transition-opacity">
+                                <!-- Historial Renderizado JS -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -680,6 +690,7 @@
             data: { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 },
             logs: [],
             loans: [],
+            paidLoans: [],
             currentPeriod: null,
             searchQuery: '',
             filterDate: null,
@@ -818,14 +829,19 @@
                     this.renderTransactions();
                 });
 
-                // Escuchar Préstamos Activos
+                // Escuchar Todos los Préstamos
                 const qLoans = query(loansRef);
                 onSnapshot(qLoans, (snap) => {
                     const allLoans = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    // Filtrar y ordenar en memoria para evitar índices compuestos
+                    
                     this.loans = allLoans
                         .filter(l => l.status === 'active')
                         .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+                        
+                    this.paidLoans = allLoans
+                        .filter(l => l.status === 'paid')
+                        .sort((a, b) => new Date(b.paidAt || b.deadline) - new Date(a.paidAt || a.deadline));
+
                     this.renderLoans();
                     this.renderFuture(); // Actualizar vista futuro si cambian los préstamos
                 });
@@ -833,10 +849,15 @@
 
             renderLoans() {
                 const list = document.getElementById('loansList');
+                const listHist = document.getElementById('loansHistoryList');
                 const totalLabel = document.getElementById('totalLoansAmount');
+                
                 list.innerHTML = '';
+                listHist.innerHTML = '';
                 
                 let total = 0;
+                
+                // Active Loans
                 if (this.loans.length === 0) {
                     list.innerHTML = '<div class="text-center py-10 text-zinc-700 text-xs italic">No hay préstamos activos.</div>';
                 } else {
@@ -850,8 +871,8 @@
                         let daysColor = diffDays < 3 ? 'text-red-400' : 'text-zinc-500';
 
                         list.innerHTML += `
-                        <div class="flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl">
-                            <div class="flex items-center gap-3">
+                        <div class="flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl group relative overflow-hidden">
+                            <div class="flex items-center gap-3 relative z-10">
                                 <div class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400">
                                     <i class="ph-bold ph-user"></i>
                                 </div>
@@ -860,14 +881,74 @@
                                     <div class="text-[10px] ${daysColor} font-bold uppercase tracking-wider">${daysText}</div>
                                 </div>
                             </div>
-                            <div class="text-right">
-                                <div class="font-bold text-white text-sm">${UI.fmtMoney(loan.amount)}</div>
-                                <div class="text-[10px] text-zinc-600">${new Date(loan.deadline).toLocaleDateString('es-MX', {day:'numeric', month:'short'})}</div>
+                            <div class="flex items-center gap-4 relative z-10">
+                                <div class="text-right">
+                                    <div class="font-bold text-white text-sm">${UI.fmtMoney(loan.amount)}</div>
+                                    <div class="text-[10px] text-zinc-600">${new Date(loan.deadline).toLocaleDateString('es-MX', {day:'numeric', month:'short'})}</div>
+                                </div>
+                                <button onclick="app.payLoan('${loan.id}')" class="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-all active:scale-90 border border-emerald-500/20" title="Pagar Deuda">
+                                    <i class="ph-bold ph-check text-lg"></i>
+                                </button>
                             </div>
                         </div>`;
                     });
                 }
                 totalLabel.textContent = UI.fmtMoney(total);
+
+                // Paid History
+                if (this.paidLoans.length === 0) {
+                     listHist.innerHTML = '<div class="text-center py-4 text-zinc-800 text-[10px] italic">Historial vacío</div>';
+                } else {
+                    this.paidLoans.forEach(loan => {
+                        listHist.innerHTML += `
+                        <div class="flex items-center justify-between p-3 bg-zinc-900/30 border border-zinc-800/50 rounded-xl grayscale hover:grayscale-0 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-zinc-800/50 flex items-center justify-center text-zinc-600">
+                                    <i class="ph-bold ph-check"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-xs text-zinc-500 decoration-zinc-600 line-through">${loan.source}</div>
+                                    <div class="text-[9px] text-zinc-600">Pagado el ${new Date(loan.paidAt).toLocaleDateString()}</div>
+                                </div>
+                            </div>
+                            <div class="font-bold text-zinc-600 text-xs line-through">${UI.fmtMoney(loan.amount)}</div>
+                        </div>`;
+                    });
+                }
+            },
+
+            async payLoan(id) {
+                const loan = this.loans.find(l => l.id === id);
+                if(!loan) return;
+                
+                if(await UI.confirm('Liquidar Deuda', `¿Pagar ${UI.fmtMoney(loan.amount)} a ${loan.source}? Se descontará de tu billetera.`)) {
+                    const batch = writeBatch(db);
+                    
+                    // 1. Crear transacción de gasto
+                    const txRef = doc(collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions'));
+                    batch.set(txRef, {
+                        amount: parseFloat(loan.amount),
+                        desc: `Pago Préstamo: ${loan.source}`,
+                        category: 'Préstamo', // Usamos categoría Préstamo pero es type expense
+                        type: 'expense',
+                        date: new Date().toISOString()
+                    });
+
+                    // 2. Actualizar estado del préstamo
+                    const loanRef = doc(db, 'users', this.user.uid, 'finance', 'data', 'loans', id);
+                    batch.update(loanRef, {
+                        status: 'paid',
+                        paidAt: new Date().toISOString()
+                    });
+
+                    try {
+                        await batch.commit();
+                        UI.toast('Deuda liquidada correctamente', 'success');
+                    } catch (e) {
+                        console.error(e);
+                        UI.toast('Error al procesar el pago', 'error');
+                    }
+                }
             },
 
             // --- FUTURE MODULE LOGIC START ---
@@ -919,19 +1000,24 @@
                 listEl.innerHTML = '';
                 
                 if (loansInMonth.length === 0) {
-                    listEl.innerHTML = `<div class="p-4 rounded-xl border border-dashed border-zinc-800 text-center text-zinc-600 text-xs">Sin deudas registradas para ${dateLabel}.</div>`;
+                    listEl.innerHTML = `<div class="p-4 rounded-xl border border-dashed border-zinc-800 text-center text-zinc-600 text-xs">Sin deudas pendientes para ${dateLabel}.</div>`;
                 } else {
                     loansInMonth.sort((a,b) => new Date(a.deadline) - new Date(b.deadline)).forEach(loan => {
                         const day = new Date(loan.deadline + 'T12:00:00').getDate();
                         listEl.innerHTML += `
-                            <div class="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
+                            <div class="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-xl group">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded bg-red-500/10 flex items-center justify-center text-red-500 font-bold text-xs border border-red-500/20">
                                         ${day}
                                     </div>
                                     <span class="text-sm font-bold text-zinc-300">${loan.source}</span>
                                 </div>
-                                <span class="text-sm font-mono text-red-400 font-bold">-${UI.fmtMoney(loan.amount)}</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-sm font-mono text-red-400 font-bold">-${UI.fmtMoney(loan.amount)}</span>
+                                    <button onclick="app.payLoan('${loan.id}')" class="w-8 h-8 rounded-full bg-zinc-800 text-zinc-500 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-all active:scale-90" title="Pagar ahora">
+                                        <i class="ph-bold ph-check"></i>
+                                    </button>
+                                </div>
                             </div>
                         `;
                     });
