@@ -51,12 +51,12 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         window.firebaseImports = {
             initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
             signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile, setPersistence, browserLocalPersistence,
-            getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc
+            getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc, where
         };
     </script>
 
@@ -287,13 +287,61 @@
                 </div>
             </section>
 
-            <!-- VISTA 2: PRÉSTAMOS (LOANS) -->
-            <section id="view-loans" class="hidden p-4 sm:p-0 fade-in max-w-5xl mx-auto h-[70vh] flex flex-col justify-center items-center text-center">
-                <div class="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center mb-6 border border-zinc-800">
-                    <i class="ph-fill ph-hand-coins text-4xl text-zinc-600"></i>
+            <!-- VISTA 2: PRÉSTAMOS (LOANS) - IMPLEMENTADA -->
+            <section id="view-loans" class="hidden p-4 sm:p-0 fade-in pb-24">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Formulario Nuevo Préstamo -->
+                    <div>
+                        <div class="glass p-6 rounded-[2rem] border border-emerald-500/20 shadow-lg shadow-emerald-900/10">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                                    <i class="ph-bold ph-hand-coins text-emerald-500 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-bold text-white">Nuevo Préstamo</h2>
+                                    <p class="text-xs text-zinc-500">Registrar dinero entrante (Deuda)</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fuente / Acreedor</label>
+                                    <input type="text" id="loanSource" class="input-modern w-full p-4 h-12 text-sm placeholder-zinc-700" placeholder="Ej: Papá, Banco, Amigo...">
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label>
+                                        <input type="number" id="loanAmount" inputmode="decimal" class="input-modern w-full p-4 h-12 text-sm font-bold text-emerald-400 placeholder-zinc-700" placeholder="$0">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha Vencimiento</label>
+                                        <input type="date" id="loanDeadline" class="input-modern w-full p-4 h-12 text-sm text-center cursor-pointer">
+                                    </div>
+                                </div>
+
+                                <button onclick="app.saveLoan()" class="w-full bg-white hover:bg-zinc-200 text-black font-black py-4 rounded-xl mt-2 transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2">
+                                    <i class="ph-bold ph-floppy-disk"></i> GUARDAR PRÉSTAMO
+                                </button>
+                                
+                                <p class="text-[10px] text-zinc-500 text-center leading-relaxed px-4">
+                                    <i class="ph-fill ph-info text-emerald-500"></i> Al guardar, el dinero se sumará <b>inmediatamente</b> a tu Billetera y la deuda se registrará para el futuro.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Préstamos Activos -->
+                    <div>
+                         <div class="mb-4 flex items-center justify-between px-2">
+                            <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Préstamos Activos</h3>
+                            <span class="text-xs font-bold text-white bg-zinc-800 px-2 py-1 rounded-lg border border-zinc-700" id="totalLoansAmount">$0.00</span>
+                        </div>
+                        <div id="loansList" class="space-y-3">
+                            <div class="text-center py-10 text-zinc-700 text-xs italic">No hay préstamos activos.</div>
+                        </div>
+                    </div>
                 </div>
-                <h2 class="text-3xl font-black text-white mb-2">Gestión de Préstamos</h2>
-                <p class="text-zinc-500 text-sm max-w-xs mx-auto">Controla tus deudas y créditos en un solo lugar. Próximamente disponible.</p>
             </section>
 
             <!-- VISTA 3: FUTURO (FUTURE) -->
@@ -313,13 +361,7 @@
                 <h2 class="text-3xl font-black text-white mb-2">Planificación</h2>
                 <p class="text-zinc-500 text-sm max-w-xs mx-auto">Configura tus ingresos fijos y gastos recurrentes. Próximamente disponible.</p>
                 
-                <!-- 
-                     NOTA: He comentado el contenido antiguo para que no sea visible, 
-                     cumpliendo el requisito de "pantalla vacía", pero el HTML sigue aquí 
-                     para referencia futura si necesitas restaurar lógica. 
-                -->
                 <div id="legacy-plan-content" class="hidden">
-                    <!-- Contenido antiguo oculto -->
                     <input type="number" id="inpIncome">
                     <input type="number" id="inpIncomeQ2">
                     <div id="fixedExpensesList"></div>
@@ -331,7 +373,7 @@
         </div>
     </main>
 
-    <!-- FAB (MÓVIL) - Lo mantengo centrado por encima de la barra -->
+    <!-- FAB (MÓVIL) -->
     <div id="fabContainer" class="md:hidden fixed bottom-[calc(85px+var(--sab))] left-1/2 -translate-x-1/2 z-40 transition-transform duration-300">
         <button onclick="app.openModal('expense')" class="w-14 h-14 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[4px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
             <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
@@ -359,7 +401,7 @@
         </button>
     </div>
 
-    <!-- MODAL DE NAVEGACIÓN MÓVIL (Restaurado para funcionalidad de hamburguesa) -->
+    <!-- MODAL DE NAVEGACIÓN MÓVIL -->
     <div class="modal fixed inset-0 w-screen h-screen z-[1000] hidden bg-black/80 backdrop-blur-sm" id="navModal" onclick="window.app.closeModalById('navModal')">
         <div class="absolute bottom-0 left-0 w-full bg-card rounded-t-2xl p-6 border-t border-white/5 animate-slide-up" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-6">
@@ -514,7 +556,7 @@
     <div id="toast-container"></div>
 
     <script type="module">
-        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile, setPersistence, browserLocalPersistence } = window.firebaseImports;
+        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile, setPersistence, browserLocalPersistence, where } = window.firebaseImports;
         
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-finance';
         const firebaseConfig = {
@@ -562,6 +604,7 @@
             { id: 'Salud', icon: 'ph-heartbeat', color: 'text-red-400' },
             { id: 'Super', icon: 'ph-basket', color: 'text-emerald-400' },
             { id: 'Ajuste', icon: 'ph-scales', color: 'text-zinc-300' },
+            { id: 'Préstamo', icon: 'ph-hand-coins', color: 'text-emerald-500' },
             { id: 'Otro', icon: 'ph-dots-three-circle', color: 'text-gray-400' }
         ];
 
@@ -575,6 +618,7 @@
             isRegistering: false,
             data: { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 },
             logs: [],
+            loans: [],
             currentPeriod: null,
             searchQuery: '',
             filterDate: null,
@@ -675,12 +719,12 @@
                 const uid = this.user.uid;
                 const userRef = doc(db, 'users', uid, 'finance', 'data');
                 const logsRef = collection(db, 'users', uid, 'finance', 'data', 'transactions');
+                const loansRef = collection(db, 'users', uid, 'finance', 'data', 'loans');
                 
                 onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
                         this.data = { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
                         
-                        // Safety checks for elements that might not be in the visible DOM anymore
                         const inpInc = document.getElementById('inpIncome');
                         if (inpInc) inpInc.value = this.data.income || '';
                         
@@ -699,12 +743,108 @@
                         this.updateExtraUI();
                     } else setDoc(userRef, { income: 0, fixed: [] });
                 });
+                
                 const q = query(logsRef, orderBy('date', 'desc'), limit(150));
                 onSnapshot(q, (snap) => {
                     this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
                     this.calcBalance();
                     this.renderTransactions();
                 });
+
+                // Escuchar Préstamos Activos
+                const qLoans = query(loansRef, where('status', '==', 'active'), orderBy('deadline', 'asc'));
+                onSnapshot(qLoans, (snap) => {
+                    this.loans = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    this.renderLoans();
+                });
+            },
+
+            renderLoans() {
+                const list = document.getElementById('loansList');
+                const totalLabel = document.getElementById('totalLoansAmount');
+                list.innerHTML = '';
+                
+                let total = 0;
+                if (this.loans.length === 0) {
+                    list.innerHTML = '<div class="text-center py-10 text-zinc-700 text-xs italic">No hay préstamos activos.</div>';
+                } else {
+                    this.loans.forEach(loan => {
+                        total += parseFloat(loan.amount);
+                        const deadline = new Date(loan.deadline + 'T12:00:00');
+                        const now = new Date();
+                        const diffTime = deadline - now;
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        let daysText = diffDays > 0 ? `Vence en ${diffDays} días` : (diffDays === 0 ? 'Vence Hoy' : `Vencido hace ${Math.abs(diffDays)} días`);
+                        let daysColor = diffDays < 3 ? 'text-red-400' : 'text-zinc-500';
+
+                        list.innerHTML += `
+                        <div class="flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400">
+                                    <i class="ph-bold ph-user"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-sm text-zinc-200">${loan.source}</div>
+                                    <div class="text-[10px] ${daysColor} font-bold uppercase tracking-wider">${daysText}</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-white text-sm">${UI.fmtMoney(loan.amount)}</div>
+                                <div class="text-[10px] text-zinc-600">${new Date(loan.deadline).toLocaleDateString('es-MX', {day:'numeric', month:'short'})}</div>
+                            </div>
+                        </div>`;
+                    });
+                }
+                totalLabel.textContent = UI.fmtMoney(total);
+            },
+
+            async saveLoan() {
+                const source = document.getElementById('loanSource').value.trim();
+                const amount = parseFloat(document.getElementById('loanAmount').value);
+                const deadline = document.getElementById('loanDeadline').value;
+
+                if (!source) return UI.toast('Ingresa la fuente del préstamo', 'error');
+                if (isNaN(amount) || amount <= 0) return UI.toast('Ingresa un monto válido', 'error');
+                if (!deadline) return UI.toast('Ingresa la fecha de pago', 'error');
+
+                const batch = writeBatch(db);
+                
+                // 1. Crear referencia para la transacción en billetera
+                const txRef = doc(collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions'));
+                const now = new Date();
+                
+                batch.set(txRef, {
+                    amount: amount,
+                    category: 'Préstamo',
+                    desc: `Préstamo de ${source}`,
+                    type: 'income',
+                    date: now.toISOString()
+                });
+
+                // 2. Crear referencia para el registro de deuda en base de datos aparte
+                const loanRef = doc(collection(db, 'users', this.user.uid, 'finance', 'data', 'loans'));
+                batch.set(loanRef, {
+                    source: source,
+                    amount: amount,
+                    deadline: deadline,
+                    createdAt: now.toISOString(),
+                    status: 'active',
+                    relatedTxId: txRef.id
+                });
+
+                try {
+                    await batch.commit();
+                    UI.toast('Préstamo registrado y saldo actualizado', 'success');
+                    
+                    // Limpiar formulario
+                    document.getElementById('loanSource').value = '';
+                    document.getElementById('loanAmount').value = '';
+                    document.getElementById('loanDeadline').value = '';
+                    app.switchView('balance'); // Volver a la billetera para ver el dinero
+                } catch (e) {
+                    console.error(e);
+                    UI.toast('Error al guardar préstamo', 'error');
+                }
             },
 
             renderPlanInputs() {
