@@ -376,11 +376,15 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                             <div class="space-y-2">
                                 <div>
-                                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Ingreso Estimado</label>
-                                    <div class="flex items-center bg-zinc-900 rounded-2xl px-4 border border-zinc-800 focus-within:border-emerald-500/50 transition-colors">
-                                        <span class="text-emerald-500 font-bold mr-2 text-lg">+</span>
-                                        <input type="number" id="futureIncomeInput" inputmode="decimal" class="bg-transparent w-full py-4 text-xl font-bold text-emerald-500 focus:outline-none placeholder-zinc-700 font-mono" placeholder="0" onkeyup="app.renderFuture()">
+                                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Ingreso Configurado</label>
+                                    <div class="bg-zinc-900/50 rounded-2xl px-4 py-4 border border-zinc-800 flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <span class="text-emerald-500 font-bold mr-2 text-lg">+</span>
+                                            <span id="futureBaseIncome" class="text-xl font-bold text-emerald-500 font-mono">$0.00</span>
+                                        </div>
+                                        <i class="ph-bold ph-lock-key text-zinc-600"></i>
                                     </div>
+                                    <p class="text-[9px] text-zinc-600 ml-2 mt-1">Suma de Q1 + Q2 (Definido en Planificación)</p>
                                 </div>
                                 <div class="bg-zinc-900/50 rounded-xl px-4 py-3 border border-zinc-800 flex justify-between items-center">
                                     <span class="text-xs font-bold text-zinc-400 uppercase tracking-wide">Gastos Fijos</span>
@@ -417,28 +421,58 @@
 
             <!-- VISTA 4: PLANIFICACIÓN (PLAN) -->
             <section id="view-plan" class="hidden p-4 sm:p-0 fade-in max-w-2xl mx-auto pb-24">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 class="text-2xl font-black text-white">Planificación</h2>
-                        <p class="text-zinc-500 text-xs mt-1">Tus gastos fijos mensuales recurrentes.</p>
-                    </div>
-                    <div class="text-right">
-                         <span class="block text-[10px] text-zinc-500 uppercase font-bold">Total Mensual</span>
-                         <span id="planTotalFixed" class="text-xl font-bold text-white font-mono">$0.00</span>
-                    </div>
+                <div class="mb-6">
+                    <h2 class="text-2xl font-black text-white">Define tus reglas</h2>
+                    <p class="text-zinc-500 text-xs mt-1">Configuración base de tus finanzas.</p>
                 </div>
                 
-                <div id="planFixedList" class="space-y-3 mb-8">
-                    <!-- Lista Renderizada por JS -->
-                    <div class="text-center py-8 text-zinc-700 italic text-xs">Cargando lista...</div>
+                <!-- Sección A: Ingresos Base -->
+                <div class="glass p-5 rounded-[2rem] mb-6 border border-zinc-800 shadow-lg">
+                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">A. Ingresos Base</h3>
+                    <div class="space-y-4">
+                        <div>
+                             <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Ingreso 1ra Quincena (Q1)</label>
+                             <div class="input-modern flex items-center px-4 py-3 focus-within:ring-1 focus-within:ring-emerald-500/50">
+                                 <span class="text-emerald-500 font-bold mr-2">$</span>
+                                 <input type="number" id="planIncomeQ1" inputmode="decimal" class="bg-transparent w-full text-white font-bold focus:outline-none placeholder-zinc-700" placeholder="0" onblur="app.savePlanningConfig()">
+                             </div>
+                        </div>
+                        <div>
+                             <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Ingreso Q2 (Opcional)</label>
+                             <div class="input-modern flex items-center px-4 py-3 focus-within:ring-1 focus-within:ring-emerald-500/50">
+                                 <span class="text-emerald-500 font-bold mr-2">$</span>
+                                 <input type="number" id="planIncomeQ2" inputmode="decimal" class="bg-transparent w-full text-white font-bold focus:outline-none placeholder-zinc-700" placeholder="0" onblur="app.savePlanningConfig()">
+                             </div>
+                        </div>
+                         <div class="flex justify-between items-center pt-3 border-t border-white/5 mt-2">
+                            <span class="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Total Mensual</span>
+                            <span id="planTotalIncome" class="text-sm font-bold text-emerald-400 font-mono">$0.00</span>
+                        </div>
+                    </div>
                 </div>
 
-                <button onclick="app.openModal('fixed')" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-4 rounded-2xl border border-zinc-700 border-dashed transition-all flex items-center justify-center gap-2 active:scale-95 group">
-                    <div class="w-6 h-6 rounded-full bg-zinc-600 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors">
-                        <i class="ph-bold ph-plus"></i>
-                    </div>
-                    AGREGAR GASTO FIJO
-                </button>
+                <!-- Sección B: Gastos Fijos -->
+                <div class="glass p-5 rounded-[2rem] border border-zinc-800 relative">
+                     <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest">B. Gastos Fijos</h3>
+                        <div class="flex flex-col items-end">
+                            <span class="text-[9px] text-zinc-600 font-bold uppercase">Total Fijos</span>
+                            <span id="planTotalFixed" class="text-sm font-bold text-white bg-red-500/10 px-2 py-1 rounded-md border border-red-500/20 text-red-400 font-mono">$0.00</span>
+                        </div>
+                     </div>
+                     
+                     <div id="planFixedList" class="space-y-3 mb-6">
+                        <!-- Lista Renderizada por JS -->
+                        <div class="text-center py-8 text-zinc-700 italic text-xs">Cargando lista...</div>
+                     </div>
+    
+                     <button onclick="app.openModal('fixed')" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-4 rounded-2xl border border-zinc-700 border-dashed transition-all flex items-center justify-center gap-2 active:scale-95 group">
+                        <div class="w-6 h-6 rounded-full bg-zinc-600 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors">
+                            <i class="ph-bold ph-plus"></i>
+                        </div>
+                        AGREGAR GASTO FIJO
+                    </button>
+                </div>
             </section>
 
         </div>
@@ -810,15 +844,10 @@
                         const extraPayInput = document.getElementById('manualExtraPay');
                         if (extraPayInput) extraPayInput.value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
 
-                        this.renderPlan(); // Nuevo render para la pestaña Planificación
+                        this.renderPlan(); 
                         this.calcPeriod();
                         this.updateExtraUI();
                         
-                        // Set default future income to user's base income if not set manually yet
-                        if (!document.getElementById('futureIncomeInput').value && this.data.income) {
-                             document.getElementById('futureIncomeInput').value = this.data.income;
-                        }
-
                     } else setDoc(userRef, { income: 0, fixed: [] });
                 });
                 
@@ -981,11 +1010,14 @@
                 const totalFixed = (this.data.fixed || []).reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0);
                 document.getElementById('futureFixedSum').textContent = `-${UI.fmtMoney(totalFixed)}`;
 
-                // 5. Get Projected Income
-                const projectedIncome = parseFloat(document.getElementById('futureIncomeInput').value) || 0;
+                // 5. Get Projected Income (AUTOMATIC FROM PLAN)
+                const baseIncomeQ1 = parseFloat(this.data.income) || 0;
+                const baseIncomeQ2 = parseFloat(this.data.incomeQ2) || 0;
+                const totalBaseIncome = baseIncomeQ1 + baseIncomeQ2;
+                document.getElementById('futureBaseIncome').textContent = UI.fmtMoney(totalBaseIncome);
 
                 // 6. Calc Result (Free Money)
-                const freeMoney = projectedIncome - totalFixed - totalDebt;
+                const freeMoney = totalBaseIncome - totalFixed - totalDebt;
                 const resultEl = document.getElementById('futureResult');
                 resultEl.textContent = UI.fmtMoney(freeMoney);
                 
@@ -1364,6 +1396,18 @@
             },
 
             renderPlan() {
+                // Populate Inputs
+                const inputQ1 = document.getElementById('planIncomeQ1');
+                const inputQ2 = document.getElementById('planIncomeQ2');
+                const totalIncomeEl = document.getElementById('planTotalIncome');
+                
+                if (inputQ1) inputQ1.value = this.data.income || '';
+                if (inputQ2) inputQ2.value = this.data.incomeQ2 || '';
+                
+                const q1 = parseFloat(this.data.income) || 0;
+                const q2 = parseFloat(this.data.incomeQ2) || 0;
+                if (totalIncomeEl) totalIncomeEl.textContent = UI.fmtMoney(q1 + q2);
+
                 const el = document.getElementById('planFixedList');
                 const totalEl = document.getElementById('planTotalFixed');
                 if(!el) return;
@@ -1397,12 +1441,24 @@
                     </div>`; 
                 }
                 
-                totalEl.textContent = UI.fmtMoney(total);
+                if(totalEl) totalEl.textContent = UI.fmtMoney(total);
                 
                 // Actualizar también la vista de Futuro si está visible
                 if(!document.getElementById('view-future').classList.contains('hidden')) {
                     this.renderFuture();
                 }
+            },
+            
+            async savePlanningConfig() {
+                const q1 = parseFloat(document.getElementById('planIncomeQ1').value) || 0;
+                const q2 = parseFloat(document.getElementById('planIncomeQ2').value) || 0;
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{income: q1, incomeQ2: q2});
+                
+                // Re-render to update totals instantly
+                const totalIncomeEl = document.getElementById('planTotalIncome');
+                if (totalIncomeEl) totalIncomeEl.textContent = UI.fmtMoney(q1 + q2);
+                
+                UI.toast('Ingresos guardados', 'success');
             },
 
             openModal(type, id=null) {
@@ -1505,17 +1561,6 @@
                 this.closeModal(); UI.toast('Gasto Fijo Actualizado','success');
             },
 
-            async saveConfig() {
-                const inpInc = document.getElementById('inpIncome');
-                const inpIncQ2 = document.getElementById('inpIncomeQ2');
-                if (!inpInc) return; 
-
-                const inc = parseFloat(inpInc.value);
-                const incQ2 = parseFloat(inpIncQ2 ? inpIncQ2.value : 0);
-                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{income:inc, incomeQ2: incQ2});
-                UI.toast('Ingresos actualizados','success');
-            },
-
             setCycleMode(mode) {
                 this.tempCycle = mode;
                 document.getElementById('btnCycleBi').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95 ${mode==='biweekly' ? 'border-emerald-500 bg-emerald-500/10' : 'border-zinc-700'}`;
@@ -1544,11 +1589,11 @@
             
             async resetData() {
                  if(await UI.confirm('RESETEO TOTAL','¿Estás seguro? Se borrará TODO.')) {
-                     const uid = this.user.uid; const batch = writeBatch(db);
-                     batch.set(doc(db,'users',uid,'finance','data'), {income:0,fixed:[], categories:[]});
-                     const q = await getDocs(collection(db,'users',uid,'finance','data','transactions'));
-                     q.forEach(d => batch.delete(d.ref));
-                     await batch.commit(); window.location.reload();
+                      const uid = this.user.uid; const batch = writeBatch(db);
+                      batch.set(doc(db,'users',uid,'finance','data'), {income:0,fixed:[], categories:[]});
+                      const q = await getDocs(collection(db,'users',uid,'finance','data','transactions'));
+                      q.forEach(d => batch.delete(d.ref));
+                      await batch.commit(); window.location.reload();
                  }
             },
 
