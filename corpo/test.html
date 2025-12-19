@@ -126,11 +126,11 @@
                 </div>
                 <div class="flex flex-col justify-center">
                     <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
-                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v4.0</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v4.1</span>
                 </div>
             </a>
 
-            <!-- Navegación Central (Desktop) - RESTAURADA -->
+            <!-- Navegación Central (Desktop) -->
             <div class="hidden md:flex items-center bg-white/5 rounded-full p-1 border border-white/5">
                 <a href="/corpo/adherencia.html" class="px-4 py-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 text-xs font-bold tracking-wide transition-all">ADHERENCIA</a>
                 <a href="/corpo/finanzas.html" class="px-4 py-1.5 rounded-full bg-brand text-white text-xs font-bold tracking-wide shadow-lg shadow-brand/20 transition-all">FINANZAS</a>
@@ -287,7 +287,7 @@
                 </div>
             </section>
 
-            <!-- VISTA 2: PRÉSTAMOS (LOANS) - IMPLEMENTADA -->
+            <!-- VISTA 2: PRÉSTAMOS (LOANS) -->
             <section id="view-loans" class="hidden p-4 sm:p-0 fade-in pb-24">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <!-- Formulario Nuevo Préstamo -->
@@ -345,29 +345,90 @@
             </section>
 
             <!-- VISTA 3: FUTURO (FUTURE) -->
-            <section id="view-future" class="hidden p-4 sm:p-0 fade-in max-w-5xl mx-auto h-[70vh] flex flex-col justify-center items-center text-center">
-                <div class="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center mb-6 border border-zinc-800">
-                    <i class="ph-fill ph-chart-line-up text-4xl text-zinc-600"></i>
+            <section id="view-future" class="hidden p-4 sm:p-0 fade-in pb-24">
+                <div class="max-w-2xl mx-auto">
+                    <!-- Selector de Mes -->
+                    <div class="glass rounded-full p-2 flex items-center justify-between mb-8 border border-zinc-800/50">
+                        <button onclick="app.changeFutureMonth(-1)" class="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 transition-colors">
+                            <i class="ph-bold ph-caret-left text-lg"></i>
+                        </button>
+                        <div class="text-center">
+                            <h2 id="futureDateLabel" class="text-lg font-bold text-white capitalize">---</h2>
+                            <p class="text-[10px] text-zinc-500 font-mono tracking-widest uppercase">Calculadora de Liquidez</p>
+                        </div>
+                        <button onclick="app.changeFutureMonth(1)" class="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 transition-colors">
+                            <i class="ph-bold ph-caret-right text-lg"></i>
+                        </button>
+                    </div>
+
+                    <!-- Tablero de Cálculo -->
+                    <div class="glass rounded-[2rem] p-6 mb-8 relative overflow-hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                            <div class="space-y-2">
+                                <div>
+                                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Ingreso Estimado</label>
+                                    <div class="flex items-center bg-zinc-900 rounded-2xl px-4 border border-zinc-800 focus-within:border-emerald-500/50 transition-colors">
+                                        <span class="text-emerald-500 font-bold mr-2 text-lg">+</span>
+                                        <input type="number" id="futureIncomeInput" inputmode="decimal" class="bg-transparent w-full py-4 text-xl font-bold text-emerald-500 focus:outline-none placeholder-zinc-700 font-mono" placeholder="0" onkeyup="app.renderFuture()">
+                                    </div>
+                                </div>
+                                <div class="bg-zinc-900/50 rounded-xl px-4 py-3 border border-zinc-800 flex justify-between items-center">
+                                    <span class="text-xs font-bold text-zinc-400 uppercase tracking-wide">Gastos Fijos</span>
+                                    <span id="futureFixedSum" class="text-base font-bold text-zinc-300 font-mono">-$0.00</span>
+                                </div>
+                                <div class="bg-red-500/5 rounded-xl px-4 py-3 border border-red-500/10 flex justify-between items-center">
+                                    <span class="text-xs font-bold text-red-400 uppercase tracking-wide">Deudas Mes</span>
+                                    <span id="futureDebtSum" class="text-base font-bold text-red-400 font-mono">-$0.00</span>
+                                </div>
+                            </div>
+
+                            <div class="text-center md:text-right border-t md:border-t-0 md:border-l border-white/5 pt-6 md:pt-0 md:pl-6">
+                                <span class="text-[10px] text-zinc-500 uppercase tracking-widest font-bold block mb-2">Dinero Libre</span>
+                                <div id="futureResult" class="text-5xl font-black text-white tracking-tighter transition-all duration-300">
+                                    $0.00
+                                </div>
+                                <p class="text-[10px] text-zinc-600 mt-2 italic">Ingreso - Fijos - Deudas</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Vencimientos -->
+                    <div>
+                        <div class="flex items-center gap-2 mb-4 px-2">
+                             <i class="ph-fill ph-calendar-x text-zinc-500"></i>
+                             <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Vencimientos del Mes</h3>
+                        </div>
+                        <div id="futureLoansList" class="space-y-2">
+                             <!-- JS Renders here -->
+                        </div>
+                    </div>
                 </div>
-                <h2 class="text-3xl font-black text-white mb-2">Proyecciones</h2>
-                <p class="text-zinc-500 text-sm max-w-xs mx-auto">Visualiza tu crecimiento financiero a largo plazo. Próximamente disponible.</p>
             </section>
 
             <!-- VISTA 4: PLANIFICACIÓN (PLAN) -->
-            <section id="view-plan" class="hidden p-4 sm:p-0 fade-in max-w-5xl mx-auto pb-24 h-[70vh] flex flex-col justify-center items-center text-center">
-                <div class="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center mb-6 border border-zinc-800">
-                    <i class="ph-fill ph-gear text-4xl text-zinc-600"></i>
+            <section id="view-plan" class="hidden p-4 sm:p-0 fade-in max-w-2xl mx-auto pb-24">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-black text-white">Planificación</h2>
+                        <p class="text-zinc-500 text-xs mt-1">Tus gastos fijos mensuales recurrentes.</p>
+                    </div>
+                    <div class="text-right">
+                         <span class="block text-[10px] text-zinc-500 uppercase font-bold">Total Mensual</span>
+                         <span id="planTotalFixed" class="text-xl font-bold text-white font-mono">$0.00</span>
+                    </div>
                 </div>
-                <h2 class="text-3xl font-black text-white mb-2">Planificación</h2>
-                <p class="text-zinc-500 text-sm max-w-xs mx-auto">Configura tus ingresos fijos y gastos recurrentes. Próximamente disponible.</p>
                 
-                <div id="legacy-plan-content" class="hidden">
-                    <input type="number" id="inpIncome">
-                    <input type="number" id="inpIncomeQ2">
-                    <div id="fixedExpensesList"></div>
-                    <span id="summaryFixed"></span>
-                    <span id="totalObligations"></span>
+                <div id="planFixedList" class="space-y-3 mb-8">
+                    <!-- Lista Renderizada por JS -->
+                    <div class="text-center py-8 text-zinc-700 italic text-xs">Cargando lista...</div>
                 </div>
+
+                <button onclick="app.openModal('fixed')" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-4 rounded-2xl border border-zinc-700 border-dashed transition-all flex items-center justify-center gap-2 active:scale-95 group">
+                    <div class="w-6 h-6 rounded-full bg-zinc-600 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors">
+                        <i class="ph-bold ph-plus"></i>
+                    </div>
+                    AGREGAR GASTO FIJO
+                </button>
             </section>
 
         </div>
@@ -458,13 +519,13 @@
 
             <!-- Formulario Gasto Fijo -->
             <div id="formFixed" class="hidden space-y-4 md:space-y-2 pb-4">
-                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Nombre</label><input type="text" id="fixName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Netflix"></div>
+                <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Nombre del Gasto</label><input type="text" id="fixName" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="Ej: Renta, Netflix, Internet..."></div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto</label><input type="number" id="fixAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
+                    <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Monto Mensual</label><input type="number" id="fixAmount" inputmode="decimal" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm" placeholder="$0.00"></div>
                     <div><label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Día Pago</label><input type="number" id="fixDay" inputmode="numeric" class="input-modern w-full p-4 h-14 md:h-9 md:text-sm text-center" placeholder="1-31"></div>
                 </div>
-                <button onclick="app.saveFixed()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR FIJO</button>
-                <button id="btnDeleteFix" onclick="app.deleteFixedConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR</button>
+                <button onclick="app.saveFixed()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-4 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR GASTO FIJO</button>
+                <button id="btnDeleteFix" onclick="app.deleteFixedConfirm()" class="w-full text-red-500 py-3 font-bold text-xs hidden">ELIMINAR DE LISTA</button>
             </div>
 
             <!-- Formulario Configuración -->
@@ -624,6 +685,7 @@
             filterDate: null,
             currentWalletBalance: 0,
             isSimulating: false,
+            currentFutureDate: new Date(), 
             
             init() {
                 if(!auth) return;
@@ -633,6 +695,12 @@
                         document.getElementById('authModal').classList.remove('active');
                         this.setupListeners();
                         document.getElementById('importFile').addEventListener('change', (e) => this.handleImport(e));
+                        
+                        // Default future date to next month for utility
+                        const nextMonth = new Date();
+                        nextMonth.setMonth(nextMonth.getMonth() + 1);
+                        this.currentFutureDate = nextMonth;
+                        
                     } else {
                          document.getElementById('authModal').classList.add('active');
                     }
@@ -725,22 +793,21 @@
                     if(snap.exists()) {
                         this.data = { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
                         
-                        const inpInc = document.getElementById('inpIncome');
-                        if (inpInc) inpInc.value = this.data.income || '';
-                        
-                        const inpIncQ2 = document.getElementById('inpIncomeQ2');
-                        if (inpIncQ2) inpIncQ2.value = this.data.incomeQ2 || '';
-                        
                         const adhToggle = document.getElementById('adhToggle');
                         if (adhToggle) adhToggle.checked = this.data.enableAdherence !== false;
                         
                         const extraPayInput = document.getElementById('manualExtraPay');
                         if (extraPayInput) extraPayInput.value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
 
-                        this.renderPlanInputs();
-                        this.renderFixed();
+                        this.renderPlan(); // Nuevo render para la pestaña Planificación
                         this.calcPeriod();
                         this.updateExtraUI();
+                        
+                        // Set default future income to user's base income if not set manually yet
+                        if (!document.getElementById('futureIncomeInput').value && this.data.income) {
+                             document.getElementById('futureIncomeInput').value = this.data.income;
+                        }
+
                     } else setDoc(userRef, { income: 0, fixed: [] });
                 });
                 
@@ -751,7 +818,7 @@
                     this.renderTransactions();
                 });
 
-                // Escuchar Préstamos Activos - CONSULTA SIMPLIFICADA (Sin where ni orderBy)
+                // Escuchar Préstamos Activos
                 const qLoans = query(loansRef);
                 onSnapshot(qLoans, (snap) => {
                     const allLoans = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -760,6 +827,7 @@
                         .filter(l => l.status === 'active')
                         .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
                     this.renderLoans();
+                    this.renderFuture(); // Actualizar vista futuro si cambian los préstamos
                 });
             },
 
@@ -801,6 +869,75 @@
                 }
                 totalLabel.textContent = UI.fmtMoney(total);
             },
+
+            // --- FUTURE MODULE LOGIC START ---
+            changeFutureMonth(delta) {
+                const newDate = new Date(this.currentFutureDate);
+                newDate.setMonth(newDate.getMonth() + delta);
+                this.currentFutureDate = newDate;
+                this.renderFuture();
+            },
+
+            renderFuture() {
+                const month = this.currentFutureDate.getMonth();
+                const year = this.currentFutureDate.getFullYear();
+                
+                // 1. Update Label
+                const dateLabel = this.currentFutureDate.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' });
+                document.getElementById('futureDateLabel').textContent = dateLabel;
+
+                // 2. Filter Loans for this specific month/year
+                const loansInMonth = this.loans.filter(l => {
+                    const d = new Date(l.deadline + 'T12:00:00');
+                    return d.getMonth() === month && d.getFullYear() === year;
+                });
+
+                // 3. Calc Sum of Debts
+                const totalDebt = loansInMonth.reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
+                document.getElementById('futureDebtSum').textContent = `-${UI.fmtMoney(totalDebt)}`;
+
+                // 4. Calc Sum of Fixed Expenses (From Plan)
+                const totalFixed = (this.data.fixed || []).reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0);
+                document.getElementById('futureFixedSum').textContent = `-${UI.fmtMoney(totalFixed)}`;
+
+                // 5. Get Projected Income
+                const projectedIncome = parseFloat(document.getElementById('futureIncomeInput').value) || 0;
+
+                // 6. Calc Result (Free Money)
+                const freeMoney = projectedIncome - totalFixed - totalDebt;
+                const resultEl = document.getElementById('futureResult');
+                resultEl.textContent = UI.fmtMoney(freeMoney);
+                
+                if(freeMoney < 0) {
+                      resultEl.className = 'text-5xl font-black text-red-500 tracking-tighter transition-all duration-300';
+                } else {
+                      resultEl.className = 'text-5xl font-black text-emerald-500 tracking-tighter transition-all duration-300';
+                }
+
+                // 7. Render Detail List
+                const listEl = document.getElementById('futureLoansList');
+                listEl.innerHTML = '';
+                
+                if (loansInMonth.length === 0) {
+                    listEl.innerHTML = `<div class="p-4 rounded-xl border border-dashed border-zinc-800 text-center text-zinc-600 text-xs">Sin deudas registradas para ${dateLabel}.</div>`;
+                } else {
+                    loansInMonth.sort((a,b) => new Date(a.deadline) - new Date(b.deadline)).forEach(loan => {
+                        const day = new Date(loan.deadline + 'T12:00:00').getDate();
+                        listEl.innerHTML += `
+                            <div class="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded bg-red-500/10 flex items-center justify-center text-red-500 font-bold text-xs border border-red-500/20">
+                                        ${day}
+                                    </div>
+                                    <span class="text-sm font-bold text-zinc-300">${loan.source}</span>
+                                </div>
+                                <span class="text-sm font-mono text-red-400 font-bold">-${UI.fmtMoney(loan.amount)}</span>
+                            </div>
+                        `;
+                    });
+                }
+            },
+            // --- FUTURE MODULE LOGIC END ---
 
             async saveLoan() {
                 const source = document.getElementById('loanSource').value.trim();
@@ -849,15 +986,6 @@
                     console.error(e);
                     UI.toast('Error al guardar préstamo', 'error');
                 }
-            },
-
-            renderPlanInputs() {
-                const isBi = this.data.cycle === 'biweekly';
-                const divQ2 = document.getElementById('divIncomeQ2');
-                if (divQ2) divQ2.classList.toggle('hidden', !isBi);
-                
-                const lblInc = document.getElementById('lblIncome1');
-                if (lblInc) lblInc.textContent = isBi ? 'Ingreso 1ra Quincena (Q1)' : 'Ingreso Mensual Base';
             },
 
             toggleExtrasMenu() {
@@ -994,7 +1122,8 @@
                         fixedStatus.push({ name: f.name, paid: 'n/a' });
                     }
                 });
-                this.updateFixedUI(fixedStatus);
+                
+                // NO UPDATE FIXED UI HERE (Only for Home view logic if needed, but we removed visual list from Home)
 
                 let baseInc = parseFloat(this.data.income) || 0;
                 if (this.data.cycle === 'biweekly') {
@@ -1045,12 +1174,6 @@
                 document.getElementById('totalFree').textContent = UI.fmtMoney(remainingTotal);
                 document.getElementById('totalFree').className = remainingTotal < 0 ? 'text-lg font-bold text-red-500' : 'text-lg font-bold text-zinc-200';
                 document.getElementById('cycleSpent').textContent = `-${UI.fmtMoney(totalSpentInCycle)}`;
-                
-                const sumFixed = document.getElementById('summaryFixed');
-                if(sumFixed) sumFixed.textContent = UI.fmtMoney(fixedReserve);
-                
-                const sumTotal = document.getElementById('totalObligations');
-                if(sumTotal) sumTotal.textContent = UI.fmtMoney(fixedReserve);
                 
                 this.renderTransactions();
             },
@@ -1154,33 +1277,46 @@
                 });
             },
 
-            renderFixed() {
-                const el = document.getElementById('fixedExpensesList');
+            renderPlan() {
+                const el = document.getElementById('planFixedList');
+                const totalEl = document.getElementById('planTotalFixed');
                 if(!el) return;
                 
                 el.innerHTML='';
-                (this.data.fixed || []).sort((a,b)=>a.day-b.day).forEach((f,i) => {
+                const fixedList = (this.data.fixed || []).sort((a,b)=>a.day-b.day);
+                let total = 0;
+
+                fixedList.forEach((f,i) => {
+                    total += parseFloat(f.amount || 0);
                     el.innerHTML += `
-                    <div class="fixed-item-row flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl mb-2 active:scale-[0.99] transition-transform hover:border-zinc-700" data-name="${f.name}">
-                        <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="app.openModal('fixed', ${i})">
-                            <div class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center font-bold text-sm text-zinc-400 relative border border-zinc-700">${f.day}<div class="status-dot absolute -top-1 -right-1 w-3 h-3 bg-zinc-700 rounded-full border-2 border-[#050505] hidden"></div></div>
-                            <div class="min-w-0"><div class="font-bold text-sm text-zinc-200 truncate">${f.name}</div><div class="text-xs text-zinc-500">${UI.fmtMoney(f.amount)}</div></div>
+                    <div class="flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl mb-2 active:scale-[0.99] transition-transform hover:border-zinc-700 cursor-pointer group" onclick="app.openModal('fixed', ${i})">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center font-bold text-sm text-zinc-400 group-hover:bg-zinc-700 transition-colors">${f.day}</div>
+                            <div class="min-w-0">
+                                <div class="font-bold text-sm text-zinc-200 truncate group-hover:text-white">${f.name}</div>
+                            </div>
                         </div>
-                        <button onclick="app.payFixed(${i})" class="bg-zinc-800 hover:bg-red-600 hover:text-white text-zinc-400 text-[10px] font-bold px-3 py-2 rounded-lg transition-colors ml-2" title="Registrar Pago Hoy">PAGAR</button>
+                        <div class="flex items-center gap-3">
+                            <div class="text-sm font-bold text-white font-mono">${UI.fmtMoney(f.amount)}</div>
+                            <i class="ph-bold ph-pencil-simple text-zinc-600 group-hover:text-zinc-400"></i>
+                        </div>
                     </div>`;
                 });
-                if((this.data.fixed || []).length === 0) { el.innerHTML = '<div class="text-center py-8 text-zinc-600 italic text-xs">Sin gastos fijos configurados</div>'; }
-            },
 
-            updateFixedUI(statusArray) {
-                const rows = document.querySelectorAll('.fixed-item-row');
-                rows.forEach(row => {
-                    const name = row.dataset.name; const status = statusArray.find(s => s.name === name);
-                    const dot = row.querySelector('.status-dot'); const btn = row.querySelector('button');
-                    if (status && status.paid === true) { dot.classList.remove('hidden', 'bg-zinc-700'); dot.classList.add('bg-emerald-500'); btn.classList.add('opacity-50', 'pointer-events-none'); btn.textContent = 'LISTO'; }
-                    else if (status && status.paid === false) { dot.classList.remove('hidden', 'bg-emerald-500'); dot.classList.add('bg-zinc-700'); btn.classList.remove('opacity-50', 'pointer-events-none'); btn.textContent = 'PAGAR'; }
-                    else { dot.classList.add('hidden'); }
-                });
+                if(fixedList.length === 0) { 
+                    el.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 text-zinc-600 border-2 border-dashed border-zinc-800 rounded-2xl">
+                        <i class="ph-bold ph-list-plus text-4xl mb-2 text-zinc-700"></i>
+                        <span class="text-xs italic">Añade tus gastos fijos aquí<br>(Renta, Luz, Suscripciones)</span>
+                    </div>`; 
+                }
+                
+                totalEl.textContent = UI.fmtMoney(total);
+                
+                // Actualizar también la vista de Futuro si está visible
+                if(!document.getElementById('view-future').classList.contains('hidden')) {
+                    this.renderFuture();
+                }
             },
 
             openModal(type, id=null) {
@@ -1276,19 +1412,11 @@
             async saveFixed() {
                 const arr = [...(this.data.fixed||[])];
                 const item = { name: document.getElementById('fixName').value, amount: parseFloat(document.getElementById('fixAmount').value), day: parseInt(document.getElementById('fixDay').value) };
+                if(!item.name || isNaN(item.amount) || isNaN(item.day)) return UI.toast("Completa todos los campos", "error");
+                
                 if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
                 await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{fixed:arr});
-                this.closeModal(); UI.toast('Fijo guardado','success');
-            },
-
-            async payFixed(idx) {
-                const f = this.data.fixed[idx];
-                if(await UI.confirm('Pagar Fijo', `¿Registrar pago de ${f.name} por ${UI.fmtMoney(f.amount)}?`)) {
-                    await addDoc(collection(db,'users',this.user.uid,'finance','data','transactions'), {
-                        amount: parseFloat(f.amount), desc: `Pago Fijo: ${f.name}`, category: 'Servicios', type: 'expense', date: new Date().toISOString(), meta_related_fixed: f.name
-                    });
-                    UI.toast('Pago registrado','success');
-                }
+                this.closeModal(); UI.toast('Gasto Fijo Actualizado','success');
             },
 
             async saveConfig() {
@@ -1357,6 +1485,9 @@
                 
                 // Ajustar el FAB
                 document.getElementById('fabContainer').classList.toggle('scale-0', v !== 'balance');
+                
+                // Specific View Loaders
+                if(v === 'future') this.renderFuture();
             },
 
             filterTransactions() {
