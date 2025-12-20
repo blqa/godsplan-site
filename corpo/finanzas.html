@@ -165,7 +165,7 @@
                 </div>
                 <div class="flex flex-col justify-center">
                     <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
-                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">Smart Cutoff v3.1</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">Smart Cutoff v3.2</span>
                 </div>
             </a>
 
@@ -782,38 +782,42 @@
                 const logsRef = collection(db, 'users', uid, 'finance', 'data', 'transactions');
                 
                 onSnapshot(userRef, (snap) => {
-                    if(snap.exists()) {
-                        this.data = { income: 0, fixed: [], loans: [], goals: [], enableAdherence: true, extraPayAmount: 0, initialBalance: 0, payScheme: '15_end', nextPayDate: '', ...snap.data() };
-                        document.getElementById('inpIncome').value = this.data.income || '';
-                        document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
-                        document.getElementById('manualExtraPay').value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
-                        this.renderFixed(); this.renderLoans();
-                        this.calcPeriod();
-                        this.updateExtraUI();
-                        // Update Config Modal UI for Scheme
-                        const scheme = this.data.payScheme || '15_end';
-                        this.tempScheme = scheme;
-                        document.querySelectorAll('.scheme-btn').forEach(btn => {
-                            btn.classList.remove('border-emerald-500', 'bg-emerald-500/10');
-                            btn.classList.add('border-zinc-700');
-                        });
-                        const activeBtn = document.getElementById('scheme-' + scheme);
-                        if(activeBtn) {
-                            activeBtn.classList.remove('border-zinc-700');
-                            activeBtn.classList.add('border-emerald-500', 'bg-emerald-500/10');
-                        }
-                        // If manual, populate date field
-                        if (scheme === 'manual') {
-                            document.getElementById('manualDateInput').classList.remove('hidden');
-                            document.getElementById('configNextPayDate').value = this.data.nextPayDate || '';
-                        }
-                    } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
+                    try {
+                        if(snap.exists()) {
+                            this.data = { income: 0, fixed: [], loans: [], goals: [], enableAdherence: true, extraPayAmount: 0, initialBalance: 0, payScheme: '15_end', nextPayDate: '', ...snap.data() };
+                            document.getElementById('inpIncome').value = this.data.income || '';
+                            document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
+                            document.getElementById('manualExtraPay').value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
+                            this.renderFixed(); this.renderLoans();
+                            this.calcPeriod();
+                            this.updateExtraUI();
+                            // Update Config Modal UI for Scheme
+                            const scheme = this.data.payScheme || '15_end';
+                            this.tempScheme = scheme;
+                            document.querySelectorAll('.scheme-btn').forEach(btn => {
+                                btn.classList.remove('border-emerald-500', 'bg-emerald-500/10');
+                                btn.classList.add('border-zinc-700');
+                            });
+                            const activeBtn = document.getElementById('scheme-' + scheme);
+                            if(activeBtn) {
+                                activeBtn.classList.remove('border-zinc-700');
+                                activeBtn.classList.add('border-emerald-500', 'bg-emerald-500/10');
+                            }
+                            // If manual, populate date field
+                            if (scheme === 'manual') {
+                                document.getElementById('manualDateInput').classList.remove('hidden');
+                                document.getElementById('configNextPayDate').value = this.data.nextPayDate || '';
+                            }
+                        } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
+                    } catch(e) { console.error("User Data Error", e); }
                 });
                 const q = query(logsRef, orderBy('date', 'desc'), limit(150));
                 onSnapshot(q, (snap) => {
-                    this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
-                    this.calcBalance();
-                    this.renderTransactions();
+                    try {
+                        this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
+                        this.calcBalance();
+                        this.renderTransactions();
+                    } catch(e) { console.error("Logs Error", e); }
                 });
             },
             toggleExtrasMenu() {
@@ -864,206 +868,225 @@
                 }
             },
             getAutoTargetDate() {
-                const scheme = this.data.payScheme || '15_end';
-                const now = new Date();
-                const y = now.getFullYear();
-                const m = now.getMonth();
-                const d = now.getDate();
-                let target;
+                try {
+                    const scheme = (this.data && this.data.payScheme) ? this.data.payScheme : '15_end';
+                    const now = new Date();
+                    const y = now.getFullYear();
+                    const m = now.getMonth();
+                    const d = now.getDate();
+                    let target;
 
-                if (scheme === 'manual') {
-                    target = this.data.nextPayDate ? new Date(this.data.nextPayDate + 'T00:00:00') : null;
-                    if (!target || isNaN(target.getTime())) { // Fallback if invalid
-                        target = new Date(); target.setDate(target.getDate() + 15);
+                    if (scheme === 'manual') {
+                        target = (this.data && this.data.nextPayDate) ? new Date(this.data.nextPayDate + 'T00:00:00') : null;
+                        if (!target || isNaN(target.getTime())) { // Fallback if invalid
+                            target = new Date(); target.setDate(target.getDate() + 15);
+                        }
+                    } 
+                    else if (scheme === '15_end') {
+                        // Logic: If today < 15, next is 15th. If >= 15, next is End of Month.
+                        if (d < 15) {
+                            target = new Date(y, m, 15);
+                        } else {
+                            target = new Date(y, m + 1, 0); // 0th day of next month is last day of current
+                        }
                     }
-                } 
-                else if (scheme === '15_end') {
-                    // Logic: If today < 15, next is 15th. If >= 15, next is End of Month.
-                    if (d < 15) {
-                        target = new Date(y, m, 15);
-                    } else {
-                        target = new Date(y, m + 1, 0); // 0th day of next month is last day of current
+                    else if (scheme === '15_30') {
+                        if (d < 15) target = new Date(y, m, 15);
+                        else if (d < 30) {
+                            // Check if Feb (might not have 30)
+                            const lastDay = new Date(y, m + 1, 0).getDate();
+                            target = new Date(y, m, Math.min(30, lastDay));
+                        } else {
+                            // Next month 15th
+                            target = new Date(y, m + 1, 15);
+                        }
                     }
-                }
-                else if (scheme === '15_30') {
-                    if (d < 15) target = new Date(y, m, 15);
-                    else if (d < 30) {
-                        // Check if Feb (might not have 30)
-                        const lastDay = new Date(y, m + 1, 0).getDate();
-                        target = new Date(y, m, Math.min(30, lastDay));
-                    } else {
-                        // Next month 15th
-                        target = new Date(y, m + 1, 15);
+                    else if (scheme === 'monthly_1') {
+                        target = new Date(y, m + 1, 1);
                     }
+                    else {
+                        // Default fallback
+                        target = new Date(y, m + 1, 0);
+                    }
+                    return target;
+                } catch (e) {
+                    console.error("Target Date Error", e);
+                    const t = new Date(); t.setDate(t.getDate()+15); return t;
                 }
-                else if (scheme === 'monthly_1') {
-                    target = new Date(y, m + 1, 1);
-                }
-                else {
-                    // Default fallback
-                    target = new Date(y, m + 1, 0);
-                }
-                return target;
             },
             calcPeriod() {
-                let targetDate = this.getAutoTargetDate();
-                
-                // Set hours to compare strictly by day
-                const now = new Date();
-                now.setHours(0,0,0,0);
-                targetDate.setHours(0,0,0,0);
+                try {
+                    let targetDate = this.getAutoTargetDate();
+                    
+                    // Set hours to compare strictly by day
+                    const now = new Date();
+                    now.setHours(0,0,0,0);
+                    targetDate.setHours(0,0,0,0);
 
-                const diffTime = targetDate - now;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                const daysLeft = Math.max(1, diffDays); // Minimum 1 to avoid division by zero
+                    const diffTime = targetDate - now;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                    const daysLeft = Math.max(1, diffDays); // Minimum 1 to avoid division by zero
 
-                const payDateStr = targetDate.toLocaleDateString('es-MX', {weekday: 'short', day: 'numeric', month: 'short'});
-                
-                document.getElementById('periodDates').innerHTML = `
-                    <div class="flex flex-col justify-center h-full">
-                        <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-0.5">Meta</div>
-                        <div class="text-white text-base font-bold">${payDateStr}</div>
-                    </div>
-                `;
-                
-                document.getElementById('daysLeftBadge').textContent = `Faltan ${daysLeft} días`;
-                this.calcBalance(targetDate);
+                    const payDateStr = targetDate.toLocaleDateString('es-MX', {weekday: 'short', day: 'numeric', month: 'short'});
+                    
+                    const pDates = document.getElementById('periodDates');
+                    if(pDates) {
+                        pDates.innerHTML = `
+                            <div class="flex flex-col justify-center h-full">
+                                <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-0.5">Meta</div>
+                                <div class="text-white text-base font-bold">${payDateStr}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    const dBadge = document.getElementById('daysLeftBadge');
+                    if(dBadge) dBadge.textContent = `Faltan ${daysLeft} días`;
+                    
+                    this.calcBalance(targetDate);
+                } catch(e) { console.error("CalcPeriod Error", e); }
             },
             calcBalance(targetDateIn) {
-                // If not provided (called from elsewhere), calculate it
-                const targetDate = targetDateIn || this.getAutoTargetDate();
-                // Ensure target is set to END of that day for comparisons
-                targetDate.setHours(23, 59, 59, 999);
+                try {
+                    // If not provided (called from elsewhere), calculate it
+                    const targetDate = targetDateIn || this.getAutoTargetDate();
+                    // Ensure target is set to END of that day for comparisons
+                    targetDate.setHours(23, 59, 59, 999);
 
-                // 1. Calculate REAL Current Wallet Balance
-                let totalIncome = 0;
-                let totalExpense = 0;
-                
-                this.logs.forEach(l => {
-                    if (l.type === 'income') totalIncome += l.amount;
-                    else totalExpense += l.amount;
-                });
-
-                const manualInitial = parseFloat(this.data.initialBalance) || 0;
-                const simExtra = this.isSimulating ? (this.data.extraPayAmount || 0) : 0;
-
-                const currentBalance = manualInitial + totalIncome - totalExpense + simExtra;
-
-                // 2. Calculate Commitments until Next Pay Date
-                const now = new Date();
-                now.setHours(0,0,0,0); // Start of today
-
-                let pendingCommitments = 0;
-                let loansCommitments = 0;
-                const fixedStatus = [];
-
-                // Check Fixed Expenses - SMART CUTOFF LOGIC
-                (this.data.fixed || []).forEach(f => {
-                    const amount = parseFloat(f.amount) || 0;
-                    const day = parseInt(f.day);
+                    // 1. Calculate REAL Current Wallet Balance
+                    let totalIncome = 0;
+                    let totalExpense = 0;
                     
-                    // Logic: Is there a payment day for this fixed expense between NOW and TARGET?
-                    let isDueInRange = false;
-                    
-                    // Case 1: Same month
-                    let dateThisMonth = new Date(now.getFullYear(), now.getMonth(), day);
-                    if (dateThisMonth >= now && dateThisMonth <= targetDate) isDueInRange = true;
-                    
-                    // Case 2: Rollover to next month (e.g. today Jan 28, Target Feb 15, Expense Day 2)
-                    let dateNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, day);
-                    if (dateNextMonth >= now && dateNextMonth <= targetDate) isDueInRange = true;
-                    
-                    if (isDueInRange) {
-                        // Check if paid RECENTLY (fuzzy logic: matching name + within last 25 days)
-                        // This prevents double counting if you paid it 3 days ago.
-                        const isPaid = this.logs.some(l => {
-                            const logDate = new Date(l.date);
-                            const isRecent = (now - logDate) < (25 * 24 * 60 * 60 * 1000); 
-                            const nameMatch = (l.meta_related_fixed === f.name) || ((l.desc || '').toLowerCase().includes(f.name.toLowerCase()) && l.amount > 0);
-                            return isRecent && nameMatch;
-                        });
+                    (this.logs || []).forEach(l => {
+                        const amt = parseFloat(l.amount) || 0;
+                        if (l.type === 'income') totalIncome += amt;
+                        else totalExpense += amt;
+                    });
 
-                        fixedStatus.push({ name: f.name, paid: isPaid });
-                        if (!isPaid) pendingCommitments += amount;
+                    const manualInitial = parseFloat(this.data.initialBalance) || 0;
+                    const simExtra = this.isSimulating ? (this.data.extraPayAmount || 0) : 0;
+
+                    const currentBalance = manualInitial + totalIncome - totalExpense + simExtra;
+
+                    // 2. Calculate Commitments until Next Pay Date
+                    const now = new Date();
+                    now.setHours(0,0,0,0); // Start of today
+
+                    let pendingCommitments = 0;
+                    let loansCommitments = 0;
+                    const fixedStatus = [];
+
+                    // Check Fixed Expenses - SMART CUTOFF LOGIC
+                    (this.data.fixed || []).forEach(f => {
+                        if(!f) return;
+                        const amount = parseFloat(f.amount) || 0;
+                        const day = parseInt(f.day);
+                        if(isNaN(day)) return;
+                        
+                        // Logic: Is there a payment day for this fixed expense between NOW and TARGET?
+                        let isDueInRange = false;
+                        
+                        // Case 1: Same month
+                        let dateThisMonth = new Date(now.getFullYear(), now.getMonth(), day);
+                        if (dateThisMonth >= now && dateThisMonth <= targetDate) isDueInRange = true;
+                        
+                        // Case 2: Rollover to next month (e.g. today Jan 28, Target Feb 15, Expense Day 2)
+                        let dateNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, day);
+                        if (dateNextMonth >= now && dateNextMonth <= targetDate) isDueInRange = true;
+                        
+                        if (isDueInRange) {
+                            // Check if paid RECENTLY (fuzzy logic: matching name + within last 25 days)
+                            const isPaid = (this.logs || []).some(l => {
+                                const logDate = new Date(l.date);
+                                const isRecent = (now - logDate) < (25 * 24 * 60 * 60 * 1000); 
+                                const nameMatch = (l.meta_related_fixed === f.name) || ((l.desc || '').toLowerCase().includes((f.name || '').toLowerCase()) && l.amount > 0);
+                                return isRecent && nameMatch;
+                            });
+
+                            fixedStatus.push({ name: f.name, paid: isPaid });
+                            if (!isPaid) pendingCommitments += amount;
+                        } else {
+                            fixedStatus.push({ name: f.name, paid: 'n/a' });
+                        }
+                    });
+                    this.updateFixedUI(fixedStatus);
+
+                    // Check Loans
+                    (this.data.loans || []).forEach(l => {
+                        if (!l || !l.dueDate) return;
+                        const amount = parseFloat(l.amount) || 0;
+                        const [y, m, d] = l.dueDate.split('-').map(Number);
+                        const due = new Date(y, m - 1, d);
+                        if (due >= now && due <= targetDate) {
+                            loansCommitments += amount;
+                        }
+                    });
+
+                    // 3. Calculate Daily Limit
+                    const disposable = currentBalance - pendingCommitments - loansCommitments;
+                    
+                    const diffTime = targetDate - now;
+                    const daysLeft = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+                    // Today's specific calc
+                    const todayStr = new Date().toDateString();
+                    const todaySpent = (this.logs || []).filter(l => l.type === 'expense' && l.category !== 'Ajuste' && new Date(l.date).toDateString() === todayStr).reduce((a, b) => a + (parseFloat(b.amount)||0), 0);
+                    
+                    const virtualDisposableStart = disposable + todaySpent;
+                    const virtualDailyLimit = virtualDisposableStart / daysLeft;
+                    const availableToday = virtualDailyLimit - todaySpent;
+
+                    this.currentWalletBalance = currentBalance;
+                    this.currentDailyLimit = virtualDailyLimit;
+
+                    // UI Updates
+                    const dailyEl = document.getElementById('dailyFree');
+                    const labelState = document.getElementById('labelDailyState');
+                    const cardBg = document.getElementById('mainCardBg');
+                    const mainCard = document.getElementById('mainCard');
+                    
+                    if(mainCard) { mainCard.style.border = ''; mainCard.style.boxShadow = ''; }
+                    if(dailyEl) dailyEl.textContent = UI.fmtMoney(availableToday);
+
+                    if (this.isSimulating) {
+                        cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl transition-colors duration-500 bg-emerald-500/40 animate-pulse';
+                        labelState.textContent = 'SIMULACIÓN ACTIVA';
+                        labelState.className = 'text-xs font-bold text-emerald-400 uppercase tracking-widest transition-colors';
+                        dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-emerald-400 font-black';
+                        mainCard.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+                        mainCard.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(16, 185, 129, 0.1)';
+                    } else if (availableToday < 0) {
+                        cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/50 rounded-full blur-3xl transition-colors duration-500 animate-pulse-red';
+                        labelState.textContent = 'EXCEDIDO HOY';
+                        labelState.className = 'text-xs font-black text-red-500 uppercase tracking-widest';
+                        dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-red-500 animate-pulse font-black';
                     } else {
-                        fixedStatus.push({ name: f.name, paid: 'n/a' });
+                        cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 rounded-full blur-3xl transition-colors duration-500';
+                        labelState.textContent = 'DISPONIBLE HOY';
+                        labelState.className = 'text-xs font-bold text-zinc-400 uppercase tracking-widest transition-colors group-hover:text-white';
+                        dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-white font-black';
                     }
-                });
-                this.updateFixedUI(fixedStatus);
 
-                // Check Loans
-                (this.data.loans || []).forEach(l => {
-                    if (!l.dueDate) return;
-                    const amount = parseFloat(l.amount) || 0;
-                    const [y, m, d] = l.dueDate.split('-').map(Number);
-                    const due = new Date(y, m - 1, d);
-                    if (due >= now && due <= targetDate) {
-                        loansCommitments += amount;
+                    document.getElementById('valDailyLimit').textContent = UI.fmtMoney(virtualDailyLimit);
+                    document.getElementById('valTodaySpent').textContent = UI.fmtMoney(todaySpent);
+                    
+                    const elFree = document.getElementById('totalFree');
+                    if(elFree) {
+                        elFree.textContent = UI.fmtMoney(currentBalance);
+                        elFree.className = currentBalance < 0 ? 'text-lg font-bold text-red-500' : 'text-lg font-bold text-zinc-200';
                     }
-                });
-
-                // 3. Calculate Daily Limit
-                const disposable = currentBalance - pendingCommitments - loansCommitments;
-                
-                const diffTime = targetDate - now;
-                const daysLeft = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-
-                // Today's specific calc
-                const todayStr = new Date().toDateString();
-                const todaySpent = this.logs.filter(l => l.type === 'expense' && l.category !== 'Ajuste' && new Date(l.date).toDateString() === todayStr).reduce((a, b) => a + b.amount, 0);
-                
-                const virtualDisposableStart = disposable + todaySpent;
-                const virtualDailyLimit = virtualDisposableStart / daysLeft;
-                const availableToday = virtualDailyLimit - todaySpent;
-
-                this.currentWalletBalance = currentBalance;
-                this.currentDailyLimit = virtualDailyLimit;
-
-                // UI Updates
-                const dailyEl = document.getElementById('dailyFree');
-                const labelState = document.getElementById('labelDailyState');
-                const cardBg = document.getElementById('mainCardBg');
-                const mainCard = document.getElementById('mainCard');
-                
-                mainCard.style.border = ''; mainCard.style.boxShadow = '';
-                dailyEl.textContent = UI.fmtMoney(availableToday);
-
-                if (this.isSimulating) {
-                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl transition-colors duration-500 bg-emerald-500/40 animate-pulse';
-                    labelState.textContent = 'SIMULACIÓN ACTIVA';
-                    labelState.className = 'text-xs font-bold text-emerald-400 uppercase tracking-widest transition-colors';
-                    dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-emerald-400 font-black';
-                    mainCard.style.border = '1px solid rgba(16, 185, 129, 0.3)';
-                    mainCard.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(16, 185, 129, 0.1)';
-                } else if (availableToday < 0) {
-                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/50 rounded-full blur-3xl transition-colors duration-500 animate-pulse-red';
-                    labelState.textContent = 'EXCEDIDO HOY';
-                    labelState.className = 'text-xs font-black text-red-500 uppercase tracking-widest';
-                    dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-red-500 animate-pulse font-black';
-                } else {
-                    cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 rounded-full blur-3xl transition-colors duration-500';
-                    labelState.textContent = 'DISPONIBLE HOY';
-                    labelState.className = 'text-xs font-bold text-zinc-400 uppercase tracking-widest transition-colors group-hover:text-white';
-                    dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-white font-black';
-                }
-
-                document.getElementById('valDailyLimit').textContent = UI.fmtMoney(virtualDailyLimit);
-                document.getElementById('valTodaySpent').textContent = UI.fmtMoney(todaySpent);
-                
-                document.getElementById('totalFree').textContent = UI.fmtMoney(currentBalance);
-                document.getElementById('totalFree').className = currentBalance < 0 ? 'text-lg font-bold text-red-500' : 'text-lg font-bold text-zinc-200';
-                
-                document.getElementById('cycleSpent').textContent = `-${UI.fmtMoney(pendingCommitments + loansCommitments)}`; 
-                
-                // Update Summary in Plan View
-                const sumFixed = document.getElementById('summaryFixed');
-                if(sumFixed) sumFixed.textContent = UI.fmtMoney(pendingCommitments);
-                const sumLoans = document.getElementById('summaryShortLoans');
-                if(sumLoans) sumLoans.textContent = UI.fmtMoney(loansCommitments);
-                const sumTotal = document.getElementById('totalObligations');
-                if(sumTotal) sumTotal.textContent = UI.fmtMoney(pendingCommitments + loansCommitments);
-                
-                this.renderTransactions();
+                    
+                    document.getElementById('cycleSpent').textContent = `-${UI.fmtMoney(pendingCommitments + loansCommitments)}`; 
+                    
+                    // Update Summary in Plan View
+                    const sumFixed = document.getElementById('summaryFixed');
+                    if(sumFixed) sumFixed.textContent = UI.fmtMoney(pendingCommitments);
+                    const sumLoans = document.getElementById('summaryShortLoans');
+                    if(sumLoans) sumLoans.textContent = UI.fmtMoney(loansCommitments);
+                    const sumTotal = document.getElementById('totalObligations');
+                    if(sumTotal) sumTotal.textContent = UI.fmtMoney(pendingCommitments + loansCommitments);
+                    
+                    this.renderTransactions();
+                } catch(e) { console.error("CalcBalance Error", e); }
             },
             // Modified Config Logic
             setScheme(scheme) {
