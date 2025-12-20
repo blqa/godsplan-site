@@ -557,6 +557,15 @@
                     <p class="text-[10px] text-zinc-600 mt-2 text-center" id="lblStartHelp">Define el primer día de cobro.</p>
                 </div>
 
+                <div class="mt-4 bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block text-center">Saldo Inicial / Remanente</label>
+                    <div class="relative group">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold group-focus-within:text-white transition-colors">$</span>
+                        <input type="number" id="configInitialBalance" class="bg-zinc-950 border border-zinc-700 rounded-lg py-3 px-8 text-center text-white font-bold w-full focus:border-white transition-colors outline-none placeholder-zinc-700" placeholder="0.00">
+                    </div>
+                    <p class="text-[9px] text-zinc-600 mt-2 text-center">Si tienes dinero sobrante del ciclo anterior, escríbelo aquí para sumarlo manualmente.</p>
+                </div>
+
                 <div class="mt-4 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
                     <div>
                         <div class="text-sm font-bold text-white">Módulo Adherencia</div>
@@ -707,7 +716,7 @@
         window.app = {
             user: null,
             isRegistering: false,
-            data: { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 },
+            data: { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, initialBalance: 0 },
             logs: [],
             currentPeriod: null,
             searchQuery: '',
@@ -840,7 +849,7 @@
                 
                 onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
-                        this.data = { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
+                        this.data = { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, initialBalance: 0, ...snap.data() };
                         document.getElementById('inpIncome').value = this.data.income || '';
                         document.getElementById('inpIncomeQ2').value = this.data.incomeQ2 || '';
                         document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
@@ -1070,6 +1079,9 @@
                     if (this.currentPeriod.isQ2) { baseInc = parseFloat(this.data.incomeQ2) || baseInc; }
                 }
 
+                // NUEVO: Sumar saldo inicial manual si existe
+                const manualInitial = parseFloat(this.data.initialBalance) || 0;
+
                 let fixedReserve = 0;
                 const fixedStatus = [];
                 (this.data.fixed || []).forEach(f => {
@@ -1097,8 +1109,8 @@
                     return acc;
                 }, 0);
 
-                // CÁLCULO FINAL: Sueldo Base + Extras (de hoy) - Fijos - Deudas - Gastado
-                const liquidIncome = (baseInc + extraInc);
+                // CÁLCULO FINAL: Sueldo Base + Saldo Inicial Manual + Extras (de hoy) - Fijos - Deudas - Gastado
+                const liquidIncome = (baseInc + manualInitial + extraInc);
                 const remainingTotal = liquidIncome - fixedReserve - totalLoans - totalSpentInCycle;
                 
                 const daysLeft = this.currentPeriod.daysLeft;
@@ -1363,6 +1375,7 @@
                     }
                     
                     document.getElementById('configStartDay').value = currentStart;
+                    document.getElementById('configInitialBalance').value = this.data.initialBalance || ''; // Populate initial balance
                     this.setCycleMode(targetMode);
                 }
             },
@@ -1498,8 +1511,11 @@
                     cycle = 'monthly'; 
                 }
 
-                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{ cycle: cycle, startDay: startDay });
-                UI.toast('Ciclo actualizado','success'); 
+                // NUEVO: Guardar Saldo Inicial Manual
+                const initialBalance = parseFloat(document.getElementById('configInitialBalance').value) || 0;
+
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{ cycle: cycle, startDay: startDay, initialBalance: initialBalance });
+                UI.toast('Ciclo y Saldo actualizados','success'); 
                 this.closeModal();
             },
             // NEW PATHS FOR DELETIONS
