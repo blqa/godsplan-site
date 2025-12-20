@@ -165,7 +165,7 @@
                 </div>
                 <div class="flex flex-col justify-center">
                     <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
-                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">Manual Mode v3.0</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">Smart Cutoff v3.1</span>
                 </div>
             </a>
 
@@ -483,19 +483,30 @@
 
             <!-- Formulario Configuración -->
             <div id="formConfig" class="hidden space-y-4 pb-4">
-                <p class="text-zinc-400 text-xs text-center mb-4 font-bold uppercase tracking-widest">¿Cuándo te vuelven a pagar?</p>
+                <p class="text-zinc-400 text-xs text-center mb-4 font-bold uppercase tracking-widest">¿Esquema de Pagos?</p>
                 
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <button onclick="app.setQuickDate(5)" class="border border-zinc-700 p-3 rounded-xl hover:bg-zinc-800 transition-colors text-xs font-bold text-zinc-300">Día 5</button>
-                    <button onclick="app.setQuickDate(15)" class="border border-zinc-700 p-3 rounded-xl hover:bg-zinc-800 transition-colors text-xs font-bold text-zinc-300">Día 15</button>
-                    <button onclick="app.setQuickDate(20)" class="border border-zinc-700 p-3 rounded-xl hover:bg-zinc-800 transition-colors text-xs font-bold text-zinc-300">Día 20</button>
-                    <button onclick="app.setQuickDate(30)" class="border border-zinc-700 p-3 rounded-xl hover:bg-zinc-800 transition-colors text-xs font-bold text-zinc-300">Fin de Mes</button>
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button onclick="app.setScheme('15_end')" id="scheme-15_end" class="scheme-btn border border-zinc-700 p-4 rounded-xl hover:bg-zinc-800 transition-colors text-xs font-bold text-zinc-300 flex flex-col items-center gap-1 active:scale-95">
+                        <span>15 y Fin de Mes</span>
+                        <span class="text-[9px] text-zinc-500 font-normal">Quincenal (Estándar)</span>
+                    </button>
+                    <button onclick="app.setScheme('15_30')" id="scheme-15_30" class="scheme-btn border border-zinc-700 p-4 rounded-xl hover:bg-zinc-800 transition-colors text-xs font-bold text-zinc-300 flex flex-col items-center gap-1 active:scale-95">
+                        <span>15 y 30</span>
+                        <span class="text-[9px] text-zinc-500 font-normal">Quincenal (Fijo)</span>
+                    </button>
+                    <button onclick="app.setScheme('monthly_1')" id="scheme-monthly_1" class="scheme-btn border border-zinc-700 p-4 rounded-xl hover:bg-zinc-800 transition-colors text-xs font-bold text-zinc-300 flex flex-col items-center gap-1 active:scale-95">
+                        <span>Día 1</span>
+                        <span class="text-[9px] text-zinc-500 font-normal">Mensual</span>
+                    </button>
+                    <button onclick="app.setScheme('manual')" id="scheme-manual" class="scheme-btn border border-zinc-700 p-4 rounded-xl hover:bg-zinc-800 transition-colors text-xs font-bold text-zinc-300 flex flex-col items-center gap-1 active:scale-95">
+                        <span>Manual</span>
+                        <span class="text-[9px] text-zinc-500 font-normal">Elegir Fecha</span>
+                    </button>
                 </div>
 
-                <div class="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800 animate-fade-in">
+                <div id="manualDateInput" class="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800 animate-fade-in hidden mb-4">
                     <label class="text-[10px] text-zinc-500 font-bold uppercase mb-1 block text-center">Fecha Exacta Próximo Cobro</label>
                     <input type="date" id="configNextPayDate" class="bg-zinc-950 border border-zinc-700 rounded-lg py-3 px-4 text-center text-white font-bold w-full focus:border-white transition-colors outline-none cursor-pointer">
-                    <p class="text-[10px] text-zinc-600 mt-2 text-center">El cálculo del "Disponible Hoy" se basará en que el dinero te tiene que durar hasta este día.</p>
                 </div>
 
                 <div class="mt-4 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
@@ -508,7 +519,7 @@
                         <label for="adhToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-800 cursor-pointer"></label>
                     </div>
                 </div>
-                <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-6 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR FECHA</button>
+                <button onclick="app.saveCycleConfig()" class="w-full bg-white text-black py-4 md:py-0 rounded-2xl font-black mt-6 h-16 md:h-10 md:text-sm hover:bg-zinc-200">GUARDAR CONFIGURACIÓN</button>
             </div>
         </div>
     </div>
@@ -641,7 +652,7 @@
         window.app = {
             user: null,
             isRegistering: false,
-            data: { income: 0, fixed: [], loans: [], goals: [], enableAdherence: true, extraPayAmount: 0, initialBalance: 0, nextPayDate: '' },
+            data: { income: 0, fixed: [], loans: [], goals: [], enableAdherence: true, extraPayAmount: 0, initialBalance: 0, payScheme: '15_end', nextPayDate: '' },
             logs: [],
             searchQuery: '',
             filterDate: null,
@@ -772,13 +783,30 @@
                 
                 onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
-                        this.data = { income: 0, fixed: [], loans: [], goals: [], enableAdherence: true, extraPayAmount: 0, initialBalance: 0, nextPayDate: '', ...snap.data() };
+                        this.data = { income: 0, fixed: [], loans: [], goals: [], enableAdherence: true, extraPayAmount: 0, initialBalance: 0, payScheme: '15_end', nextPayDate: '', ...snap.data() };
                         document.getElementById('inpIncome').value = this.data.income || '';
                         document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
                         document.getElementById('manualExtraPay').value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
                         this.renderFixed(); this.renderLoans();
                         this.calcPeriod();
                         this.updateExtraUI();
+                        // Update Config Modal UI for Scheme
+                        const scheme = this.data.payScheme || '15_end';
+                        this.tempScheme = scheme;
+                        document.querySelectorAll('.scheme-btn').forEach(btn => {
+                            btn.classList.remove('border-emerald-500', 'bg-emerald-500/10');
+                            btn.classList.add('border-zinc-700');
+                        });
+                        const activeBtn = document.getElementById('scheme-' + scheme);
+                        if(activeBtn) {
+                            activeBtn.classList.remove('border-zinc-700');
+                            activeBtn.classList.add('border-emerald-500', 'bg-emerald-500/10');
+                        }
+                        // If manual, populate date field
+                        if (scheme === 'manual') {
+                            document.getElementById('manualDateInput').classList.remove('hidden');
+                            document.getElementById('configNextPayDate').value = this.data.nextPayDate || '';
+                        }
                     } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
                 });
                 const q = query(logsRef, orderBy('date', 'desc'), limit(150));
@@ -835,18 +863,53 @@
                     UI.toast('Dinero sumado a billetera', 'success');
                 }
             },
-            calcPeriod() {
-                // Simply visualize the next pay date
-                let targetDate = this.data.nextPayDate ? new Date(this.data.nextPayDate + 'T00:00:00') : null;
-                
-                // If no date set, default to 15 days from now for safety
-                if (!targetDate || isNaN(targetDate.getTime())) {
-                    targetDate = new Date();
-                    targetDate.setDate(targetDate.getDate() + 15);
-                }
-
+            getAutoTargetDate() {
+                const scheme = this.data.payScheme || '15_end';
                 const now = new Date();
+                const y = now.getFullYear();
+                const m = now.getMonth();
+                const d = now.getDate();
+                let target;
+
+                if (scheme === 'manual') {
+                    target = this.data.nextPayDate ? new Date(this.data.nextPayDate + 'T00:00:00') : null;
+                    if (!target || isNaN(target.getTime())) { // Fallback if invalid
+                        target = new Date(); target.setDate(target.getDate() + 15);
+                    }
+                } 
+                else if (scheme === '15_end') {
+                    // Logic: If today < 15, next is 15th. If >= 15, next is End of Month.
+                    if (d < 15) {
+                        target = new Date(y, m, 15);
+                    } else {
+                        target = new Date(y, m + 1, 0); // 0th day of next month is last day of current
+                    }
+                }
+                else if (scheme === '15_30') {
+                    if (d < 15) target = new Date(y, m, 15);
+                    else if (d < 30) {
+                        // Check if Feb (might not have 30)
+                        const lastDay = new Date(y, m + 1, 0).getDate();
+                        target = new Date(y, m, Math.min(30, lastDay));
+                    } else {
+                        // Next month 15th
+                        target = new Date(y, m + 1, 15);
+                    }
+                }
+                else if (scheme === 'monthly_1') {
+                    target = new Date(y, m + 1, 1);
+                }
+                else {
+                    // Default fallback
+                    target = new Date(y, m + 1, 0);
+                }
+                return target;
+            },
+            calcPeriod() {
+                let targetDate = this.getAutoTargetDate();
+                
                 // Set hours to compare strictly by day
+                const now = new Date();
                 now.setHours(0,0,0,0);
                 targetDate.setHours(0,0,0,0);
 
@@ -864,17 +927,18 @@
                 `;
                 
                 document.getElementById('daysLeftBadge').textContent = `Faltan ${daysLeft} días`;
-                this.calcBalance();
+                this.calcBalance(targetDate);
             },
-            calcBalance() {
-                // 1. Calculate REAL Current Wallet Balance (Sum of all history + Initial Adjustment)
-                // We use all loaded logs. 
-                
+            calcBalance(targetDateIn) {
+                // If not provided (called from elsewhere), calculate it
+                const targetDate = targetDateIn || this.getAutoTargetDate();
+                // Ensure target is set to END of that day for comparisons
+                targetDate.setHours(23, 59, 59, 999);
+
+                // 1. Calculate REAL Current Wallet Balance
                 let totalIncome = 0;
                 let totalExpense = 0;
                 
-                // Filter logs? No, user wants continuous balance. 
-                // We sum everything visible.
                 this.logs.forEach(l => {
                     if (l.type === 'income') totalIncome += l.amount;
                     else totalExpense += l.amount;
@@ -886,9 +950,6 @@
                 const currentBalance = manualInitial + totalIncome - totalExpense + simExtra;
 
                 // 2. Calculate Commitments until Next Pay Date
-                let targetDate = this.data.nextPayDate ? new Date(this.data.nextPayDate + 'T23:59:59') : new Date();
-                if (!this.data.nextPayDate) targetDate.setDate(targetDate.getDate() + 30); // Fallback
-
                 const now = new Date();
                 now.setHours(0,0,0,0); // Start of today
 
@@ -896,35 +957,27 @@
                 let loansCommitments = 0;
                 const fixedStatus = [];
 
-                // Check Fixed Expenses
+                // Check Fixed Expenses - SMART CUTOFF LOGIC
                 (this.data.fixed || []).forEach(f => {
                     const amount = parseFloat(f.amount) || 0;
                     const day = parseInt(f.day);
                     
-                    // Determine the specific date of this expense relative to today/this month
-                    let expenseDate = new Date(now.getFullYear(), now.getMonth(), day);
-                    
-                    // If the day has already passed in current month, maybe it refers to next month?
-                    // Logic: We look for occurrences between NOW and TARGET DATE.
-                    
-                    // Check current month occurrence
+                    // Logic: Is there a payment day for this fixed expense between NOW and TARGET?
                     let isDueInRange = false;
-                    if (expenseDate >= now && expenseDate <= targetDate) isDueInRange = true;
                     
-                    // Check next month occurrence (if target date spans across month boundary)
-                    let expenseDateNext = new Date(now.getFullYear(), now.getMonth() + 1, day);
-                    if (expenseDateNext >= now && expenseDateNext <= targetDate) isDueInRange = true; // Use simple logic, only count once if multiple? No, simpler to just count once for now or it gets complex. 
-                    // Let's stick to "Is there an occurrence pending soon?"
+                    // Case 1: Same month
+                    let dateThisMonth = new Date(now.getFullYear(), now.getMonth(), day);
+                    if (dateThisMonth >= now && dateThisMonth <= targetDate) isDueInRange = true;
                     
-                    // Actually, simpler logic: If today is 20th and Payday is 30th. Expense on 25th is due. Expense on 15th is NOT due (already passed).
-                    // If today is 20th and Payday is 5th next month. Expense on 25th is due. Expense on 2nd is due.
+                    // Case 2: Rollover to next month (e.g. today Jan 28, Target Feb 15, Expense Day 2)
+                    let dateNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, day);
+                    if (dateNextMonth >= now && dateNextMonth <= targetDate) isDueInRange = true;
                     
                     if (isDueInRange) {
-                        // Check if paid in recent logs (last 30 days roughly)
-                        // This matches fuzzy logic "Netflix" in description
+                        // Check if paid RECENTLY (fuzzy logic: matching name + within last 25 days)
+                        // This prevents double counting if you paid it 3 days ago.
                         const isPaid = this.logs.some(l => {
                             const logDate = new Date(l.date);
-                            // Log must be recent (e.g., within 25 days) to count as "this month's payment"
                             const isRecent = (now - logDate) < (25 * 24 * 60 * 60 * 1000); 
                             const nameMatch = (l.meta_related_fixed === f.name) || ((l.desc || '').toLowerCase().includes(f.name.toLowerCase()) && l.amount > 0);
                             return isRecent && nameMatch;
@@ -950,33 +1003,17 @@
                 });
 
                 // 3. Calculate Daily Limit
-                // Disposable = Balance - Commitments
                 const disposable = currentBalance - pendingCommitments - loansCommitments;
                 
-                // Days Left
                 const diffTime = targetDate - now;
-                // If target is today (diff ~0), set 1 day
                 const daysLeft = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
-                const dailyLimit = disposable / daysLeft;
-                
                 // Today's specific calc
-                // In this "Continuous" mode, we don't subtract "Today's Spent" from the daily limit 
-                // because "Current Balance" ALREADY includes today's expenses.
-                // So "Daily Limit" represents what you can spend TODAY to stay on track.
-                
-                // However, users like to see "Available Today" bar go down.
-                // To simulate that: 
-                // We need "Start of Day Balance". 
                 const todayStr = new Date().toDateString();
                 const todaySpent = this.logs.filter(l => l.type === 'expense' && l.category !== 'Ajuste' && new Date(l.date).toDateString() === todayStr).reduce((a, b) => a + b.amount, 0);
                 
-                // Virtual Start Balance = Current Balance + Today Spent
-                // Virtual Disposable = Virtual Start - Commitments
                 const virtualDisposableStart = disposable + todaySpent;
                 const virtualDailyLimit = virtualDisposableStart / daysLeft;
-                
-                // Available Right Now = Virtual Daily Limit - Today Spent
                 const availableToday = virtualDailyLimit - todaySpent;
 
                 this.currentWalletBalance = currentBalance;
@@ -1016,7 +1053,7 @@
                 document.getElementById('totalFree').textContent = UI.fmtMoney(currentBalance);
                 document.getElementById('totalFree').className = currentBalance < 0 ? 'text-lg font-bold text-red-500' : 'text-lg font-bold text-zinc-200';
                 
-                document.getElementById('cycleSpent').textContent = `-${UI.fmtMoney(pendingCommitments + loansCommitments)}`; // Reuse logic display for "Future Deductions"
+                document.getElementById('cycleSpent').textContent = `-${UI.fmtMoney(pendingCommitments + loansCommitments)}`; 
                 
                 // Update Summary in Plan View
                 const sumFixed = document.getElementById('summaryFixed');
@@ -1028,116 +1065,36 @@
                 
                 this.renderTransactions();
             },
-            renderTransactions() {
-                const list = document.getElementById('transactionsList'); list.innerHTML = '';
-                let visibleLogs = this.logs;
-                
-                // Filter by search
-                if(this.searchQuery) {
-                    const q = this.searchQuery.toLowerCase();
-                    visibleLogs = visibleLogs.filter(l => (l.desc||'').toLowerCase().includes(q) || (l.category||'').toLowerCase().includes(q) || l.amount.toString().includes(q));
-                }
-                // Filter by specific date
-                if(this.filterDate) {
-                    visibleLogs = visibleLogs.filter(l => {
-                        const txDate = new Date(l.date);
-                        const [y, m, d] = this.filterDate.split('-').map(Number);
-                        return txDate.getFullYear() === y && txDate.getMonth() === m-1 && txDate.getDate() === d;
-                    });
-                }
-                
-                if(!visibleLogs.length) {
-                    list.innerHTML = `<div class="text-center py-6 text-zinc-600 text-xs italic">No hay movimientos${this.filterDate || this.searchQuery ? ' para estos filtros.' : '.'}</div>`;
-                    return;
-                }
-                
-                const cats = DefaultCategories;
-                const groupedLogs = this.groupTransactionsByDate(visibleLogs);
-                const sortedDates = Object.keys(groupedLogs).sort((a, b) => b.localeCompare(a));
-                
-                sortedDates.forEach(dateKey => {
-                    const group = groupedLogs[dateKey];
-                    const dayName = group.date.toLocaleDateString('es-MX', { weekday: 'long' });
-                    const formattedDate = group.date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
-                    
-                    list.innerHTML += `
-                        <div class="daily-summary-header flex justify-between items-end px-2 mt-6 mb-2 pb-2 border-b border-white/5">
-                            <div class="flex flex-col">
-                                <h3 class="text-base font-bold text-zinc-200 capitalize">${dayName}</h3>
-                                <p class="text-[11px] text-zinc-500 font-medium">${formattedDate}</p>
-                            </div>
-                            <div class="text-right">
-                                <div class="flex items-center gap-3">
-                                     ${group.income > 0 ? `<span class="text-xs font-bold text-emerald-500 font-mono bg-emerald-500/10 px-2 py-1 rounded-md">+${UI.fmtMoney(group.income)}</span>` : ''}
-                                    <span class="text-sm font-bold text-red-400 font-mono bg-red-500/10 px-2 py-1 rounded-md">-${UI.fmtMoney(group.expense)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    list.innerHTML += `
-                    <div class="space-y-1">
-                        ${group.txs.map(l => {
-                            const isInc = l.type === 'income';
-                            const cat = cats.find(c=>c.id === l.category) || {icon:'ph-question',color:'text-gray-500'};
-                            const icon = isInc ? 'ph-arrow-down-left' : cat.icon;
-                            const color = isInc ? 'text-emerald-500' : cat.color;
-                            const isFixedLink = l.meta_related_fixed ? '<i class="ph-bold ph-link text-zinc-600 ml-1" title="Vinculado a Gasto Fijo"></i>' : '';
-                            const time = new Date(l.date).toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'});
-                            
-                            // Visual feedback for 'Adjustment'
-                            const isAdj = l.category === 'Ajuste';
-                            const rowBg = isAdj ? 'bg-zinc-800/30 border-dashed border-zinc-700' : 'hover:bg-zinc-900/50 md:bg-zinc-900/20';
-                            
-                            return `
-                            <div onclick="app.openModal('${isInc?'extra':'expense'}','${l.id}')" class="flex justify-between items-center p-3 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-zinc-800 group active:scale-[0.99] ${rowBg}">
-                                <div class="flex items-center gap-3 overflow-hidden">
-                                    <div class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform md:bg-black"><i class="ph-fill ${icon} ${color} text-xl"></i></div>
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-2">
-                                            <h4 class="font-bold text-zinc-300 text-sm truncate flex items-center">${l.desc || l.category || 'Movimiento'} ${isFixedLink}</h4>
-                                            <button onclick="event.stopPropagation(); app.setFilterDate('${l.date.split('T')[0]}')" class="md:hidden text-zinc-600 hover:text-white transition-colors"><i class="ph-bold ph-funnel text-xs"></i></button>
-                                        </div>
-                                        <p class="text-xs text-zinc-500">${time}</p>
-                                    </div>
-                                </div>
-                                <span class="font-bold text-base ${isInc?'text-emerald-500':'text-zinc-300'} whitespace-nowrap">${isInc?'+':'-'}${UI.fmtMoney(l.amount)}</span>
-                            </div>
-                            `;
-                        }).join('')}
-                    </div>
-                    `;
+            // Modified Config Logic
+            setScheme(scheme) {
+                this.tempScheme = scheme;
+                // Visual update
+                document.querySelectorAll('.scheme-btn').forEach(btn => {
+                    btn.classList.remove('border-emerald-500', 'bg-emerald-500/10');
+                    btn.classList.add('border-zinc-700');
                 });
-            },
-            setQuickDate(day) {
-                const now = new Date();
-                let target;
-                if (day === 30) {
-                    // End of month
-                    target = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-                } else {
-                    target = new Date(now.getFullYear(), now.getMonth(), day);
-                    if (target <= now) {
-                        // If day passed, suggest next month? User said "Payment day THIS month". 
-                        // But usually you plan for the NEXT payment.
-                        // Let's assume Next Payment.
-                        target.setMonth(target.getMonth() + 1);
-                    }
+                const activeBtn = document.getElementById('scheme-' + scheme);
+                if(activeBtn) {
+                    activeBtn.classList.remove('border-zinc-700');
+                    activeBtn.classList.add('border-emerald-500', 'bg-emerald-500/10');
                 }
-                // Format YYYY-MM-DD
-                const dateStr = target.toISOString().split('T')[0];
-                document.getElementById('configNextPayDate').value = dateStr;
+                
+                const manualInput = document.getElementById('manualDateInput');
+                if(scheme === 'manual') manualInput.classList.remove('hidden');
+                else manualInput.classList.add('hidden');
             },
             async saveCycleConfig() {
-                const dateVal = document.getElementById('configNextPayDate').value;
-                if(!dateVal) return UI.toast('Selecciona una fecha válida', 'error');
-                
-                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{ nextPayDate: dateVal });
-                UI.toast('Fecha de corte actualizada','success'); 
+                const scheme = this.tempScheme || '15_end';
+                let manualDate = '';
+                if(scheme === 'manual') {
+                    manualDate = document.getElementById('configNextPayDate').value;
+                    if(!manualDate) return UI.toast('Fecha manual requerida', 'error');
+                }
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{ payScheme: scheme, nextPayDate: manualDate });
+                UI.toast('Configuración guardada','success'); 
                 this.closeModal();
             },
-            
-            // ... (Rest of existing functions: openModal, saveTransaction, etc. remain similar but check references to 'cycle' are gone)
-            // Re-adding necessary standard functions below
+            // ... (Rest of existing functions)
             
             async saveFixed() {
                 const arr = [...(this.data.fixed||[])];
