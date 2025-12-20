@@ -165,7 +165,7 @@
                 </div>
                 <div class="flex flex-col justify-center">
                     <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
-                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">Smart Cutoff v3.2</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">Smart Cutoff v3.3</span>
                 </div>
             </a>
 
@@ -806,7 +806,8 @@
                             // If manual, populate date field
                             if (scheme === 'manual') {
                                 document.getElementById('manualDateInput').classList.remove('hidden');
-                                document.getElementById('configNextPayDate').value = this.data.nextPayDate || '';
+                                const elDate = document.getElementById('configNextPayDate');
+                                if(elDate) elDate.value = this.data.nextPayDate || '';
                             }
                         } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
                     } catch(e) { console.error("User Data Error", e); }
@@ -1087,6 +1088,16 @@
                     
                     this.renderTransactions();
                 } catch(e) { console.error("CalcBalance Error", e); }
+            },
+            updateFixedUI(statusArray) {
+                const rows = document.querySelectorAll('.fixed-item-row');
+                rows.forEach(row => {
+                    const name = row.dataset.name; const status = statusArray.find(s => s.name === name);
+                    const dot = row.querySelector('.status-dot'); const btn = row.querySelector('button');
+                    if (status && status.paid === true) { dot.classList.remove('hidden', 'bg-zinc-700'); dot.classList.add('bg-emerald-500'); btn.classList.add('opacity-50', 'pointer-events-none'); btn.textContent = 'LISTO'; }
+                    else if (status && status.paid === false) { dot.classList.remove('hidden', 'bg-emerald-500'); dot.classList.add('bg-zinc-700'); btn.classList.remove('opacity-50', 'pointer-events-none'); btn.textContent = 'PAGAR'; }
+                    else { dot.classList.add('hidden'); }
+                });
             },
             // Modified Config Logic
             setScheme(scheme) {
