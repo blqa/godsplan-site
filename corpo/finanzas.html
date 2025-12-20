@@ -165,7 +165,7 @@
                 </div>
                 <div class="flex flex-col justify-center">
                     <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
-                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">Smart Cutoff v3.3</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">Smart Cutoff v3.4 (Fix)</span>
                 </div>
             </a>
 
@@ -785,12 +785,21 @@
                     try {
                         if(snap.exists()) {
                             this.data = { income: 0, fixed: [], loans: [], goals: [], enableAdherence: true, extraPayAmount: 0, initialBalance: 0, payScheme: '15_end', nextPayDate: '', ...snap.data() };
-                            document.getElementById('inpIncome').value = this.data.income || '';
-                            document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
-                            document.getElementById('manualExtraPay').value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
-                            this.renderFixed(); this.renderLoans();
+                            
+                            const elInc = document.getElementById('inpIncome');
+                            if(elInc) elInc.value = this.data.income || '';
+                            
+                            const elAdh = document.getElementById('adhToggle');
+                            if(elAdh) elAdh.checked = this.data.enableAdherence !== false;
+                            
+                            const elExtra = document.getElementById('manualExtraPay');
+                            if(elExtra) elExtra.value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
+                            
+                            this.renderFixed(); 
+                            this.renderLoans();
                             this.calcPeriod();
                             this.updateExtraUI();
+                            
                             // Update Config Modal UI for Scheme
                             const scheme = this.data.payScheme || '15_end';
                             this.tempScheme = scheme;
@@ -803,11 +812,17 @@
                                 activeBtn.classList.remove('border-zinc-700');
                                 activeBtn.classList.add('border-emerald-500', 'bg-emerald-500/10');
                             }
+                            
                             // If manual, populate date field
-                            if (scheme === 'manual') {
-                                document.getElementById('manualDateInput').classList.remove('hidden');
-                                const elDate = document.getElementById('configNextPayDate');
-                                if(elDate) elDate.value = this.data.nextPayDate || '';
+                            const manDiv = document.getElementById('manualDateInput');
+                            if(manDiv) {
+                                if (scheme === 'manual') {
+                                    manDiv.classList.remove('hidden');
+                                    const elDate = document.getElementById('configNextPayDate');
+                                    if(elDate) elDate.value = this.data.nextPayDate || '';
+                                } else {
+                                    manDiv.classList.add('hidden');
+                                }
                             }
                         } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
                     } catch(e) { console.error("User Data Error", e); }
@@ -832,18 +847,16 @@
                 const menu = document.getElementById('extraMenu');
                 const icon = document.getElementById('extraMenuIcon');
                 if (this.data.enableAdherence === false) {
-                    triggerBtn.classList.add('pointer-events-none');
-                    icon.classList.add('hidden');
-                    menu.classList.add('hidden');
+                    if(triggerBtn) triggerBtn.classList.add('pointer-events-none');
+                    if(icon) icon.classList.add('hidden');
+                    if(menu) menu.classList.add('hidden');
                 } else {
-                    triggerBtn.classList.remove('pointer-events-none');
-                    icon.classList.remove('hidden');
+                    if(triggerBtn) triggerBtn.classList.remove('pointer-events-none');
+                    if(icon) icon.classList.remove('hidden');
                 }
             },
             async saveExtraPayDate(val) {
-                // Legacy support for ExtraPayDate input in extra menu
                 await updateDoc(doc(db,'users',this.user.uid,'finance','data'), { nextExtraPayDate: val });
-                // this.resolvePayDate(); // Removed as we use main logic now
             },
             async saveExtraPayValue(val) {
                 const amount = parseFloat(val) || 0;
@@ -884,21 +897,15 @@
                         }
                     } 
                     else if (scheme === '15_end') {
-                        // Logic: If today < 15, next is 15th. If >= 15, next is End of Month.
-                        if (d < 15) {
-                            target = new Date(y, m, 15);
-                        } else {
-                            target = new Date(y, m + 1, 0); // 0th day of next month is last day of current
-                        }
+                        if (d < 15) target = new Date(y, m, 15);
+                        else target = new Date(y, m + 1, 0); 
                     }
                     else if (scheme === '15_30') {
                         if (d < 15) target = new Date(y, m, 15);
                         else if (d < 30) {
-                            // Check if Feb (might not have 30)
                             const lastDay = new Date(y, m + 1, 0).getDate();
                             target = new Date(y, m, Math.min(30, lastDay));
                         } else {
-                            // Next month 15th
                             target = new Date(y, m + 1, 15);
                         }
                     }
@@ -906,7 +913,6 @@
                         target = new Date(y, m + 1, 1);
                     }
                     else {
-                        // Default fallback
                         target = new Date(y, m + 1, 0);
                     }
                     return target;
@@ -918,15 +924,13 @@
             calcPeriod() {
                 try {
                     let targetDate = this.getAutoTargetDate();
-                    
-                    // Set hours to compare strictly by day
                     const now = new Date();
                     now.setHours(0,0,0,0);
                     targetDate.setHours(0,0,0,0);
 
                     const diffTime = targetDate - now;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                    const daysLeft = Math.max(1, diffDays); // Minimum 1 to avoid division by zero
+                    const daysLeft = Math.max(1, diffDays); 
 
                     const payDateStr = targetDate.toLocaleDateString('es-MX', {weekday: 'short', day: 'numeric', month: 'short'});
                     
@@ -948,12 +952,9 @@
             },
             calcBalance(targetDateIn) {
                 try {
-                    // If not provided (called from elsewhere), calculate it
                     const targetDate = targetDateIn || this.getAutoTargetDate();
-                    // Ensure target is set to END of that day for comparisons
                     targetDate.setHours(23, 59, 59, 999);
 
-                    // 1. Calculate REAL Current Wallet Balance
                     let totalIncome = 0;
                     let totalExpense = 0;
                     
@@ -968,34 +969,27 @@
 
                     const currentBalance = manualInitial + totalIncome - totalExpense + simExtra;
 
-                    // 2. Calculate Commitments until Next Pay Date
                     const now = new Date();
-                    now.setHours(0,0,0,0); // Start of today
+                    now.setHours(0,0,0,0);
 
                     let pendingCommitments = 0;
                     let loansCommitments = 0;
                     const fixedStatus = [];
 
-                    // Check Fixed Expenses - SMART CUTOFF LOGIC
                     (this.data.fixed || []).forEach(f => {
                         if(!f) return;
                         const amount = parseFloat(f.amount) || 0;
                         const day = parseInt(f.day);
                         if(isNaN(day)) return;
                         
-                        // Logic: Is there a payment day for this fixed expense between NOW and TARGET?
                         let isDueInRange = false;
-                        
-                        // Case 1: Same month
                         let dateThisMonth = new Date(now.getFullYear(), now.getMonth(), day);
                         if (dateThisMonth >= now && dateThisMonth <= targetDate) isDueInRange = true;
                         
-                        // Case 2: Rollover to next month (e.g. today Jan 28, Target Feb 15, Expense Day 2)
                         let dateNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, day);
                         if (dateNextMonth >= now && dateNextMonth <= targetDate) isDueInRange = true;
                         
                         if (isDueInRange) {
-                            // Check if paid RECENTLY (fuzzy logic: matching name + within last 25 days)
                             const isPaid = (this.logs || []).some(l => {
                                 const logDate = new Date(l.date);
                                 const isRecent = (now - logDate) < (25 * 24 * 60 * 60 * 1000); 
@@ -1011,7 +1005,6 @@
                     });
                     this.updateFixedUI(fixedStatus);
 
-                    // Check Loans
                     (this.data.loans || []).forEach(l => {
                         if (!l || !l.dueDate) return;
                         const amount = parseFloat(l.amount) || 0;
@@ -1022,13 +1015,10 @@
                         }
                     });
 
-                    // 3. Calculate Daily Limit
                     const disposable = currentBalance - pendingCommitments - loansCommitments;
-                    
                     const diffTime = targetDate - now;
                     const daysLeft = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
-                    // Today's specific calc
                     const todayStr = new Date().toDateString();
                     const todaySpent = (this.logs || []).filter(l => l.type === 'expense' && l.category !== 'Ajuste' && new Date(l.date).toDateString() === todayStr).reduce((a, b) => a + (parseFloat(b.amount)||0), 0);
                     
@@ -1039,7 +1029,6 @@
                     this.currentWalletBalance = currentBalance;
                     this.currentDailyLimit = virtualDailyLimit;
 
-                    // UI Updates
                     const dailyEl = document.getElementById('dailyFree');
                     const labelState = document.getElementById('labelDailyState');
                     const cardBg = document.getElementById('mainCardBg');
@@ -1049,26 +1038,37 @@
                     if(dailyEl) dailyEl.textContent = UI.fmtMoney(availableToday);
 
                     if (this.isSimulating) {
-                        cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl transition-colors duration-500 bg-emerald-500/40 animate-pulse';
-                        labelState.textContent = 'SIMULACIÓN ACTIVA';
-                        labelState.className = 'text-xs font-bold text-emerald-400 uppercase tracking-widest transition-colors';
-                        dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-emerald-400 font-black';
-                        mainCard.style.border = '1px solid rgba(16, 185, 129, 0.3)';
-                        mainCard.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(16, 185, 129, 0.1)';
+                        if(cardBg) cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl transition-colors duration-500 bg-emerald-500/40 animate-pulse';
+                        if(labelState) {
+                            labelState.textContent = 'SIMULACIÓN ACTIVA';
+                            labelState.className = 'text-xs font-bold text-emerald-400 uppercase tracking-widest transition-colors';
+                        }
+                        if(dailyEl) dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-emerald-400 font-black';
+                        if(mainCard) {
+                            mainCard.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+                            mainCard.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(16, 185, 129, 0.1)';
+                        }
                     } else if (availableToday < 0) {
-                        cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/50 rounded-full blur-3xl transition-colors duration-500 animate-pulse-red';
-                        labelState.textContent = 'EXCEDIDO HOY';
-                        labelState.className = 'text-xs font-black text-red-500 uppercase tracking-widest';
-                        dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-red-500 animate-pulse font-black';
+                        if(cardBg) cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/50 rounded-full blur-3xl transition-colors duration-500 animate-pulse-red';
+                        if(labelState) {
+                            labelState.textContent = 'EXCEDIDO HOY';
+                            labelState.className = 'text-xs font-black text-red-500 uppercase tracking-widest';
+                        }
+                        if(dailyEl) dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-red-500 animate-pulse font-black';
                     } else {
-                        cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 rounded-full blur-3xl transition-colors duration-500';
-                        labelState.textContent = 'DISPONIBLE HOY';
-                        labelState.className = 'text-xs font-bold text-zinc-400 uppercase tracking-widest transition-colors group-hover:text-white';
-                        dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-white font-black';
+                        if(cardBg) cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 bg-red-600/20 rounded-full blur-3xl transition-colors duration-500';
+                        if(labelState) {
+                            labelState.textContent = 'DISPONIBLE HOY';
+                            labelState.className = 'text-xs font-bold text-zinc-400 uppercase tracking-widest transition-colors group-hover:text-white';
+                        }
+                        if(dailyEl) dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-white font-black';
                     }
 
-                    document.getElementById('valDailyLimit').textContent = UI.fmtMoney(virtualDailyLimit);
-                    document.getElementById('valTodaySpent').textContent = UI.fmtMoney(todaySpent);
+                    const elDaily = document.getElementById('valDailyLimit');
+                    if(elDaily) elDaily.textContent = UI.fmtMoney(virtualDailyLimit);
+                    
+                    const elToday = document.getElementById('valTodaySpent');
+                    if(elToday) elToday.textContent = UI.fmtMoney(todaySpent);
                     
                     const elFree = document.getElementById('totalFree');
                     if(elFree) {
@@ -1076,9 +1076,9 @@
                         elFree.className = currentBalance < 0 ? 'text-lg font-bold text-red-500' : 'text-lg font-bold text-zinc-200';
                     }
                     
-                    document.getElementById('cycleSpent').textContent = `-${UI.fmtMoney(pendingCommitments + loansCommitments)}`; 
+                    const elCycleSpent = document.getElementById('cycleSpent');
+                    if(elCycleSpent) elCycleSpent.textContent = `-${UI.fmtMoney(pendingCommitments + loansCommitments)}`; 
                     
-                    // Update Summary in Plan View
                     const sumFixed = document.getElementById('summaryFixed');
                     if(sumFixed) sumFixed.textContent = UI.fmtMoney(pendingCommitments);
                     const sumLoans = document.getElementById('summaryShortLoans');
@@ -1099,10 +1099,97 @@
                     else { dot.classList.add('hidden'); }
                 });
             },
-            // Modified Config Logic
+            renderTransactions() {
+                const list = document.getElementById('transactionsList'); 
+                if(!list) return;
+                list.innerHTML = '';
+                
+                let visibleLogs = this.logs;
+                if(this.searchQuery) {
+                    const q = this.searchQuery.toLowerCase();
+                    visibleLogs = visibleLogs.filter(l => (l.desc||'').toLowerCase().includes(q) || (l.category||'').toLowerCase().includes(q) || l.amount.toString().includes(q));
+                }
+                if(this.filterDate) {
+                    visibleLogs = visibleLogs.filter(l => {
+                        const txDate = new Date(l.date);
+                        const [y, m, d] = this.filterDate.split('-').map(Number);
+                        return txDate.getFullYear() === y && txDate.getMonth() === m-1 && txDate.getDate() === d;
+                    });
+                }
+                if(!visibleLogs.length) {
+                    list.innerHTML = `<div class="text-center py-6 text-zinc-600 text-xs italic">No hay movimientos${this.filterDate || this.searchQuery ? ' para estos filtros.' : '.'}</div>`;
+                    return;
+                }
+                
+                const cats = DefaultCategories;
+                const groupedLogs = this.groupTransactionsByDate(visibleLogs);
+                const sortedDates = Object.keys(groupedLogs).sort((a, b) => b.localeCompare(a));
+                
+                sortedDates.forEach(dateKey => {
+                    const group = groupedLogs[dateKey];
+                    const dayName = group.date.toLocaleDateString('es-MX', { weekday: 'long' });
+                    const formattedDate = group.date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+                    
+                    list.innerHTML += `
+                        <div class="daily-summary-header flex justify-between items-end px-2 mt-6 mb-2 pb-2 border-b border-white/5">
+                            <div class="flex flex-col">
+                                <h3 class="text-base font-bold text-zinc-200 capitalize">${dayName}</h3>
+                                <p class="text-[11px] text-zinc-500 font-medium">${formattedDate}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="flex items-center gap-3">
+                                     ${group.income > 0 ? `<span class="text-xs font-bold text-emerald-500 font-mono bg-emerald-500/10 px-2 py-1 rounded-md">+${UI.fmtMoney(group.income)}</span>` : ''}
+                                    <span class="text-sm font-bold text-red-400 font-mono bg-red-500/10 px-2 py-1 rounded-md">-${UI.fmtMoney(group.expense)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    list.innerHTML += `
+                    <div class="space-y-1">
+                        ${group.txs.map(l => {
+                            const isInc = l.type === 'income';
+                            const cat = cats.find(c=>c.id === l.category) || {icon:'ph-question',color:'text-gray-500'};
+                            const icon = isInc ? 'ph-arrow-down-left' : cat.icon;
+                            const color = isInc ? 'text-emerald-500' : cat.color;
+                            const isFixedLink = l.meta_related_fixed ? '<i class="ph-bold ph-link text-zinc-600 ml-1" title="Vinculado a Gasto Fijo"></i>' : '';
+                            const time = new Date(l.date).toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'});
+                            const isAdj = l.category === 'Ajuste';
+                            const rowBg = isAdj ? 'bg-zinc-800/30 border-dashed border-zinc-700' : 'hover:bg-zinc-900/50 md:bg-zinc-900/20';
+                            
+                            return `
+                            <div onclick="app.openModal('${isInc?'extra':'expense'}','${l.id}')" class="flex justify-between items-center p-3 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-zinc-800 group active:scale-[0.99] ${rowBg}">
+                                <div class="flex items-center gap-3 overflow-hidden">
+                                    <div class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform md:bg-black"><i class="ph-fill ${icon} ${color} text-xl"></i></div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="font-bold text-zinc-300 text-sm truncate flex items-center">${l.desc || l.category || 'Movimiento'} ${isFixedLink}</h4>
+                                            <button onclick="event.stopPropagation(); app.setFilterDate('${l.date.split('T')[0]}')" class="md:hidden text-zinc-600 hover:text-white transition-colors"><i class="ph-bold ph-funnel text-xs"></i></button>
+                                        </div>
+                                        <p class="text-xs text-zinc-500">${time}</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold text-base ${isInc?'text-emerald-500':'text-zinc-300'} whitespace-nowrap">${isInc?'+':'-'}${UI.fmtMoney(l.amount)}</span>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    `;
+                });
+            },
+            groupTransactionsByDate(logs) {
+                const groups = {};
+                logs.forEach(log => {
+                    const date = new Date(log.date);
+                    const sortKey = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+                    if (!groups[sortKey]) { groups[sortKey] = { txs: [], income: 0, expense: 0, date: date }; }
+                    groups[sortKey].txs.push(log);
+                    if (log.type === 'income') groups[sortKey].income += log.amount;
+                    else groups[sortKey].expense += log.amount;
+                });
+                return groups;
+            },
             setScheme(scheme) {
                 this.tempScheme = scheme;
-                // Visual update
                 document.querySelectorAll('.scheme-btn').forEach(btn => {
                     btn.classList.remove('border-emerald-500', 'bg-emerald-500/10');
                     btn.classList.add('border-zinc-700');
@@ -1114,22 +1201,23 @@
                 }
                 
                 const manualInput = document.getElementById('manualDateInput');
-                if(scheme === 'manual') manualInput.classList.remove('hidden');
-                else manualInput.classList.add('hidden');
+                if(manualInput) {
+                    if(scheme === 'manual') manualInput.classList.remove('hidden');
+                    else manualInput.classList.add('hidden');
+                }
             },
             async saveCycleConfig() {
                 const scheme = this.tempScheme || '15_end';
                 let manualDate = '';
                 if(scheme === 'manual') {
-                    manualDate = document.getElementById('configNextPayDate').value;
+                    const elDate = document.getElementById('configNextPayDate');
+                    manualDate = elDate ? elDate.value : '';
                     if(!manualDate) return UI.toast('Fecha manual requerida', 'error');
                 }
                 await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{ payScheme: scheme, nextPayDate: manualDate });
                 UI.toast('Configuración guardada','success'); 
                 this.closeModal();
             },
-            // ... (Rest of existing functions)
-            
             async saveFixed() {
                 const arr = [...(this.data.fixed||[])];
                 const item = { name: document.getElementById('fixName').value, amount: parseFloat(document.getElementById('fixAmount').value), day: parseInt(document.getElementById('fixDay').value) };
@@ -1159,7 +1247,6 @@
                 this.closeModal();
             },
             async saveConfig() {
-                // Just for reference in Plan view
                 const inc = parseFloat(document.getElementById('inpIncome').value);
                 await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{income:inc});
                 UI.toast('Guardado','success');
