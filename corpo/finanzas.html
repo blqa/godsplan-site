@@ -33,7 +33,6 @@
                         warn: 'var(--warn)',
                         border: 'var(--border)',
                         'input-bg': 'var(--input-bg)',
-                        // Colores específicos de finanzas mantenidos
                         dark: { 900: '#050505', card: '#18181b' }
                     },
                     fontFamily: {
@@ -95,6 +94,8 @@
             --border: #262626;
             --input-bg: #0a0a0a;
             --header-bg: rgba(0, 0, 0, 0.9);
+            --sab: env(safe-area-inset-bottom);
+            --sat: env(safe-area-inset-top);
         }
 
         /* Estilos base de Finanzas */
@@ -164,7 +165,7 @@
                 </div>
                 <div class="flex flex-col justify-center">
                     <span class="font-bold tracking-widest text-lg text-white leading-none">GOD'S PLAN</span>
-                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v2.6</span>
+                    <span class="text-[0.6rem] text-zinc-400 font-mono tracking-widest uppercase hidden sm:block">System v2.6.5 (Clean Cycle)</span>
                 </div>
             </a>
 
@@ -726,7 +727,8 @@
                         document.getElementById('importFile').addEventListener('change', (e) => this.handleImport(e));
                     } else {
                         // Redirect if not logged in
-                        window.location.href = "https://godsplan.site";
+                        // window.location.href = "https://godsplan.site"; // Comentado para desarrollo local
+                        document.getElementById('authModal').classList.add('active'); // Fallback local
                     }
                 });
             },
@@ -943,33 +945,18 @@
                     UI.toast('Dinero sumado a billetera', 'success');
                 }
             },
-            // NUEVO: Función para saltar días inhábiles
+            // Función solo para VISUALIZAR si el pago cae en lunes/fin de semana
             getNextBusinessDay(date) {
                 let d = new Date(date);
-                // Intentar hasta 14 días para evitar loops infinitos (suficiente para vacaciones largas)
                 for(let i=0; i<14; i++) {
                     const day = d.getDay();
                     const year = d.getFullYear();
                     const month = String(d.getMonth() + 1).padStart(2, '0');
                     const dayNum = String(d.getDate()).padStart(2, '0');
                     const dateStr = `${year}-${month}-${dayNum}`;
-
-                    // Si es Domingo (0)
-                    if (day === 0) {
-                        d.setDate(d.getDate() + 1);
-                        continue;
-                    }
-                    // Si es Sábado (6)
-                    if (day === 6) {
-                        d.setDate(d.getDate() + 2);
-                        continue;
-                    }
-                    // Si es Festivo en México
-                    if (MX_HOLIDAYS.includes(dateStr)) {
-                        d.setDate(d.getDate() + 1);
-                        continue;
-                    }
-                    // Si pasa todas las pruebas, es día hábil
+                    if (day === 0) { d.setDate(d.getDate() + 1); continue; }
+                    if (day === 6) { d.setDate(d.getDate() + 2); continue; }
+                    if (MX_HOLIDAYS.includes(dateStr)) { d.setDate(d.getDate() + 1); continue; }
                     return d;
                 }
                 return d;
@@ -985,7 +972,9 @@
                 let nextCycleTheoreticalStart;
                 let isQ2 = false;
 
-                // --- 1. Determinar Fechas CRUDAS (Teóricas) ---
+                // --- 1. Determinar Fechas CALENDARIO ---
+                // NO usamos días hábiles aquí para evitar "huecos" donde se pierden transacciones.
+                // El ciclo financiero cubre todos los días, aunque el pago caiga después.
                 if (this.data.cycle === 'monthly') {
                     if (day >= startDay) {
                         currentCycleStart = new Date(y, m, startDay);
@@ -1005,34 +994,28 @@
                         // Q2 (ej: 20 al 4 del sig mes)
                         isQ2 = true;
                         if (day >= midDay) {
-                             // Finales de mes
                              currentCycleStart = new Date(y, m, midDay);
                              nextCycleTheoreticalStart = new Date(y, m + 1, startDay);
                         } else {
-                             // Principios de mes (pertenece a Q2 del mes anterior)
                              currentCycleStart = new Date(y, m - 1, midDay);
                              nextCycleTheoreticalStart = new Date(y, m, startDay);
                         }
                     }
                 }
 
-                // --- 2. Aplicar Lógica de Días Hábiles ---
-                // El inicio real del ciclo actual puede haberse movido por fin de semana
-                const actualStart = this.getNextBusinessDay(currentCycleStart);
+                // El inicio real es el día calendario exacto para que el filtro de fechas sea estricto
+                const actualStart = currentCycleStart;
                 
-                // Lo más importante: El siguiente pago REAL
-                const actualNextPay = this.getNextBusinessDay(nextCycleTheoreticalStart);
-
-                // --- 3. Calcular Fin del Ciclo Actual ---
-                // El ciclo termina UN DÍA ANTES de que caiga el siguiente pago real
-                const actualEnd = new Date(actualNextPay);
+                // El fin real es un milisegundo antes de que empiece el siguiente ciclo
+                const actualEnd = new Date(nextCycleTheoreticalStart);
                 actualEnd.setDate(actualEnd.getDate() - 1);
-                
-                // Ajustar horas para comparación exacta
-                actualStart.setHours(0,0,0,0);
                 actualEnd.setHours(23,59,59,999);
+                actualStart.setHours(0,0,0,0);
 
-                return { start: actualStart, end: actualEnd, isQ2, paymentDate: actualNextPay };
+                // Solo para mostrar visualmente "Cuándo cae el pago"
+                const visualPayDate = this.getNextBusinessDay(nextCycleTheoreticalStart);
+
+                return { start: actualStart, end: actualEnd, isQ2, paymentDate: visualPayDate };
             },
             calcPeriod() {
                 const now = new Date();
@@ -1062,12 +1045,31 @@
             calcBalance() {
                 if(!this.currentPeriod) return;
                 const { start: pStart, end: pEnd } = this.currentPeriod;
+                
+                // Filtramos SOLO logs que pertenezcan a este ciclo exacto
+                // Esto elimina cualquier "Ajuste" o transacción del ciclo pasado
                 const periodLogs = this.logs.filter(l => { const d = new Date(l.date); return d >= pStart && d <= pEnd; });
+                
                 const todayStr = new Date().toDateString();
                 const todaySpent = periodLogs.filter(l => l.type === 'expense' && l.category !== 'Ajuste' && new Date(l.date).toDateString() === todayStr).reduce((a, b) => a + b.amount, 0);
+                
                 let totalSpentInCycle = 0; let extraInc = 0;
-                periodLogs.forEach(l => { if(l.type === 'income') extraInc += l.amount; else totalSpentInCycle += l.amount; });
+                periodLogs.forEach(l => { 
+                    if(l.type === 'income') extraInc += l.amount; 
+                    else totalSpentInCycle += l.amount; 
+                });
+                
                 if (this.isSimulating) { extraInc += (this.data.extraPayAmount || 0); }
+                
+                // LÓGICA DE RESETEO ESTRICTO:
+                // Empezamos con el Sueldo Base configurado para este periodo (Q1 o Q2).
+                // Ignoramos saldos anteriores porque 'periodLogs' no los trae.
+                let baseInc = parseFloat(this.data.income) || 0;
+                if (this.data.cycle === 'biweekly') {
+                    // Si estamos en Q2, usamos ingreso de Q2. Si es 0, usamos Q1 por defecto.
+                    if (this.currentPeriod.isQ2) { baseInc = parseFloat(this.data.incomeQ2) || baseInc; }
+                }
+
                 let fixedReserve = 0;
                 const fixedStatus = [];
                 (this.data.fixed || []).forEach(f => {
@@ -1085,6 +1087,7 @@
                     }
                 });
                 this.updateFixedUI(fixedStatus);
+
                 const totalLoans = (this.data.loans || []).reduce((acc, loan) => {
                     const amount = parseFloat(loan.amount) || 0;
                     if (!loan.dueDate) return acc;
@@ -1093,26 +1096,27 @@
                     if (due >= pStart && due <= pEnd) return acc + amount;
                     return acc;
                 }, 0);
-                let baseInc = parseFloat(this.data.income) || 0;
-                if (this.data.cycle === 'biweekly') {
-                    // Logic for Q2 check adjusted slightly for business days
-                    // We assume baseInc is for the CURRENT period detected
-                    if (this.currentPeriod.isQ2) { baseInc = parseFloat(this.data.incomeQ2) || baseInc; }
-                }
+
+                // CÁLCULO FINAL: Sueldo Base + Extras (de hoy) - Fijos - Deudas - Gastado
                 const liquidIncome = (baseInc + extraInc);
                 const remainingTotal = liquidIncome - fixedReserve - totalLoans - totalSpentInCycle;
+                
                 const daysLeft = this.currentPeriod.daysLeft;
+                // El saldo disponible para hoy incluye lo que ya gasté hoy para mostrar la barra llena al principio
                 const virtualAvailableStartOfDay = remainingTotal + todaySpent;
                 const dailyLimit = virtualAvailableStartOfDay / daysLeft;
                 const balanceToday = dailyLimit - todaySpent;
+                
                 this.currentWalletBalance = remainingTotal;
                 this.currentDailyLimit = dailyLimit;
+                
                 const dailyEl = document.getElementById('dailyFree');
                 const labelState = document.getElementById('labelDailyState');
                 const cardBg = document.getElementById('mainCardBg');
                 const mainCard = document.getElementById('mainCard');
                 mainCard.style.border = ''; mainCard.style.boxShadow = '';
                 dailyEl.textContent = UI.fmtMoney(balanceToday);
+                
                 if (this.isSimulating) {
                     cardBg.className = 'absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl transition-colors duration-500 bg-emerald-500/40 animate-pulse';
                     labelState.textContent = 'SIMULACIÓN ACTIVA';
@@ -1131,17 +1135,20 @@
                     labelState.className = 'text-xs font-bold text-zinc-400 uppercase tracking-widest transition-colors group-hover:text-white';
                     dailyEl.className = 'text-5xl xs:text-6xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-2 break-all relative leading-none transition-colors text-white font-black';
                 }
+                
                 document.getElementById('valDailyLimit').textContent = UI.fmtMoney(dailyLimit);
                 document.getElementById('valTodaySpent').textContent = UI.fmtMoney(todaySpent);
                 document.getElementById('totalFree').textContent = UI.fmtMoney(remainingTotal);
                 document.getElementById('totalFree').className = remainingTotal < 0 ? 'text-lg font-bold text-red-500' : 'text-lg font-bold text-zinc-200';
                 document.getElementById('cycleSpent').textContent = `-${UI.fmtMoney(totalSpentInCycle)}`;
+                
                 const sumFixed = document.getElementById('summaryFixed');
                 if(sumFixed) sumFixed.textContent = UI.fmtMoney(fixedReserve);
                 const sumLoans = document.getElementById('summaryShortLoans');
                 if(sumLoans) sumLoans.textContent = UI.fmtMoney(totalLoans);
                 const sumTotal = document.getElementById('totalObligations');
                 if(sumTotal) sumTotal.textContent = UI.fmtMoney(fixedReserve + totalLoans);
+                
                 this.renderTransactions();
             },
             setFilterDate(dateString) {
