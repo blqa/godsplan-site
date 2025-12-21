@@ -26,7 +26,7 @@
                     colors: {
                         brand: { DEFAULT: '#FF2A2A', hover: '#D90000', glow: 'rgba(255, 42, 42, 0.5)' },
                         bg: { main: '#030303', surface: '#0D0D0D', glass: 'rgba(20, 20, 20, 0.6)' },
-                        border: { DEFAULT: 'rgba(255,255,255,0.08)', hover: 'rgba(255,255,255,0.15)' }
+                        border: { DEFAULT: 'rgba(255,255,255,0.08)', hover: 'rgba(255,255,255,0.15)' },
                     },
                     backgroundImage: {
                         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -76,6 +76,7 @@
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-style: preserve-3d;
             background: #090909;
+            text-decoration: none; /* For links */
         }
         .module-card:hover {
             transform: translateY(-5px) scale(1.02);
@@ -92,7 +93,9 @@
 
         /* INPUT ANIMATION */
         .input-group input:focus ~ label,
-        .input-group input:not(:placeholder-shown) ~ label {
+        .input-group input:not(:placeholder-shown) ~ label,
+        .input-group select:focus ~ label,
+        .input-group select:valid ~ label {
             transform: translateY(-24px) scale(0.85);
             color: #FF2A2A;
         }
@@ -234,81 +237,71 @@
                 <p id="greeting-msg" class="text-zinc-500 font-light text-lg">Panel de control operativo.</p>
             </header>
 
-            <!-- 2. GRID DE MÓDULOS -->
+            <!-- 2. GRID DE MÓDULOS (ENLACES) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
 
                 <!-- MÓDULO 1: ADHERENCIA -->
-                <div onclick="window.app.openModule('Adherencia')" class="module-card relative border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between">
+                <a href="https://godsplan.site/adherencia" target="_blank" class="module-card relative border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between block">
                     <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
                         <i class="ph-fill ph-chart-line-up text-8xl text-white"></i>
                     </div>
-                    
                     <div class="flex justify-between items-start z-10">
                         <div class="bg-brand/10 p-2.5 rounded-xl text-brand border border-brand/20 group-hover:bg-brand group-hover:text-white transition-colors">
                             <i class="ph-bold ph-briefcase text-2xl"></i>
                         </div>
+                        <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-
                     <div class="z-10 mt-4">
                         <h3 class="text-xl font-bold text-white mb-1 group-hover:text-brand transition-colors">Adherencia</h3>
-                        <p class="text-zinc-500 text-xs leading-relaxed">Control de horas, asistencia y flujo de caja.</p>
+                        <p class="text-zinc-500 text-xs leading-relaxed">Control de horas trabajadas, asistencia y flujo tiempos.</p>
                     </div>
-                </div>
+                </a>
 
-                <!-- MÓDULO 2: DISPONIBLE -->
-                <div class="module-card border border-zinc-800/50 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-zinc-700 hover:text-zinc-500 hover:border-zinc-700 transition-all min-h-[220px]">
-                    <i class="ph-duotone ph-plus text-3xl mb-3"></i>
-                    <span class="text-[10px] font-mono uppercase tracking-widest">Disponible</span>
-                </div>
+                <!-- MÓDULO 2: FINANZAS -->
+                <a href="https://godsplan.site/finanzas" target="_blank" class="module-card relative border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between block">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
+                        <i class="ph-fill ph-currency-dollar text-8xl text-white"></i>
+                    </div>
+                    <div class="flex justify-between items-start z-10">
+                        <div class="bg-green-500/10 p-2.5 rounded-xl text-green-500 border border-green-500/20 group-hover:bg-green-500 group-hover:text-white transition-colors">
+                            <i class="ph-bold ph-wallet text-2xl"></i>
+                        </div>
+                        <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
+                    </div>
+                    <div class="z-10 mt-4">
+                        <h3 class="text-xl font-bold text-white mb-1 group-hover:text-green-500 transition-colors">Finanzas</h3>
+                        <p class="text-zinc-500 text-xs leading-relaxed">Gestión de recursos y movimientos.</p>
+                    </div>
+                </a>
 
-                 <!-- MÓDULO 3: DISPONIBLE -->
-                 <div class="module-card border border-zinc-800/50 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-zinc-700 hover:text-zinc-500 hover:border-zinc-700 transition-all min-h-[220px]">
-                    <i class="ph-duotone ph-plus text-3xl mb-3"></i>
-                    <span class="text-[10px] font-mono uppercase tracking-widest">Disponible</span>
-                </div>
+                 <!-- MÓDULO 3: TICKETS (NUEVO) -->
+                 <a href="https://godsplan.site/tickets" target="_blank" class="module-card relative border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between block">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
+                        <i class="ph-fill ph-ticket text-8xl text-white"></i>
+                    </div>
+                    <div class="flex justify-between items-start z-10">
+                        <div class="bg-blue-500/10 p-2.5 rounded-xl text-blue-500 border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                            <i class="ph-bold ph-ticket text-2xl"></i>
+                        </div>
+                        <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
+                    </div>
+                    <div class="z-10 mt-4">
+                        <h3 class="text-xl font-bold text-white mb-1 group-hover:text-blue-500 transition-colors">Tickets</h3>
+                        <p class="text-zinc-500 text-xs leading-relaxed">Soporte, incidencias y seguimiento.</p>
+                    </div>
+                </a>
 
             </div>
 
-            <!-- 3. SECCIÓN INFERIOR -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <!-- Ajustes de Cuenta -->
-                <div class="glass-panel p-6 rounded-2xl flex items-center justify-between group hover:border-zinc-600 transition-colors cursor-pointer" onclick="window.app.goToSettings()">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:bg-white group-hover:text-black transition-colors">
-                            <i class="ph-bold ph-gear text-2xl"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-lg font-bold text-white">Ajustes de Cuenta</h4>
-                            <p class="text-xs text-zinc-500">Avatar, privacidad y seguridad.</p>
-                        </div>
-                    </div>
-                    <i class="ph-bold ph-caret-right text-zinc-600 group-hover:text-white transition-colors"></i>
-                </div>
-
-                <!-- Más Información (AHORA VISTA DEDICADA) -->
-                <div class="glass-panel p-6 rounded-2xl flex items-center justify-between group hover:border-zinc-600 transition-colors cursor-pointer" onclick="window.app.goToInfo()">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:bg-brand group-hover:text-white transition-colors">
-                            <i class="ph-bold ph-info text-2xl"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-lg font-bold text-white">Información del Sistema</h4>
-                            <p class="text-xs text-zinc-500">Versión v2.0.5 - Specs</p>
-                        </div>
-                    </div>
-                    <i class="ph-bold ph-caret-right text-zinc-600 group-hover:text-white transition-colors"></i>
-                </div>
-
-            </div>
-            
             <!-- FOOTER -->
             <footer class="mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-zinc-600 font-mono">
                 <div>
                     <span class="text-white font-bold">GOD'S PLAN</span> // PERSONAL OS
                 </div>
                 <div class="mt-4 md:mt-0 flex gap-6">
-                    <span class="text-green-500 flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> SERVER STABLE</span>
+                    <button onclick="window.app.goToSettings()" class="hover:text-white transition-colors">Ajustes</button>
+                    <button onclick="window.app.goToInfo()" class="hover:text-white transition-colors">Info</button>
+                    <span class="text-green-500 flex items-center gap-2 border-l border-zinc-800 pl-6 ml-2"><div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> SERVER STABLE</span>
                 </div>
             </footer>
         </section>
@@ -422,11 +415,9 @@
                     </div>
                     <h3 class="text-3xl font-bold text-white mb-2">GOD'S PLAN</h3>
                     <div class="flex items-center gap-2 text-zinc-500 text-sm font-mono">
-                        <span>v2.0.5</span>
+                        <span>v2.1.0</span>
                         <span class="w-1 h-1 rounded-full bg-zinc-700"></span>
-                        <span>G'P 6.4.2</span>
-                        <span class="w-1 h-1 rounded-full bg-zinc-700"></span>
-                        <span>STABLE</span>
+                        <span>Stable</span>
                     </div>
                 </div>
 
@@ -475,7 +466,7 @@
                         </div>
                         <div class="bg-zinc-900/50 p-3 rounded-lg border border-white/5 col-span-2">
                             <div class="text-[10px] text-zinc-500 uppercase mb-1">Protocolo</div>
-                            <div class="text-zinc-300 text-xs font-mono">HTTPS / FIREBASE SECURE</div>
+                            <div class="text-zinc-300 text-xs font-mono">HTTPS / FIREBASE FIRESTORE</div>
                         </div>
                     </div>
                 </div>
@@ -489,7 +480,7 @@
                             <p class="text-zinc-500 text-xs">Arquitectura basada en TailwindCSS & Firebase.</p>
                         </div>
                         <div class="ml-auto">
-                            <a href="docs" class="text-brand text-xs hover:underline">Ver Documentación</a>
+                            <a href="#" class="text-brand text-xs hover:underline">Ver Documentación</a>
                         </div>
                     </div>
                 </div>
@@ -507,7 +498,7 @@
             signInWithEmailAndPassword, 
             createUserWithEmailAndPassword,
             signInWithPopup,
-            signInAnonymously, // AÑADIDO: Importante para el modo invitado
+            signInAnonymously,
             GoogleAuthProvider,
             updateProfile,
             updatePassword, 
@@ -516,6 +507,11 @@
             setPersistence,
             browserLocalPersistence
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // IMPORTAR FIRESTORE (Base de datos) - Aunque ya no se use para finanzas, se deja por si acaso
+        import { 
+            getFirestore
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // CONFIGURACIÓN FIREBASE
         const firebaseConfig = {
@@ -530,6 +526,7 @@
         // INICIALIZACIÓN
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
         
         // Persistencia local
         setPersistence(auth, browserLocalPersistence).catch(console.error);
@@ -541,7 +538,7 @@
                     auth: document.getElementById('view-auth'),
                     dash: document.getElementById('view-dashboard'),
                     settings: document.getElementById('view-settings'),
-                    info: document.getElementById('view-info'), // Nueva vista
+                    info: document.getElementById('view-info'),
                     nav: document.getElementById('navbar'),
                     loader: document.getElementById('app-loader')
                 };
@@ -550,6 +547,7 @@
                     'ph-user-circle', 'ph-robot', 'ph-alien', 'ph-skull', 
                     'ph-crown', 'ph-ghost', 'ph-ninja', 'ph-detective'
                 ];
+                
                 this.initClock();
                 this.addCardEffects();
                 this.renderAvatarGrid();
@@ -558,6 +556,7 @@
             // Renderiza la cuadrícula de selección de avatars
             renderAvatarGrid() {
                 const grid = document.getElementById('avatar-grid');
+                if(!grid) return;
                 grid.innerHTML = '';
                 this.availableAvatars.forEach(icon => {
                     const btn = document.createElement('button');
@@ -569,15 +568,10 @@
             }
 
             selectAvatar(iconClass, btnElement) {
-                // UI Visual Selection
                 document.querySelectorAll('.avatar-option').forEach(b => b.classList.remove('selected'));
                 btnElement.classList.add('selected');
-                
-                // Actualizar preview en tiempo real
                 const preview = document.getElementById('settings-current-avatar');
                 preview.className = `ph-duotone ${iconClass} text-3xl`;
-
-                // Guardar
                 window.app.updateUserAvatar(iconClass);
             }
 
@@ -738,7 +732,6 @@
                 try {
                     if (ui.isRegisterMode) {
                         const userCred = await createUserWithEmailAndPassword(auth, finalEmail, pass);
-                        // Default Avatar: robot
                         await updateProfile(userCred.user, { displayName: name || "User", photoURL: 'ph-robot' });
                         ui.toast(`Bienvenido al sistema, ${name}`, "success");
                     } else {
@@ -748,7 +741,6 @@
                 } catch (error) {
                     console.error(error);
                     let msg = "Error desconocido";
-                    // ERROR HANDLING IMPROVED FOR USER FEEDBACK
                     if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') msg = "Usuario no registrado o contraseña incorrecta.";
                     else if (error.code === 'auth/user-not-found') msg = "Usuario no encontrado. Prueba registrarte.";
                     else if (error.code === 'auth/email-already-in-use') msg = "El ID ya está registrado";
@@ -768,7 +760,6 @@
                 }
             },
 
-            // NUEVA FUNCIÓN: LOGIN INVITADO
             loginGuest: async () => {
                 try {
                     ui.toast("Accediendo como invitado...", "info");
@@ -785,7 +776,7 @@
                 ui.toast("Sesión cerrada correctamente", "info");
             },
 
-            // Navegación
+            // Navigation Wrappers
             goToSettings: () => {
                 const user = auth.currentUser;
                 if (!user) return;
@@ -793,11 +784,9 @@
                 document.getElementById('settings-email').textContent = user.email || "Invitado";
                 document.getElementById('settings-name').value = user.displayName || "";
                 
-                // Cargar avatar actual
                 const currentAvatar = user.photoURL || 'ph-user-circle';
                 document.getElementById('settings-current-avatar').className = `ph-duotone ${currentAvatar} text-3xl`;
                 
-                // Marcar seleccionado
                 document.querySelectorAll('.avatar-option').forEach(btn => {
                     if(btn.innerHTML.includes(currentAvatar)) btn.classList.add('selected');
                     else btn.classList.remove('selected');
@@ -806,18 +795,13 @@
                 ui.toggleView('settings');
             },
 
-            goToInfo: () => {
-                ui.toggleView('info');
-            },
-
-            returnToDash: () => {
-                ui.toggleView('dashboard');
-            },
-
+            goToInfo: () => ui.toggleView('info'),
+            returnToDash: () => ui.toggleView('dashboard'),
+            toggleView: (v) => ui.toggleView(v),
+            
             updateUserData: async () => {
                 const newName = document.getElementById('settings-name').value;
                 const user = auth.currentUser;
-
                 if (!user) return;
                 if (!newName) return ui.toast("El nombre no puede estar vacío", "warning");
 
@@ -836,7 +820,6 @@
                 if (!user) return;
                 try {
                     await updateProfile(user, { photoURL: iconClass });
-                    // Actualizar Navbar inmediatamente
                     document.getElementById('nav-user-icon').className = `ph-duotone ${iconClass} text-brand text-2xl`;
                     ui.toast("Avatar actualizado", "success");
                 } catch (error) {
@@ -847,7 +830,6 @@
             updateUserPassword: async () => {
                 const newPass = document.getElementById('settings-new-pass').value;
                 const user = auth.currentUser;
-
                 if (!user) return;
                 if (!newPass || newPass.length < 6) return ui.toast("La contraseña debe tener al menos 6 caracteres", "warning");
 
@@ -863,24 +845,16 @@
                         ui.toast("Error al cambiar contraseña", "error");
                     }
                 }
-            },
-
-            openModule: (name) => {
-                ui.toast(`Cargando módulo: ${name}...`, "info");
-            },
-            
-            toast: (m, t) => ui.toast(m, t)
+            }
         };
 
         // LISTENER DE ESTADO DE AUTENTICACIÓN
         onAuthStateChanged(auth, (user) => {
             ui.setLoading(false); 
             if (user) {
-                // Manejo especial para invitados sin email
                 const displayName = user.displayName || (user.isAnonymous ? "INVITADO" : user.email.split('@')[0]);
                 document.getElementById('user-name').textContent = displayName.toUpperCase();
                 
-                // Cargar Icono
                 const avatar = user.photoURL || 'ph-planet';
                 document.getElementById('nav-user-icon').className = `ph-duotone ${avatar} text-brand text-2xl`;
 
