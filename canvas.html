@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>God's Plan | Code Editor</title>
+    <title>God's Plan | Dev Environment</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -12,6 +12,14 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- CodeFlask & Prism (Editor & Syntax Highlighting) -->
+    <script src="https://unpkg.com/codeflask/build/codeflask.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.29.0/prism.js"></script>
+    <script src="https://unpkg.com/prismjs@1.29.0/components/prism-markup.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.29.0/components/prism-css.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+    <link href="https://unpkg.com/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     
     <!-- Fuentes y Iconos -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
@@ -69,31 +77,66 @@
             mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
         }
 
-        .editor-textarea {
-            font-family: 'Fira Code', monospace;
-            tab-size: 2;
-            line-height: 1.5;
-            background: rgba(0,0,0,0.3);
-            caret-color: #E70000;
+        /* FIX CODEFLASK */
+        .codeflask {
+            position: absolute !important;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: transparent !important;
+            width: 100% !important;
+            height: 100% !important;
         }
-        
-        .editor-textarea:focus { outline: none; }
-
-        /* Highlight de línea seleccionada (simulado) */
-        .highlight-line {
-            background-color: rgba(231, 0, 0, 0.2);
+        .codeflask textarea {
+            background: transparent !important;
+            color: transparent !important;
+            caret-color: #E70000 !important;
+            font-family: 'Fira Code', monospace !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+            z-index: 10 !important;
         }
-
-        /* Scrollbar personalizada */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #E70000; }
+        .codeflask pre {
+            font-family: 'Fira Code', monospace !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+            z-index: 5 !important;
+        }
+        /* Colores del tema Tomorrow Night */
+        .codeflask .token.tag { color: #ef4444 !important; }
+        .codeflask .token.attr-name { color: #f59e0b !important; }
+        .codeflask .token.attr-value { color: #84cc16 !important; }
+        .codeflask .token.comment { font-style: italic; opacity: 0.5; }
+        .codeflask .codeflask__flatten { padding: 20px !important; } 
+        .codeflask textarea { padding: 20px !important; }
 
         .glass-panel {
-            background: rgba(15, 15, 15, 0.6);
+            background: rgba(10, 10, 10, 0.6);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Resizer Handle */
+        .resizer {
+            width: 8px;
+            background: #050505;
+            border-left: 1px solid #222;
+            border-right: 1px solid #222;
+            cursor: col-resize;
+            transition: all 0.2s;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .resizer:hover, .resizer.active {
+            background: #E70000;
+            border-color: #E70000;
+            box-shadow: 0 0 10px rgba(231,0,0,0.5);
+        }
+        .resizer-icon {
+            width: 2px;
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 1px;
         }
     </style>
 </head>
@@ -101,10 +144,10 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useCallback } = React;
 
-        // Código por defecto: Hola Mundo Simple
-        const INITIAL_CODE = `<!DOCTYPE html>
+        const STORAGE_KEY = 'godsPlan_code_v4';
+        const DEFAULT_CODE = `<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -112,17 +155,17 @@
     <title>Hola Mundo</title>
     <script src="https://cdn.tailwindcss.com"><\/script>
 </head>
-<body class="bg-slate-900 flex items-center justify-center h-screen text-white">
+<body class="bg-slate-900 flex flex-col items-center justify-center h-screen text-white">
     
     <div class="text-center p-10 border border-white/10 rounded-2xl bg-white/5 backdrop-blur-md shadow-xl">
         <h1 class="text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
             ¡Hola Mundo!
         </h1>
-        <p class="text-gray-400 text-lg">
-            Selecciona el icono de <span class="text-yellow-400 font-bold">mira ⌖</span> arriba
-            y haz click en este texto para ver su código.
+        <p class="text-gray-400 text-lg mb-6">
+            Bienvenido a God's Plan Editor
         </p>
-        <button class="mt-6 px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors font-medium">
+        
+        <button class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors font-medium">
             Botón de Ejemplo
         </button>
     </div>
@@ -130,10 +173,11 @@
 </body>
 </html>`;
 
-        // Script inyectado para manejar la inspección dentro del iframe
-        const INSPECTOR_SCRIPT = `
+        // Script inyectado SOLO para el Inspector
+        const INJECTED_TOOLS = `
             <script>
                 (function() {
+                    // --- INSPECTOR SOLAMENTE ---
                     let isInspecting = false;
                     let lastHighlighted = null;
 
@@ -143,7 +187,6 @@
                             document.body.style.cursor = isInspecting ? 'crosshair' : 'default';
                             if(!isInspecting && lastHighlighted) {
                                 lastHighlighted.style.outline = '';
-                                lastHighlighted = null;
                             }
                         }
                     });
@@ -151,37 +194,23 @@
                     document.addEventListener('mouseover', (e) => {
                         if (!isInspecting) return;
                         e.stopPropagation();
-                        
                         if (lastHighlighted) lastHighlighted.style.outline = '';
-                        
                         e.target.style.outline = '2px dashed #E70000';
-                        e.target.style.cursor = 'crosshair';
                         lastHighlighted = e.target;
-                    });
-
-                    document.addEventListener('mouseout', (e) => {
-                        if (!isInspecting) return;
-                        e.target.style.outline = '';
                     });
 
                     document.addEventListener('click', (e) => {
                         if (!isInspecting) return;
                         e.preventDefault();
                         e.stopPropagation();
-                        
-                        // Enviar la etiqueta de apertura para buscarla
-                        // Tomamos los primeros 50 caracteres para asegurar una búsqueda más única pero no gigante
+                        // Snippet para buscar
                         let tagSnippet = e.target.outerHTML.split('>')[0] + '>';
-                        
                         window.parent.postMessage({ 
                             type: 'ELEMENT_CLICKED', 
-                            snippet: tagSnippet,
-                            tagName: e.target.tagName.toLowerCase()
+                            snippet: tagSnippet 
                         }, '*');
-                        
-                        // Desactivar highlight visual al hacer click
-                        if (lastHighlighted) lastHighlighted.style.outline = '';
                         isInspecting = false;
+                        if (lastHighlighted) lastHighlighted.style.outline = '';
                         document.body.style.cursor = 'default';
                     });
                 })();
@@ -189,226 +218,207 @@
         `;
 
         const App = () => {
-            const [code, setCode] = useState(INITIAL_CODE);
-            const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-            const [srcDoc, setSrcDoc] = useState('');
-            const [isInspectorActive, setIsInspectorActive] = useState(false);
+            const [code, setCode] = useState(() => localStorage.getItem(STORAGE_KEY) || DEFAULT_CODE);
             
-            const iframeRef = useRef(null);
-            const textareaRef = useRef(null);
+            // Estado de UI
+            const [previewWidth, setPreviewWidth] = useState(50); // % del ancho
+            const [isDragging, setIsDragging] = useState(false);
+            const [isInspectorActive, setIsInspectorActive] = useState(false);
 
-            // Actualizar el iframe con el código + script de inspección
+            const iframeRef = useRef(null);
+            const editorDivRef = useRef(null);
+            const flaskRef = useRef(null);
+
+            // 1. Inicializar CodeFlask (Editor Pro)
             useEffect(() => {
+                if (!flaskRef.current && editorDivRef.current) {
+                    const flask = new CodeFlask(editorDivRef.current, {
+                        language: 'html',
+                        lineNumbers: true,
+                        readonly: false
+                    });
+                    
+                    flask.updateCode(code);
+                    
+                    flask.onUpdate((newCode) => {
+                        if (newCode !== code) {
+                            setCode(newCode);
+                        }
+                    });
+                    
+                    flaskRef.current = flask;
+                }
+            }, []);
+
+            // Guardar en LocalStorage y Actualizar Iframe
+            useEffect(() => {
+                localStorage.setItem(STORAGE_KEY, code);
+                
                 const timeoutId = setTimeout(() => {
-                    // Inyectamos el script de inspección justo antes de cerrar el body
-                    const codeWithInspector = code.replace('</body>', `${INSPECTOR_SCRIPT}</body>`);
-                    setSrcDoc(codeWithInspector);
-                }, 400); 
+                    const finalSrc = code.replace('</body>', `${INJECTED_TOOLS}</body>`);
+                    if (iframeRef.current) {
+                        iframeRef.current.srcdoc = finalSrc;
+                    }
+                }, 500); 
+
                 return () => clearTimeout(timeoutId);
             }, [code]);
 
-            // Comunicar estado del inspector al iframe
-            useEffect(() => {
-                if (iframeRef.current && iframeRef.current.contentWindow) {
-                    iframeRef.current.contentWindow.postMessage({
-                        type: 'TOGGLE_INSPECT',
-                        value: isInspectorActive
-                    }, '*');
-                }
-            }, [isInspectorActive, srcDoc]);
-
-            // Escuchar mensajes del iframe (Click en inspector)
+            // Manejar Mensajes del Iframe (Inspector)
             useEffect(() => {
                 const handleMessage = (e) => {
-                    if (e.data.type === 'ELEMENT_CLICKED') {
-                        setIsInspectorActive(false); // Apagar inspector
-                        findAndScrollToLine(e.data.snippet);
+                    const { type, snippet } = e.data;
+                    if (type === 'ELEMENT_CLICKED') {
+                        setIsInspectorActive(false);
+                        findAndScroll(snippet);
                     }
                 };
                 window.addEventListener('message', handleMessage);
                 return () => window.removeEventListener('message', handleMessage);
-            }, [code]);
+            }, []);
 
-            const findAndScrollToLine = (snippet) => {
-                if (!textareaRef.current) return;
-
-                // Intento simple de búsqueda: buscar el string exacto
-                // Nota: Esto es una aproximación. Si hay elementos idénticos, irá al primero.
-                // Limpiamos un poco el snippet para mejorar el match (quitamos clases inyectadas si las hubiera)
-                const searchStr = snippet.replace(/ style=".*?"/g, ''); 
-                
-                // Buscar índice en el código
-                // Usamos una búsqueda flexible: solo la etiqueta de apertura sin atributos si falla la exacta
-                let index = code.indexOf(searchStr);
-                
-                // Si no encuentra match exacto, intentamos buscar solo la etiqueta base (ej: <h1)
-                if (index === -1) {
-                    const basicTag = snippet.split(' ')[0]; 
-                    index = code.indexOf(basicTag);
+            // Comunicar estado del inspector
+            useEffect(() => {
+                if (iframeRef.current && iframeRef.current.contentWindow) {
+                    iframeRef.current.contentWindow.postMessage({ type: 'TOGGLE_INSPECT', value: isInspectorActive }, '*');
                 }
+            }, [isInspectorActive]);
 
-                if (index !== -1) {
-                    // Calcular número de línea
-                    const lines = code.substring(0, index).split('\n');
-                    const lineNumber = lines.length;
-                    
-                    // Mover scroll del textarea
-                    const lineHeight = 24; // Aproximado basado en font-size/line-height css
-                    textareaRef.current.scrollTop = (lineNumber - 5) * lineHeight; // -5 para centrar un poco
-                    
-                    // Enfocar y seleccionar (opcional, seleccionamos la línea)
-                    textareaRef.current.focus();
-                    textareaRef.current.setSelectionRange(index, index + searchStr.length);
-                    
-                    // Efecto visual momentáneo en textarea (opcional)
-                    alert(`Elemento encontrado en línea: ${lineNumber}`);
+            // Lógica del Resizer
+            const handleMouseDown = (e) => {
+                e.preventDefault();
+                setIsDragging(true);
+            };
+
+            const handleMouseMove = useCallback((e) => {
+                if (!isDragging) return;
+                const newWidth = (e.clientX / window.innerWidth) * 100;
+                if (newWidth > 15 && newWidth < 85) {
+                    setPreviewWidth(newWidth);
+                }
+            }, [isDragging]);
+
+            const handleMouseUp = useCallback(() => {
+                setIsDragging(false);
+            }, []);
+
+            useEffect(() => {
+                if (isDragging) {
+                    window.addEventListener('mousemove', handleMouseMove);
+                    window.addEventListener('mouseup', handleMouseUp);
                 } else {
-                    alert("No pude localizar la línea exacta en el código crudo.");
+                    window.removeEventListener('mousemove', handleMouseMove);
+                    window.removeEventListener('mouseup', handleMouseUp);
                 }
-            };
+                return () => {
+                    window.removeEventListener('mousemove', handleMouseMove);
+                    window.removeEventListener('mouseup', handleMouseUp);
+                };
+            }, [isDragging, handleMouseMove, handleMouseUp]);
 
-            const handleKeyDown = (e) => {
-                if (e.key === 'Tab') {
-                    e.preventDefault();
-                    const start = e.target.selectionStart;
-                    const end = e.target.selectionEnd;
-                    const value = e.target.value;
-                    setCode(value.substring(0, start) + '  ' + value.substring(end));
-                    setTimeout(() => {
-                        e.target.selectionStart = e.target.selectionEnd = start + 2;
-                    }, 0);
+            // Buscar código y scrollear
+            const findAndScroll = (snippet) => {
+                const searchStr = snippet.replace(/ style=".*?"/g, ''); 
+                let index = code.indexOf(searchStr);
+                if (index === -1) index = code.indexOf(snippet.split(' ')[0]);
+
+                if (index !== -1 && flaskRef.current) {
+                    const lines = code.substring(0, index).split('\n');
+                    const lineNum = lines.length;
+                    
+                    // Ajuste de scroll para CodeFlask
+                    const container = editorDivRef.current; // CodeFlask crea un div interno a veces, pero scrolleamos el contenedor
+                    // Buscamos el textarea para usarlo de referencia si es necesario, 
+                    // pero CodeFlask scrollea el contenedor padre si tiene overflow
+                    
+                    const lineHeight = 21; // aprox 14px * 1.5
+                    container.scrollTo({ top: (lineNum - 10) * lineHeight, behavior: 'smooth' });
+                    
+                    // Efecto visual flash
+                    const flash = document.createElement('div');
+                    flash.className = 'absolute inset-0 bg-brand/20 z-50 pointer-events-none transition-opacity duration-500';
+                    container.appendChild(flash);
+                    setTimeout(() => flash.classList.add('opacity-0'), 200);
+                    setTimeout(() => flash.remove(), 700);
                 }
-            };
-
-            const copyToClipboard = () => {
-                navigator.clipboard.writeText(code);
-                const btn = document.getElementById('btn-copy');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="ph-bold ph-check"></i> COPIADO';
-                setTimeout(() => btn.innerHTML = originalText, 2000);
             };
 
             return (
-                <div className="flex flex-col h-screen w-full relative">
+                <div className="flex flex-col h-screen w-full relative select-none">
                     <div className="aurora-bg"></div>
                     <div className="grid-bg"></div>
 
                     {/* Header */}
-                    <header className="h-16 border-b border-white/5 bg-black/40 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-20">
+                    <header className="h-14 border-b border-white/5 bg-black/60 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-20">
                         <div className="flex items-center gap-3">
-                            <div className="relative w-8 h-8 flex items-center justify-center">
-                                <div className="absolute inset-0 bg-brand rounded-full blur opacity-40"></div>
-                                <i className="ph-fill ph-code text-2xl text-brand relative z-10"></i>
-                            </div>
+                            <i className="ph-fill ph-code text-2xl text-brand"></i>
                             <div>
                                 <h1 className="font-bold tracking-widest text-sm text-white">GOD'S PLAN</h1>
-                                <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-[0.2em]">Code Canvas</span>
+                                <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-[0.2em]">Dev Environment</span>
                             </div>
                         </div>
                         
                         <div className="flex items-center gap-3">
                             <button 
-                                id="btn-inspector"
                                 onClick={() => setIsInspectorActive(!isInspectorActive)}
-                                className={`flex items-center gap-2 px-4 py-2 text-xs font-bold tracking-wider border rounded-lg transition-all ${isInspectorActive ? 'bg-brand text-white border-brand shadow-[0_0_15px_rgba(231,0,0,0.5)]' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'}`}
-                                title="Inspector de Elementos (Selecciona y encuentra código)"
+                                className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold tracking-wider border rounded-lg transition-all ${isInspectorActive ? 'bg-brand text-white border-brand animate-pulse' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'}`}
                             >
                                 <i className="ph-bold ph-crosshair"></i>
-                                {isInspectorActive ? 'SELECCIONA ELEMENTO...' : 'INSPECTOR'}
-                            </button>
-
-                            <button 
-                                id="btn-copy"
-                                onClick={copyToClipboard}
-                                className="flex items-center gap-2 px-4 py-2 text-xs font-bold tracking-wider bg-white/5 border border-white/10 hover:bg-white/10 hover:border-brand/50 hover:text-white text-zinc-400 rounded-lg transition-all"
-                            >
-                                <i className="ph-bold ph-copy"></i>
-                                EXPORTAR
+                                {isInspectorActive ? 'DETECTANDO...' : 'INSPECTOR'}
                             </button>
                         </div>
                     </header>
 
-                    {/* Main Content */}
+                    {/* Main Workspace */}
                     <main className="flex-1 flex overflow-hidden relative z-10">
                         
-                        {/* 1. Panel Izquierdo: Previsualización (Ahora a la izquierda) */}
-                        <div className={`${isSidebarOpen ? 'w-full md:w-1/2' : 'w-full'} bg-black relative flex flex-col transition-all duration-500 order-1`}>
+                        {/* PANEL IZQUIERDO: PREVIEW */}
+                        <div className="flex flex-col relative h-full bg-black border-r border-white/5" style={{ width: `${previewWidth}%` }}>
                             
                             {/* Toolbar Preview */}
-                            <div className="h-10 bg-black border-b border-white/5 flex items-center justify-between px-4">
-                                <div className="flex items-center gap-2 w-full max-w-xs">
-                                    <div className="px-3 py-1 bg-white/5 rounded text-[10px] text-zinc-500 border border-white/5 flex items-center gap-2 w-full">
-                                        <i className="ph-fill ph-globe text-brand"></i> 
-                                        <span className="truncate">Vista Previa</span>
-                                    </div>
-                                </div>
-                                <button 
-                                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                                    className="text-zinc-500 hover:text-white md:block hidden transition-colors"
-                                    title={isSidebarOpen ? "Pantalla completa" : "Dividir pantalla"}
-                                >
-                                    <i className={`ph-bold ${isSidebarOpen ? "ph-arrows-out-simple" : "ph-arrows-in-simple"} text-lg`}></i>
-                                </button>
+                            <div className="h-8 bg-black border-b border-white/5 flex items-center px-4 shrink-0">
+                                <span className="text-[10px] text-zinc-500 font-mono flex items-center gap-2">
+                                    <i className="ph-fill ph-globe text-brand"></i> Vista Previa
+                                </span>
                             </div>
 
                             {/* Iframe */}
-                            <div className="flex-1 w-full h-full bg-white relative">
+                            <div className="flex-1 relative bg-white w-full">
                                 <iframe
                                     ref={iframeRef}
-                                    srcDoc={srcDoc}
-                                    title="preview"
-                                    sandbox="allow-scripts allow-modals allow-forms allow-same-origin allow-popups"
                                     className="w-full h-full border-none"
+                                    sandbox="allow-scripts allow-modals allow-forms allow-same-origin allow-popups"
                                 ></iframe>
-                                
-                                {/* Overlay indicador de modo inspector */}
-                                {isInspectorActive && (
-                                    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-brand text-white px-4 py-1 rounded-full text-xs font-bold shadow-lg pointer-events-none animate-bounce">
-                                        Modo Inspector Activo: Haz click en un elemento
-                                    </div>
-                                )}
+                                {isInspectorActive && <div className="absolute inset-0 pointer-events-none border-4 border-brand opacity-50 z-50"></div>}
                             </div>
                         </div>
 
-                        {/* 2. Panel Derecho: Editor (Ahora a la derecha) */}
-                        <div className={`${isSidebarOpen ? 'w-full md:w-1/2' : 'w-0 hidden'} transition-all duration-500 flex flex-col border-l border-white/5 glass-panel relative group order-2`}>
-                            
-                            <div className="h-10 flex items-center justify-between px-4 border-b border-white/5 bg-black/20">
-                                <div className="flex items-center gap-2">
-                                    <i className="ph-fill ph-file-html text-orange-500"></i>
-                                    <span className="text-xs font-mono text-zinc-400">index.html (Editable)</span>
-                                </div>
-                                <div className="text-[10px] text-zinc-600 font-mono">UTF-8</div>
-                            </div>
-
-                            <textarea
-                                ref={textareaRef}
-                                value={code}
-                                onChange={(e) => setCode(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                className="editor-textarea w-full h-full text-zinc-300 p-6 resize-none text-sm"
-                                spellCheck="false"
-                                placeholder="<!-- Pega tu código aquí -->"
-                            ></textarea>
-                        </div>
-
-                        {/* Botón Toggle Mobile */}
-                        <button 
-                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden bg-brand text-white px-4 py-2 rounded-full text-xs font-bold shadow-[0_0_20px_rgba(231,0,0,0.4)]"
+                        {/* RESIZER HANDLE */}
+                        <div 
+                            className={`resizer ${isDragging ? 'active' : ''}`}
+                            onMouseDown={handleMouseDown}
                         >
-                            {isSidebarOpen ? 'VER PANTALLA COMPLETA' : 'DIVIDIR PANTALLA'}
-                        </button>
+                            <div className="resizer-icon"></div>
+                        </div>
+
+                        {/* PANEL DERECHO: EDITOR (CodeFlask) */}
+                        <div className="flex flex-col h-full bg-[#050505] relative" style={{ width: `${100 - previewWidth}%` }}>
+                            
+                            <div className="h-8 bg-[#0a0a0a] border-b border-white/5 flex items-center justify-between px-4 shrink-0">
+                                <span className="text-[10px] text-zinc-500 font-mono flex items-center gap-2">
+                                    <i className="ph-fill ph-file-code text-orange-500"></i> index.html
+                                </span>
+                                <span className="text-[10px] text-zinc-600">UTF-8 • Auto-save ON</span>
+                            </div>
+
+                            {/* Contenedor para CodeFlask */}
+                            <div ref={editorDivRef} className="flex-1 relative w-full h-full overflow-hidden"></div>
+                        </div>
 
                     </main>
-                    
-                    {/* Status Bar */}
-                    <footer className="h-6 border-t border-white/5 bg-black/80 text-[10px] text-zinc-500 flex items-center justify-between px-4 shrink-0 z-20">
-                        <div className="flex gap-4">
-                            <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></div> SYSTEM READY</span>
-                        </div>
-                        <div className="font-mono opacity-50">GOD'S PLAN v2.0</div>
-                    </footer>
+
+                    {/* Overlay durante Dragging */}
+                    {isDragging && <div className="absolute inset-0 z-[100] cursor-col-resize"></div>}
                 </div>
             );
         };
