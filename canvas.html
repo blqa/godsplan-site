@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>God's Plan | Monaco DevEnv</title>
+    <title>God's Plan | Clean Monaco & Console</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -30,10 +30,11 @@
                         mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        brand: { DEFAULT: '#007ACC', hover: '#005fa3', dim: 'rgba(0, 122, 204, 0.1)' }, 
-                        bg: '#1e1e1e', // VS Code Dark bg
+                        brand: { DEFAULT: '#007ACC', hover: '#005fa3' }, 
+                        bg: '#1e1e1e',
                         panel: '#252526',
-                        border: '#333333'
+                        border: '#333333',
+                        console: '#242424'
                     }
                 }
             }
@@ -43,33 +44,37 @@
     <style>
         body { background-color: #1e1e1e; color: #cccccc; overflow: hidden; }
 
-        /* Scrollbar estilo VS Code */
+        /* Scrollbar estilo VS Code/Chrome Dark */
         ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: #1e1e1e; }
-        ::-webkit-scrollbar-thumb { background: #424242; }
+        ::-webkit-scrollbar-thumb { background: #424242; border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: #4f4f4f; }
         ::-webkit-scrollbar-corner { background: #1e1e1e; }
 
-        .resizer {
-            width: 4px; background: #2b2b2b; cursor: col-resize; transition: background 0.2s; z-index: 50;
+        .resizer-v {
+            width: 4px; background: #2b2b2b; cursor: col-resize; z-index: 50;
             display: flex; align-items: center; justify-content: center;
         }
-        .resizer:hover, .resizer.active { background: #007ACC; }
+        .resizer-v:hover, .resizer-v.active { background: #007ACC; }
 
-        /* Decoración de línea destacada en Monaco */
         .myLineDecoration {
             background: rgba(0, 122, 204, 0.3) !important;
             border-left: 2px solid #007ACC;
             width: 100% !important;
         }
         
-        /* Animación para el botón del inspector */
+        .animate-inspect { animation: pulse-blue 2s infinite; }
         @keyframes pulse-blue {
             0% { box-shadow: 0 0 0 0 rgba(0, 122, 204, 0.4); }
             70% { box-shadow: 0 0 0 6px rgba(0, 122, 204, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 122, 204, 0); }
         }
-        .animate-inspect { animation: pulse-blue 2s infinite; }
+
+        /* Consola Styles */
+        .console-log { color: #cccccc; border-bottom: 1px solid #333; padding: 4px 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; display: flex; gap: 8px; }
+        .console-warn { background: rgba(255, 200, 0, 0.1); color: #fce97f; border-left: 3px solid #fce97f; }
+        .console-error { background: rgba(255, 0, 0, 0.1); color: #ff8080; border-left: 3px solid #ff8080; }
+        .console-input:focus { outline: none; }
     </style>
 </head>
 <body>
@@ -78,164 +83,135 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useCallback } = React;
 
-        const STORAGE_KEY = 'godsPlan_monaco_v1';
+        // NO LOCAL STORAGE - Estado inicial hardcodeado
         const DEFAULT_CODE = `<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inspector Profesional</title>
+    <title>Prueba de Consola</title>
     <script src="https://cdn.tailwindcss.com"><\/script>
     <style>
-        /* CSS Personalizado */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        body { background: #111; color: white; display: grid; place-items: center; height: 100vh; font-family: sans-serif; }
+        button { transition: all 0.2s; }
+        button:active { transform: scale(0.95); }
     </style>
 </head>
-<body class="bg-[#0f0f11] text-white h-screen w-full flex items-center justify-center overflow-hidden">
-
-    <div class="absolute inset-0 z-0">
-        <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(0,122,204,0.15),transparent_50%)]"></div>
-    </div>
-
-    <main class="z-10 relative flex flex-col items-center gap-6 p-8">
+<body>
+    <div class="text-center space-y-4">
+        <h1 class="text-3xl font-bold text-blue-500 mb-4">God's Plan Console</h1>
         
-        <div class="glass-card p-8 rounded-2xl shadow-2xl max-w-md w-full text-center transition-all hover:border-blue-500/30 group">
-            <div class="w-16 h-16 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-xl mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                </svg>
-            </div>
+        <p class="text-gray-400">Usa la pestaña "Consola" a la derecha para ver los logs.</p>
 
-            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300 mb-3">
-                Monaco Editor
-            </h1>
-            
-            <p class="text-zinc-400 mb-6 leading-relaxed">
-                Haz clic en esta línea en el editor de la derecha. Verás cómo me ilumino a la izquierda.
-            </p>
-
-            <button class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-blue-900/20">
-                Pruébame ahora
+        <div class="flex gap-2 justify-center">
+            <button onclick="console.log('Hola desde el botón!', { x: 10, y: 20 })" class="px-4 py-2 bg-green-600 rounded hover:bg-green-500">
+                Log
+            </button>
+            <button onclick="console.warn('Cuidado, esto es una advertencia')" class="px-4 py-2 bg-yellow-600 rounded hover:bg-yellow-500">
+                Warn
+            </button>
+            <button onclick="console.error('CRITICAL ERROR: System failure')" class="px-4 py-2 bg-red-600 rounded hover:bg-red-500">
+                Error
             </button>
         </div>
-
-        <p class="text-xs text-zinc-600 font-mono">
-            Powered by VS Code Engine
-        </p>
-
-    </main>
-
+        
+        <div class="mt-8 p-4 border border-gray-700 rounded bg-gray-800">
+            <p>También puedes escribir JS en la consola:</p>
+            <code class="text-xs text-green-400 block mt-2">document.body.style.background = 'purple'</code>
+        </div>
+    </div>
 </body>
 </html>`;
 
-        // Script inyectado para el inspector (Iframe side)
-        const INJECTED_SCRIPT = `
+        // Script que intercepta la consola dentro del iframe
+        const CONSOLE_INTERCEPTOR = `
+            <script>
+                (function() {
+                    const sendToParent = (type, args) => {
+                        const payload = args.map(arg => {
+                            try {
+                                if (typeof arg === 'object' && arg !== null) return JSON.stringify(arg);
+                                return String(arg);
+                            } catch (e) {
+                                return '[Circular/Unserializable]';
+                            }
+                        });
+                        window.parent.postMessage({ type: 'CONSOLE_MSG', level: type, payload: payload }, '*');
+                    };
+
+                    const originalLog = console.log;
+                    const originalWarn = console.warn;
+                    const originalError = console.error;
+
+                    console.log = function(...args) { originalLog.apply(console, args); sendToParent('log', args); };
+                    console.warn = function(...args) { originalWarn.apply(console, args); sendToParent('warn', args); };
+                    console.error = function(...args) { originalError.apply(console, args); sendToParent('error', args); };
+
+                    window.onerror = function(msg, url, line, col, error) {
+                        sendToParent('error', [\`Uncaught Error: \${msg} (Line \${line})\`]);
+                        return false;
+                    };
+
+                    window.addEventListener('message', (e) => {
+                        if (e.data.type === 'EVAL_CODE') {
+                            try {
+                                const result = eval(e.data.code);
+                                console.log('<Result>', result);
+                            } catch (err) {
+                                console.error(err.toString());
+                            }
+                        }
+                    });
+                })();
+            <\/script>
+        `;
+
+        // Script del inspector visual (Highlight)
+        const INSPECTOR_SCRIPT = `
             <script>
                 (function() {
                     let isInspecting = false;
-                    let overlay = null;
-                    let highlightOverlay = null;
-
-                    // Overlay 1: Para el Inspector (Mouse Hover)
-                    function createInspectorOverlay() {
-                        if(overlay) return;
-                        overlay = document.createElement('div');
-                        overlay.style.cssText = 'position: fixed; pointer-events: none; z-index: 99999; border: 2px solid #007ACC; background: rgba(0, 122, 204, 0.1); display: none; transition: all 0.05s ease; border-radius: 2px;';
-                        
-                        // Tag label
-                        const label = document.createElement('div');
-                        label.id = 'inspector-label';
-                        label.style.cssText = 'position: absolute; top: -20px; left: -2px; background: #007ACC; color: white; font-family: monospace; font-size: 10px; padding: 2px 6px; border-radius: 2px; pointer-events: none; white-space: nowrap;';
-                        overlay.appendChild(label);
-                        document.body.appendChild(overlay);
-                    }
-
-                    // Overlay 2: Para el Highlight desde el Editor (Reverse Inspector)
-                    function createHighlightOverlay() {
-                        if(highlightOverlay) return;
-                        highlightOverlay = document.createElement('div');
-                        // Estilo similar a Chrome DevTools cuando seleccionas un nodo
-                        highlightOverlay.style.cssText = 'position: fixed; pointer-events: none; z-index: 99998; background: rgba(0, 122, 204, 0.25); border: 1px dashed #61dafb; transition: all 0.15s ease-out; display: none; pointer-events: none;';
-                        document.body.appendChild(highlightOverlay);
-                    }
+                    let overlay = document.createElement('div');
+                    overlay.style.cssText = 'position: fixed; pointer-events: none; z-index: 99999; border: 2px solid #007ACC; background: rgba(0, 122, 204, 0.1); display: none;';
+                    document.body.appendChild(overlay);
 
                     window.addEventListener('message', (e) => {
-                        // Modo Inspector (Click en preview -> Highlight código)
                         if (e.data.type === 'TOGGLE_INSPECT') {
                             isInspecting = e.data.value;
-                            createInspectorOverlay();
-                            if (!isInspecting && overlay) overlay.style.display = 'none';
+                            overlay.style.display = 'none';
                             document.body.style.cursor = isInspecting ? 'crosshair' : 'default';
                         }
-                        
-                        // Modo Highlight Inverso (Click en código -> Highlight preview)
                         if (e.data.type === 'HIGHLIGHT_ELEMENT') {
-                            createHighlightOverlay();
-                            const line = e.data.line;
-                            // Buscar elemento con el atributo de línea
-                            const target = document.querySelector(\`[data-src-line="\${line}"]\`);
-                            
-                            if (target) {
+                            const target = document.querySelector(\`[data-src-line="\${e.data.line}"]\`);
+                            if(target) {
                                 const rect = target.getBoundingClientRect();
-                                highlightOverlay.style.display = 'block';
-                                highlightOverlay.style.top = rect.top + 'px';
-                                highlightOverlay.style.left = rect.left + 'px';
-                                highlightOverlay.style.width = rect.width + 'px';
-                                highlightOverlay.style.height = rect.height + 'px';
-                                
-                                // Opcional: scrollear suavemente si está muy lejos, pero puede ser molesto al teclear
-                                // target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                            } else {
-                                highlightOverlay.style.display = 'none';
+                                overlay.style.display = 'block';
+                                overlay.style.top = rect.top + 'px';
+                                overlay.style.left = rect.left + 'px';
+                                overlay.style.width = rect.width + 'px';
+                                overlay.style.height = rect.height + 'px';
+                                setTimeout(() => overlay.style.display = 'none', 1500);
                             }
                         }
                     });
 
-                    // Lógica del Inspector (Mouse over en Iframe)
                     document.addEventListener('mouseover', (e) => {
-                        if (!isInspecting) return;
+                        if (!isInspecting || e.target === document.body || e.target === overlay) return;
                         e.stopPropagation();
-                        
-                        const target = e.target;
-                        if (target === document.body || target === document.documentElement || target === overlay || target === highlightOverlay) return;
-
-                        const rect = target.getBoundingClientRect();
+                        const rect = e.target.getBoundingClientRect();
                         overlay.style.display = 'block';
                         overlay.style.top = rect.top + 'px';
                         overlay.style.left = rect.left + 'px';
                         overlay.style.width = rect.width + 'px';
                         overlay.style.height = rect.height + 'px';
-
-                        // Encontrar linea
-                        let srcLine = target.getAttribute('data-src-line');
-                        let walker = target;
-                        while (!srcLine && walker.parentElement) {
-                            walker = walker.parentElement;
-                            srcLine = walker.getAttribute('data-src-line');
-                        }
-
-                        const tagName = target.tagName.toLowerCase();
-                        const classes = target.className && typeof target.className === 'string' ? '.' + target.className.split(' ')[0] : '';
-                        overlay.querySelector('#inspector-label').textContent = \`<\${tagName}\${classes}> \${srcLine ? ' : ' + srcLine : ''}\`;
                     });
 
                     document.addEventListener('click', (e) => {
                         if (!isInspecting) return;
                         e.preventDefault();
                         e.stopPropagation();
-
                         let target = e.target;
                         let srcLine = target.getAttribute('data-src-line');
-                        
-                        while (!srcLine && target.parentElement) {
-                            target = target.parentElement;
-                            srcLine = target.getAttribute('data-src-line');
-                        }
-
                         if (srcLine) {
                             window.parent.postMessage({ type: 'ELEMENT_CLICKED', line: parseInt(srcLine) }, '*');
                         }
@@ -244,155 +220,196 @@
             <\/script>
         `;
 
+        const ConsolePanel = ({ logs, onClear, onExecute }) => {
+            const [input, setInput] = useState('');
+            const endRef = useRef(null);
+
+            useEffect(() => {
+                endRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [logs]);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (!input.trim()) return;
+                onExecute(input);
+                setInput('');
+            };
+
+            return (
+                <div className="flex flex-col h-full w-full bg-[#1e1e1e] text-gray-300 font-mono text-xs">
+                    {/* Console Toolbar */}
+                    <div className="h-9 bg-[#252526] border-b border-[#111] flex items-center px-2 gap-2 justify-between shrink-0">
+                        <div className="flex items-center gap-2">
+                             <button 
+                                onClick={onClear}
+                                className="flex items-center gap-1 px-2 py-1 bg-[#333] hover:bg-[#444] text-white rounded border border-[#444] transition-colors"
+                                title="Limpiar Consola"
+                            >
+                                <i className="ph-bold ph-prohibit text-gray-300"></i>
+                                <span className="text-[10px] font-bold">CLEAR</span>
+                            </button>
+                            <div className="h-4 w-[1px] bg-gray-500 mx-1"></div>
+                            <input type="text" placeholder="Filter..." className="bg-[#1e1e1e] border border-[#444] px-2 h-6 rounded text-gray-300 w-32 focus:outline-none focus:border-blue-500 text-[10px]"/>
+                        </div>
+                        <span className="text-[10px] text-gray-500">JS Console</span>
+                    </div>
+
+                    {/* Logs Area */}
+                    <div className="flex-1 overflow-y-auto p-1 bg-[#1e1e1e]">
+                        {logs.length === 0 && <div className="text-gray-500 italic p-4 text-center mt-10 opacity-50">Console is empty</div>}
+                        {logs.map((log, i) => (
+                            <div key={i} className={`console-log ${log.level === 'error' ? 'console-error' : log.level === 'warn' ? 'console-warn' : ''} border-b border-[#2b2b2b]`}>
+                                {log.level === 'error' ? <i className="ph-fill ph-x-circle text-red-500 mt-0.5 shrink-0"></i> : 
+                                 log.level === 'warn' ? <i className="ph-fill ph-warning text-yellow-500 mt-0.5 shrink-0"></i> : 
+                                 log.level === 'command' ? <i className="ph-bold ph-caret-right text-gray-500 mt-0.5 shrink-0"></i> :
+                                 <i className="ph-bold ph-info text-blue-400 mt-0.5 shrink-0"></i>}
+                                <div className="break-all whitespace-pre-wrap flex-1">
+                                    {log.payload.join(' ')}
+                                </div>
+                            </div>
+                        ))}
+                        <div ref={endRef}></div>
+                    </div>
+
+                    {/* Input Line */}
+                    <form onSubmit={handleSubmit} className="h-8 border-t border-[#333] flex items-center px-2 bg-[#252526] shrink-0">
+                        <i className="ph-bold ph-caret-right text-blue-500 mr-2"></i>
+                        <input 
+                            type="text" 
+                            className="flex-1 bg-transparent border-none outline-none text-white console-input font-mono"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder="Ejecutar JavaScript..."
+                            autoComplete="off"
+                        />
+                    </form>
+                </div>
+            );
+        };
+
         const App = () => {
-            const [code, setCode] = useState(() => localStorage.getItem(STORAGE_KEY) || DEFAULT_CODE);
-            const [previewWidth, setPreviewWidth] = useState(50);
-            const [isDragging, setIsDragging] = useState(false);
+            const [code, setCode] = useState(DEFAULT_CODE);
+            const [logs, setLogs] = useState([]);
+            
+            // Layout State
+            const [previewWidth, setPreviewWidth] = useState(50); // Ahora el % es para la izquierda (preview)
+            const [activeTab, setActiveTab] = useState('code'); // 'code' | 'console'
             const [isInspectorActive, setIsInspectorActive] = useState(false);
             
+            // Refs
             const iframeRef = useRef(null);
             const editorContainerRef = useRef(null);
             const monacoRef = useRef(null);
             const decorationsRef = useRef([]);
 
-            // 1. Inicializar Monaco Editor
+            // Resizing State
+            const [isDraggingH, setIsDraggingH] = useState(false);
+
+            // 1. Monaco Setup
             useEffect(() => {
                 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
-
                 require(['vs/editor/editor.main'], function () {
                     if (!editorContainerRef.current) return;
-
                     const editor = monaco.editor.create(editorContainerRef.current, {
                         value: code,
                         language: 'html',
                         theme: 'vs-dark',
-                        automaticLayout: false,
+                        automaticLayout: true,
                         minimap: { enabled: false },
-                        fontSize: 14,
+                        fontSize: 13,
                         fontFamily: "'JetBrains Mono', monospace",
-                        padding: { top: 20 },
+                        padding: { top: 16 },
                         scrollBeyondLastLine: false,
-                        smoothScrolling: true,
-                        cursorBlinking: 'smooth',
-                        cursorSmoothCaretAnimation: 'on',
-                        renderLineHighlight: 'all',
                     });
 
                     editor.onDidChangeModelContent(() => {
-                        const newVal = editor.getValue();
-                        setCode(newVal);
+                        setCode(editor.getValue());
                     });
 
-                    // EVENTO CLAVE: Detectar movimiento del cursor para iluminar en el Iframe
                     editor.onDidChangeCursorPosition((e) => {
-                        const lineNumber = e.position.lineNumber;
-                        // Enviar mensaje al Iframe para iluminar el elemento correspondiente
-                        if (iframeRef.current && iframeRef.current.contentWindow) {
-                            iframeRef.current.contentWindow.postMessage({ 
-                                type: 'HIGHLIGHT_ELEMENT', 
-                                line: lineNumber 
-                            }, '*');
+                        if (iframeRef.current?.contentWindow) {
+                            iframeRef.current.contentWindow.postMessage({ type: 'HIGHLIGHT_ELEMENT', line: e.position.lineNumber }, '*');
                         }
                     });
 
                     monacoRef.current = editor;
                 });
-
-                return () => {
-                    if (monacoRef.current) monacoRef.current.dispose();
-                };
             }, []);
 
-            // 2. Manejo del redimensionado
+            // Handle Tab Switch Layout Update
             useEffect(() => {
-                if (monacoRef.current) {
-                    monacoRef.current.layout();
+                if (activeTab === 'code' && monacoRef.current) {
+                    // Small delay to allow container to be visible
+                    setTimeout(() => monacoRef.current.layout(), 50);
                 }
-            }, [previewWidth]);
+            }, [activeTab, previewWidth]);
 
-            // 3. Procesamiento y Preview
-            const processCodeForPreview = (sourceCode) => {
-                const lines = sourceCode.split('\n');
-                return lines.map((line, index) => {
-                    const lineNum = index + 1;
-                    if (line.includes('<script') || line.includes('<style')) return line;
-                    return line.replace(
-                        /<([a-zA-Z0-9-]+)([^>]*?)>/, 
-                        (match, tag, attrs) => `<${tag} data-src-line="${lineNum}"${attrs}>`
-                    );
-                }).join('\n');
-            };
-
+            // 2. Code Injection & Preview
             useEffect(() => {
-                localStorage.setItem(STORAGE_KEY, code);
-                
                 const timer = setTimeout(() => {
                     if (iframeRef.current) {
-                        const codeWithMarkers = processCodeForPreview(code);
-                        const finalSrc = codeWithMarkers.replace('</body>', `${INJECTED_SCRIPT}</body>`);
+                        const lines = code.split('\n');
+                        const processedCode = lines.map((line, index) => {
+                            const lineNum = index + 1;
+                            if (line.includes('<script') || line.includes('<style')) return line;
+                            return line.replace(/<([a-zA-Z0-9-]+)([^>]*?)>/, (match, tag, attrs) => `<${tag} data-src-line="${lineNum}"${attrs}>`);
+                        }).join('\n');
+
+                        const finalSrc = processedCode.replace('</body>', `${CONSOLE_INTERCEPTOR}${INSPECTOR_SCRIPT}</body>`);
                         iframeRef.current.srcdoc = finalSrc;
+                        
+                        setLogs([]); 
+                        setLogs(prev => [...prev, { level: 'info', payload: ['System: Ready.'] }]);
                     }
                 }, 800);
-
                 return () => clearTimeout(timer);
             }, [code]);
 
-            // 4. Comunicación Inspector -> Monaco
+            // 3. Message Handling
             useEffect(() => {
                 const handleMessage = (e) => {
+                    if (e.data.type === 'CONSOLE_MSG') {
+                        setLogs(prev => [...prev, { level: e.data.level, payload: e.data.payload }]);
+                    }
                     if (e.data.type === 'ELEMENT_CLICKED' && monacoRef.current) {
+                        // Switch to code tab if clicked
+                        setActiveTab('code');
+                        
                         const lineNum = e.data.line;
-                        highlightLineInMonaco(lineNum);
+                        monacoRef.current.revealLineInCenter(lineNum);
+                        monacoRef.current.setPosition({ lineNumber: lineNum, column: 1 });
+                        monacoRef.current.focus();
                         setIsInspectorActive(false);
+                        
+                        const newDecorations = [{
+                            range: new monaco.Range(lineNum, 1, lineNum, 1),
+                            options: { isWholeLine: true, className: 'myLineDecoration' }
+                        }];
+                        decorationsRef.current = monacoRef.current.deltaDecorations(decorationsRef.current, newDecorations);
+                        setTimeout(() => decorationsRef.current = monacoRef.current.deltaDecorations(decorationsRef.current, []), 1000);
                     }
                 };
                 window.addEventListener('message', handleMessage);
                 return () => window.removeEventListener('message', handleMessage);
             }, []);
 
-            // 5. Sync Toggle
             useEffect(() => {
-                if (iframeRef.current && iframeRef.current.contentWindow) {
+                if (iframeRef.current?.contentWindow) {
                     iframeRef.current.contentWindow.postMessage({ type: 'TOGGLE_INSPECT', value: isInspectorActive }, '*');
                 }
             }, [isInspectorActive]);
 
-            // Función PRO para resaltar en Monaco
-            const highlightLineInMonaco = (lineNumber) => {
-                const editor = monacoRef.current;
-                if (!editor) return;
-
-                editor.revealLineInCenter(lineNumber, monaco.editor.ScrollType.Smooth);
-                editor.setPosition({ lineNumber: lineNumber, column: 1 });
-                editor.focus();
-
-                const newDecorations = [{
-                    range: new monaco.Range(lineNumber, 1, lineNumber, 1),
-                    options: {
-                        isWholeLine: true,
-                        className: 'myLineDecoration',
-                        linesDecorationsClassName: 'myLineGutterDecoration' 
-                    }
-                }];
-
-                decorationsRef.current = editor.deltaDecorations(decorationsRef.current, newDecorations);
-
-                setTimeout(() => {
-                    decorationsRef.current = editor.deltaDecorations(decorationsRef.current, []);
-                }, 1500);
-            };
-
-            // Resizer
             const handleMouseMove = useCallback((e) => {
-                if (!isDragging) return;
-                const newWidth = (e.clientX / window.innerWidth) * 100;
-                if (newWidth > 20 && newWidth < 80) setPreviewWidth(newWidth);
-            }, [isDragging]);
+                if (isDraggingH) {
+                    const newWidth = (e.clientX / window.innerWidth) * 100;
+                    if (newWidth > 20 && newWidth < 80) setPreviewWidth(newWidth);
+                }
+            }, [isDraggingH]);
 
-            const handleMouseUp = useCallback(() => setIsDragging(false), []);
+            const handleMouseUp = useCallback(() => setIsDraggingH(false), []);
 
             useEffect(() => {
-                if (isDragging) {
+                if (isDraggingH) {
                     window.addEventListener('mousemove', handleMouseMove);
                     window.addEventListener('mouseup', handleMouseUp);
                 }
@@ -400,88 +417,92 @@
                     window.removeEventListener('mousemove', handleMouseMove);
                     window.removeEventListener('mouseup', handleMouseUp);
                 }
-            }, [isDragging]);
+            }, [isDraggingH]);
+
+            const executeConsoleCommand = (cmd) => {
+                setLogs(prev => [...prev, { level: 'command', payload: [`> ${cmd}`] }]);
+                if (iframeRef.current?.contentWindow) {
+                    iframeRef.current.contentWindow.postMessage({ type: 'EVAL_CODE', code: cmd }, '*');
+                }
+            };
 
             return (
                 <div className="flex flex-col h-screen w-full bg-bg text-[#cccccc] font-sans select-none overflow-hidden">
                     
-                    {/* Top Bar */}
+                    {/* Header */}
                     <header className="h-10 bg-[#1e1e1e] border-b border-[#333] flex items-center justify-between px-4 shrink-0 z-20">
                         <div className="flex items-center gap-3">
-                            <i className="ph-fill ph-code text-blue-500 text-lg"></i>
-                            <span className="text-xs font-bold text-gray-300 tracking-wide">GOD'S PLAN <span className="opacity-50 font-normal">| MONACO ENGINE</span></span>
+                            <span className="text-xs font-bold text-gray-300 tracking-wide">GOD'S PLAN <span className="opacity-50">| F12 EDITION</span></span>
                         </div>
-
                         <div className="flex items-center gap-2">
-                             <button 
-                                onClick={() => setIsInspectorActive(!isInspectorActive)}
-                                className={`
-                                    flex items-center gap-2 px-3 py-1 text-xs font-medium rounded transition-all border
-                                    ${isInspectorActive 
-                                        ? 'bg-blue-900/30 text-blue-400 border-blue-500/50 animate-inspect' 
-                                        : 'bg-[#2d2d2d] border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#383838]'}
-                                `}
-                            >
+                             <button onClick={() => setIsInspectorActive(!isInspectorActive)}
+                                className={`flex items-center gap-2 px-3 py-1 text-xs font-medium rounded transition-all border ${isInspectorActive ? 'bg-blue-900/30 text-blue-400 border-blue-500/50 animate-inspect' : 'bg-[#2d2d2d] border-transparent text-gray-400'}`}>
                                 <i className={`ph-bold ${isInspectorActive ? 'ph-crosshair' : 'ph-cursor-click'}`}></i>
                                 {isInspectorActive ? 'DETECTANDO...' : 'INSPECCIONAR'}
                             </button>
                         </div>
                     </header>
 
-                    {/* Main Area */}
-                    <div className="flex-1 flex overflow-hidden relative">
+                    {/* Main Content Area (Inverted Layout: Preview Left, Editor Right) */}
+                    <div className="flex-1 flex overflow-hidden relative w-full h-full">
                         
-                        {/* Preview */}
-                        <div className="flex flex-col h-full bg-[#1e1e1e]" style={{ width: `${previewWidth}%` }}>
-                             <div className="h-full w-full bg-white relative">
-                                <iframe 
-                                    ref={iframeRef}
-                                    className="w-full h-full border-none"
-                                    sandbox="allow-scripts allow-modals allow-forms allow-same-origin"
-                                    title="Preview"
-                                ></iframe>
-                                {isDragging && <div className="absolute inset-0 z-50 bg-transparent"></div>}
-                            </div>
+                        {/* LEFT PANE: Preview */}
+                        <div className="flex flex-col h-full bg-white relative" style={{ width: `${previewWidth}%` }}>
+                            <iframe ref={iframeRef} className="w-full h-full border-none" sandbox="allow-scripts allow-modals allow-forms allow-same-origin" title="Preview"></iframe>
+                            {isDraggingH && <div className="absolute inset-0 z-50 bg-transparent"></div>}
                         </div>
 
-                        {/* Resizer */}
-                        <div 
-                            className={`resizer ${isDragging ? 'active' : ''}`}
-                            onMouseDown={() => setIsDragging(true)}
-                        ></div>
+                        {/* RESIZER */}
+                        <div className={`resizer-v ${isDraggingH ? 'active' : ''}`} onMouseDown={() => setIsDraggingH(true)}></div>
 
-                        {/* Editor (Monaco) */}
+                        {/* RIGHT PANE: Editor & Console Tabs */}
                         <div className="flex flex-col h-full bg-[#1e1e1e]" style={{ width: `${100 - previewWidth}%` }}>
                             
-                            {/* Tabs simulados */}
-                            <div className="flex bg-[#1e1e1e] border-b border-[#252526]">
-                                <div className="px-4 py-2 text-xs bg-[#1e1e1e] border-t border-t-blue-500 text-white flex items-center gap-2">
+                            {/* Tabs Header */}
+                            <div className="flex bg-[#252526] border-b border-[#111]">
+                                <button 
+                                    onClick={() => setActiveTab('code')}
+                                    className={`px-4 py-2 text-xs flex items-center gap-2 border-t-2 ${activeTab === 'code' ? 'bg-[#1e1e1e] border-blue-500 text-white' : 'bg-[#2d2d2d] border-transparent text-gray-400 hover:bg-[#333]'}`}
+                                >
                                     <i className="ph-fill ph-file-html text-orange-500"></i> index.html
-                                    <i className="ph-bold ph-x text-[10px] ml-2 opacity-50 hover:opacity-100 cursor-pointer"></i>
-                                </div>
+                                </button>
+                                <button 
+                                    onClick={() => setActiveTab('console')}
+                                    className={`px-4 py-2 text-xs flex items-center gap-2 border-t-2 ${activeTab === 'console' ? 'bg-[#1e1e1e] border-blue-500 text-white' : 'bg-[#2d2d2d] border-transparent text-gray-400 hover:bg-[#333]'}`}
+                                >
+                                    <i className="ph-bold ph-terminal-window text-gray-400"></i> Consola
+                                    {logs.length > 1 && <span className="bg-blue-600 text-[9px] px-1 rounded-full text-white">{logs.length}</span>}
+                                </button>
                             </div>
 
-                            {/* Monaco Container */}
+                            {/* Tab Content Area */}
                             <div className="flex-1 relative w-full h-full overflow-hidden">
-                                <div ref={editorContainerRef} className="absolute inset-0"></div>
+                                
+                                {/* 1. Monaco Editor Container */}
+                                <div 
+                                    className="absolute inset-0 w-full h-full" 
+                                    style={{ visibility: activeTab === 'code' ? 'visible' : 'hidden', zIndex: activeTab === 'code' ? 10 : 0 }}
+                                >
+                                    <div ref={editorContainerRef} className="absolute inset-0"></div>
+                                </div>
+
+                                {/* 2. Console Container */}
+                                {activeTab === 'console' && (
+                                    <div className="absolute inset-0 w-full h-full z-20 bg-[#1e1e1e]">
+                                        <ConsolePanel 
+                                            logs={logs} 
+                                            onClear={() => setLogs([])}
+                                            onExecute={executeConsoleCommand}
+                                        />
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Status Bar */}
-                            <div className="h-6 bg-[#007ACC] text-white flex items-center justify-between px-3 text-[10px] font-sans">
-                                <div className="flex gap-4">
-                                    <span><i className="ph-bold ph-git-branch"></i> main</span>
-                                    <span>0 errors, 0 warnings</span>
-                                </div>
-                                <div className="flex gap-4">
-                                    <span>Ln {code.split('\n').length}, Col 1</span>
-                                    <span>UTF-8</span>
-                                    <span>HTML</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
-                    
-                    {isDragging && <div className="fixed inset-0 z-[100] cursor-col-resize"></div>}
+
+                    {/* Global Overlays */}
+                    {isDraggingH && <div className="fixed inset-0 z-[100] cursor-col-resize"></div>}
                 </div>
             );
         };
