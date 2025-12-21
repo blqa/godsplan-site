@@ -89,37 +89,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prueba de Consola</title>
-    <script src="https://cdn.tailwindcss.com"><\/script>
+    <title>God's Plan</title>
     <style>
-        body { background: #111; color: white; display: grid; place-items: center; height: 100vh; font-family: sans-serif; }
-        button { transition: all 0.2s; }
-        button:active { transform: scale(0.95); }
+        body { background: #000; color: #8B0000; display: grid; place-items: center; height: 100vh; font-family: monospace; margin: 0; font-size: 14px; }
     </style>
 </head>
 <body>
-    <div class="text-center space-y-4">
-        <h1 class="text-3xl font-bold text-blue-500 mb-4">God's Plan Console</h1>
-        
-        <p class="text-gray-400">Usa la pestaña "Consola" a la derecha para ver los logs.</p>
-
-        <div class="flex gap-2 justify-center">
-            <button onclick="console.log('Hola desde el botón!', { x: 10, y: 20 })" class="px-4 py-2 bg-green-600 rounded hover:bg-green-500">
-                Log
-            </button>
-            <button onclick="console.warn('Cuidado, esto es una advertencia')" class="px-4 py-2 bg-yellow-600 rounded hover:bg-yellow-500">
-                Warn
-            </button>
-            <button onclick="console.error('CRITICAL ERROR: System failure')" class="px-4 py-2 bg-red-600 rounded hover:bg-red-500">
-                Error
-            </button>
-        </div>
-        
-        <div class="mt-8 p-4 border border-gray-700 rounded bg-gray-800">
-            <p>También puedes escribir JS en la consola:</p>
-            <code class="text-xs text-green-400 block mt-2">document.body.style.background = 'purple'</code>
-        </div>
-    </div>
+    godsplan by blqa
 </body>
 </html>`;
 
@@ -317,9 +293,15 @@
                         automaticLayout: true,
                         minimap: { enabled: false },
                         fontSize: 13,
-                        fontFamily: "'JetBrains Mono', monospace",
+                        fontFamily: "'JetBrains Mono', 'Courier New', monospace", // Fallback añadido
+                        fontLigatures: true,
                         padding: { top: 16 },
                         scrollBeyondLastLine: false,
+                    });
+
+                    // FIX: Esperar a que la fuente cargue y recalcular medidas para evitar desajuste visual
+                    document.fonts.ready.then(() => {
+                        monaco.editor.remeasureFonts();
                     });
 
                     editor.onDidChangeModelContent(() => {
