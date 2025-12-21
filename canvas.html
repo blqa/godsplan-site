@@ -115,7 +115,7 @@
             </h1>
             
             <p class="text-zinc-400 mb-6 leading-relaxed">
-                Esta es una demostración real. Activa el <b class="text-blue-400">Inspector</b> arriba y haz clic en cualquier elemento.
+                Haz clic en esta línea en el editor de la derecha. Verás cómo me ilumino a la izquierda.
             </p>
 
             <button class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-blue-900/20">
@@ -138,9 +138,10 @@
                 (function() {
                     let isInspecting = false;
                     let overlay = null;
-                    let lastTarget = null;
+                    let highlightOverlay = null;
 
-                    function createOverlay() {
+                    // Overlay 1: Para el Inspector (Mouse Hover)
+                    function createInspectorOverlay() {
                         if(overlay) return;
                         overlay = document.createElement('div');
                         overlay.style.cssText = 'position: fixed; pointer-events: none; z-index: 99999; border: 2px solid #007ACC; background: rgba(0, 122, 204, 0.1); display: none; transition: all 0.05s ease; border-radius: 2px;';
@@ -150,25 +151,57 @@
                         label.id = 'inspector-label';
                         label.style.cssText = 'position: absolute; top: -20px; left: -2px; background: #007ACC; color: white; font-family: monospace; font-size: 10px; padding: 2px 6px; border-radius: 2px; pointer-events: none; white-space: nowrap;';
                         overlay.appendChild(label);
-                        
                         document.body.appendChild(overlay);
                     }
 
+                    // Overlay 2: Para el Highlight desde el Editor (Reverse Inspector)
+                    function createHighlightOverlay() {
+                        if(highlightOverlay) return;
+                        highlightOverlay = document.createElement('div');
+                        // Estilo similar a Chrome DevTools cuando seleccionas un nodo
+                        highlightOverlay.style.cssText = 'position: fixed; pointer-events: none; z-index: 99998; background: rgba(0, 122, 204, 0.25); border: 1px dashed #61dafb; transition: all 0.15s ease-out; display: none; pointer-events: none;';
+                        document.body.appendChild(highlightOverlay);
+                    }
+
                     window.addEventListener('message', (e) => {
+                        // Modo Inspector (Click en preview -> Highlight código)
                         if (e.data.type === 'TOGGLE_INSPECT') {
                             isInspecting = e.data.value;
-                            createOverlay();
+                            createInspectorOverlay();
                             if (!isInspecting && overlay) overlay.style.display = 'none';
                             document.body.style.cursor = isInspecting ? 'crosshair' : 'default';
                         }
+                        
+                        // Modo Highlight Inverso (Click en código -> Highlight preview)
+                        if (e.data.type === 'HIGHLIGHT_ELEMENT') {
+                            createHighlightOverlay();
+                            const line = e.data.line;
+                            // Buscar elemento con el atributo de línea
+                            const target = document.querySelector(\`[data-src-line="\${line}"]\`);
+                            
+                            if (target) {
+                                const rect = target.getBoundingClientRect();
+                                highlightOverlay.style.display = 'block';
+                                highlightOverlay.style.top = rect.top + 'px';
+                                highlightOverlay.style.left = rect.left + 'px';
+                                highlightOverlay.style.width = rect.width + 'px';
+                                highlightOverlay.style.height = rect.height + 'px';
+                                
+                                // Opcional: scrollear suavemente si está muy lejos, pero puede ser molesto al teclear
+                                // target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            } else {
+                                highlightOverlay.style.display = 'none';
+                            }
+                        }
                     });
 
+                    // Lógica del Inspector (Mouse over en Iframe)
                     document.addEventListener('mouseover', (e) => {
                         if (!isInspecting) return;
                         e.stopPropagation();
                         
                         const target = e.target;
-                        if (target === document.body || target === document.documentElement || target === overlay) return;
+                        if (target === document.body || target === document.documentElement || target === overlay || target === highlightOverlay) return;
 
                         const rect = target.getBoundingClientRect();
                         overlay.style.display = 'block';
@@ -198,7 +231,6 @@
                         let target = e.target;
                         let srcLine = target.getAttribute('data-src-line');
                         
-                        // Traverse up to find nearest source line
                         while (!srcLine && target.parentElement) {
                             target = target.parentElement;
                             srcLine = target.getAttribute('data-src-line');
@@ -206,14 +238,6 @@
 
                         if (srcLine) {
                             window.parent.postMessage({ type: 'ELEMENT_CLICKED', line: parseInt(srcLine) }, '*');
-                            
-                            // Visual flash
-                            const flash = document.createElement('div');
-                            const rect = e.target.getBoundingClientRect();
-                            flash.style.cssText = \`position: fixed; top: \${rect.top}px; left: \${rect.left}px; width: \${rect.width}px; height: \${rect.height}px; background: rgba(255,255,255,0.5); z-index: 100000; pointer-events: none; transition: opacity 0.3s;\`;
-                            document.body.appendChild(flash);
-                            requestAnimationFrame(() => flash.style.opacity = '0');
-                            setTimeout(() => flash.remove(), 300);
                         }
                     });
                 })();
@@ -228,12 +252,11 @@
             
             const iframeRef = useRef(null);
             const editorContainerRef = useRef(null);
-            const monacoRef = useRef(null); // Instancia del editor
-            const decorationsRef = useRef([]); // Para guardar los highlights
+            const monacoRef = useRef(null);
+            const decorationsRef = useRef([]);
 
             // 1. Inicializar Monaco Editor
             useEffect(() => {
-                // Configurar ruta para el loader de AMD
                 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
 
                 require(['vs/editor/editor.main'], function () {
@@ -242,8 +265,8 @@
                     const editor = monaco.editor.create(editorContainerRef.current, {
                         value: code,
                         language: 'html',
-                        theme: 'vs-dark', // Tema oficial Dark
-                        automaticLayout: false, // Lo haremos manual para performance
+                        theme: 'vs-dark',
+                        automaticLayout: false,
                         minimap: { enabled: false },
                         fontSize: 14,
                         fontFamily: "'JetBrains Mono', monospace",
@@ -260,17 +283,27 @@
                         setCode(newVal);
                     });
 
+                    // EVENTO CLAVE: Detectar movimiento del cursor para iluminar en el Iframe
+                    editor.onDidChangeCursorPosition((e) => {
+                        const lineNumber = e.position.lineNumber;
+                        // Enviar mensaje al Iframe para iluminar el elemento correspondiente
+                        if (iframeRef.current && iframeRef.current.contentWindow) {
+                            iframeRef.current.contentWindow.postMessage({ 
+                                type: 'HIGHLIGHT_ELEMENT', 
+                                line: lineNumber 
+                            }, '*');
+                        }
+                    });
+
                     monacoRef.current = editor;
                 });
 
                 return () => {
-                    if (monacoRef.current) {
-                        monacoRef.current.dispose();
-                    }
+                    if (monacoRef.current) monacoRef.current.dispose();
                 };
             }, []);
 
-            // 2. Manejo del redimensionado para Monaco
+            // 2. Manejo del redimensionado
             useEffect(() => {
                 if (monacoRef.current) {
                     monacoRef.current.layout();
@@ -279,7 +312,6 @@
 
             // 3. Procesamiento y Preview
             const processCodeForPreview = (sourceCode) => {
-                // Inyectamos data-src-line en etiquetas de apertura
                 const lines = sourceCode.split('\n');
                 return lines.map((line, index) => {
                     const lineNum = index + 1;
@@ -330,27 +362,21 @@
                 const editor = monacoRef.current;
                 if (!editor) return;
 
-                // Scroll suave al centro
                 editor.revealLineInCenter(lineNumber, monaco.editor.ScrollType.Smooth);
-                
-                // Mover cursor
                 editor.setPosition({ lineNumber: lineNumber, column: 1 });
                 editor.focus();
 
-                // Crear decoración visual (Highlight de toda la línea)
                 const newDecorations = [{
                     range: new monaco.Range(lineNumber, 1, lineNumber, 1),
                     options: {
                         isWholeLine: true,
-                        className: 'myLineDecoration', // Definido en CSS <style>
+                        className: 'myLineDecoration',
                         linesDecorationsClassName: 'myLineGutterDecoration' 
                     }
                 }];
 
-                // Aplicar decoraciones (y eliminar las viejas)
                 decorationsRef.current = editor.deltaDecorations(decorationsRef.current, newDecorations);
 
-                // Auto-eliminar el highlight después de 1.5s
                 setTimeout(() => {
                     decorationsRef.current = editor.deltaDecorations(decorationsRef.current, []);
                 }, 1500);
