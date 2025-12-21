@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>God's Plan | Ultimate Inspector</title>
+    <title>God's Plan | Monaco DevEnv</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -13,16 +13,11 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- CodeFlask & Prism -->
-    <script src="https://unpkg.com/codeflask/build/codeflask.min.js"></script>
-    <script src="https://unpkg.com/prismjs@1.29.0/prism.js"></script>
-    <script src="https://unpkg.com/prismjs@1.29.0/components/prism-markup.min.js"></script>
-    <script src="https://unpkg.com/prismjs@1.29.0/components/prism-css.min.js"></script>
-    <script src="https://unpkg.com/prismjs@1.29.0/components/prism-javascript.min.js"></script>
-    <link href="https://unpkg.com/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <!-- Monaco Editor Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
     
     <!-- Icons & Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
@@ -35,9 +30,10 @@
                         mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        brand: { DEFAULT: '#FF3333', hover: '#cc0000', dim: 'rgba(255, 51, 51, 0.1)' }, 
-                        bg: '#050505',
-                        panel: '#0a0a0a'
+                        brand: { DEFAULT: '#007ACC', hover: '#005fa3', dim: 'rgba(0, 122, 204, 0.1)' }, 
+                        bg: '#1e1e1e', // VS Code Dark bg
+                        panel: '#252526',
+                        border: '#333333'
                     }
                 }
             }
@@ -45,37 +41,35 @@
     </script>
 
     <style>
-        body { background-color: #050505; color: #e5e5e5; overflow: hidden; }
+        body { background-color: #1e1e1e; color: #cccccc; overflow: hidden; }
 
-        /* Estilo Editor */
-        .codeflask { background: transparent !important; }
-        .codeflask textarea { color: transparent !important; caret-color: #FF3333 !important; font-family: 'JetBrains Mono', monospace !important; font-size: 13px !important; line-height: 1.6 !important; }
-        .codeflask pre { font-family: 'JetBrains Mono', monospace !important; font-size: 13px !important; line-height: 1.6 !important; }
-        .codeflask__flatten { padding: 20px !important; } 
-        .codeflask textarea { padding: 20px !important; }
-
-        /* Highlight de Selección personalizado */
-        ::selection { background: rgba(255, 51, 51, 0.3); color: white; }
-        
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-
-        /* Animaciones */
-        @keyframes pulse-border {
-            0% { border-color: rgba(255, 51, 51, 0.2); }
-            50% { border-color: rgba(255, 51, 51, 0.8); }
-            100% { border-color: rgba(255, 51, 51, 0.2); }
-        }
-        .animate-scan { animation: pulse-border 2s infinite; }
+        /* Scrollbar estilo VS Code */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #1e1e1e; }
+        ::-webkit-scrollbar-thumb { background: #424242; }
+        ::-webkit-scrollbar-thumb:hover { background: #4f4f4f; }
+        ::-webkit-scrollbar-corner { background: #1e1e1e; }
 
         .resizer {
-            width: 4px; background: #1a1a1a; cursor: col-resize; transition: all 0.2s; z-index: 50;
+            width: 4px; background: #2b2b2b; cursor: col-resize; transition: background 0.2s; z-index: 50;
             display: flex; align-items: center; justify-content: center;
         }
-        .resizer:hover, .resizer.active { background: #FF3333; width: 4px; box-shadow: 0 0 15px rgba(255,51,51,0.5); }
+        .resizer:hover, .resizer.active { background: #007ACC; }
+
+        /* Decoración de línea destacada en Monaco */
+        .myLineDecoration {
+            background: rgba(0, 122, 204, 0.3) !important;
+            border-left: 2px solid #007ACC;
+            width: 100% !important;
+        }
+        
+        /* Animación para el botón del inspector */
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 0 0 0 rgba(0, 122, 204, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(0, 122, 204, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 122, 204, 0); }
+        }
+        .animate-inspect { animation: pulse-blue 2s infinite; }
     </style>
 </head>
 <body>
@@ -84,86 +78,79 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useCallback } = React;
 
-        const STORAGE_KEY = 'godsPlan_inspector_v5';
+        const STORAGE_KEY = 'godsPlan_monaco_v1';
         const DEFAULT_CODE = `<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demo Inspector</title>
+    <title>Inspector Profesional</title>
     <script src="https://cdn.tailwindcss.com"><\/script>
+    <style>
+        /* CSS Personalizado */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
 </head>
-<body class="bg-zinc-950 text-white flex flex-col items-center justify-center h-screen overflow-hidden relative">
+<body class="bg-[#0f0f11] text-white h-screen w-full flex items-center justify-center overflow-hidden">
 
-    <!-- Fondo decorativo -->
-    <div class="absolute inset-0 z-0 overflow-hidden">
-        <div class="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-600/30 rounded-full blur-[120px]"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-blue-600/20 rounded-full blur-[100px]"></div>
+    <div class="absolute inset-0 z-0">
+        <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(0,122,204,0.15),transparent_50%)]"></div>
     </div>
 
-    <!-- Contenido Principal -->
-    <main class="z-10 text-center max-w-2xl px-6">
-        <div class="mb-8 inline-block p-1 px-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-xs font-mono tracking-wider text-purple-300">
-            GOD'S PLAN v2.0
+    <main class="z-10 relative flex flex-col items-center gap-6 p-8">
+        
+        <div class="glass-card p-8 rounded-2xl shadow-2xl max-w-md w-full text-center transition-all hover:border-blue-500/30 group">
+            <div class="w-16 h-16 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-xl mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+            </div>
+
+            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300 mb-3">
+                Monaco Editor
+            </h1>
+            
+            <p class="text-zinc-400 mb-6 leading-relaxed">
+                Esta es una demostración real. Activa el <b class="text-blue-400">Inspector</b> arriba y haz clic en cualquier elemento.
+            </p>
+
+            <button class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors shadow-lg shadow-blue-900/20">
+                Pruébame ahora
+            </button>
         </div>
 
-        <h1 class="text-6xl font-black mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
-            Inspector<br/>Supremo.
-        </h1>
-        
-        <p class="text-lg text-zinc-400 mb-10 leading-relaxed">
-            Edita este texto. Luego activa el <span class="text-white font-bold">Inspector</span> arriba y haz clic aquí.
-            El editor te llevará <span class="italic text-purple-400">exactamente</span> a la línea correcta.
+        <p class="text-xs text-zinc-600 font-mono">
+            Powered by VS Code Engine
         </p>
 
-        <div class="flex gap-4 justify-center">
-            <button class="px-8 py-3 bg-white text-black font-bold rounded-lg hover:scale-105 transition-transform">
-                Comenzar
-            </button>
-            <button class="px-8 py-3 border border-white/20 hover:bg-white/10 rounded-lg transition-colors font-medium backdrop-blur-md">
-                Documentación
-            </button>
-        </div>
     </main>
 
 </body>
 </html>`;
 
-        // Lógica inyectada para el Iframe
+        // Script inyectado para el inspector (Iframe side)
         const INJECTED_SCRIPT = `
             <script>
                 (function() {
                     let isInspecting = false;
-                    let hoveredElement = null;
                     let overlay = null;
+                    let lastTarget = null;
 
-                    // Crear Overlay Visual
                     function createOverlay() {
                         if(overlay) return;
                         overlay = document.createElement('div');
-                        overlay.style.position = 'fixed';
-                        overlay.style.pointerEvents = 'none';
-                        overlay.style.zIndex = '9999';
-                        overlay.style.border = '2px solid #FF3333';
-                        overlay.style.backgroundColor = 'rgba(255, 51, 51, 0.1)';
-                        overlay.style.transition = 'all 0.1s ease';
-                        overlay.style.display = 'none';
-                        overlay.style.borderRadius = '4px';
+                        overlay.style.cssText = 'position: fixed; pointer-events: none; z-index: 99999; border: 2px solid #007ACC; background: rgba(0, 122, 204, 0.1); display: none; transition: all 0.05s ease; border-radius: 2px;';
                         
-                        // Etiqueta
-                        const tagLabel = document.createElement('span');
-                        tagLabel.style.position = 'absolute';
-                        tagLabel.style.top = '-24px';
-                        tagLabel.style.left = '-2px';
-                        tagLabel.style.background = '#FF3333';
-                        tagLabel.style.color = 'white';
-                        tagLabel.style.fontSize = '10px';
-                        tagLabel.style.padding = '2px 6px';
-                        tagLabel.style.borderRadius = '3px';
-                        tagLabel.style.fontFamily = 'monospace';
-                        tagLabel.id = 'inspector-label';
+                        // Tag label
+                        const label = document.createElement('div');
+                        label.id = 'inspector-label';
+                        label.style.cssText = 'position: absolute; top: -20px; left: -2px; background: #007ACC; color: white; font-family: monospace; font-size: 10px; padding: 2px 6px; border-radius: 2px; pointer-events: none; white-space: nowrap;';
+                        overlay.appendChild(label);
                         
-                        overlay.appendChild(tagLabel);
                         document.body.appendChild(overlay);
                     }
 
@@ -176,38 +163,33 @@
                         }
                     });
 
-                    // Mouse Move - Highlight
                     document.addEventListener('mouseover', (e) => {
                         if (!isInspecting) return;
                         e.stopPropagation();
                         
                         const target = e.target;
-                        if (target === document.body || target === document.documentElement) return;
+                        if (target === document.body || target === document.documentElement || target === overlay) return;
 
                         const rect = target.getBoundingClientRect();
-                        
                         overlay.style.display = 'block';
                         overlay.style.top = rect.top + 'px';
                         overlay.style.left = rect.left + 'px';
                         overlay.style.width = rect.width + 'px';
                         overlay.style.height = rect.height + 'px';
-                        
-                        // Encontrar etiqueta y línea
-                        const tagName = target.tagName.toLowerCase();
+
+                        // Encontrar linea
                         let srcLine = target.getAttribute('data-src-line');
-                        
-                        // Buscar línea en padres si el elemento actual no tiene (ej: texto dentro de div)
                         let walker = target;
                         while (!srcLine && walker.parentElement) {
                             walker = walker.parentElement;
                             srcLine = walker.getAttribute('data-src-line');
                         }
 
-                        overlay.querySelector('#inspector-label').textContent = \`<\${tagName}> \${srcLine ? 'L:' + srcLine : ''}\`;
-                        hoveredElement = target;
+                        const tagName = target.tagName.toLowerCase();
+                        const classes = target.className && typeof target.className === 'string' ? '.' + target.className.split(' ')[0] : '';
+                        overlay.querySelector('#inspector-label').textContent = \`<\${tagName}\${classes}> \${srcLine ? ' : ' + srcLine : ''}\`;
                     });
 
-                    // Click - Enviar línea exacta
                     document.addEventListener('click', (e) => {
                         if (!isInspecting) return;
                         e.preventDefault();
@@ -215,22 +197,23 @@
 
                         let target = e.target;
                         let srcLine = target.getAttribute('data-src-line');
-
-                        // Subir por el árbol si no tiene línea asignada
+                        
+                        // Traverse up to find nearest source line
                         while (!srcLine && target.parentElement) {
                             target = target.parentElement;
                             srcLine = target.getAttribute('data-src-line');
                         }
 
                         if (srcLine) {
-                            window.parent.postMessage({ 
-                                type: 'ELEMENT_CLICKED', 
-                                line: parseInt(srcLine) 
-                            }, '*');
+                            window.parent.postMessage({ type: 'ELEMENT_CLICKED', line: parseInt(srcLine) }, '*');
                             
-                            // Visual feedback click
-                            overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
-                            setTimeout(() => overlay.style.backgroundColor = 'rgba(255, 51, 51, 0.1)', 150);
+                            // Visual flash
+                            const flash = document.createElement('div');
+                            const rect = e.target.getBoundingClientRect();
+                            flash.style.cssText = \`position: fixed; top: \${rect.top}px; left: \${rect.left}px; width: \${rect.width}px; height: \${rect.height}px; background: rgba(255,255,255,0.5); z-index: 100000; pointer-events: none; transition: opacity 0.3s;\`;
+                            document.body.appendChild(flash);
+                            requestAnimationFrame(() => flash.style.opacity = '0');
+                            setTimeout(() => flash.remove(), 300);
                         }
                     });
                 })();
@@ -244,18 +227,63 @@
             const [isInspectorActive, setIsInspectorActive] = useState(false);
             
             const iframeRef = useRef(null);
-            const editorDivRef = useRef(null);
-            const flaskRef = useRef(null);
-            
-            // Función Mágica: Inyectar marcadores de línea antes de renderizar
+            const editorContainerRef = useRef(null);
+            const monacoRef = useRef(null); // Instancia del editor
+            const decorationsRef = useRef([]); // Para guardar los highlights
+
+            // 1. Inicializar Monaco Editor
+            useEffect(() => {
+                // Configurar ruta para el loader de AMD
+                require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
+
+                require(['vs/editor/editor.main'], function () {
+                    if (!editorContainerRef.current) return;
+
+                    const editor = monaco.editor.create(editorContainerRef.current, {
+                        value: code,
+                        language: 'html',
+                        theme: 'vs-dark', // Tema oficial Dark
+                        automaticLayout: false, // Lo haremos manual para performance
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        padding: { top: 20 },
+                        scrollBeyondLastLine: false,
+                        smoothScrolling: true,
+                        cursorBlinking: 'smooth',
+                        cursorSmoothCaretAnimation: 'on',
+                        renderLineHighlight: 'all',
+                    });
+
+                    editor.onDidChangeModelContent(() => {
+                        const newVal = editor.getValue();
+                        setCode(newVal);
+                    });
+
+                    monacoRef.current = editor;
+                });
+
+                return () => {
+                    if (monacoRef.current) {
+                        monacoRef.current.dispose();
+                    }
+                };
+            }, []);
+
+            // 2. Manejo del redimensionado para Monaco
+            useEffect(() => {
+                if (monacoRef.current) {
+                    monacoRef.current.layout();
+                }
+            }, [previewWidth]);
+
+            // 3. Procesamiento y Preview
             const processCodeForPreview = (sourceCode) => {
+                // Inyectamos data-src-line en etiquetas de apertura
                 const lines = sourceCode.split('\n');
                 return lines.map((line, index) => {
                     const lineNum = index + 1;
-                    // Regex cuidadoso para inyectar data-src-line en la primera etiqueta de apertura de la línea
-                    // Ignora scripts para evitar romper JS strings
                     if (line.includes('<script') || line.includes('<style')) return line;
-                    
                     return line.replace(
                         /<([a-zA-Z0-9-]+)([^>]*?)>/, 
                         (match, tag, attrs) => `<${tag} data-src-line="${lineNum}"${attrs}>`
@@ -263,26 +291,6 @@
                 }).join('\n');
             };
 
-            // Inicializar CodeFlask
-            useEffect(() => {
-                if (!flaskRef.current && editorDivRef.current) {
-                    const flask = new CodeFlask(editorDivRef.current, {
-                        language: 'html',
-                        lineNumbers: true,
-                        readonly: false
-                    });
-                    
-                    flask.updateCode(code);
-                    
-                    flask.onUpdate((newCode) => {
-                        if (newCode !== code) setCode(newCode);
-                    });
-                    
-                    flaskRef.current = flask;
-                }
-            }, []);
-
-            // Actualizar Preview y Storage
             useEffect(() => {
                 localStorage.setItem(STORAGE_KEY, code);
                 
@@ -292,66 +300,63 @@
                         const finalSrc = codeWithMarkers.replace('</body>', `${INJECTED_SCRIPT}</body>`);
                         iframeRef.current.srcdoc = finalSrc;
                     }
-                }, 600); // Debounce para no recargar a cada tecla
+                }, 800);
 
                 return () => clearTimeout(timer);
             }, [code]);
 
-            // Comunicación con Iframe
+            // 4. Comunicación Inspector -> Monaco
             useEffect(() => {
                 const handleMessage = (e) => {
-                    if (e.data.type === 'ELEMENT_CLICKED' && flaskRef.current) {
+                    if (e.data.type === 'ELEMENT_CLICKED' && monacoRef.current) {
                         const lineNum = e.data.line;
-                        highlightLine(lineNum);
-                        setIsInspectorActive(false); // Auto-desactivar al encontrar
+                        highlightLineInMonaco(lineNum);
+                        setIsInspectorActive(false);
                     }
                 };
                 window.addEventListener('message', handleMessage);
                 return () => window.removeEventListener('message', handleMessage);
-            }, [code]);
+            }, []);
 
-            // Sync estado inspector
+            // 5. Sync Toggle
             useEffect(() => {
                 if (iframeRef.current && iframeRef.current.contentWindow) {
                     iframeRef.current.contentWindow.postMessage({ type: 'TOGGLE_INSPECT', value: isInspectorActive }, '*');
                 }
             }, [isInspectorActive]);
 
-            // Lógica para resaltar y scrollear a la línea exacta
-            const highlightLine = (lineNumber) => {
-                if (!flaskRef.current) return;
-                
-                // Calcular índices
-                const lines = code.split('\n');
-                if (lineNumber > lines.length || lineNumber < 1) return;
+            // Función PRO para resaltar en Monaco
+            const highlightLineInMonaco = (lineNumber) => {
+                const editor = monacoRef.current;
+                if (!editor) return;
 
-                // Encontrar Start y End index para la selección
-                let startIndex = 0;
-                for (let i = 0; i < lineNumber - 1; i++) {
-                    startIndex += lines[i].length + 1; // +1 por el \n
-                }
-                const endIndex = startIndex + lines[lineNumber - 1].length;
-
-                // Usar API interna de CodeFlask para seleccionar
-                const textarea = editorDivRef.current.querySelector('textarea');
-                textarea.focus();
-                textarea.setSelectionRange(startIndex, endIndex);
+                // Scroll suave al centro
+                editor.revealLineInCenter(lineNumber, monaco.editor.ScrollType.Smooth);
                 
-                // Calcular posición de scroll (altura de línea aprox 21px)
-                // Ajustamos para que quede centrado
-                const lineHeight = 21; 
-                const scrollPos = (lineNumber * lineHeight) - (editorDivRef.current.clientHeight / 2);
-                
-                editorDivRef.current.scrollTo({
-                    top: Math.max(0, scrollPos),
-                    behavior: 'smooth'
-                });
+                // Mover cursor
+                editor.setPosition({ lineNumber: lineNumber, column: 1 });
+                editor.focus();
 
-                // Efecto visual extra en el editor (overlay temporal)
-                // Nota: CodeFlask no expone DOM de líneas fácilmente, así que usamos la selección nativa que ya es visible
+                // Crear decoración visual (Highlight de toda la línea)
+                const newDecorations = [{
+                    range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+                    options: {
+                        isWholeLine: true,
+                        className: 'myLineDecoration', // Definido en CSS <style>
+                        linesDecorationsClassName: 'myLineGutterDecoration' 
+                    }
+                }];
+
+                // Aplicar decoraciones (y eliminar las viejas)
+                decorationsRef.current = editor.deltaDecorations(decorationsRef.current, newDecorations);
+
+                // Auto-eliminar el highlight después de 1.5s
+                setTimeout(() => {
+                    decorationsRef.current = editor.deltaDecorations(decorationsRef.current, []);
+                }, 1500);
             };
 
-            // Resizer Logic
+            // Resizer
             const handleMouseMove = useCallback((e) => {
                 if (!isDragging) return;
                 const newWidth = (e.clientX / window.innerWidth) * 100;
@@ -372,54 +377,43 @@
             }, [isDragging]);
 
             return (
-                <div className="flex flex-col h-screen w-full bg-bg text-white font-sans overflow-hidden">
+                <div className="flex flex-col h-screen w-full bg-bg text-[#cccccc] font-sans select-none overflow-hidden">
                     
-                    {/* Header Pro */}
-                    <header className="h-12 border-b border-white/5 bg-panel flex items-center justify-between px-4 shrink-0 z-20 shadow-md">
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2 text-brand font-bold tracking-tight">
-                                <i className="ph-fill ph-infinity text-xl"></i>
-                                <span>GOD'S PLAN</span>
-                            </div>
-                            <div className="h-4 w-[1px] bg-white/10"></div>
-                            <div className="flex text-xs gap-1 text-zinc-500">
-                                <span className="text-zinc-300">index.html</span>
-                            </div>
+                    {/* Top Bar */}
+                    <header className="h-10 bg-[#1e1e1e] border-b border-[#333] flex items-center justify-between px-4 shrink-0 z-20">
+                        <div className="flex items-center gap-3">
+                            <i className="ph-fill ph-code text-blue-500 text-lg"></i>
+                            <span className="text-xs font-bold text-gray-300 tracking-wide">GOD'S PLAN <span className="opacity-50 font-normal">| MONACO ENGINE</span></span>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <button 
+                        <div className="flex items-center gap-2">
+                             <button 
                                 onClick={() => setIsInspectorActive(!isInspectorActive)}
                                 className={`
-                                    flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-md transition-all border
+                                    flex items-center gap-2 px-3 py-1 text-xs font-medium rounded transition-all border
                                     ${isInspectorActive 
-                                        ? 'bg-brand/10 text-brand border-brand animate-scan shadow-[0_0_15px_rgba(255,51,51,0.3)]' 
-                                        : 'bg-white/5 border-transparent text-zinc-400 hover:text-white hover:bg-white/10'}
+                                        ? 'bg-blue-900/30 text-blue-400 border-blue-500/50 animate-inspect' 
+                                        : 'bg-[#2d2d2d] border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#383838]'}
                                 `}
                             >
                                 <i className={`ph-bold ${isInspectorActive ? 'ph-crosshair' : 'ph-cursor-click'}`}></i>
-                                {isInspectorActive ? 'DETECTANDO OBJETIVO' : 'INSPECCIONAR'}
+                                {isInspectorActive ? 'DETECTANDO...' : 'INSPECCIONAR'}
                             </button>
                         </div>
                     </header>
 
-                    {/* Workspace */}
+                    {/* Main Area */}
                     <div className="flex-1 flex overflow-hidden relative">
                         
-                        {/* Preview Area */}
-                        <div className="flex flex-col h-full relative group" style={{ width: `${previewWidth}%` }}>
-                            <div className="absolute top-3 left-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded backdrop-blur">
-                                {Math.round(previewWidth)}% Viewport
-                            </div>
-                            
-                            <div className="flex-1 bg-white relative">
+                        {/* Preview */}
+                        <div className="flex flex-col h-full bg-[#1e1e1e]" style={{ width: `${previewWidth}%` }}>
+                             <div className="h-full w-full bg-white relative">
                                 <iframe 
                                     ref={iframeRef}
                                     className="w-full h-full border-none"
                                     sandbox="allow-scripts allow-modals allow-forms allow-same-origin"
                                     title="Preview"
                                 ></iframe>
-                                {/* Capa protectora para cuando arrastramos el resizer */}
                                 {isDragging && <div className="absolute inset-0 z-50 bg-transparent"></div>}
                             </div>
                         </div>
@@ -430,25 +424,37 @@
                             onMouseDown={() => setIsDragging(true)}
                         ></div>
 
-                        {/* Editor Area */}
-                        <div className="flex flex-col h-full bg-[#050505] relative" style={{ width: `${100 - previewWidth}%` }}>
-                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-b from-black/50 to-transparent z-10 pointer-events-none"></div>
+                        {/* Editor (Monaco) */}
+                        <div className="flex flex-col h-full bg-[#1e1e1e]" style={{ width: `${100 - previewWidth}%` }}>
                             
-                            {/* Editor Container */}
-                            <div ref={editorDivRef} className="flex-1 relative w-full h-full">
-                                {/* CodeFlask mounts here */}
+                            {/* Tabs simulados */}
+                            <div className="flex bg-[#1e1e1e] border-b border-[#252526]">
+                                <div className="px-4 py-2 text-xs bg-[#1e1e1e] border-t border-t-blue-500 text-white flex items-center gap-2">
+                                    <i className="ph-fill ph-file-html text-orange-500"></i> index.html
+                                    <i className="ph-bold ph-x text-[10px] ml-2 opacity-50 hover:opacity-100 cursor-pointer"></i>
+                                </div>
+                            </div>
+
+                            {/* Monaco Container */}
+                            <div className="flex-1 relative w-full h-full overflow-hidden">
+                                <div ref={editorContainerRef} className="absolute inset-0"></div>
                             </div>
 
                             {/* Status Bar */}
-                            <div className="h-6 bg-panel border-t border-white/5 flex items-center justify-between px-3 text-[10px] text-zinc-600 font-mono">
-                                <span>HTML5 • Tailwind Included</span>
-                                <span>UTF-8</span>
+                            <div className="h-6 bg-[#007ACC] text-white flex items-center justify-between px-3 text-[10px] font-sans">
+                                <div className="flex gap-4">
+                                    <span><i className="ph-bold ph-git-branch"></i> main</span>
+                                    <span>0 errors, 0 warnings</span>
+                                </div>
+                                <div className="flex gap-4">
+                                    <span>Ln {code.split('\n').length}, Col 1</span>
+                                    <span>UTF-8</span>
+                                    <span>HTML</span>
+                                </div>
                             </div>
                         </div>
-
                     </div>
                     
-                    {/* Full screen dragging overlay */}
                     {isDragging && <div className="fixed inset-0 z-[100] cursor-col-resize"></div>}
                 </div>
             );
