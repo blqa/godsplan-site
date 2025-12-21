@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>God's Plan | Dev Environment</title>
+    <title>God's Plan | Ultimate Inspector</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -13,7 +13,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- CodeFlask & Prism (Editor & Syntax Highlighting) -->
+    <!-- CodeFlask & Prism -->
     <script src="https://unpkg.com/codeflask/build/codeflask.min.js"></script>
     <script src="https://unpkg.com/prismjs@1.29.0/prism.js"></script>
     <script src="https://unpkg.com/prismjs@1.29.0/components/prism-markup.min.js"></script>
@@ -21,8 +21,8 @@
     <script src="https://unpkg.com/prismjs@1.29.0/components/prism-javascript.min.js"></script>
     <link href="https://unpkg.com/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     
-    <!-- Fuentes y Iconos -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Icons & Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script>
@@ -31,22 +31,13 @@
             theme: {
                 extend: {
                     fontFamily: { 
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        mono: ['"Fira Code"', 'monospace'],
+                        sans: ['"Inter"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        brand: { DEFAULT: '#E70000', hover: '#cc0000', glow: 'rgba(231,0,0,0.5)' }, 
-                        dark: '#030000',
-                        glass: 'rgba(20, 20, 20, 0.7)'
-                    },
-                    animation: {
-                        'nebula': 'nebula 20s infinite alternate',
-                    },
-                    keyframes: {
-                        nebula: {
-                            '0%': { transform: 'scale(1)', opacity: '0.3' },
-                            '100%': { transform: 'scale(1.2)', opacity: '0.6' }
-                        }
+                        brand: { DEFAULT: '#FF3333', hover: '#cc0000', dim: 'rgba(255, 51, 51, 0.1)' }, 
+                        bg: '#050505',
+                        panel: '#0a0a0a'
                     }
                 }
             }
@@ -54,90 +45,37 @@
     </script>
 
     <style>
-        body { background-color: #030000; color: white; overflow: hidden; }
+        body { background-color: #050505; color: #e5e5e5; overflow: hidden; }
 
-        /* FONDO DINÁMICO (AURORA) */
-        .aurora-bg {
-            position: fixed; inset: 0; z-index: -2;
-            background: 
-                radial-gradient(circle at 50% 50%, rgba(50, 0, 0, 0.4) 0%, transparent 60%),
-                radial-gradient(circle at 80% 20%, rgba(231, 0, 0, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 20% 80%, rgba(100, 0, 0, 0.2) 0%, transparent 40%);
-            filter: blur(80px);
-            animation: nebula 15s infinite alternate ease-in-out;
-        }
-
-        /* RED (GRID) */
-        .grid-bg {
-            position: fixed; inset: 0; z-index: -1;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
-        }
-
-        /* FIX CODEFLASK */
-        .codeflask {
-            position: absolute !important;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: transparent !important;
-            width: 100% !important;
-            height: 100% !important;
-        }
-        .codeflask textarea {
-            background: transparent !important;
-            color: transparent !important;
-            caret-color: #E70000 !important;
-            font-family: 'Fira Code', monospace !important;
-            font-size: 14px !important;
-            line-height: 1.5 !important;
-            z-index: 10 !important;
-        }
-        .codeflask pre {
-            font-family: 'Fira Code', monospace !important;
-            font-size: 14px !important;
-            line-height: 1.5 !important;
-            z-index: 5 !important;
-        }
-        /* Colores del tema Tomorrow Night */
-        .codeflask .token.tag { color: #ef4444 !important; }
-        .codeflask .token.attr-name { color: #f59e0b !important; }
-        .codeflask .token.attr-value { color: #84cc16 !important; }
-        .codeflask .token.comment { font-style: italic; opacity: 0.5; }
-        .codeflask .codeflask__flatten { padding: 20px !important; } 
+        /* Estilo Editor */
+        .codeflask { background: transparent !important; }
+        .codeflask textarea { color: transparent !important; caret-color: #FF3333 !important; font-family: 'JetBrains Mono', monospace !important; font-size: 13px !important; line-height: 1.6 !important; }
+        .codeflask pre { font-family: 'JetBrains Mono', monospace !important; font-size: 13px !important; line-height: 1.6 !important; }
+        .codeflask__flatten { padding: 20px !important; } 
         .codeflask textarea { padding: 20px !important; }
 
-        .glass-panel {
-            background: rgba(10, 10, 10, 0.6);
-            backdrop-filter: blur(12px);
-            border-left: 1px solid rgba(255, 255, 255, 0.08);
-        }
+        /* Highlight de Selección personalizado */
+        ::selection { background: rgba(255, 51, 51, 0.3); color: white; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-        /* Resizer Handle */
+        /* Animaciones */
+        @keyframes pulse-border {
+            0% { border-color: rgba(255, 51, 51, 0.2); }
+            50% { border-color: rgba(255, 51, 51, 0.8); }
+            100% { border-color: rgba(255, 51, 51, 0.2); }
+        }
+        .animate-scan { animation: pulse-border 2s infinite; }
+
         .resizer {
-            width: 8px;
-            background: #050505;
-            border-left: 1px solid #222;
-            border-right: 1px solid #222;
-            cursor: col-resize;
-            transition: all 0.2s;
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 4px; background: #1a1a1a; cursor: col-resize; transition: all 0.2s; z-index: 50;
+            display: flex; align-items: center; justify-content: center;
         }
-        .resizer:hover, .resizer.active {
-            background: #E70000;
-            border-color: #E70000;
-            box-shadow: 0 0 10px rgba(231,0,0,0.5);
-        }
-        .resizer-icon {
-            width: 2px;
-            height: 20px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 1px;
-        }
+        .resizer:hover, .resizer.active { background: #FF3333; width: 4px; box-shadow: 0 0 15px rgba(255,51,51,0.5); }
     </style>
 </head>
 <body>
@@ -146,72 +84,154 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useCallback } = React;
 
-        const STORAGE_KEY = 'godsPlan_code_v4';
+        const STORAGE_KEY = 'godsPlan_inspector_v5';
         const DEFAULT_CODE = `<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hola Mundo</title>
+    <title>Demo Inspector</title>
     <script src="https://cdn.tailwindcss.com"><\/script>
 </head>
-<body class="bg-slate-900 flex flex-col items-center justify-center h-screen text-white">
-    
-    <div class="text-center p-10 border border-white/10 rounded-2xl bg-white/5 backdrop-blur-md shadow-xl">
-        <h1 class="text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
-            ¡Hola Mundo!
-        </h1>
-        <p class="text-gray-400 text-lg mb-6">
-            Bienvenido a God's Plan Editor
-        </p>
-        
-        <button class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors font-medium">
-            Botón de Ejemplo
-        </button>
+<body class="bg-zinc-950 text-white flex flex-col items-center justify-center h-screen overflow-hidden relative">
+
+    <!-- Fondo decorativo -->
+    <div class="absolute inset-0 z-0 overflow-hidden">
+        <div class="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-600/30 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-blue-600/20 rounded-full blur-[100px]"></div>
     </div>
+
+    <!-- Contenido Principal -->
+    <main class="z-10 text-center max-w-2xl px-6">
+        <div class="mb-8 inline-block p-1 px-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-xs font-mono tracking-wider text-purple-300">
+            GOD'S PLAN v2.0
+        </div>
+
+        <h1 class="text-6xl font-black mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
+            Inspector<br/>Supremo.
+        </h1>
+        
+        <p class="text-lg text-zinc-400 mb-10 leading-relaxed">
+            Edita este texto. Luego activa el <span class="text-white font-bold">Inspector</span> arriba y haz clic aquí.
+            El editor te llevará <span class="italic text-purple-400">exactamente</span> a la línea correcta.
+        </p>
+
+        <div class="flex gap-4 justify-center">
+            <button class="px-8 py-3 bg-white text-black font-bold rounded-lg hover:scale-105 transition-transform">
+                Comenzar
+            </button>
+            <button class="px-8 py-3 border border-white/20 hover:bg-white/10 rounded-lg transition-colors font-medium backdrop-blur-md">
+                Documentación
+            </button>
+        </div>
+    </main>
 
 </body>
 </html>`;
 
-        // Script inyectado SOLO para el Inspector
-        const INJECTED_TOOLS = `
+        // Lógica inyectada para el Iframe
+        const INJECTED_SCRIPT = `
             <script>
                 (function() {
-                    // --- INSPECTOR SOLAMENTE ---
                     let isInspecting = false;
-                    let lastHighlighted = null;
+                    let hoveredElement = null;
+                    let overlay = null;
+
+                    // Crear Overlay Visual
+                    function createOverlay() {
+                        if(overlay) return;
+                        overlay = document.createElement('div');
+                        overlay.style.position = 'fixed';
+                        overlay.style.pointerEvents = 'none';
+                        overlay.style.zIndex = '9999';
+                        overlay.style.border = '2px solid #FF3333';
+                        overlay.style.backgroundColor = 'rgba(255, 51, 51, 0.1)';
+                        overlay.style.transition = 'all 0.1s ease';
+                        overlay.style.display = 'none';
+                        overlay.style.borderRadius = '4px';
+                        
+                        // Etiqueta
+                        const tagLabel = document.createElement('span');
+                        tagLabel.style.position = 'absolute';
+                        tagLabel.style.top = '-24px';
+                        tagLabel.style.left = '-2px';
+                        tagLabel.style.background = '#FF3333';
+                        tagLabel.style.color = 'white';
+                        tagLabel.style.fontSize = '10px';
+                        tagLabel.style.padding = '2px 6px';
+                        tagLabel.style.borderRadius = '3px';
+                        tagLabel.style.fontFamily = 'monospace';
+                        tagLabel.id = 'inspector-label';
+                        
+                        overlay.appendChild(tagLabel);
+                        document.body.appendChild(overlay);
+                    }
 
                     window.addEventListener('message', (e) => {
                         if (e.data.type === 'TOGGLE_INSPECT') {
                             isInspecting = e.data.value;
+                            createOverlay();
+                            if (!isInspecting && overlay) overlay.style.display = 'none';
                             document.body.style.cursor = isInspecting ? 'crosshair' : 'default';
-                            if(!isInspecting && lastHighlighted) {
-                                lastHighlighted.style.outline = '';
-                            }
                         }
                     });
 
+                    // Mouse Move - Highlight
                     document.addEventListener('mouseover', (e) => {
                         if (!isInspecting) return;
                         e.stopPropagation();
-                        if (lastHighlighted) lastHighlighted.style.outline = '';
-                        e.target.style.outline = '2px dashed #E70000';
-                        lastHighlighted = e.target;
+                        
+                        const target = e.target;
+                        if (target === document.body || target === document.documentElement) return;
+
+                        const rect = target.getBoundingClientRect();
+                        
+                        overlay.style.display = 'block';
+                        overlay.style.top = rect.top + 'px';
+                        overlay.style.left = rect.left + 'px';
+                        overlay.style.width = rect.width + 'px';
+                        overlay.style.height = rect.height + 'px';
+                        
+                        // Encontrar etiqueta y línea
+                        const tagName = target.tagName.toLowerCase();
+                        let srcLine = target.getAttribute('data-src-line');
+                        
+                        // Buscar línea en padres si el elemento actual no tiene (ej: texto dentro de div)
+                        let walker = target;
+                        while (!srcLine && walker.parentElement) {
+                            walker = walker.parentElement;
+                            srcLine = walker.getAttribute('data-src-line');
+                        }
+
+                        overlay.querySelector('#inspector-label').textContent = \`<\${tagName}> \${srcLine ? 'L:' + srcLine : ''}\`;
+                        hoveredElement = target;
                     });
 
+                    // Click - Enviar línea exacta
                     document.addEventListener('click', (e) => {
                         if (!isInspecting) return;
                         e.preventDefault();
                         e.stopPropagation();
-                        // Snippet para buscar
-                        let tagSnippet = e.target.outerHTML.split('>')[0] + '>';
-                        window.parent.postMessage({ 
-                            type: 'ELEMENT_CLICKED', 
-                            snippet: tagSnippet 
-                        }, '*');
-                        isInspecting = false;
-                        if (lastHighlighted) lastHighlighted.style.outline = '';
-                        document.body.style.cursor = 'default';
+
+                        let target = e.target;
+                        let srcLine = target.getAttribute('data-src-line');
+
+                        // Subir por el árbol si no tiene línea asignada
+                        while (!srcLine && target.parentElement) {
+                            target = target.parentElement;
+                            srcLine = target.getAttribute('data-src-line');
+                        }
+
+                        if (srcLine) {
+                            window.parent.postMessage({ 
+                                type: 'ELEMENT_CLICKED', 
+                                line: parseInt(srcLine) 
+                            }, '*');
+                            
+                            // Visual feedback click
+                            overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
+                            setTimeout(() => overlay.style.backgroundColor = 'rgba(255, 51, 51, 0.1)', 150);
+                        }
                     });
                 })();
             <\/script>
@@ -219,17 +239,31 @@
 
         const App = () => {
             const [code, setCode] = useState(() => localStorage.getItem(STORAGE_KEY) || DEFAULT_CODE);
-            
-            // Estado de UI
-            const [previewWidth, setPreviewWidth] = useState(50); // % del ancho
+            const [previewWidth, setPreviewWidth] = useState(50);
             const [isDragging, setIsDragging] = useState(false);
             const [isInspectorActive, setIsInspectorActive] = useState(false);
-
+            
             const iframeRef = useRef(null);
             const editorDivRef = useRef(null);
             const flaskRef = useRef(null);
+            
+            // Función Mágica: Inyectar marcadores de línea antes de renderizar
+            const processCodeForPreview = (sourceCode) => {
+                const lines = sourceCode.split('\n');
+                return lines.map((line, index) => {
+                    const lineNum = index + 1;
+                    // Regex cuidadoso para inyectar data-src-line en la primera etiqueta de apertura de la línea
+                    // Ignora scripts para evitar romper JS strings
+                    if (line.includes('<script') || line.includes('<style')) return line;
+                    
+                    return line.replace(
+                        /<([a-zA-Z0-9-]+)([^>]*?)>/, 
+                        (match, tag, attrs) => `<${tag} data-src-line="${lineNum}"${attrs}>`
+                    );
+                }).join('\n');
+            };
 
-            // 1. Inicializar CodeFlask (Editor Pro)
+            // Inicializar CodeFlask
             useEffect(() => {
                 if (!flaskRef.current && editorDivRef.current) {
                     const flask = new CodeFlask(editorDivRef.current, {
@@ -241,184 +275,181 @@
                     flask.updateCode(code);
                     
                     flask.onUpdate((newCode) => {
-                        if (newCode !== code) {
-                            setCode(newCode);
-                        }
+                        if (newCode !== code) setCode(newCode);
                     });
                     
                     flaskRef.current = flask;
                 }
             }, []);
 
-            // Guardar en LocalStorage y Actualizar Iframe
+            // Actualizar Preview y Storage
             useEffect(() => {
                 localStorage.setItem(STORAGE_KEY, code);
                 
-                const timeoutId = setTimeout(() => {
-                    const finalSrc = code.replace('</body>', `${INJECTED_TOOLS}</body>`);
+                const timer = setTimeout(() => {
                     if (iframeRef.current) {
+                        const codeWithMarkers = processCodeForPreview(code);
+                        const finalSrc = codeWithMarkers.replace('</body>', `${INJECTED_SCRIPT}</body>`);
                         iframeRef.current.srcdoc = finalSrc;
                     }
-                }, 500); 
+                }, 600); // Debounce para no recargar a cada tecla
 
-                return () => clearTimeout(timeoutId);
+                return () => clearTimeout(timer);
             }, [code]);
 
-            // Manejar Mensajes del Iframe (Inspector)
+            // Comunicación con Iframe
             useEffect(() => {
                 const handleMessage = (e) => {
-                    const { type, snippet } = e.data;
-                    if (type === 'ELEMENT_CLICKED') {
-                        setIsInspectorActive(false);
-                        findAndScroll(snippet);
+                    if (e.data.type === 'ELEMENT_CLICKED' && flaskRef.current) {
+                        const lineNum = e.data.line;
+                        highlightLine(lineNum);
+                        setIsInspectorActive(false); // Auto-desactivar al encontrar
                     }
                 };
                 window.addEventListener('message', handleMessage);
                 return () => window.removeEventListener('message', handleMessage);
-            }, []);
+            }, [code]);
 
-            // Comunicar estado del inspector
+            // Sync estado inspector
             useEffect(() => {
                 if (iframeRef.current && iframeRef.current.contentWindow) {
                     iframeRef.current.contentWindow.postMessage({ type: 'TOGGLE_INSPECT', value: isInspectorActive }, '*');
                 }
             }, [isInspectorActive]);
 
-            // Lógica del Resizer
-            const handleMouseDown = (e) => {
-                e.preventDefault();
-                setIsDragging(true);
+            // Lógica para resaltar y scrollear a la línea exacta
+            const highlightLine = (lineNumber) => {
+                if (!flaskRef.current) return;
+                
+                // Calcular índices
+                const lines = code.split('\n');
+                if (lineNumber > lines.length || lineNumber < 1) return;
+
+                // Encontrar Start y End index para la selección
+                let startIndex = 0;
+                for (let i = 0; i < lineNumber - 1; i++) {
+                    startIndex += lines[i].length + 1; // +1 por el \n
+                }
+                const endIndex = startIndex + lines[lineNumber - 1].length;
+
+                // Usar API interna de CodeFlask para seleccionar
+                const textarea = editorDivRef.current.querySelector('textarea');
+                textarea.focus();
+                textarea.setSelectionRange(startIndex, endIndex);
+                
+                // Calcular posición de scroll (altura de línea aprox 21px)
+                // Ajustamos para que quede centrado
+                const lineHeight = 21; 
+                const scrollPos = (lineNumber * lineHeight) - (editorDivRef.current.clientHeight / 2);
+                
+                editorDivRef.current.scrollTo({
+                    top: Math.max(0, scrollPos),
+                    behavior: 'smooth'
+                });
+
+                // Efecto visual extra en el editor (overlay temporal)
+                // Nota: CodeFlask no expone DOM de líneas fácilmente, así que usamos la selección nativa que ya es visible
             };
 
+            // Resizer Logic
             const handleMouseMove = useCallback((e) => {
                 if (!isDragging) return;
                 const newWidth = (e.clientX / window.innerWidth) * 100;
-                if (newWidth > 15 && newWidth < 85) {
-                    setPreviewWidth(newWidth);
-                }
+                if (newWidth > 20 && newWidth < 80) setPreviewWidth(newWidth);
             }, [isDragging]);
 
-            const handleMouseUp = useCallback(() => {
-                setIsDragging(false);
-            }, []);
+            const handleMouseUp = useCallback(() => setIsDragging(false), []);
 
             useEffect(() => {
                 if (isDragging) {
                     window.addEventListener('mousemove', handleMouseMove);
                     window.addEventListener('mouseup', handleMouseUp);
-                } else {
-                    window.removeEventListener('mousemove', handleMouseMove);
-                    window.removeEventListener('mouseup', handleMouseUp);
                 }
                 return () => {
                     window.removeEventListener('mousemove', handleMouseMove);
                     window.removeEventListener('mouseup', handleMouseUp);
-                };
-            }, [isDragging, handleMouseMove, handleMouseUp]);
-
-            // Buscar código y scrollear
-            const findAndScroll = (snippet) => {
-                const searchStr = snippet.replace(/ style=".*?"/g, ''); 
-                let index = code.indexOf(searchStr);
-                if (index === -1) index = code.indexOf(snippet.split(' ')[0]);
-
-                if (index !== -1 && flaskRef.current) {
-                    const lines = code.substring(0, index).split('\n');
-                    const lineNum = lines.length;
-                    
-                    // Ajuste de scroll para CodeFlask
-                    const container = editorDivRef.current; // CodeFlask crea un div interno a veces, pero scrolleamos el contenedor
-                    // Buscamos el textarea para usarlo de referencia si es necesario, 
-                    // pero CodeFlask scrollea el contenedor padre si tiene overflow
-                    
-                    const lineHeight = 21; // aprox 14px * 1.5
-                    container.scrollTo({ top: (lineNum - 10) * lineHeight, behavior: 'smooth' });
-                    
-                    // Efecto visual flash
-                    const flash = document.createElement('div');
-                    flash.className = 'absolute inset-0 bg-brand/20 z-50 pointer-events-none transition-opacity duration-500';
-                    container.appendChild(flash);
-                    setTimeout(() => flash.classList.add('opacity-0'), 200);
-                    setTimeout(() => flash.remove(), 700);
                 }
-            };
+            }, [isDragging]);
 
             return (
-                <div className="flex flex-col h-screen w-full relative select-none">
-                    <div className="aurora-bg"></div>
-                    <div className="grid-bg"></div>
-
-                    {/* Header */}
-                    <header className="h-14 border-b border-white/5 bg-black/60 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-20">
-                        <div className="flex items-center gap-3">
-                            <i className="ph-fill ph-code text-2xl text-brand"></i>
-                            <div>
-                                <h1 className="font-bold tracking-widest text-sm text-white">GOD'S PLAN</h1>
-                                <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-[0.2em]">Dev Environment</span>
+                <div className="flex flex-col h-screen w-full bg-bg text-white font-sans overflow-hidden">
+                    
+                    {/* Header Pro */}
+                    <header className="h-12 border-b border-white/5 bg-panel flex items-center justify-between px-4 shrink-0 z-20 shadow-md">
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 text-brand font-bold tracking-tight">
+                                <i className="ph-fill ph-infinity text-xl"></i>
+                                <span>GOD'S PLAN</span>
+                            </div>
+                            <div className="h-4 w-[1px] bg-white/10"></div>
+                            <div className="flex text-xs gap-1 text-zinc-500">
+                                <span className="text-zinc-300">index.html</span>
                             </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-3">
                             <button 
                                 onClick={() => setIsInspectorActive(!isInspectorActive)}
-                                className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold tracking-wider border rounded-lg transition-all ${isInspectorActive ? 'bg-brand text-white border-brand animate-pulse' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'}`}
+                                className={`
+                                    flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-md transition-all border
+                                    ${isInspectorActive 
+                                        ? 'bg-brand/10 text-brand border-brand animate-scan shadow-[0_0_15px_rgba(255,51,51,0.3)]' 
+                                        : 'bg-white/5 border-transparent text-zinc-400 hover:text-white hover:bg-white/10'}
+                                `}
                             >
-                                <i className="ph-bold ph-crosshair"></i>
-                                {isInspectorActive ? 'DETECTANDO...' : 'INSPECTOR'}
+                                <i className={`ph-bold ${isInspectorActive ? 'ph-crosshair' : 'ph-cursor-click'}`}></i>
+                                {isInspectorActive ? 'DETECTANDO OBJETIVO' : 'INSPECCIONAR'}
                             </button>
                         </div>
                     </header>
 
-                    {/* Main Workspace */}
-                    <main className="flex-1 flex overflow-hidden relative z-10">
+                    {/* Workspace */}
+                    <div className="flex-1 flex overflow-hidden relative">
                         
-                        {/* PANEL IZQUIERDO: PREVIEW */}
-                        <div className="flex flex-col relative h-full bg-black border-r border-white/5" style={{ width: `${previewWidth}%` }}>
-                            
-                            {/* Toolbar Preview */}
-                            <div className="h-8 bg-black border-b border-white/5 flex items-center px-4 shrink-0">
-                                <span className="text-[10px] text-zinc-500 font-mono flex items-center gap-2">
-                                    <i className="ph-fill ph-globe text-brand"></i> Vista Previa
-                                </span>
+                        {/* Preview Area */}
+                        <div className="flex flex-col h-full relative group" style={{ width: `${previewWidth}%` }}>
+                            <div className="absolute top-3 left-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] px-2 py-1 rounded backdrop-blur">
+                                {Math.round(previewWidth)}% Viewport
                             </div>
-
-                            {/* Iframe */}
-                            <div className="flex-1 relative bg-white w-full">
-                                <iframe
+                            
+                            <div className="flex-1 bg-white relative">
+                                <iframe 
                                     ref={iframeRef}
                                     className="w-full h-full border-none"
-                                    sandbox="allow-scripts allow-modals allow-forms allow-same-origin allow-popups"
+                                    sandbox="allow-scripts allow-modals allow-forms allow-same-origin"
+                                    title="Preview"
                                 ></iframe>
-                                {isInspectorActive && <div className="absolute inset-0 pointer-events-none border-4 border-brand opacity-50 z-50"></div>}
+                                {/* Capa protectora para cuando arrastramos el resizer */}
+                                {isDragging && <div className="absolute inset-0 z-50 bg-transparent"></div>}
                             </div>
                         </div>
 
-                        {/* RESIZER HANDLE */}
+                        {/* Resizer */}
                         <div 
                             className={`resizer ${isDragging ? 'active' : ''}`}
-                            onMouseDown={handleMouseDown}
-                        >
-                            <div className="resizer-icon"></div>
-                        </div>
+                            onMouseDown={() => setIsDragging(true)}
+                        ></div>
 
-                        {/* PANEL DERECHO: EDITOR (CodeFlask) */}
+                        {/* Editor Area */}
                         <div className="flex flex-col h-full bg-[#050505] relative" style={{ width: `${100 - previewWidth}%` }}>
+                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-b from-black/50 to-transparent z-10 pointer-events-none"></div>
                             
-                            <div className="h-8 bg-[#0a0a0a] border-b border-white/5 flex items-center justify-between px-4 shrink-0">
-                                <span className="text-[10px] text-zinc-500 font-mono flex items-center gap-2">
-                                    <i className="ph-fill ph-file-code text-orange-500"></i> index.html
-                                </span>
-                                <span className="text-[10px] text-zinc-600">UTF-8 • Auto-save ON</span>
+                            {/* Editor Container */}
+                            <div ref={editorDivRef} className="flex-1 relative w-full h-full">
+                                {/* CodeFlask mounts here */}
                             </div>
 
-                            {/* Contenedor para CodeFlask */}
-                            <div ref={editorDivRef} className="flex-1 relative w-full h-full overflow-hidden"></div>
+                            {/* Status Bar */}
+                            <div className="h-6 bg-panel border-t border-white/5 flex items-center justify-between px-3 text-[10px] text-zinc-600 font-mono">
+                                <span>HTML5 • Tailwind Included</span>
+                                <span>UTF-8</span>
+                            </div>
                         </div>
 
-                    </main>
-
-                    {/* Overlay durante Dragging */}
-                    {isDragging && <div className="absolute inset-0 z-[100] cursor-col-resize"></div>}
+                    </div>
+                    
+                    {/* Full screen dragging overlay */}
+                    {isDragging && <div className="fixed inset-0 z-[100] cursor-col-resize"></div>}
                 </div>
             );
         };
