@@ -112,7 +112,7 @@
             </form>
             
             <p class="text-center text-[10px] text-gray-400 mt-6">
-                Acceso seguro v3.0 • God's Plan Adherencia
+                Acceso seguro v3.1 • God's Plan Adherencia
             </p>
         </div>
     </div>
@@ -346,6 +346,26 @@
                     <button onclick="saveSettings()" class="mt-2 w-full bg-gray-900 text-white py-3 rounded-xl font-bold text-sm hover:bg-black transition shadow-lg shadow-gray-200">Guardar Cambios</button>
                 </div>
 
+                <!-- IMPORT / EXPORT SECTION -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-sm mb-4 flex items-center gap-2 text-gray-900">
+                        <div class="p-1.5 bg-indigo-100 rounded-md text-indigo-600"><i class="ph-bold ph-arrows-left-right"></i></div>
+                        Respaldo y Datos
+                    </h3>
+                    <div class="flex gap-3">
+                        <button onclick="exportData()" class="flex-1 bg-gray-50 border border-gray-200 text-gray-700 py-3 rounded-xl font-bold text-xs hover:bg-gray-100 transition flex flex-col items-center gap-2">
+                            <i class="ph-bold ph-download-simple text-xl"></i> Exportar JSON
+                        </button>
+                        <button onclick="document.getElementById('import-file').click()" class="flex-1 bg-gray-50 border border-gray-200 text-gray-700 py-3 rounded-xl font-bold text-xs hover:bg-gray-100 transition flex flex-col items-center gap-2">
+                            <i class="ph-bold ph-upload-simple text-xl"></i> Importar JSON
+                        </button>
+                        <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(this)">
+                    </div>
+                     <p class="text-[10px] text-gray-400 mt-3 leading-tight">
+                        Descarga una copia de seguridad o restaura tus datos desde un archivo JSON.
+                    </p>
+                </div>
+
                 <!-- Data Management -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-sm mb-2 flex items-center gap-2 text-gray-900"><div class="p-1.5 bg-red-100 rounded-md text-red-600"><i class="ph-bold ph-trash"></i></div> Zona de Peligro</h3>
@@ -355,7 +375,7 @@
                 </div>
 
                 <div class="text-center text-[10px] text-gray-400 mt-8 pb-4">
-                    FinanzasPro v3.0 (Auth Integrated)
+                    FinanzasPro v3.1 (JSON Import/Export)
                 </div>
             </div>
         </div>
@@ -506,6 +526,96 @@
             transactions: [],
             fixed: [],
             settings: { frequency: 'biweekly', payday: null, payday1: null, payday2: null }
+        };
+
+        // --- IMPORT/EXPORT LOGIC ---
+        window.exportData = function() {
+            if(!window.appData || !currentUser) return;
+            
+            const data = {
+                transactions: window.appData.transactions,
+                fixed: window.appData.fixed,
+                settings: window.appData.settings,
+                meta: { 
+                    version: '3.1', 
+                    exportedAt: new Date().toISOString(), 
+                    user: currentUser.uid 
+                }
+            };
+            
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            const fileName = `finanzas_backup_${new Date().toISOString().slice(0,10)}.json`;
+            downloadAnchorNode.setAttribute("download", fileName);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            
+            showToast('Copia de seguridad descargada');
+        };
+
+        window.importData = async function(input) {
+            const file = input.files[0];
+            if(!file || !currentUser) return;
+
+            if(!confirm("⚠️ Importar datos mezclará la información del archivo con tus datos actuales. Si existen duplicados, se actualizarán. ¿Deseas continuar?")) {
+                input.value = ''; // Reset
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    // Basic validation
+                    if(!json.transactions && !json.fixed) throw new Error("Formato de archivo inválido");
+
+                    showToast("Procesando importación...");
+
+                    const batchPromises = [];
+
+                    // Process Transactions
+                    if(json.transactions && Array.isArray(json.transactions)) {
+                        json.transactions.forEach(t => {
+                            const { id, ...data } = t;
+                            const docId = id || Date.now().toString() + Math.random().toString(36).substr(2, 9); 
+                            batchPromises.push(
+                                setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', docId), data, { merge: true })
+                            );
+                        });
+                    }
+
+                    // Process Fixed Payments
+                    if(json.fixed && Array.isArray(json.fixed)) {
+                        json.fixed.forEach(f => {
+                            const { id, ...data } = f;
+                            const docId = id || Date.now().toString() + Math.random().toString(36).substr(2, 9);
+                            batchPromises.push(
+                                setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'fixed', docId), data, { merge: true })
+                            );
+                        });
+                    }
+
+                    // Process Settings
+                    if(json.settings) {
+                        batchPromises.push(
+                            setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'config'), json.settings, { merge: true })
+                        );
+                    }
+
+                    await Promise.all(batchPromises);
+
+                    showToast("Importación exitosa ✅");
+                    
+                } catch(err) {
+                    console.error(err);
+                    showToast("Error al importar: Archivo corrupto o inválido");
+                } finally {
+                    input.value = ''; // Reset input
+                }
+            };
+            reader.readAsText(file);
         };
 
         // --- AUTH LOGIC (INTEGRATED) ---
@@ -916,7 +1026,7 @@
                 return d.getMonth() === viewMonth && d.getFullYear() === viewYear;
             });
             monthlyTx.forEach(t => {
-                if(t.type === 'income') monthIncome += t.amount;
+                if(t.type === 'income') monthIncome += t.amount; 
                 else {
                     monthExpense += t.amount;
                     if(!categoryExpenses[t.category]) categoryExpenses[t.category] = 0;
