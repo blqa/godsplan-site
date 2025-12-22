@@ -459,11 +459,11 @@
     <script type="module">
         const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } = window.firebaseImports;
         
-        // APP_ID: Mantenemos el mismo identificador de datos, pero cambiamos el proyecto de Firebase abajo.
+        // APP_ID: Mantenemos el mismo identificador de datos.
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-ultimate-v3';
 
         // =========================================================================================
-        // CONFIGURACIÓN ACTUALIZADA: Usando las credenciales de "godsplan-blqa" (Main Page)
+        // CONFIGURACIÓN FIREBASE
         // =========================================================================================
         const fallbackConfig = {
             apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
@@ -514,7 +514,8 @@
 
         window.app = {
             user: null,
-            data: { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 },
+            data: { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 },
+            loansList: [], // Ahora es un array plano de documentos de la colección
             logs: [],
             currentPeriod: null,
             searchQuery: '',
@@ -526,16 +527,12 @@
             
             async init() {
                 if(!auth) return;
-                
-                // Listener de autenticación
-                // Al usar el mismo projectId que la Main Page, si ya te logueaste allá, aquí 'u' existirá automáticamente.
                 onAuthStateChanged(auth, async (u) => {
                     if (u) {
                         this.user = u; this.updateUserUI();
                         document.getElementById('authModal').classList.remove('active');
                         this.setupListeners();
                     } else {
-                        // Si no hay usuario, intentamos token custom o mostramos modal
                         const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
                         if(token) await signInWithCustomToken(auth, token); 
                         else document.getElementById('authModal').classList.add('active');
@@ -554,29 +551,48 @@
 
             setupListeners() {
                 const uid = this.user.uid;
-                const userRef = doc(db, 'artifacts', APP_ID, 'users', uid, 'data', 'financials');
-                const logsRef = collection(db, 'artifacts', APP_ID, 'users', uid, 'transactions');
                 
+                // 1. Configuración General (Ingresos, Gastos Fijos, Ciclo)
+                const userRef = doc(db, 'artifacts', APP_ID, 'users', uid, 'data', 'financials');
+                
+                // 2. Transacciones (Nueva Ruta: .../finance/data/transactions)
+                // Utilizamos 'finance/data/transactions' para cumplir con la ruta solicitada dentro del sandbox del usuario
+                const txRef = collection(db, 'artifacts', APP_ID, 'users', uid, 'finance', 'data', 'transactions');
+                
+                // 3. Préstamos (Nueva Ruta: .../finance/data/loans)
+                // Ahora es una COLECCIÓN, no un array dentro de financials
+                const loansRef = collection(db, 'artifacts', APP_ID, 'users', uid, 'finance', 'data', 'loans');
+
+                // Listener Config
                 onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
-                        this.data = { income: 0, incomeQ2: 0, fixed: [], loans: [], goals: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
+                        // Nota: Loans ya no viene de aquí, pero mantenemos fixed aquí por ahora
+                        this.data = { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
                         document.getElementById('inpIncome').value = this.data.income || '';
                         document.getElementById('inpIncomeQ2').value = this.data.incomeQ2 || '';
                         document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
                         document.getElementById('manualExtraPay').value = this.data.extraPayAmount > 0 ? this.data.extraPayAmount : '';
                         this.renderPlanInputs();
-                        this.renderFixed(); this.renderLoans();
+                        this.renderFixed();
                         this.calcPeriod();
                         this.updateExtraUI();
-                    } else setDoc(userRef, { income: 0, fixed: [], loans: [] });
+                    } else setDoc(userRef, { income: 0, fixed: [] });
                 });
 
-                const q = query(logsRef, orderBy('date', 'desc'), limit(1500));
+                // Listener Transacciones
+                const q = query(txRef, orderBy('date', 'desc'), limit(1500));
                 onSnapshot(q, (snap) => {
                     this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
                     this.calcBalance();
                     this.renderTransactions();
                     this.processHistory();
+                });
+
+                // Listener Préstamos (Loans)
+                onSnapshot(loansRef, (snap) => {
+                    this.loansList = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    this.renderLoans();
+                    this.calcBalance(); // Recalcular balance cuando cambian las deudas
                 });
             },
 
@@ -637,7 +653,6 @@
                     badge.textContent = daysDiff === 0 ? '¡Es Hoy!' : (daysDiff < 0 ? 'Pasado' : `Faltan ${daysDiff} días`);
                 } else {
                     const now = new Date(); const resultDate = new Date();
-                    // Lógica por defecto (p.ej. próximo Martes) o simplemente hoy + 7
                     const diff = 2 - now.getDay() + 7; 
                     resultDate.setDate(now.getDate() + (diff % 7 === 0 ? 0 : (2 - now.getDay() + 7) % 7));
                     if (resultDate <= now) resultDate.setDate(resultDate.getDate() + 7);
@@ -675,7 +690,8 @@
                 if (amount <= 0) return UI.toast('Monto debe ser mayor a 0', 'error');
                 
                 if (await UI.confirm('Importar Dinero', `¿Registrar ingreso de ${UI.fmtMoney(amount)}?`)) {
-                    await addDoc(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions'), {
+                    // Actualizado a la nueva ruta
+                    await addDoc(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'finance', 'data', 'transactions'), {
                         amount: amount, desc: `Cobro Extra`, category: 'Otro', type: 'income', date: new Date().toISOString()
                     });
                     UI.toast('Dinero sumado a billetera', 'success');
@@ -750,7 +766,6 @@
                 const periodLogs = this.logs.filter(l => { const d = new Date(l.date); return d >= pStart && d <= pEnd; });
                 
                 const todayStr = new Date().toDateString();
-                // Gastado HOY (excluyendo ajustes)
                 const todaySpent = periodLogs.filter(l => l.type === 'expense' && l.category !== 'Ajuste' && new Date(l.date).toDateString() === todayStr).reduce((a, b) => a + b.amount, 0);
                 
                 let totalSpentInCycle = 0; let extraInc = 0;
@@ -764,13 +779,11 @@
                     const amount = parseFloat(f.amount) || 0;
                     const day = parseInt(f.day); let triggers = false;
                     
-                    // Chequear si el día de pago cae en este periodo
                     const d1 = new Date(pStart.getFullYear(), pStart.getMonth(), day);
                     const d2 = new Date(pStart.getFullYear(), pStart.getMonth() + 1, day);
                     if ((d1 >= pStart && d1 <= pEnd) || (d2 >= pStart && d2 <= pEnd)) triggers = true;
                     
                     if (triggers) {
-                        // Buscar si ya se pagó (por meta_tag o por nombre similar)
                         const isPaid = periodLogs.some(l => (l.meta_related_fixed && l.meta_related_fixed === f.name) || (l.type === 'expense' && (l.desc || '').toLowerCase().includes(f.name.toLowerCase()) && l.amount > 0));
                         fixedStatus.push({ name: f.name, paid: isPaid });
                         if (!isPaid) fixedReserve += amount;
@@ -780,7 +793,8 @@
                 });
                 this.updateFixedUI(fixedStatus);
 
-                const totalLoans = (this.data.loans || []).reduce((acc, loan) => {
+                // Calcular Préstamos usando la nueva lista (colección)
+                const totalLoans = this.loansList.reduce((acc, loan) => {
                     const amount = parseFloat(loan.amount) || 0;
                     if (!loan.dueDate) return acc;
                     const [y, m, d] = loan.dueDate.split('-').map(Number);
@@ -791,7 +805,6 @@
 
                 let baseInc = parseFloat(this.data.income) || 0;
                 if (this.data.cycle === 'biweekly') {
-                    // Si estamos en Q2, intentamos usar incomeQ2
                     const pStartDay = this.currentPeriod.start.getDate();
                     const triggerQ2 = (this.data.startDay || 1) + 14;
                     if (pStartDay >= triggerQ2) { baseInc = parseFloat(this.data.incomeQ2) || baseInc; }
@@ -801,7 +814,6 @@
                 const remainingTotal = liquidIncome - fixedReserve - totalLoans - totalSpentInCycle;
                 
                 const daysLeft = this.currentPeriod.daysLeft;
-                // Calculamos cuánto había disponible al inicio del día (antes de gastar hoy)
                 const virtualAvailableStartOfDay = remainingTotal + todaySpent;
                 
                 const dailyLimit = virtualAvailableStartOfDay / daysLeft;
@@ -1002,10 +1014,12 @@
 
             renderLoans() {
                 const el = document.getElementById('loansList'); el.innerHTML='';
-                if(!this.data.loans?.length) el.innerHTML = '<div class="text-center py-8 text-zinc-600 italic text-xs">¡Libre de deudas!</div>';
+                if(!this.loansList.length) el.innerHTML = '<div class="text-center py-8 text-zinc-600 italic text-xs">¡Libre de deudas!</div>';
                 
                 const pEnd = this.currentPeriod ? this.currentPeriod.end : new Date(2100,0,1);
-                (this.data.loans || []).forEach((l,i) => {
+                
+                // Iteramos sobre loansList (que viene de la colección nueva)
+                this.loansList.forEach((l) => {
                     const [y, m, d] = l.dueDate ? l.dueDate.split('-').map(Number) : [0,0,0];
                     const due = l.dueDate ? new Date(y, m-1, d, 23, 59, 59) : new Date(0);
                     
@@ -1013,7 +1027,8 @@
                     const opacityClass = affectsBudget ? '' : 'opacity-50 grayscale';
                     const badge = affectsBudget ? '' : '<span class="text-[9px] bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded ml-2 border border-zinc-700">Próx. Ciclo</span>';
                     
-                    el.innerHTML += `<div onclick="app.openModal('loan', ${i})" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center mb-2 active:scale-[0.99] ${opacityClass}"><div><div class="font-bold text-sm text-white flex items-center">${l.name} ${badge}</div><div class="text-xs text-red-400">Vence: ${l.dueDate||'Sin fecha'}</div></div><div class="text-right font-bold text-base text-zinc-300">${UI.fmtMoney(l.amount)}</div></div>`;
+                    // Usamos l.id para editar, ya que ahora son documentos
+                    el.innerHTML += `<div onclick="app.openModal('loan', '${l.id}')" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center mb-2 active:scale-[0.99] ${opacityClass}"><div><div class="font-bold text-sm text-white flex items-center">${l.name} ${badge}</div><div class="text-xs text-red-400">Vence: ${l.dueDate||'Sin fecha'}</div></div><div class="text-right font-bold text-base text-zinc-300">${UI.fmtMoney(l.amount)}</div></div>`;
                 });
             },
 
@@ -1079,9 +1094,10 @@
                 }
                 else if (type === 'loan') {
                     document.getElementById('formLoan').classList.remove('hidden'); title.textContent = 'Deuda';
-                    const l = id !== null ? this.data.loans[id] : {};
+                    // Buscamos el préstamo en loansList usando el ID
+                    const l = id ? this.loansList.find(item => item.id === id) : {};
                     document.getElementById('loanName').value = l.name||''; document.getElementById('loanAmount').value=l.amount||''; document.getElementById('loanDueDate').value=l.dueDate||'';
-                    document.getElementById('btnDeleteLoan').classList.toggle('hidden', id===null);
+                    document.getElementById('btnDeleteLoan').classList.toggle('hidden', !id);
                 }
                 else if (type === 'config') {
                     document.getElementById('formConfig').classList.remove('hidden'); title.textContent = 'Configuración Ciclo';
@@ -1124,7 +1140,9 @@
                     payload.type = this.modalType === 'extra' ? 'income' : 'expense';
                 }
 
-                const ref = collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions');
+                // NUEVA RUTA DE TRANSACCIONES
+                const ref = collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'finance', 'data', 'transactions');
+                
                 if(this.editId) await updateDoc(doc(ref, this.editId), payload);
                 else await addDoc(ref, payload);
                 
@@ -1143,7 +1161,8 @@
             async payFixed(idx) {
                 const f = this.data.fixed[idx];
                 if(await UI.confirm('Pagar Fijo', `¿Registrar pago de ${f.name} por ${UI.fmtMoney(f.amount)}?`)) {
-                    await addDoc(collection(db,'artifacts',APP_ID,'users',this.user.uid,'transactions'), {
+                    // Actualizado a la nueva ruta
+                    await addDoc(collection(db,'artifacts',APP_ID,'users',this.user.uid,'finance','data','transactions'), {
                         amount: parseFloat(f.amount),
                         desc: `Pago Fijo: ${f.name}`,
                         category: 'Servicios',
@@ -1156,10 +1175,21 @@
             },
 
             async saveLoan() {
-                const arr = [...(this.data.loans||[])];
-                const item = { name: document.getElementById('loanName').value, amount: parseFloat(document.getElementById('loanAmount').value), dueDate: document.getElementById('loanDueDate').value };
-                if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
-                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{loans:arr});
+                // Ahora guardamos en la COLECCIÓN de loans
+                const payload = { 
+                    name: document.getElementById('loanName').value, 
+                    amount: parseFloat(document.getElementById('loanAmount').value), 
+                    dueDate: document.getElementById('loanDueDate').value 
+                };
+
+                const ref = collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'finance', 'data', 'loans');
+
+                if(this.editId) {
+                    await updateDoc(doc(ref, this.editId), payload);
+                } else {
+                    await addDoc(ref, payload);
+                }
+                
                 this.closeModal();
             },
 
@@ -1194,16 +1224,36 @@
                 UI.toast('Ciclo actualizado','success'); this.closeModal();
             },
 
-            async deleteTxConfirm() { if(await UI.confirm('Borrar','¿Eliminar esta transacción?')) { await deleteDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'transactions',this.editId)); this.closeModal(); } },
+            async deleteTxConfirm() { 
+                if(await UI.confirm('Borrar','¿Eliminar esta transacción?')) { 
+                    // Nueva ruta
+                    await deleteDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'finance','data','transactions',this.editId)); 
+                    this.closeModal(); 
+                } 
+            },
             async deleteFixedConfirm() { if(await UI.confirm('Borrar','¿Eliminar gasto fijo?')) { const arr=this.data.fixed.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{fixed:arr}); this.closeModal(); } },
-            async deleteLoanConfirm() { if(await UI.confirm('Liquidar','¿Marcar como pagado y borrar?')) { const arr=this.data.loans.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{loans:arr}); this.closeModal(); } },
+            
+            async deleteLoanConfirm() { 
+                if(await UI.confirm('Liquidar','¿Marcar como pagado y borrar?')) { 
+                    // Nueva lógica: Borrar documento de la colección
+                    await deleteDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'finance','data','loans',this.editId));
+                    this.closeModal(); 
+                } 
+            },
             
             async resetData() {
                  if(await UI.confirm('RESETEO TOTAL','¿Estás seguro? Se borrará TODO.')) {
                      const uid = this.user.uid; const batch = writeBatch(db);
-                     batch.set(doc(db,'artifacts',APP_ID,'users',uid,'data','financials'), {income:0,fixed:[],loans:[],goals:[], categories:[]});
-                     const q = await getDocs(collection(db,'artifacts',APP_ID,'users',uid,'transactions'));
+                     batch.set(doc(db,'artifacts',APP_ID,'users',uid,'data','financials'), {income:0,fixed:[], cycle:'biweekly', startDay:1});
+                     
+                     // Borrar transacciones de la nueva ruta
+                     const q = await getDocs(collection(db,'artifacts',APP_ID,'users',uid,'finance','data','transactions'));
                      q.forEach(d => batch.delete(d.ref));
+                     
+                     // Borrar préstamos de la nueva ruta
+                     const qLoans = await getDocs(collection(db,'artifacts',APP_ID,'users',uid,'finance','data','loans'));
+                     qLoans.forEach(d => batch.delete(d.ref));
+
                      await batch.commit(); window.location.reload();
                  }
             },
