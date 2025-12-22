@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FinanzasPro - God's Plan</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,7 +15,7 @@
 
     <style>
         /* Base */
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         
         /* Scrollbar */
@@ -25,232 +25,146 @@
         /* Animations */
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
 
-        .animate-fade-in { animation: fadeInOpacity 1s ease-out forwards; }
-        @keyframes fadeInOpacity { from { opacity: 0; } to { opacity: 0.5; } }
-
-        /* Custom UI for App */
+        /* Custom UI */
         .nav-item.active { color: #2563eb; }
         .nav-item.active i { font-weight: bold; }
         .toggle-btn { transition: all 0.2s ease; }
-
-        /* GOD'S PLAN AUTH THEME */
-        :root { --brand: #3b82f6; } /* Blue-500 equivalent */
-        .text-brand { color: var(--brand); }
-        .bg-brand { background-color: var(--brand); }
         
-        .glass-panel {
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .input-gp {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            outline: none;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-        }
-        .input-gp:focus {
-            border-color: var(--brand);
-            background: rgba(0, 0, 0, 0.5);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-        }
-
-        .btn-glow {
-            background: var(--brand);
-            color: white;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-        }
-        .btn-glow:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
-        }
-        .btn-glow:active { transform: translateY(0); }
-
-        /* Auth Switcher */
-        .auth-switch {
-            display: flex;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 4px;
-            border-radius: 1rem;
-            position: relative;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .auth-switch button {
-            flex: 1;
-            padding: 10px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #71717a;
-            position: relative;
-            z-index: 2;
-            transition: color 0.3s;
-        }
-        .auth-switch button.active { color: white; }
-        .auth-switch-glider {
-            position: absolute;
-            top: 4px; left: 4px; bottom: 4px;
-            width: calc(50% - 4px);
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 0.8rem;
-            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            z-index: 1;
-        }
-        /* State for glider */
-        .auth-switch[data-state="register"] .auth-switch-glider { transform: translateX(100%); }
+        /* SafeArea for mobile */
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
         
         .tab-btn {
             @apply px-4 py-2 rounded-lg font-medium text-sm transition-colors;
         }
-        .tab-btn.active {
-            @apply bg-blue-100 text-blue-700;
-        }
-        .tab-btn:not(.active) {
-            @apply text-gray-500 hover:bg-gray-50;
-        }
+
+        /* Login Transition */
+        .login-enter { animation: slideIn 0.4s ease-out forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden text-gray-800">
+<body class="h-screen flex flex-col overflow-hidden text-gray-800 bg-gray-50">
 
-    <!-- Loading Overlay (Initial) -->
-    <div id="loading-screen" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center transition-opacity duration-500 p-4">
+    <!-- Loading Overlay (Global) -->
+    <div id="loading-screen" class="fixed inset-0 bg-white z-[300] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="text-center">
             <i class="ph ph-circle-notch text-4xl text-blue-600 animate-spin mb-4 inline-block"></i>
-            <p class="text-gray-500 font-medium animate-pulse">Conectando a Base de Datos Segura...</p>
+            <p class="text-gray-400 font-medium text-sm animate-pulse">Cargando...</p>
         </div>
     </div>
 
-    <!-- GOD'S PLAN AUTH VIEW -->
-    <div id="login-view" class="fixed inset-0 z-[90] flex items-center justify-center p-6 bg-[#030000] hidden">
-        <div class="absolute top-8 left-8 flex items-center gap-3 animate-fade-in opacity-50">
-             <div class="relative w-8 h-8 flex items-center justify-center"><i class="ph-fill ph-planet text-2xl text-brand"></i></div>
-            <span class="font-bold tracking-widest text-lg text-white">GOD'S PLAN</span>
-        </div>
-        <div class="w-full max-w-md animate-float">
+    <!-- VISTA LOGIN / REGISTER (Z-INDEX ALTO PARA CUBRIR LA APP) -->
+    <div id="login-view" class="fixed inset-0 z-[200] bg-gray-50 flex flex-col items-center justify-center p-6 hidden">
+        <div class="w-full max-w-sm bg-white rounded-3xl shadow-xl border border-gray-100 p-8 login-enter">
             <div class="text-center mb-8">
-                <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-2 text-white">GOD'S PLAN</h1>
-                <p class="text-zinc-500 text-sm font-mono tracking-widest uppercase">Portal de Acceso Centralizado</p>
-                <div id="auth-status-badge" class="mt-4 inline-block px-3 py-1 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-400 text-[10px] font-mono uppercase tracking-wider">
-                    Conexión Segura Establecida
+                <div class="bg-blue-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
+                    <i class="ph-bold ph-wallet text-3xl"></i>
                 </div>
+                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">GOD'S PLAN</h1>
+                <p class="text-gray-500 text-sm font-medium">Portal de Acceso Financiero</p>
             </div>
-            <div class="glass-panel rounded-3xl p-8 relative overflow-hidden">
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-brand blur-md opacity-50"></div>
+
+            <!-- Botones Toggle -->
+            <div class="flex p-1 bg-gray-100 rounded-xl mb-6">
+                <button onclick="window.authApp.toggleAuth('login')" id="tab-login" class="flex-1 py-2.5 text-sm font-bold rounded-lg shadow-sm bg-white text-gray-900 transition-all">INGRESAR</button>
+                <button onclick="window.authApp.toggleAuth('register')" id="tab-register" class="flex-1 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-all">REGISTRARSE</button>
+            </div>
+
+            <form onsubmit="event.preventDefault(); window.authApp.handleAuthSubmit();" class="space-y-4">
+                <!-- Campo Nombre (Solo registro) -->
+                <div id="field-name" class="hidden">
+                    <label class="block text-xs font-bold text-gray-500 mb-1 ml-1 uppercase">Tu Nombre</label>
+                    <div class="relative">
+                        <i class="ph-bold ph-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="input-name" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-medium" placeholder="Nombre completo">
+                    </div>
+                </div>
                 
-                <div class="auth-switch" id="auth-switch-container" data-state="login">
-                    <div class="auth-switch-glider"></div>
-                    <button onclick="window.app.toggleAuth('login')" id="tab-login" class="active">INGRESAR</button>
-                    <button onclick="window.app.toggleAuth('register')" id="tab-register">CONFIGURAR</button>
+                <!-- Campo Email/ID -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1 ml-1 uppercase">ID o Email</label>
+                    <div class="relative">
+                        <i class="ph-bold ph-identification-card absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="input-id" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-medium" placeholder="Ej: 17620" required>
+                    </div>
+                </div>
+                
+                <!-- Campo Password -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1 ml-1 uppercase">Contraseña</label>
+                    <div class="relative">
+                        <i class="ph-bold ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="password" id="input-pass" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-medium" placeholder="••••••••" required>
+                    </div>
                 </div>
 
-                <form onsubmit="event.preventDefault(); window.app.handleAuthSubmit();" class="flex flex-col gap-5">
-                    <div class="bg-yellow-500/10 border border-yellow-500/20 p-3 rounded-xl text-yellow-200/70 text-xs mb-2 hidden" id="register-hint">
-                        <i class="ph-fill ph-info"></i> Configura tu nombre y una clave de acceso para proteger tus datos en este dispositivo.
-                    </div>
-
-                    <div id="field-name" class="hidden transition-all duration-300">
-                        <div class="relative group">
-                            <i class="ph-bold ph-user absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
-                            <input type="text" id="input-name" class="input-gp pl-12" placeholder="Tu Nombre">
-                        </div>
-                    </div>
-                    <!-- Campo oculto para compatibilidad visual, usamos solo PASS como PIN en este modo seguro -->
-                    <div class="hidden">
-                        <input type="text" id="input-id" value="secure-user" class="input-gp">
-                    </div>
-
-                    <div class="relative group">
-                        <i class="ph-bold ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
-                        <input type="password" id="input-pass" class="input-gp pl-12" placeholder="Clave de Acceso" required>
-                    </div>
-                    
-                    <div id="auth-error-msg" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold text-center flex items-center justify-center gap-2">
-                        <i class="ph-fill ph-warning-circle"></i> <span id="auth-error-txt">Error</span>
-                    </div>
-
-                    <button type="submit" id="btn-submit" class="btn-glow w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm mt-2 flex items-center justify-center gap-2 group cursor-pointer">
-                        <span id="btn-text">INICIAR SESIÓN</span> <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                    </button>
-                </form>
-
-                <div class="relative my-6 text-center opacity-50">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
-                    <span class="relative bg-[#0a0a0a] px-2 text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Sistema Seguro</span>
+                <!-- Mensaje de Error -->
+                <div id="auth-error-msg" class="hidden p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-2">
+                    <i class="ph-fill ph-warning-circle text-red-500"></i>
+                    <span id="auth-error-txt" class="text-xs text-red-600 font-medium">Error</span>
                 </div>
-                <div class="text-center">
-                    <p class="text-[10px] text-zinc-600">
-                        Tus datos se almacenan de forma privada usando tu ID de sesión único.
-                    </p>
-                </div>
-            </div>
+
+                <!-- Botón Submit -->
+                <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2">
+                    <span id="btn-text">INICIAR SESIÓN</span>
+                    <i class="ph-bold ph-arrow-right"></i>
+                </button>
+            </form>
+            
+            <p class="text-center text-[10px] text-gray-400 mt-6">
+                Acceso seguro v3.0 • God's Plan Adherencia
+            </p>
         </div>
-        <footer class="absolute bottom-4 left-0 w-full text-center pointer-events-none opacity-30">
-            <p class="text-[10px] font-mono tracking-[0.5em] text-white">SYSTEM v2.0 // SECURE</p>
-        </footer>
     </div>
 
     <!-- Main Content Area (App Dashboard) -->
     <main id="main-container" class="flex-1 overflow-y-auto hide-scrollbar relative pb-24 hidden">
         
         <!-- HEADER -->
-        <header class="bg-white p-6 sticky top-0 z-50 shadow-sm">
+        <header class="bg-white p-4 sticky top-0 z-40 shadow-sm/50 border-b border-gray-100">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">FinanzasPro</h1>
+                    <h1 class="text-xl font-bold text-gray-900 tracking-tight">FinanzasPro</h1>
                     <div class="flex items-center gap-1 mt-1">
-                        <button onclick="changeMonth(-1)" class="p-2 rounded-full hover:bg-gray-100 text-gray-600 active:bg-gray-200 transition">
-                            <i class="ph ph-caret-left text-xl"></i>
+                        <button onclick="changeMonth(-1)" class="p-1 rounded-full hover:bg-gray-100 text-gray-600 active:bg-gray-200 transition">
+                            <i class="ph ph-caret-left text-lg"></i>
                         </button>
                         <div class="flex flex-col items-center mx-1">
-                            <p class="text-sm font-bold text-blue-600 w-32 text-center select-none" id="current-date">Cargando...</p>
+                            <p class="text-sm font-bold text-blue-600 w-28 text-center select-none" id="current-date">...</p>
                         </div>
-                        <button onclick="changeMonth(1)" class="p-2 rounded-full hover:bg-gray-100 text-gray-600 active:bg-gray-200 transition">
-                            <i class="ph ph-caret-right text-xl"></i>
+                        <button onclick="changeMonth(1)" class="p-1 rounded-full hover:bg-gray-100 text-gray-600 active:bg-gray-200 transition">
+                            <i class="ph ph-caret-right text-lg"></i>
                         </button>
                         <button onclick="goToCurrentMonth()" class="ml-2 text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-md border border-blue-100 hover:bg-blue-100 transition" title="Ir al mes actual">HOY</button>
                     </div>
                 </div>
-                <button onclick="openModal('transaction-modal')" class="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition active:scale-95">
-                    <i class="ph ph-plus text-xl"></i>
+                <button onclick="openModal('transaction-modal')" class="bg-blue-600 text-white w-10 h-10 rounded-full shadow-lg shadow-blue-200 hover:bg-blue-700 transition active:scale-95 flex items-center justify-center">
+                    <i class="ph ph-plus text-xl font-bold"></i>
                 </button>
             </div>
         </header>
 
         <!-- VIEW: DASHBOARD -->
-        <div id="view-dashboard" class="p-6 space-y-6 fade-in">
+        <div id="view-dashboard" class="p-4 space-y-5 fade-in pb-32">
             <!-- Balance Card -->
-            <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden transition-all duration-300 z-0">
+            <div class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-xl shadow-blue-200 relative overflow-hidden transition-all duration-300">
                 <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                     <i class="ph ph-wallet text-9xl"></i>
                 </div>
                 <div class="absolute top-4 right-4 flex bg-black/20 backdrop-blur-md rounded-lg p-1">
-                    <button onclick="setBalanceMode('month')" id="btn-mode-month" class="toggle-btn px-3 py-1 rounded-md text-xs font-bold bg-white text-blue-900 shadow-sm">Mes</button>
-                    <button onclick="setBalanceMode('total')" id="btn-mode-total" class="toggle-btn px-3 py-1 rounded-md text-xs font-medium text-blue-100 hover:bg-white/10">Total</button>
+                    <button onclick="setBalanceMode('month')" id="btn-mode-month" class="toggle-btn px-3 py-1 rounded-md text-[10px] font-bold bg-white text-blue-900 shadow-sm">Mes</button>
+                    <button onclick="setBalanceMode('total')" id="btn-mode-total" class="toggle-btn px-3 py-1 rounded-md text-[10px] font-medium text-blue-100 hover:bg-white/10">Total</button>
                 </div>
-                <p class="text-blue-100 text-sm font-medium mb-1 mt-6" id="balance-label">Saldo del Mes</p>
-                <h2 class="text-4xl font-bold mb-4" id="total-balance">$0.00</h2>
-                <div class="flex gap-4">
-                    <div class="bg-white/20 rounded-lg p-2 px-3 backdrop-blur-sm flex-1">
-                        <p class="text-xs text-blue-100 mb-1 flex items-center gap-1"><i class="ph ph-arrow-down text-green-300"></i> Ingresos</p>
-                        <p class="font-semibold" id="total-income">$0.00</p>
+                <p class="text-blue-100 text-xs font-medium mb-1 mt-6 opacity-80" id="balance-label">Saldo del Mes</p>
+                <h2 class="text-4xl font-bold mb-4 tracking-tight" id="total-balance">$0.00</h2>
+                <div class="flex gap-3">
+                    <div class="bg-white/10 rounded-xl p-2 px-3 backdrop-blur-sm flex-1 border border-white/10">
+                        <p class="text-[10px] text-blue-100 mb-1 flex items-center gap-1 opacity-80"><i class="ph ph-arrow-down text-emerald-300"></i> Ingresos</p>
+                        <p class="font-semibold text-sm" id="total-income">$0.00</p>
                     </div>
-                    <div class="bg-white/20 rounded-lg p-2 px-3 backdrop-blur-sm flex-1">
-                        <p class="text-xs text-blue-100 mb-1 flex items-center gap-1"><i class="ph ph-arrow-up text-red-300"></i> Gastos</p>
-                        <p class="font-semibold" id="total-expense">$0.00</p>
+                    <div class="bg-white/10 rounded-xl p-2 px-3 backdrop-blur-sm flex-1 border border-white/10">
+                        <p class="text-[10px] text-blue-100 mb-1 flex items-center gap-1 opacity-80"><i class="ph ph-arrow-up text-rose-300"></i> Gastos</p>
+                        <p class="font-semibold text-sm" id="total-expense">$0.00</p>
                     </div>
                 </div>
             </div>
@@ -258,69 +172,69 @@
             <!-- Payday Widget -->
             <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="bg-purple-100 p-2 rounded-lg text-purple-600">
+                    <div class="bg-purple-50 p-2.5 rounded-xl text-purple-600">
                         <i class="ph ph-calendar-check text-xl"></i>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-gray-900">Próxima Nómina</p>
-                        <p class="text-xs text-gray-500" id="payday-countdown">Calculando...</p>
-                        <p class="text-[10px] text-gray-400 mt-1" id="payday-detail"></p>
+                        <p class="text-sm font-semibold text-gray-900">Próxima Nómina</p>
+                        <p class="text-xs text-gray-500 font-medium" id="payday-countdown">Calculando...</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5" id="payday-detail"></p>
                     </div>
                 </div>
-                <button onclick="switchTab('settings')" class="text-gray-400 hover:text-blue-600"><i class="ph ph-gear"></i></button>
+                <button onclick="switchTab('settings')" class="text-gray-300 hover:text-blue-600 p-2"><i class="ph ph-gear-six"></i></button>
             </div>
 
             <!-- Chart Section -->
-            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-semibold text-gray-900" id="chart-title">Resumen</h3>
-                    <div class="flex bg-gray-100 rounded-lg p-1">
-                         <button onclick="setChartType('balance')" id="btn-chart-balance" class="toggle-btn px-3 py-1 rounded-md text-xs font-bold bg-white text-gray-800 shadow-sm">Balance</button>
-                         <button onclick="setChartType('categories')" id="btn-chart-categories" class="toggle-btn px-3 py-1 rounded-md text-xs font-medium text-gray-500 hover:bg-gray-200">Gastos</button>
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-semibold text-gray-900 text-sm" id="chart-title">Resumen</h3>
+                    <div class="flex bg-gray-50 rounded-lg p-1 border border-gray-100">
+                         <button onclick="setChartType('balance')" id="btn-chart-balance" class="toggle-btn px-3 py-1 rounded-md text-[10px] font-bold bg-white text-gray-800 shadow-sm border border-gray-100">Balance</button>
+                         <button onclick="setChartType('categories')" id="btn-chart-categories" class="toggle-btn px-3 py-1 rounded-md text-[10px] font-medium text-gray-500 hover:bg-gray-200">Categorías</button>
                     </div>
                 </div>
-                <div class="h-48 w-full relative">
+                <div class="h-48 w-full relative flex items-center justify-center">
                     <canvas id="financeChart"></canvas>
                 </div>
-                <div id="chart-insight" class="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-800 flex items-start gap-2 hidden">
-                    <i class="ph ph-lightbulb text-lg flex-shrink-0"></i>
+                <div id="chart-insight" class="mt-4 p-3 bg-blue-50/50 rounded-lg text-xs text-blue-800 flex items-start gap-2 hidden border border-blue-100">
+                    <i class="ph-fill ph-lightbulb text-base flex-shrink-0 text-amber-500"></i>
                     <span id="chart-insight-text">Analizando datos...</span>
                 </div>
             </div>
 
             <!-- Flow Formula Card -->
             <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 text-gray-50 opacity-50">
-                    <i class="ph ph-function text-[80px]"></i>
+                <div class="absolute -right-6 -top-6 text-gray-50">
+                    <i class="ph-fill ph-function text-[100px]"></i>
                 </div>
-                <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <i class="ph ph-calculator text-blue-600"></i> Análisis de Flujo Real
+                <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2 relative z-10 text-sm">
+                    <div class="w-1 h-4 bg-blue-500 rounded-full"></div> Análisis de Flujo Real
                 </h3>
                 <div class="space-y-3 relative z-10">
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500">Saldo Periodo Anterior</span>
-                        <span class="font-medium text-gray-700" id="formula-prev">$0.00</span>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-gray-500">Saldo Anterior</span>
+                        <span class="font-mono font-medium text-gray-700" id="formula-prev">$0.00</span>
                     </div>
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500 flex items-center gap-1"><i class="ph ph-plus-circle text-green-500"></i> Nómina + Extras</span>
-                        <span class="font-medium text-green-600" id="formula-income">$0.00</span>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-gray-500 flex items-center gap-1"><i class="ph-fill ph-plus-circle text-emerald-500"></i> Ingresos Mes</span>
+                        <span class="font-mono font-medium text-emerald-600" id="formula-income">$0.00</span>
                     </div>
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500 flex items-center gap-1"><i class="ph ph-minus-circle text-red-500"></i> Gastos Pagados</span>
-                        <span class="font-medium text-red-600" id="formula-expense">$0.00</span>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-gray-500 flex items-center gap-1"><i class="ph-fill ph-minus-circle text-rose-500"></i> Gastos Mes</span>
+                        <span class="font-mono font-medium text-rose-600" id="formula-expense">$0.00</span>
                     </div>
                     <div class="border-t border-gray-100 pt-3 mt-1 flex justify-between items-center">
-                        <span class="font-bold text-gray-900">Total Disponible Real</span>
-                        <span class="font-bold text-xl text-blue-600" id="formula-total">$0.00</span>
+                        <span class="font-bold text-gray-900 text-sm">Total Disponible</span>
+                        <span class="font-bold text-lg text-blue-600 font-mono tracking-tight" id="formula-total">$0.00</span>
                     </div>
                 </div>
             </div>
 
             <!-- Recent Transactions Preview -->
             <div>
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-semibold text-gray-900">Movimientos Recientes</h3>
-                    <button onclick="switchTab('history')" class="text-blue-600 text-sm font-medium">Ver todo el historial</button>
+                <div class="flex justify-between items-center mb-3 px-1">
+                    <h3 class="font-semibold text-gray-900 text-sm">Recientes</h3>
+                    <button onclick="switchTab('history')" class="text-blue-600 text-xs font-medium hover:underline">Ver todo</button>
                 </div>
                 <div id="recent-list" class="space-y-3">
                     <!-- Populated by JS -->
@@ -329,139 +243,141 @@
         </div>
 
         <!-- VIEW: HISTORY -->
-        <div id="view-history" class="p-6 hidden fade-in">
-            <h2 class="text-xl font-bold mb-4">Historial Completo</h2>
-            <div class="flex gap-2 mb-6 overflow-x-auto pb-2 hide-scrollbar">
-                <button onclick="filterHistory('all')" class="filter-btn active px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-medium whitespace-nowrap transition" data-filter="all">Todos</button>
-                <button onclick="filterHistory('income')" class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 border border-gray-200 text-sm font-medium whitespace-nowrap transition" data-filter="income">Ingresos</button>
-                <button onclick="filterHistory('expense')" class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 border border-gray-200 text-sm font-medium whitespace-nowrap transition" data-filter="expense">Gastos</button>
+        <div id="view-history" class="p-4 hidden fade-in pb-32">
+            <h2 class="text-xl font-bold mb-4 px-1">Historial</h2>
+            <div class="flex gap-2 mb-6 overflow-x-auto pb-2 hide-scrollbar px-1">
+                <button onclick="filterHistory('all')" class="filter-btn active px-4 py-2 rounded-full bg-blue-600 text-white text-xs font-medium whitespace-nowrap transition shadow-sm shadow-blue-200" data-filter="all">Todos</button>
+                <button onclick="filterHistory('income')" class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 border border-gray-200 text-xs font-medium whitespace-nowrap transition" data-filter="income">Ingresos</button>
+                <button onclick="filterHistory('expense')" class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 border border-gray-200 text-xs font-medium whitespace-nowrap transition" data-filter="expense">Gastos</button>
             </div>
-            <div id="full-history-list" class="space-y-3 pb-20">
-                <div class="text-center text-gray-400 py-10">Cargando historial...</div>
+            <div id="full-history-list" class="space-y-3">
+                <div class="text-center text-gray-400 py-10 text-sm">Cargando historial...</div>
             </div>
         </div>
 
         <!-- VIEW: FIXED PAYMENTS -->
-        <div id="view-fixed" class="p-6 hidden fade-in">
-            <div class="flex justify-between items-center mb-6">
+        <div id="view-fixed" class="p-4 hidden fade-in pb-32">
+            <div class="flex justify-between items-center mb-6 px-1">
                 <h2 class="text-xl font-bold">Pagos Fijos</h2>
-                <button onclick="openModal('fixed-modal')" class="text-blue-600 text-sm font-medium flex items-center gap-1"><i class="ph ph-plus"></i> Nuevo</button>
+                <button onclick="openModal('fixed-modal')" class="text-blue-600 text-xs font-bold bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 flex items-center gap-1 active:bg-blue-100 transition"><i class="ph-bold ph-plus"></i> Nuevo</button>
             </div>
-            <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
-                <p class="text-sm text-blue-800"><i class="ph ph-info inline mr-1"></i> Aquí puedes ver tus suscripciones. Usa el botón <i class="ph ph-check-circle inline text-blue-600"></i> para registrarlos como pagados este mes.</p>
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 flex gap-3">
+                <i class="ph-fill ph-info text-blue-500 text-xl flex-shrink-0 mt-0.5"></i>
+                <p class="text-xs text-blue-800 leading-relaxed">Aquí puedes ver tus suscripciones o rentas. Usa el botón de <i class="ph-bold ph-check text-blue-600"></i> para registrarlos rápidamente como pagados este mes.</p>
             </div>
-            <div id="fixed-list" class="space-y-4 grid grid-cols-1 gap-4">
-                <div class="text-center text-gray-400 py-10">Cargando pagos fijos...</div>
+            <div id="fixed-list" class="space-y-3 grid grid-cols-1 gap-3">
+                <div class="text-center text-gray-400 py-10 text-sm">Cargando pagos fijos...</div>
             </div>
         </div>
 
         <!-- VIEW: SETTINGS -->
-        <div id="view-settings" class="p-6 hidden fade-in">
-            <h2 class="text-xl font-bold mb-6">Configuración</h2>
+        <div id="view-settings" class="p-4 hidden fade-in pb-32">
+            <h2 class="text-xl font-bold mb-6 px-1">Configuración</h2>
             <div class="space-y-6">
-                <!-- User Profile -->
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                         <div class="bg-blue-100 p-2 rounded-full text-blue-600" id="user-avatar-placeholder">
-                             <i class="ph ph-user text-xl"></i>
-                         </div>
-                         <div class="overflow-hidden">
-                             <p class="font-bold text-sm text-gray-900 truncate" id="user-name-display">Usuario</p>
-                             <p class="text-xs text-gray-500 truncate" id="user-status-display">Conexión Segura</p>
-                         </div>
+                
+                <!-- Account Info -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-sm mb-4 flex items-center gap-2 text-gray-900"><div class="p-1.5 bg-blue-100 rounded-md text-blue-600"><i class="ph-bold ph-user"></i></div> Cuenta</h3>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center text-gray-500 font-bold">
+                            <i class="ph-bold ph-user"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm text-gray-900" id="user-display-name">Usuario</p>
+                            <p class="text-xs text-gray-500" id="user-display-email">ID: ...</p>
+                        </div>
                     </div>
-                    <button onclick="logout()" class="text-red-500 text-sm font-medium hover:bg-red-50 p-2 rounded-lg transition" title="Bloquear App">
-                        <i class="ph ph-lock-key text-lg"></i>
+                    <button onclick="window.authApp.logout()" class="w-full border border-gray-200 text-gray-600 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-sign-out"></i> Cerrar Sesión
                     </button>
                 </div>
 
                 <!-- Payday Setting -->
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="font-semibold mb-2 flex items-center gap-2"><i class="ph ph-calendar text-blue-600"></i> Frecuencia de Nómina</h3>
-                    <p class="text-sm text-gray-500 mb-3">Configura cuándo recibes tus pagos. El sistema ajustará automáticamente si cae en fin de semana o festivo.</p>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-sm mb-2 flex items-center gap-2 text-gray-900"><div class="p-1.5 bg-green-100 rounded-md text-green-600"><i class="ph-bold ph-money"></i></div> Frecuencia de Ingresos</h3>
+                    <p class="text-xs text-gray-500 mb-4 leading-relaxed">Configura cuándo recibes dinero. El sistema calculará automáticamente los días restantes.</p>
+                    
                     <div class="space-y-3 mb-4">
-                        <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                            <input type="radio" name="pay-freq" value="biweekly" class="w-4 h-4 text-blue-600" onchange="togglePaydayInput()">
+                        <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50/50">
+                            <input type="radio" name="pay-freq" value="biweekly" class="w-4 h-4 text-blue-600 accent-blue-600" onchange="togglePaydayInput()">
                             <div>
-                                <span class="block font-medium text-sm text-gray-900">Quincenal Estándar</span>
-                                <span class="text-xs text-gray-500">15 y último día del mes.</span>
+                                <span class="block font-semibold text-sm text-gray-900">Quincenal (15 y 30)</span>
                             </div>
                         </label>
-                        <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                            <input type="radio" name="pay-freq" value="biweekly-custom" class="w-4 h-4 text-blue-600" onchange="togglePaydayInput()">
+                        <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50/50">
+                            <input type="radio" name="pay-freq" value="biweekly-custom" class="w-4 h-4 text-blue-600 accent-blue-600" onchange="togglePaydayInput()">
                             <div>
-                                <span class="block font-medium text-sm text-gray-900">Quincenal Personalizado</span>
-                                <span class="text-xs text-gray-500">Elige tus dos días de pago (Ej. 5 y 20).</span>
+                                <span class="block font-semibold text-sm text-gray-900">Quincenal (Personalizado)</span>
                             </div>
                         </label>
-                        <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                            <input type="radio" name="pay-freq" value="monthly" class="w-4 h-4 text-blue-600" onchange="togglePaydayInput()">
+                        <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50/50">
+                            <input type="radio" name="pay-freq" value="monthly" class="w-4 h-4 text-blue-600 accent-blue-600" onchange="togglePaydayInput()">
                             <div>
-                                <span class="block font-medium text-sm text-gray-900">Mensual</span>
-                                <span class="text-xs text-gray-500">Un día fijo al mes.</span>
+                                <span class="block font-semibold text-sm text-gray-900">Mensual</span>
                             </div>
                         </label>
                     </div>
+
                     <!-- Monthly Input -->
-                    <div id="monthly-select-container" class="hidden mb-4">
-                        <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Día de pago</label>
-                        <select id="payday-select" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-blue-500">
+                    <div id="monthly-select-container" class="hidden mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Día de pago</label>
+                        <select id="payday-select" class="w-full bg-white border border-gray-200 rounded-lg p-2.5 outline-none focus:border-blue-500 text-sm">
                             <option value="">Seleccionar día</option>
                             <!-- JS fills 1-31 -->
                         </select>
                     </div>
+
                     <!-- Custom Bi-weekly Input -->
-                    <div id="biweekly-custom-container" class="hidden grid grid-cols-2 gap-4 mb-4">
+                    <div id="biweekly-custom-container" class="hidden grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Primer Pago</label>
-                            <select id="payday-1-select" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-blue-500">
+                            <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Pago 1</label>
+                            <select id="payday-1-select" class="w-full bg-white border border-gray-200 rounded-lg p-2.5 outline-none focus:border-blue-500 text-sm">
                                 <!-- JS fills 1-31 -->
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Segundo Pago</label>
-                            <select id="payday-2-select" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 outline-none focus:border-blue-500">
+                            <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Pago 2</label>
+                            <select id="payday-2-select" class="w-full bg-white border border-gray-200 rounded-lg p-2.5 outline-none focus:border-blue-500 text-sm">
                                 <!-- JS fills 1-31 -->
                             </select>
                         </div>
                     </div>
-                    <button onclick="saveSettings()" class="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition">Guardar Configuración</button>
+                    
+                    <button onclick="saveSettings()" class="mt-2 w-full bg-gray-900 text-white py-3 rounded-xl font-bold text-sm hover:bg-black transition shadow-lg shadow-gray-200">Guardar Cambios</button>
                 </div>
 
                 <!-- Data Management -->
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="font-semibold mb-2 flex items-center gap-2"><i class="ph ph-database text-blue-600"></i> Estado de la Nube</h3>
-                    <p class="text-xs text-gray-500 mb-1">ID de Sesión Segura (Privado):</p>
-                    <div class="bg-gray-100 p-2 rounded text-xs font-mono text-gray-600 break-all mb-3 select-all" id="user-id-display">
-                        Esperando conexión...
-                    </div>
-                    <h3 class="font-semibold mb-2 flex items-center gap-2 mt-4"><i class="ph ph-trash text-red-500"></i> Zona de Peligro</h3>
-                    <button onclick="resetApp()" class="w-full border border-red-200 text-red-500 py-2 rounded-lg font-medium hover:bg-red-50 transition">Borrar Mis Datos</button>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-sm mb-2 flex items-center gap-2 text-gray-900"><div class="p-1.5 bg-red-100 rounded-md text-red-600"><i class="ph-bold ph-trash"></i></div> Zona de Peligro</h3>
+                    <button onclick="resetApp()" class="w-full border border-red-100 text-red-500 py-3 rounded-xl font-bold text-sm hover:bg-red-50 transition flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-trash"></i> Borrar todos mis datos
+                    </button>
                 </div>
-                <div class="text-center text-xs text-gray-400 mt-10">
-                    Versión 2.3.0 - God's Plan Auth (Secure Mode)
+
+                <div class="text-center text-[10px] text-gray-400 mt-8 pb-4">
+                    FinanzasPro v3.0 (Auth Integrated)
                 </div>
             </div>
         </div>
     </main>
 
     <!-- BOTTOM NAVIGATION -->
-    <nav class="bg-white border-t border-gray-200 fixed bottom-0 w-full pb-safe z-20" id="bottom-nav">
-        <div class="flex justify-around items-center h-16">
-            <button onclick="switchTab('dashboard')" class="nav-item active flex flex-col items-center justify-center w-full h-full text-gray-400 transition" id="nav-dashboard">
-                <i class="ph ph-squares-four text-2xl mb-1"></i>
+    <nav class="bg-white border-t border-gray-200 fixed bottom-0 w-full pb-safe z-30 shadow-[0_-5px_10px_rgba(0,0,0,0.02)] hidden" id="bottom-nav">
+        <div class="flex justify-around items-center h-16 max-w-lg mx-auto">
+            <button onclick="switchTab('dashboard')" class="nav-item active flex flex-col items-center justify-center w-full h-full text-gray-400 transition hover:bg-gray-50" id="nav-dashboard">
+                <i class="ph-fill ph-squares-four text-2xl mb-0.5"></i>
                 <span class="text-[10px] font-medium">Inicio</span>
             </button>
-            <button onclick="switchTab('history')" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-400 transition" id="nav-history">
-                <i class="ph ph-list-dashes text-2xl mb-1"></i>
+            <button onclick="switchTab('history')" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-400 transition hover:bg-gray-50" id="nav-history">
+                <i class="ph-fill ph-list-dashes text-2xl mb-0.5"></i>
                 <span class="text-[10px] font-medium">Historial</span>
             </button>
-            <button onclick="switchTab('fixed')" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-400 transition" id="nav-fixed">
-                <i class="ph ph-receipt text-2xl mb-1"></i>
+            <button onclick="switchTab('fixed')" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-400 transition hover:bg-gray-50" id="nav-fixed">
+                <i class="ph-fill ph-receipt text-2xl mb-0.5"></i>
                 <span class="text-[10px] font-medium">Fijos</span>
             </button>
-            <button onclick="switchTab('settings')" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-400 transition" id="nav-settings">
-                <i class="ph ph-gear text-2xl mb-1"></i>
+            <button onclick="switchTab('settings')" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-400 transition hover:bg-gray-50" id="nav-settings">
+                <i class="ph-fill ph-gear text-2xl mb-0.5"></i>
                 <span class="text-[10px] font-medium">Ajustes</span>
             </button>
         </div>
@@ -469,42 +385,42 @@
 
     <!-- MODAL: ADD TRANSACTION -->
     <div id="transaction-modal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal('transaction-modal')"></div>
-        <div class="absolute bottom-0 w-full bg-white rounded-t-2xl p-6 shadow-2xl transform transition-transform duration-300 translate-y-full" id="transaction-modal-content">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeModal('transaction-modal')"></div>
+        <div class="absolute bottom-0 w-full bg-white rounded-t-3xl p-6 shadow-2xl transform transition-transform duration-300 translate-y-full pb-safe" id="transaction-modal-content">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold">Nuevo Movimiento</h3>
-                <button onclick="closeModal('transaction-modal')" class="p-2 bg-gray-100 rounded-full"><i class="ph ph-x"></i></button>
+                <h3 class="text-lg font-bold text-gray-900">Nuevo Movimiento</h3>
+                <button onclick="closeModal('transaction-modal')" class="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"><i class="ph-bold ph-x"></i></button>
             </div>
             <form id="transaction-form" onsubmit="addTransaction(event)">
-                <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="grid grid-cols-2 gap-3 mb-5">
                     <label class="cursor-pointer">
                         <input type="radio" name="type" value="expense" class="peer sr-only" checked id="radio-expense">
-                        <div class="p-3 text-center border rounded-xl peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 transition">
-                            <i class="ph ph-arrow-up-right font-bold"></i> Gasto
+                        <div class="p-3 text-center border-2 border-transparent bg-gray-50 rounded-xl peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-700 text-gray-500 transition-all font-medium text-sm flex items-center justify-center gap-2">
+                            <i class="ph-bold ph-minus-circle"></i> Gasto
                         </div>
                     </label>
                     <label class="cursor-pointer">
                         <input type="radio" name="type" value="income" class="peer sr-only" id="radio-income">
-                        <div class="p-3 text-center border rounded-xl peer-checked:bg-green-50 peer-checked:border-green-500 peer-checked:text-green-600 transition">
-                            <i class="ph ph-arrow-down-left font-bold"></i> Ingreso
+                        <div class="p-3 text-center border-2 border-transparent bg-gray-50 rounded-xl peer-checked:bg-green-50 peer-checked:border-green-500 peer-checked:text-green-700 text-gray-500 transition-all font-medium text-sm flex items-center justify-center gap-2">
+                            <i class="ph-bold ph-plus-circle"></i> Ingreso
                         </div>
                     </label>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Monto</label>
+                <div class="mb-5">
+                    <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Monto</label>
                     <div class="relative">
-                        <span class="absolute left-3 top-3 text-gray-500">$</span>
-                        <input type="number" id="t-amount" step="0.01" class="w-full pl-8 p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 text-lg font-semibold" placeholder="0.00" required>
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl font-bold">$</span>
+                        <input type="number" id="t-amount" step="0.01" class="w-full pl-10 pr-4 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-blue-500 rounded-xl outline-none text-3xl font-bold text-gray-900 placeholder-gray-300 transition-all" placeholder="0.00" required>
                     </div>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Concepto</label>
-                    <input type="text" id="t-title" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500" placeholder="Ej. Supermercado, Nómina" required>
+                    <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Concepto</label>
+                    <input type="text" id="t-title" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all font-medium text-gray-900" placeholder="¿En qué gastaste?" required>
                 </div>
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
-                        <select id="t-category" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500">
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Categoría</label>
+                        <select id="t-category" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-medium text-gray-900 appearance-none">
                             <option value="Comida">🍔 Comida</option>
                             <option value="Transporte">🚌 Transporte</option>
                             <option value="Hogar">🏠 Hogar</option>
@@ -517,58 +433,57 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-                        <input type="date" id="t-date" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500" required>
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Fecha</label>
+                        <input type="date" id="t-date" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all text-sm font-medium text-gray-900" required>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition">Guardar Movimiento</button>
+                <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-[0.98] transition">Guardar Movimiento</button>
             </form>
         </div>
     </div>
 
     <!-- MODAL: ADD FIXED -->
     <div id="fixed-modal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal('fixed-modal')"></div>
-        <div class="absolute bottom-0 w-full bg-white rounded-t-2xl p-6 shadow-2xl transform transition-transform duration-300 translate-y-full" id="fixed-modal-content">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeModal('fixed-modal')"></div>
+        <div class="absolute bottom-0 w-full bg-white rounded-t-3xl p-6 shadow-2xl transform transition-transform duration-300 translate-y-full pb-safe" id="fixed-modal-content">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold">Nuevo Pago Fijo</h3>
-                <button onclick="closeModal('fixed-modal')" class="p-2 bg-gray-100 rounded-full"><i class="ph ph-x"></i></button>
+                <h3 class="text-lg font-bold text-gray-900">Nuevo Pago Fijo</h3>
+                <button onclick="closeModal('fixed-modal')" class="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"><i class="ph-bold ph-x"></i></button>
             </div>
             <form id="fixed-form" onsubmit="addFixed(event)">
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Servicio</label>
-                    <input type="text" id="f-title" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500" placeholder="Ej. Netflix, Renta" required>
+                    <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Nombre</label>
+                    <input type="text" id="f-title" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all font-medium text-gray-900" placeholder="Ej. Netflix, Renta" required>
                 </div>
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Monto Aprox.</label>
-                        <input type="number" id="f-amount" step="0.01" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500" placeholder="0.00" required>
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Costo Aprox.</label>
+                        <input type="number" id="f-amount" step="0.01" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all font-medium text-gray-900" placeholder="0.00" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Día de Pago</label>
-                        <select id="f-day" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500" required>
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Día de Pago</label>
+                        <select id="f-day" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all font-medium text-gray-900 appearance-none" required>
                             <!-- JS fills 1-31 -->
                         </select>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition">Guardar Pago Fijo</button>
+                <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-[0.98] transition">Guardar Pago Fijo</button>
             </form>
         </div>
     </div>
 
     <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-xl z-50 transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none flex items-center gap-2">
-        <i class="ph ph-check-circle text-green-400 text-xl"></i>
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-xl z-[400] transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none flex items-center gap-2">
+        <i class="ph-fill ph-check-circle text-green-400 text-xl"></i>
         <span id="toast-msg" class="text-sm font-medium">Acción realizada</span>
     </div>
 
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithCustomToken, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN CORREGIDA: Usamos la config del entorno para garantizar permisos
         const firebaseConfig = JSON.parse(__firebase_config);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
@@ -578,8 +493,6 @@
 
         let currentUser = null;
         let listeners = [];
-        let authMode = 'login'; // 'login' or 'register'
-        let profile = null; // Stores user profile logic (PIN/Name)
 
         // --- GLOBAL STATE ---
         window.appData = {
@@ -588,197 +501,177 @@
             settings: { frequency: 'biweekly', payday: null, payday1: null, payday2: null }
         };
 
-        // --- AUTHENTICATION FLOW (SECURE MODE) ---
-        // Usamos autenticación anónima/custom para cumplir reglas de seguridad,
-        // y simulamos el login visualmente guardando un perfil en la DB.
+        // --- AUTH LOGIC (INTEGRATED) ---
+        
+        // Element Helpers
+        const getElement = (id) => document.getElementById(id);
+        const setText = (id, text) => { const el = getElement(id); if (el) el.textContent = text; };
+
+        // Expose Auth functions to Window for HTML buttons
+        window.authApp = {
+            isRegistering: false,
+
+            toggleAuth(mode) {
+                this.isRegistering = (mode === 'register');
+                const nameField = getElement('field-name');
+                const errorMsg = getElement('auth-error-msg');
+                const btnLogin = getElement('tab-login');
+                const btnReg = getElement('tab-register');
+
+                setText('btn-text', this.isRegistering ? "CREAR CUENTA" : "INICIAR SESIÓN");
+                
+                if (this.isRegistering) {
+                    nameField.classList.remove('hidden');
+                    btnReg.className = "flex-1 py-2.5 text-sm font-bold rounded-lg shadow-sm bg-white text-gray-900 transition-all";
+                    btnLogin.className = "flex-1 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-all";
+                } else {
+                    nameField.classList.add('hidden');
+                    btnLogin.className = "flex-1 py-2.5 text-sm font-bold rounded-lg shadow-sm bg-white text-gray-900 transition-all";
+                    btnReg.className = "flex-1 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-all";
+                }
+                
+                if(errorMsg) errorMsg.classList.add('hidden');
+            },
+
+            async handleAuthSubmit() {
+                const btn = getElement('btn-submit');
+                const id = getElement('input-id').value.trim();
+                const pass = getElement('input-pass').value;
+                const name = getElement('input-name').value.trim();
+                const errMsg = getElement('auth-error-msg');
+
+                if (!id || !pass) return this.showAuthError("Completa todos los campos");
+                if (this.isRegistering && !name) return this.showAuthError("El nombre es obligatorio");
+                
+                const finalId = id.includes('@') ? id : `${id}@godsplan.site`;
+
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> PROCESANDO...';
+                if(errMsg) errMsg.classList.add('hidden');
+
+                try {
+                    if (this.isRegistering) {
+                        const cred = await createUserWithEmailAndPassword(auth, finalId, pass);
+                        await updateProfile(cred.user, { displayName: name });
+                    } else {
+                        await signInWithEmailAndPassword(auth, finalId, pass);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    this.showAuthError(this.mapAuthError(error.code));
+                    btn.disabled = false; 
+                    btn.innerHTML = this.isRegistering ? '<span id="btn-text">CREAR CUENTA</span><i class="ph-bold ph-arrow-right"></i>' : '<span id="btn-text">INICIAR SESIÓN</span><i class="ph-bold ph-arrow-right"></i>'; 
+                }
+            },
+
+            logout() {
+                if(confirm('¿Seguro que deseas salir?')) {
+                    signOut(auth);
+                }
+            },
+
+            showAuthError(msg) {
+                setText('auth-error-txt', msg);
+                getElement('auth-error-msg').classList.remove('hidden');
+                const btn = getElement('btn-submit');
+                btn.disabled = false;
+                btn.innerHTML = this.isRegistering ? '<span id="btn-text">CREAR CUENTA</span><i class="ph-bold ph-arrow-right"></i>' : '<span id="btn-text">INICIAR SESIÓN</span><i class="ph-bold ph-arrow-right"></i>'; 
+            },
+            
+            mapAuthError(code) {
+                const errs = { 
+                    'auth/email-already-in-use': "ID ya registrado.", 
+                    'auth/invalid-email': "ID inválido.", 
+                    'auth/user-not-found': "Usuario no encontrado.", 
+                    'auth/wrong-password': "Contraseña incorrecta.",
+                    'auth/weak-password': "Contraseña débil (min 6 chars).",
+                    'auth/invalid-credential': "Credenciales incorrectas."
+                };
+                return errs[code] || "Error: " + code.split('/')[1];
+            }
+        };
+
+        // --- AUTH LISTENER & INIT ---
+        
         async function initAuth() {
+            // Check for system token first (auto-login environment)
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 try {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } catch (error) { 
                     console.error("Custom token error", error); 
-                    await signInAnonymously(auth);
+                    // Do NOT sign in anonymously fallback here, let user see login screen
                 }
-            } else {
-                await signInAnonymously(auth);
             }
+            // If no token, we wait for user interaction in the Login View
         }
 
         onAuthStateChanged(auth, async (user) => {
-            const loadingScreen = document.getElementById('loading-screen');
             const loginView = document.getElementById('login-view');
-            
+            const mainApp = document.getElementById('main-container');
+            const bottomNav = document.getElementById('bottom-nav');
+            const loading = document.getElementById('loading-screen');
+
             if (user) {
                 currentUser = user;
-                // Verificar si ya tiene perfil configurado
-                checkUserProfile(user);
+                // Transition to App
+                loginView.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                bottomNav.classList.remove('hidden');
+                
+                // Update User Profile in Settings
+                setText('user-display-name', user.displayName || 'Usuario');
+                setText('user-display-email', user.email);
+
+                showApp(); // Init Data Listeners
             } else {
-                // Si por alguna razón no hay user, reintentar
-                initAuth();
+                currentUser = null;
+                // Transition to Login
+                mainApp.classList.add('hidden');
+                bottomNav.classList.add('hidden');
+                loginView.classList.remove('hidden');
+                
+                // Hide global loader if present
+                loading.classList.add('hidden');
+                
+                // Reset Login UI
+                const btn = getElement('btn-submit');
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span id="btn-text">INICIAR SESIÓN</span><i class="ph-bold ph-arrow-right"></i>';
+                }
             }
         });
 
-        async function checkUserProfile(user) {
-            const loadingScreen = document.getElementById('loading-screen');
-            const loginView = document.getElementById('login-view');
-            const mainContainer = document.getElementById('main-container');
-            const bottomNav = document.getElementById('bottom-nav');
-
-            // Buscamos el documento de perfil
-            try {
-                const profileRef = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'profile');
-                
-                // Escuchamos cambios en el perfil para auto-login si ya validamos
-                onSnapshot(profileRef, (snap) => {
-                    loadingScreen.classList.add('hidden');
-                    if (snap.exists()) {
-                        profile = snap.data();
-                        // El perfil existe. Mostramos login.
-                        if (loginView.classList.contains('hidden') && mainContainer.classList.contains('hidden')) {
-                            // Primera carga
-                            showLoginUI(true); 
-                        }
-                    } else {
-                        // Perfil no existe. Forzamos modo Registro
-                        profile = null;
-                        showLoginUI(false);
-                    }
-                });
-
-            } catch (e) {
-                console.error("Error checking profile", e);
-                loadingScreen.classList.add('hidden');
-                showLoginUI(false);
-            }
-        }
-
-        function showLoginUI(hasProfile) {
-            const loginView = document.getElementById('login-view');
-            loginView.classList.remove('hidden');
-            
-            if (hasProfile) {
-                window.app.toggleAuth('login');
-            } else {
-                window.app.toggleAuth('register');
-            }
-        }
-
         function showApp() {
-             const loginView = document.getElementById('login-view');
-             const mainContainer = document.getElementById('main-container');
-             const bottomNav = document.getElementById('bottom-nav');
+             const loadingScreen = document.getElementById('loading-screen');
              
-             loginView.classList.add('hidden');
-             mainContainer.classList.remove('hidden');
-             bottomNav.classList.remove('hidden');
-             
-             // Update UI with Name
-             const nameDisplay = document.getElementById('user-name-display');
-             if(nameDisplay && profile) nameDisplay.textContent = profile.name || 'Usuario';
+             // Ocultar loading y mostrar app
+             loadingScreen.classList.add('opacity-0', 'pointer-events-none');
+             setTimeout(() => loadingScreen.classList.add('hidden'), 500);
              
              setupRealtimeListeners(currentUser.uid);
              renderDashboard();
         }
 
-
-        // --- APP OBJECT FOR AUTH UI ---
-        window.app = {
-            toggleAuth: function(mode) {
-                authMode = mode;
-                const container = document.getElementById('auth-switch-container');
-                const btnLogin = document.getElementById('tab-login');
-                const btnRegister = document.getElementById('tab-register');
-                const fieldName = document.getElementById('field-name');
-                const btnText = document.getElementById('btn-text');
-                const errorMsg = document.getElementById('auth-error-msg');
-                const hint = document.getElementById('register-hint');
-
-                container.setAttribute('data-state', mode);
-                errorMsg.classList.add('hidden');
-                
-                if(mode === 'register') {
-                    btnLogin.classList.remove('active');
-                    btnRegister.classList.add('active');
-                    fieldName.classList.remove('hidden');
-                    hint.classList.remove('hidden');
-                    btnText.textContent = "CREAR PERFIL";
-                } else {
-                    btnRegister.classList.remove('active');
-                    btnLogin.classList.add('active');
-                    fieldName.classList.add('hidden');
-                    hint.classList.add('hidden');
-                    btnText.textContent = "ENTRAR";
-                }
-            },
-
-            handleAuthSubmit: async function() {
-                const pass = document.getElementById('input-pass').value;
-                const name = document.getElementById('input-name').value;
-                const errorMsg = document.getElementById('auth-error-msg');
-                const errorTxt = document.getElementById('auth-error-txt');
-
-                errorMsg.classList.add('hidden');
-
-                if (!pass) {
-                    errorTxt.textContent = "Ingresa tu clave";
-                    errorMsg.classList.remove('hidden');
-                    return;
-                }
-
-                if (authMode === 'login') {
-                    if (!profile) {
-                         // Fallback por si acaso
-                         window.app.toggleAuth('register');
-                         return;
-                    }
-                    if (profile.pin === pass) {
-                        showApp();
-                    } else {
-                        errorTxt.textContent = "Clave incorrecta";
-                        errorMsg.classList.remove('hidden');
-                    }
-                } else {
-                    // Register Mode (Crear perfil)
-                    if(!name) {
-                        errorTxt.textContent = "El nombre es obligatorio";
-                        errorMsg.classList.remove('hidden');
-                        return;
-                    }
-                    try {
-                        const newProfile = { name: name, pin: pass, createdAt: new Date().toISOString() };
-                        await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'profile'), newProfile);
-                        // El snapshot listener llamará a showApp o actualizara profile
-                        showApp(); // Forzar entrada inmediata para UX rapida
-                    } catch (e) {
-                        console.error(e);
-                        errorTxt.textContent = "Error al guardar perfil";
-                        errorMsg.classList.remove('hidden');
-                    }
-                }
-            }
-        };
-
-
         // --- FIRESTORE LISTENERS ---
         function setupRealtimeListeners(userId) {
-            // Limpiar anteriores
             listeners.forEach(unsub => unsub());
             listeners = [];
 
-            // REGLA CRÍTICA: Usar rutas correctas /artifacts/appId/users/userId/...
             const txQuery = collection(db, 'artifacts', appId, 'users', userId, 'transactions');
             const unsubTx = onSnapshot(txQuery, (snapshot) => {
                 window.appData.transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderDashboard();
                 renderHistory();
-            }, (error) => console.error("Tx Listener Error:", error));
+            });
             listeners.push(unsubTx);
 
             const fixedQuery = collection(db, 'artifacts', appId, 'users', userId, 'fixed');
             const unsubFixed = onSnapshot(fixedQuery, (snapshot) => {
                 window.appData.fixed = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderFixed();
-            }, (error) => console.error("Fixed Listener Error:", error));
+            });
             listeners.push(unsubFixed);
 
             const settingsDoc = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'config');
@@ -788,27 +681,11 @@
                 }
                 setupSettingsUI(); 
                 renderDashboard(); 
-            }, (error) => console.error("Settings Listener Error:", error));
+            });
             listeners.push(unsubSettings);
         }
 
-        // --- GLOBAL EXPORTS ---
-        window.logout = function() {
-            // En este modo, logout es simplemente volver a la pantalla de bloqueo
-            const loginView = document.getElementById('login-view');
-            const mainContainer = document.getElementById('main-container');
-            const bottomNav = document.getElementById('bottom-nav');
-            
-            mainContainer.classList.add('hidden');
-            bottomNav.classList.add('hidden');
-            loginView.classList.remove('hidden');
-            
-            // Limpiar inputs
-            document.getElementById('input-pass').value = '';
-            window.app.toggleAuth('login');
-        };
-        
-        // Data helpers
+        // --- DATA HELPERS ---
         window.addTransaction = async function(e) {
             e.preventDefault();
             if (!currentUser) return;
@@ -856,10 +733,12 @@
         };
 
         window.deleteFixed = async function(id) {
-            try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'fixed', id));
-                showToast("Eliminado");
-            } catch(err) { showToast("Error"); }
+            if(confirm('¿Dejar de rastrear este pago fijo?')) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'fixed', id));
+                    showToast("Eliminado");
+                } catch(err) { showToast("Error"); }
+            }
         };
 
         window.payFixed = function(id) {
@@ -871,7 +750,7 @@
             document.getElementById('radio-expense').checked = true;
             document.getElementById('t-category').value = "Servicios"; 
             document.getElementById('t-date').valueAsDate = new Date();
-            showToast('Completa el registro');
+            showToast('Confirma el pago');
         };
 
         window.saveSettings = async function() {
@@ -890,22 +769,19 @@
         };
 
         window.resetApp = async function() {
-            if(confirm('⚠️ ¿Borrar TODOS tus datos? Esta acción no se puede deshacer.')) {
+            if(confirm('⚠️ ¿Borrar TODOS tus datos? Se perderá todo el historial.')) {
                 const txs = window.appData.transactions;
                 const fixs = window.appData.fixed;
                 txs.forEach(t => deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', t.id)));
                 fixs.forEach(f => deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'fixed', f.id)));
-                // Also clear profile to force re-register
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'profile'));
                 showToast("Datos eliminados");
-                setTimeout(() => window.logout(), 1000);
             }
         };
 
         initAuth();
     </script>
 
-    <!-- Standard UI Scripts (Non-module) -->
+    <!-- Standard UI Scripts -->
     <script>
         let currentViewDate = new Date();
         let balanceMode = 'month'; 
@@ -971,11 +847,20 @@
             document.querySelectorAll('.nav-item').forEach(el => {
                 el.classList.remove('active', 'text-blue-600');
                 el.classList.add('text-gray-400');
+                // Icons update
+                const icon = el.querySelector('i');
+                if(icon.classList.contains('ph-fill')) {
+                    icon.classList.remove('ph-fill');
+                    icon.classList.add('ph');
+                }
             });
             const activeBtn = document.getElementById(`nav-${tabId}`);
             if(activeBtn) {
                 activeBtn.classList.add('active', 'text-blue-600');
                 activeBtn.classList.remove('text-gray-400');
+                const icon = activeBtn.querySelector('i');
+                icon.classList.remove('ph');
+                icon.classList.add('ph-fill');
             }
             if(tabId === 'dashboard') renderDashboard();
             if(tabId === 'history') renderHistory();
@@ -1045,7 +930,7 @@
                     labelEl.textContent = "Saldo de " + currentViewDate.toLocaleDateString('es-ES', { month: 'long' });
                     toggleBtnStyles('btn-mode-month', 'btn-mode-total');
                 } else {
-                    labelEl.textContent = "Saldo Total Acumulado";
+                    labelEl.textContent = "Saldo Histórico Total";
                     toggleBtnStyles('btn-mode-total', 'btn-mode-month');
                 }
             }
@@ -1060,7 +945,7 @@
                 recentList.innerHTML = '';
                 let listTx = balanceMode === 'month' ? monthlyTx : [...window.appData.transactions];
                 listTx.sort((a,b) => new Date(b.date) - new Date(a.date));
-                if(listTx.length === 0) recentList.innerHTML = '<p class="text-center text-sm text-gray-400 py-4">No hay movimientos.</p>';
+                if(listTx.length === 0) recentList.innerHTML = '<div class="text-center p-8 bg-gray-50 rounded-xl border border-dashed border-gray-200"><p class="text-sm text-gray-400">No hay movimientos aún.</p></div>';
                 else listTx.slice(0, 5).forEach(t => recentList.innerHTML += createTransactionHTML(t));
             }
 
@@ -1091,34 +976,39 @@
             const active = document.getElementById(activeId);
             const inactive = document.getElementById(inactiveId);
             if(!active || !inactive) return;
-            active.className = "toggle-btn px-3 py-1 rounded-md text-xs font-bold bg-white text-blue-900 shadow-sm";
-            inactive.className = "toggle-btn px-3 py-1 rounded-md text-xs font-medium text-blue-100 hover:bg-white/10";
-            if(activeId.includes('chart')) {
-                 active.className = "toggle-btn px-3 py-1 rounded-md text-xs font-bold bg-white text-gray-800 shadow-sm";
-                 inactive.className = "toggle-btn px-3 py-1 rounded-md text-xs font-medium text-gray-500 hover:bg-gray-200";
+            // Reset base
+            active.className = "toggle-btn px-3 py-1 rounded-md text-[10px] font-bold shadow-sm";
+            inactive.className = "toggle-btn px-3 py-1 rounded-md text-[10px] font-medium";
+
+            if(activeId.includes('mode')) {
+                active.classList.add('bg-white', 'text-blue-900');
+                inactive.classList.add('text-blue-100', 'hover:bg-white/10');
+            } else {
+                active.classList.add('bg-white', 'text-gray-800', 'border', 'border-gray-100');
+                inactive.classList.add('text-gray-500', 'hover:bg-gray-200');
             }
         }
 
         function createTransactionHTML(t) {
             const isIncome = t.type === 'income';
-            const colorClass = isIncome ? 'text-green-600' : 'text-gray-900';
-            const iconBg = isIncome ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600';
+            const colorClass = isIncome ? 'text-emerald-600' : 'text-gray-900';
+            const iconBg = isIncome ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500';
             const icon = isIncome ? 'ph-arrow-down-left' : 'ph-shopping-cart';
             const sign = isIncome ? '+' : '-';
             return `
-                <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between mb-2">
+                <div class="bg-white p-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="${iconBg} p-2 rounded-lg text-xl">
-                            <i class="ph ${icon}"></i>
+                        <div class="${iconBg} p-2.5 rounded-xl text-lg">
+                            <i class="ph-bold ${icon}"></i>
                         </div>
                         <div>
-                            <p class="font-semibold text-sm text-gray-900">${t.title}</p>
-                            <p class="text-xs text-gray-500">${t.category}</p>
+                            <p class="font-bold text-sm text-gray-900">${t.title}</p>
+                            <p class="text-xs text-gray-500 font-medium">${t.category}</p>
                         </div>
                     </div>
                     <div class="text-right">
-                        <p class="font-bold ${colorClass}">${sign}${formatCurrency(t.amount)}</p>
-                        <button onclick="deleteTransaction('${t.id}')" class="text-[10px] text-red-400 hover:text-red-600 mt-1">Eliminar</button>
+                        <p class="font-bold text-sm ${colorClass}">${sign}${formatCurrency(t.amount)}</p>
+                        <button onclick="deleteTransaction('${t.id}')" class="text-[10px] font-medium text-red-300 hover:text-red-500 mt-0.5 transition-colors">Eliminar</button>
                     </div>
                 </div>
             `;
@@ -1130,10 +1020,10 @@
             const activeFilter = activeBtn ? activeBtn.dataset.filter : 'all';
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 if(btn.dataset.filter === activeFilter) {
-                    btn.classList.add('active', 'bg-blue-600', 'text-white', 'border-transparent');
+                    btn.classList.add('active', 'bg-blue-600', 'text-white', 'border-transparent', 'shadow-sm', 'shadow-blue-200');
                     btn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
                 } else {
-                    btn.classList.remove('active', 'bg-blue-600', 'text-white', 'border-transparent');
+                    btn.classList.remove('active', 'bg-blue-600', 'text-white', 'border-transparent', 'shadow-sm', 'shadow-blue-200');
                     btn.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
                 }
             });
@@ -1145,7 +1035,7 @@
                 return t.type === activeFilter;
             });
             if (filtered.length === 0) {
-                list.innerHTML = '<div class="text-center text-gray-400 py-10">No hay movimientos.</div>';
+                list.innerHTML = '<div class="text-center p-10 bg-gray-50 rounded-xl border border-dashed border-gray-200"><p class="text-sm text-gray-400">No se encontraron movimientos.</p></div>';
                 return;
             }
             const grouped = {};
@@ -1157,7 +1047,7 @@
             sortedDates.forEach(date => {
                 const dateHeader = document.createElement('div');
                 const fancyDate = new Date(date + 'T00:00:00').toLocaleDateString('es-ES', {weekday:'short', day:'numeric', month:'long'});
-                dateHeader.className = "text-xs font-bold text-gray-400 uppercase tracking-wider mt-4 mb-2";
+                dateHeader.className = "text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-6 mb-2 ml-1";
                 dateHeader.textContent = fancyDate;
                 list.appendChild(dateHeader);
                 grouped[date].forEach(t => {
@@ -1174,27 +1064,30 @@
             if(!list) return;
             list.innerHTML = '';
             if(window.appData.fixed.length === 0) {
-                list.innerHTML = '<div class="text-center text-gray-400 py-10">No hay pagos fijos configurados.</div>';
+                list.innerHTML = '<div class="text-center p-10 bg-gray-50 rounded-xl border border-dashed border-gray-200"><p class="text-sm text-gray-400">No hay pagos fijos configurados.</p></div>';
                 return;
             }
             window.appData.fixed.forEach(f => {
                 list.innerHTML += `
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center group">
                         <div class="flex items-center gap-3">
-                            <div class="bg-blue-50 text-blue-600 p-2 rounded-lg">
-                                <i class="ph ph-receipt text-xl"></i>
+                            <div class="bg-gray-50 text-gray-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors p-2.5 rounded-xl text-xl">
+                                <i class="ph-bold ph-receipt"></i>
                             </div>
                             <div>
-                                <p class="font-bold text-gray-900">${f.title}</p>
-                                <p class="text-xs text-gray-500">Día ${f.day} de cada mes</p>
+                                <p class="font-bold text-sm text-gray-900">${f.title}</p>
+                                <p class="text-xs text-gray-500 font-medium">Día ${f.day} de cada mes</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 text-right">
-                            <button onclick="payFixed('${f.id}')" class="bg-blue-600 text-white p-2 rounded-lg shadow-sm hover:bg-blue-700 active:scale-95 transition" title="Registrar pago">
-                                <i class="ph ph-check-circle text-lg"></i>
+                             <div class="mr-2 text-right">
+                                <p class="font-bold text-sm text-gray-900">${formatCurrency(f.amount)}</p>
+                            </div>
+                            <button onclick="payFixed('${f.id}')" class="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-600 hover:text-white active:scale-95 transition" title="Registrar pago">
+                                <i class="ph-bold ph-check"></i>
                             </button>
-                            <button onclick="deleteFixed('${f.id}')" class="bg-red-50 text-red-400 p-2 rounded-lg hover:bg-red-100 hover:text-red-600 transition" title="Eliminar">
-                                <i class="ph ph-trash text-lg"></i>
+                            <button onclick="deleteFixed('${f.id}')" class="bg-gray-50 text-gray-400 p-2 rounded-lg hover:bg-red-50 hover:text-red-500 transition" title="Eliminar">
+                                <i class="ph-bold ph-trash"></i>
                             </button>
                         </div>
                     </div>
@@ -1229,8 +1122,8 @@
             const ctx = document.getElementById('financeChart').getContext('2d');
             if (financeChart) financeChart.destroy();
             let data = [income, expense];
-            let colors = ['#22c55e', '#ef4444'];
-            if(income === 0 && expense === 0) { data = [1]; colors = ['#e5e7eb']; }
+            let colors = ['#10b981', '#ef4444'];
+            if(income === 0 && expense === 0) { data = [1]; colors = ['#f3f4f6']; }
             financeChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -1240,8 +1133,8 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } }, tooltip: { enabled: (income > 0 || expense > 0) } },
-                    cutout: '70%',
+                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { size: 10, family: 'Inter' }, padding: 20 } }, tooltip: { enabled: (income > 0 || expense > 0) } },
+                    cutout: '75%',
                 }
             });
         }
@@ -1271,7 +1164,7 @@
                 options: {
                     responsive: true, maintainAspectRatio: false, indexAxis: 'y',
                     plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => formatCurrency(c.raw) } } },
-                    scales: { x: { display: false, grid: { display: false } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+                    scales: { x: { display: false, grid: { display: false } }, y: { grid: { display: false }, ticks: { font: { size: 10, family: 'Inter' }, color: '#6b7280' } } }
                 }
             });
         }
@@ -1283,7 +1176,8 @@
             if (balanceMode === 'month') {
                 if (expense > income && income > 0) {
                     insightBox.classList.remove('hidden');
-                    insightBox.className = "mt-4 p-3 bg-red-50 rounded-lg text-xs text-red-800 flex items-start gap-2";
+                    insightBox.className = "mt-4 p-3 bg-red-50 rounded-lg text-xs text-red-800 flex items-start gap-2 border border-red-100";
+                    insightBox.querySelector('i').className = "ph-fill ph-warning-circle text-base flex-shrink-0 text-red-500";
                     insightText.innerHTML = `<strong>¡Cuidado!</strong> Estás gastando más de lo que ingresas este mes.`;
                     return;
                 }
@@ -1293,7 +1187,8 @@
                 }
                 if (topCat) {
                     insightBox.classList.remove('hidden');
-                    insightBox.className = "mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-800 flex items-start gap-2";
+                    insightBox.className = "mt-4 p-3 bg-blue-50/50 rounded-lg text-xs text-blue-800 flex items-start gap-2 border border-blue-100";
+                    insightBox.querySelector('i').className = "ph-fill ph-lightbulb text-base flex-shrink-0 text-amber-500";
                     insightText.innerHTML = `<strong>Dato:</strong> Tu mayor gasto es en <strong>${topCat}</strong> (${formatCurrency(topAmount)}).`;
                 } else {
                     insightBox.classList.add('hidden');
@@ -1317,7 +1212,7 @@
             const prevEl = document.getElementById('formula-prev');
             if(prevEl) {
                 prevEl.textContent = formatCurrency(prevBalance);
-                prevEl.className = prevBalance >= 0 ? "font-bold text-gray-700" : "font-bold text-red-500";
+                prevEl.className = prevBalance >= 0 ? "font-mono font-medium text-gray-700" : "font-mono font-medium text-red-500";
             }
             const elInc = document.getElementById('formula-income'); if(elInc) elInc.textContent = formatCurrency(currentMonthIncome);
             const elExp = document.getElementById('formula-expense'); if(elExp) elExp.textContent = formatCurrency(currentMonthExpense);
@@ -1343,9 +1238,9 @@
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
             if (diffDays === 0) widget.textContent = "¡Hoy es día de pago! 🎉";
             else if (diffDays === 1) widget.textContent = "¡Mañana pagan!";
-            else widget.textContent = `Faltan ${diffDays} días para tu pago`;
+            else widget.textContent = `Faltan ${diffDays} días`;
             const options = { weekday: 'long', day: 'numeric', month: 'short' };
-            detail.textContent = `Fecha estimada: ${nextDate.toLocaleDateString('es-ES', options)}`;
+            detail.textContent = `Próximo: ${nextDate.toLocaleDateString('es-ES', options)}`;
         }
 
         function getNextPayday() {
@@ -1405,7 +1300,9 @@
         }
 
         function filterHistory(filterType) {
-            document.querySelectorAll('.filter-btn.active').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.filter-btn.active').forEach(btn => btn.classList.remove('active', 'bg-blue-600', 'text-white', 'border-transparent', 'shadow-sm', 'shadow-blue-200'));
+            document.querySelectorAll('.filter-btn.active').forEach(btn => btn.classList.add('bg-white', 'text-gray-600', 'border-gray-200'));
+            
             document.querySelectorAll(`.filter-btn[data-filter="${filterType}"]`).forEach(btn => btn.classList.add('active'));
             renderHistory();
         }
