@@ -252,10 +252,10 @@
                                     </div>
                                 </div>
                                 <div id="divIncomeQ2" class="hidden pt-2 border-t border-zinc-800">
-                                    <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Ingreso Q2 (Opcional)</label>
+                                    <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Ingreso 2do Periodo (Opcional)</label>
                                     <div class="relative group">
                                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold group-focus-within:text-emerald-500 transition-colors">$</span>
-                                        <input type="number" id="inpIncomeQ2" inputmode="decimal" class="w-full bg-zinc-900/50 border border-zinc-700 rounded-xl py-3 pl-8 pr-4 font-bold text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder-zinc-700" placeholder="Igual al Q1" onblur="app.saveConfig()">
+                                        <input type="number" id="inpIncomeQ2" inputmode="decimal" class="w-full bg-zinc-900/50 border border-zinc-700 rounded-xl py-3 pl-8 pr-4 font-bold text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder-zinc-700" placeholder="Igual al 1ro" onblur="app.saveConfig()">
                                     </div>
                                 </div>
                             </div>
@@ -400,22 +400,36 @@
             <div id="formConfig" class="hidden space-y-4 pb-4">
                 <p class="text-zinc-400 text-xs text-center mb-4">Define cómo y cuándo recibes tus ingresos.</p>
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="app.setCycleMode('biweekly')" id="btnCycleBi" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
-                        <i class="ph-bold ph-calendar-check text-3xl text-emerald-500 mb-2"></i>
-                        <div class="font-bold text-sm text-white">Quincenal</div>
-                        <div class="text-[10px] text-zinc-500 mt-1">2 Pagos al mes</div>
-                    </button>
                     <button onclick="app.setCycleMode('monthly')" id="btnCycleMo" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
                         <i class="ph-bold ph-calendar text-3xl text-blue-500 mb-2"></i>
                         <div class="font-bold text-sm text-white">Mensual</div>
-                        <div class="text-[10px] text-zinc-500 mt-1">Pago único (Día 1)</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">Pago único</div>
+                    </button>
+                    <button onclick="app.setCycleMode('manual')" id="btnCycleManual" class="border border-zinc-700 p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95">
+                        <i class="ph-bold ph-hand-pointing text-3xl text-emerald-500 mb-2"></i>
+                        <div class="font-bold text-sm text-white">Manual</div>
+                        <div class="text-[10px] text-zinc-500 mt-1">2 Fechas Clave</div>
                     </button>
                 </div>
                 
-                <div id="customStartDayDiv" class="hidden mt-6">
+                <div id="customStartDayDiv" class="mt-6">
                     <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block" id="lblStartDay">Día de Inicio</label>
                     <input type="number" id="configStartDay" class="input-modern w-full p-4 mt-1 text-center" placeholder="Día del mes (ej: 1, 5, 15)" value="1" min="1" max="28">
-                    <p class="text-[10px] text-zinc-600 mt-2 text-center">Si eliges 10, tus cortes serán 10 y 25.</p>
+                    <p class="text-[10px] text-zinc-600 mt-2 text-center" id="lblStartDayDesc">Tu mes financiero iniciará en este día.</p>
+                </div>
+
+                <div id="manualCycleDaysDiv" class="hidden mt-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha 1</label>
+                            <input type="number" id="configDay1" class="input-modern w-full p-4 mt-1 text-center" placeholder="Ej: 5" min="1" max="31">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-zinc-500 font-bold uppercase ml-2 mb-1 block">Fecha 2</label>
+                            <input type="number" id="configDay2" class="input-modern w-full p-4 mt-1 text-center" placeholder="Ej: 20" min="1" max="31">
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-zinc-600 mt-2 text-center">Tus cortes serán en estos dos días del mes.</p>
                 </div>
 
                 <div class="mt-6 flex items-center justify-between bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
@@ -459,12 +473,8 @@
     <script type="module">
         const { initializeApp, getApps, getApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } = window.firebaseImports;
         
-        // APP_ID: Mantenemos el mismo identificador de datos.
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-ultimate-v3';
 
-        // =========================================================================================
-        // CONFIGURACIÓN FIREBASE
-        // =========================================================================================
         const fallbackConfig = {
             apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
             authDomain: "godsplan-blqa.firebaseapp.com",
@@ -479,12 +489,11 @@
         
         let fbApp, auth, db;
         
-        // CORRECCIÓN LOGIN: Verificar si ya existe una app para no sobrescribir la sesión de la app padre
         try { 
             if (getApps().length === 0) {
                 fbApp = initializeApp(firebaseConfig); 
             } else {
-                fbApp = getApp(); // Usar la instancia existente
+                fbApp = getApp(); 
             }
             auth = getAuth(fbApp); 
             db = getFirestore(fbApp); 
@@ -524,7 +533,7 @@
 
         window.app = {
             user: null,
-            data: { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 },
+            data: { income: 0, incomeQ2: 0, fixed: [], cycle: 'monthly', startDay: 1, day1: 1, day2: 15, enableAdherence: true, extraPayAmount: 0 },
             loansList: [],
             logs: [],
             currentPeriod: null,
@@ -543,13 +552,10 @@
                         document.getElementById('authModal').classList.remove('active');
                         this.setupListeners();
                     } else {
-                        // CORRECCIÓN LOGIN: No forzar inicio de sesión anónimo si no hay usuario, 
-                        // para evitar sobrescribir la sesión de la app principal si comparten almacenamiento.
                         const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
                         if(token) {
                             await signInWithCustomToken(auth, token); 
                         } else {
-                            // Solo mostramos el modal, pero no ejecutamos signInAnonymously automáticamente
                             document.getElementById('authModal').classList.add('active');
                         }
                     }
@@ -567,26 +573,13 @@
 
             setupListeners() {
                 const uid = this.user.uid;
-                
-                // CORRECCIÓN RUTAS: Usando rutas ROOT (/users/...) en lugar de Sandboxed (/artifacts/...)
-                // Esto es necesario para leer los datos de tu aplicación principal.
-                
-                // 1. Configuración General (Ingresos, Gastos Fijos, Ciclo)
                 const userRef = doc(db, 'users', uid, 'finance', 'data'); 
-                // Nota: Asumo que la config general vive en un documento 'data' o 'financials' dentro de finance. 
-                // Ajustado para consistencia con tu petición. Si tu config está en otro lado, avísame.
-                // Por ahora usaré: /users/{uid}/finance/data (documento principal de configuración)
-                
-                // 2. Transacciones (Ruta Solicitada: /users/{uid}/finance/data/transactions)
                 const txRef = collection(db, 'users', uid, 'finance', 'data', 'transactions');
-                
-                // 3. Préstamos (Ruta Solicitada: /users/{uid}/finance/data/loans)
                 const loansRef = collection(db, 'users', uid, 'finance', 'data', 'loans');
 
-                // Listener Config
                 onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
-                        this.data = { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
+                        this.data = { income: 0, incomeQ2: 0, fixed: [], cycle: 'monthly', startDay: 1, day1: 1, day2: 15, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
                         document.getElementById('inpIncome').value = this.data.income || '';
                         document.getElementById('inpIncomeQ2').value = this.data.incomeQ2 || '';
                         document.getElementById('adhToggle').checked = this.data.enableAdherence !== false;
@@ -596,12 +589,10 @@
                         this.calcPeriod();
                         this.updateExtraUI();
                     } else {
-                        // Si no existe, creamos el documento base en la nueva ruta
                         setDoc(userRef, { income: 0, fixed: [] }, { merge: true });
                     }
                 });
 
-                // Listener Transacciones
                 const q = query(txRef, orderBy('date', 'desc'), limit(1500));
                 onSnapshot(q, (snap) => {
                     this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
@@ -610,7 +601,6 @@
                     this.processHistory();
                 });
 
-                // Listener Préstamos (Loans)
                 onSnapshot(loansRef, (snap) => {
                     this.loansList = snap.docs.map(d => ({id: d.id, ...d.data()}));
                     this.renderLoans();
@@ -633,9 +623,9 @@
             },
 
             renderPlanInputs() {
-                const isBi = this.data.cycle === 'biweekly';
-                document.getElementById('divIncomeQ2').classList.toggle('hidden', !isBi);
-                document.getElementById('lblIncome1').textContent = isBi ? 'Ingreso 1ra Quincena (Q1)' : 'Ingreso Mensual Base';
+                const isManual = this.data.cycle === 'manual';
+                document.getElementById('divIncomeQ2').classList.toggle('hidden', !isManual);
+                document.getElementById('lblIncome1').textContent = isManual ? 'Ingreso 1er Periodo' : 'Ingreso Mensual Base';
             },
 
             toggleExtrasMenu() {
@@ -687,21 +677,18 @@
             },
 
             async saveExtraPayDate(val) {
-                // Ruta corregida: /users/{uid}/finance/data
                 await updateDoc(doc(db,'users',this.user.uid,'finance','data'), { nextExtraPayDate: val });
                 this.resolvePayDate();
             },
 
             async saveExtraPayValue(val) {
                 const amount = parseFloat(val) || 0;
-                // Ruta corregida
                 await updateDoc(doc(db,'users',this.user.uid,'finance','data'), { extraPayAmount: amount });
                 this.calcBalance();
             },
 
             toggleAdherenceModule() {
                 const isEnabled = document.getElementById('adhToggle').checked;
-                // Ruta corregida
                 updateDoc(doc(db,'users',this.user.uid,'finance','data'), { enableAdherence: isEnabled });
             },
 
@@ -715,7 +702,6 @@
                 if (amount <= 0) return UI.toast('Monto debe ser mayor a 0', 'error');
                 
                 if (await UI.confirm('Importar Dinero', `¿Registrar ingreso de ${UI.fmtMoney(amount)}?`)) {
-                    // Ruta corregida
                     await addDoc(collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions'), {
                         amount: amount, desc: `Cobro Extra`, category: 'Otro', type: 'income', date: new Date().toISOString()
                     });
@@ -725,38 +711,63 @@
 
             getCycleParams(dateInput) {
                 const d = new Date(dateInput);
+                d.setHours(0,0,0,0);
                 const day = d.getDate();
                 const m = d.getMonth();
                 const y = d.getFullYear();
-                const startDay = this.data.startDay || 1;
                 
                 let start, end;
                 let isQ2 = false;
 
-                if (this.data.cycle === 'monthly') {
+                if (this.data.cycle === 'manual') {
+                    // Manual (Personalizado) Cycle Logic
+                    const d1 = parseInt(this.data.day1) || 1;
+                    const d2 = parseInt(this.data.day2) || 15;
+                    const days = [d1, d2].sort((a,b) => a - b);
+                    
+                    const candidates = [];
+                    // Generate candidates for prev, current, next month
+                    [-1, 0, 1].forEach(offset => {
+                        days.forEach(dayNum => {
+                            // Simple overflow handling by JS Date
+                            const cDate = new Date(y, m + offset, dayNum);
+                            cDate.setHours(0,0,0,0);
+                            candidates.push(cDate);
+                        });
+                    });
+                    candidates.sort((a,b) => a - b);
+                    
+                    // Find the slot
+                    for(let i=0; i < candidates.length - 1; i++) {
+                        if (d >= candidates[i] && d < candidates[i+1]) {
+                            start = new Date(candidates[i]);
+                            end = new Date(candidates[i+1]);
+                            end.setDate(end.getDate() - 1);
+                            
+                            // Determine if Q2 based on which day we are closest to starting from
+                            const startDayNum = start.getDate();
+                            // If start day is closer to the second configured day (and days are distinct), treat as Q2
+                            if (Math.abs(startDayNum - days[1]) < Math.abs(startDayNum - days[0])) {
+                                isQ2 = true;
+                            }
+                            break;
+                        }
+                    }
+                    // Fallback if not found (shouldn't happen with wide enough candidates)
+                    if (!start) {
+                        start = new Date(y, m, 1);
+                        end = new Date(y, m + 1, 0);
+                    }
+
+                } else {
+                    // Monthly Logic (Default)
+                    const startDay = this.data.startDay || 1;
                     if (day >= startDay) {
                         start = new Date(y, m, startDay);
                         end = new Date(y, m + 1, startDay - 1);
                     } else {
                         start = new Date(y, m - 1, startDay);
                         end = new Date(y, m, startDay - 1);
-                    }
-                } else {
-                    // Biweekly logic
-                    const midDay = startDay + 15; // Aproximación simple
-                    
-                    if (day >= startDay && day < midDay) {
-                        start = new Date(y, m, startDay);
-                        end = new Date(y, m, midDay - 1);
-                    } else {
-                        if (day >= midDay) {
-                            start = new Date(y, m, midDay);
-                            end = new Date(y, m + 1, startDay - 1);
-                        } else {
-                            start = new Date(y, m - 1, midDay);
-                            end = new Date(y, m, startDay - 1);
-                        }
-                        isQ2 = true;
                     }
                 }
                 
@@ -829,10 +840,12 @@
                 }, 0);
 
                 let baseInc = parseFloat(this.data.income) || 0;
-                if (this.data.cycle === 'biweekly') {
-                    const pStartDay = this.currentPeriod.start.getDate();
-                    const triggerQ2 = (this.data.startDay || 1) + 14;
-                    if (pStartDay >= triggerQ2) { baseInc = parseFloat(this.data.incomeQ2) || baseInc; }
+                
+                // Logic for "Manual" which replaces Biweekly
+                // If it's manual mode, we check our Q2 flag from getCycleParams
+                if (this.data.cycle === 'manual') {
+                    const isQ2 = this.getCycleParams(new Date()).isQ2;
+                    if (isQ2) { baseInc = parseFloat(this.data.incomeQ2) || baseInc; }
                 }
 
                 const liquidIncome = (baseInc + extraInc);
@@ -1043,7 +1056,6 @@
                 
                 const pEnd = this.currentPeriod ? this.currentPeriod.end : new Date(2100,0,1);
                 
-                // Iteramos sobre loansList (que viene de la colección nueva)
                 this.loansList.forEach((l) => {
                     const [y, m, d] = l.dueDate ? l.dueDate.split('-').map(Number) : [0,0,0];
                     const due = l.dueDate ? new Date(y, m-1, d, 23, 59, 59) : new Date(0);
@@ -1052,7 +1064,6 @@
                     const opacityClass = affectsBudget ? '' : 'opacity-50 grayscale';
                     const badge = affectsBudget ? '' : '<span class="text-[9px] bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded ml-2 border border-zinc-700">Próx. Ciclo</span>';
                     
-                    // Usamos l.id para editar, ya que ahora son documentos
                     el.innerHTML += `<div onclick="app.openModal('loan', '${l.id}')" class="p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center mb-2 active:scale-[0.99] ${opacityClass}"><div><div class="font-bold text-sm text-white flex items-center">${l.name} ${badge}</div><div class="text-xs text-red-400">Vence: ${l.dueDate||'Sin fecha'}</div></div><div class="text-right font-bold text-base text-zinc-300">${UI.fmtMoney(l.amount)}</div></div>`;
                 });
             },
@@ -1119,16 +1130,17 @@
                 }
                 else if (type === 'loan') {
                     document.getElementById('formLoan').classList.remove('hidden'); title.textContent = 'Deuda';
-                    // Buscamos el préstamo en loansList usando el ID
                     const l = id ? this.loansList.find(item => item.id === id) : {};
                     document.getElementById('loanName').value = l.name||''; document.getElementById('loanAmount').value=l.amount||''; document.getElementById('loanDueDate').value=l.dueDate||'';
                     document.getElementById('btnDeleteLoan').classList.toggle('hidden', !id);
                 }
                 else if (type === 'config') {
                     document.getElementById('formConfig').classList.remove('hidden'); title.textContent = 'Configuración Ciclo';
-                    const currentMode = this.data.cycle || 'biweekly';
+                    const currentMode = this.data.cycle || 'monthly';
                     this.setCycleMode(currentMode);
                     document.getElementById('configStartDay').value = this.data.startDay || 1;
+                    document.getElementById('configDay1').value = this.data.day1 || 1;
+                    document.getElementById('configDay2').value = this.data.day2 || 15;
                 }
             },
 
@@ -1165,7 +1177,6 @@
                     payload.type = this.modalType === 'extra' ? 'income' : 'expense';
                 }
 
-                // Ruta corregida
                 const ref = collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions');
                 
                 if(this.editId) await updateDoc(doc(ref, this.editId), payload);
@@ -1179,7 +1190,6 @@
                 const arr = [...(this.data.fixed||[])];
                 const item = { name: document.getElementById('fixName').value, amount: parseFloat(document.getElementById('fixAmount').value), day: parseInt(document.getElementById('fixDay').value) };
                 if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
-                // Ruta corregida
                 await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{fixed:arr});
                 this.closeModal(); UI.toast('Fijo guardado','success');
             },
@@ -1187,7 +1197,6 @@
             async payFixed(idx) {
                 const f = this.data.fixed[idx];
                 if(await UI.confirm('Pagar Fijo', `¿Registrar pago de ${f.name} por ${UI.fmtMoney(f.amount)}?`)) {
-                    // Ruta corregida
                     await addDoc(collection(db,'users',this.user.uid,'finance','data','transactions'), {
                         amount: parseFloat(f.amount),
                         desc: `Pago Fijo: ${f.name}`,
@@ -1207,7 +1216,6 @@
                     dueDate: document.getElementById('loanDueDate').value 
                 };
 
-                // Ruta corregida
                 const ref = collection(db, 'users', this.user.uid, 'finance', 'data', 'loans');
 
                 if(this.editId) {
@@ -1222,39 +1230,39 @@
             async saveConfig() {
                 const inc = parseFloat(document.getElementById('inpIncome').value);
                 const incQ2 = parseFloat(document.getElementById('inpIncomeQ2').value);
-                // Ruta corregida
                 await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{income:inc, incomeQ2: incQ2});
                 UI.toast('Ingresos actualizados','success');
             },
 
             setCycleMode(mode) {
                 this.tempCycle = mode;
-                document.getElementById('btnCycleBi').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95 ${mode==='biweekly' ? 'border-emerald-500 bg-emerald-500/10' : 'border-zinc-700'}`;
                 document.getElementById('btnCycleMo').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95 ${mode==='monthly' ? 'border-blue-500 bg-blue-500/10' : 'border-zinc-700'}`;
+                document.getElementById('btnCycleManual').className = `border p-4 rounded-2xl text-center transition-colors w-full h-32 md:h-20 flex flex-col items-center justify-center active:scale-95 ${mode==='manual' ? 'border-emerald-500 bg-emerald-500/10' : 'border-zinc-700'}`;
                 
-                const div = document.getElementById('customStartDayDiv');
-                div.classList.remove('hidden');
-                const lbl = document.getElementById('lblStartDay');
-                if(mode === 'biweekly') {
-                    lbl.textContent = 'Día Inicio 1er Periodo';
-                    div.querySelector('p').textContent = 'El segundo periodo iniciará 15 días después.';
+                const divSingle = document.getElementById('customStartDayDiv');
+                const divManual = document.getElementById('manualCycleDaysDiv');
+                
+                if (mode === 'monthly') {
+                    divSingle.classList.remove('hidden');
+                    divManual.classList.add('hidden');
                 } else {
-                    lbl.textContent = 'Día de Corte / Inicio Mes';
-                    div.querySelector('p').textContent = 'Tu mes financiero iniciará en este día.';
+                    divSingle.classList.add('hidden');
+                    divManual.classList.remove('hidden');
                 }
             },
 
             async saveCycleConfig() {
-                const mode = this.tempCycle || this.data.cycle || 'biweekly';
+                const mode = this.tempCycle || this.data.cycle || 'monthly';
                 const startDay = parseInt(document.getElementById('configStartDay').value) || 1;
-                // Ruta corregida
-                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{cycle: mode, startDay: startDay});
+                const d1 = parseInt(document.getElementById('configDay1').value) || 1;
+                const d2 = parseInt(document.getElementById('configDay2').value) || 15;
+                
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{cycle: mode, startDay: startDay, day1: d1, day2: d2});
                 UI.toast('Ciclo actualizado','success'); this.closeModal();
             },
 
             async deleteTxConfirm() { 
                 if(await UI.confirm('Borrar','¿Eliminar esta transacción?')) { 
-                    // Ruta corregida
                     await deleteDoc(doc(db,'users',this.user.uid,'finance','data','transactions',this.editId)); 
                     this.closeModal(); 
                 } 
@@ -1263,7 +1271,6 @@
             
             async deleteLoanConfirm() { 
                 if(await UI.confirm('Liquidar','¿Marcar como pagado y borrar?')) { 
-                    // Ruta corregida
                     await deleteDoc(doc(db,'users',this.user.uid,'finance','data','loans',this.editId));
                     this.closeModal(); 
                 } 
@@ -1272,14 +1279,11 @@
             async resetData() {
                  if(await UI.confirm('RESETEO TOTAL','¿Estás seguro? Se borrará TODO.')) {
                      const uid = this.user.uid; const batch = writeBatch(db);
-                     // Ruta corregida
-                     batch.set(doc(db,'users',uid,'finance','data'), {income:0,fixed:[], cycle:'biweekly', startDay:1});
+                     batch.set(doc(db,'users',uid,'finance','data'), {income:0,fixed:[], cycle:'monthly', startDay:1});
                      
-                     // Borrar transacciones de la nueva ruta
                      const q = await getDocs(collection(db,'users',uid,'finance','data','transactions'));
                      q.forEach(d => batch.delete(d.ref));
                      
-                     // Borrar préstamos de la nueva ruta
                      const qLoans = await getDocs(collection(db,'users',uid,'finance','data','loans'));
                      qLoans.forEach(d => batch.delete(d.ref));
 
