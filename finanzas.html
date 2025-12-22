@@ -416,22 +416,27 @@
         // --- FIREBASE CONFIG & INIT ---
         let firebaseConfig;
         
-        // Validación de seguridad para evitar ReferenceError
+        // Configuración Manual (Tu proyecto godsplan-adherencia)
+        const manualConfig = {
+            apiKey: "AIzaSyC-cUzYmh5G9y_W2RXbO1Uma4DlKKmnnss",
+            authDomain: "godsplan-adherencia.firebaseapp.com",
+            projectId: "godsplan-adherencia",
+            storageBucket: "godsplan-adherencia.firebasestorage.app",
+            messagingSenderId: "660801277434",
+            appId: "1:660801277434:web:3a37ece56538dc2b22a843"
+        };
+
+        // Validación de seguridad: Intenta usar entorno, si falla usa manual
         if (typeof __firebase_config !== 'undefined') {
             try {
                 firebaseConfig = JSON.parse(__firebase_config);
             } catch (e) {
-                console.error("Error parsing firebase config:", e);
-                firebaseConfig = {};
+                console.warn("Error parsing env config, using manual fallback:", e);
+                firebaseConfig = manualConfig;
             }
         } else {
-            console.warn("⚠️ __firebase_config no está definido. Usando configuración manual/vacía.");
-            // SI ESTÁS EJECUTANDO EN LOCAL, PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE:
-            firebaseConfig = { 
-                apiKey: "TU_API_KEY_AQUI", 
-                authDomain: "TU_PROYECTO.firebaseapp.com", 
-                projectId: "TU_PROYECTO" 
-            };
+            console.warn("⚠️ __firebase_config no está definido. Usando configuración manual de godsplan-adherencia.");
+            firebaseConfig = manualConfig;
         }
 
         const app = initializeApp(firebaseConfig);
@@ -460,7 +465,7 @@
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
-                    // Solo intentar login anónimo si la config parece válida
+                    // Validar si tenemos API Key real antes de intentar login
                     if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "TU_API_KEY_AQUI") {
                         await signInAnonymously(auth);
                     } else {
@@ -469,7 +474,7 @@
                             <div class="text-center p-6">
                                 <i class="ph ph-warning text-4xl text-yellow-500 mb-2"></i>
                                 <p class="text-gray-800 font-bold">Falta Configuración</p>
-                                <p class="text-xs text-gray-500 mt-1">No se detectó __firebase_config.</p>
+                                <p class="text-xs text-gray-500 mt-1">No se detectó __firebase_config ni manual.</p>
                             </div>
                         `;
                     }
