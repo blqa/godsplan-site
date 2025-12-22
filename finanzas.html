@@ -414,10 +414,7 @@
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, setDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- FIREBASE CONFIG & INIT ---
-        let firebaseConfig;
-        
-        // Configuración Manual (Tu proyecto godsplan-adherencia)
-        const manualConfig = {
+        const firebaseConfig = {
             apiKey: "AIzaSyC-cUzYmh5G9y_W2RXbO1Uma4DlKKmnnss",
             authDomain: "godsplan-adherencia.firebaseapp.com",
             projectId: "godsplan-adherencia",
@@ -425,19 +422,6 @@
             messagingSenderId: "660801277434",
             appId: "1:660801277434:web:3a37ece56538dc2b22a843"
         };
-
-        // Validación de seguridad: Intenta usar entorno, si falla usa manual
-        if (typeof __firebase_config !== 'undefined') {
-            try {
-                firebaseConfig = JSON.parse(__firebase_config);
-            } catch (e) {
-                console.warn("Error parsing env config, using manual fallback:", e);
-                firebaseConfig = manualConfig;
-            }
-        } else {
-            console.warn("⚠️ __firebase_config no está definido. Usando configuración manual de godsplan-adherencia.");
-            firebaseConfig = manualConfig;
-        }
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
