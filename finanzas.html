@@ -414,7 +414,26 @@
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, setDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- FIREBASE CONFIG & INIT ---
-        const firebaseConfig = JSON.parse(__firebase_config);
+        let firebaseConfig;
+        
+        // Validación de seguridad para evitar ReferenceError
+        if (typeof __firebase_config !== 'undefined') {
+            try {
+                firebaseConfig = JSON.parse(__firebase_config);
+            } catch (e) {
+                console.error("Error parsing firebase config:", e);
+                firebaseConfig = {};
+            }
+        } else {
+            console.warn("⚠️ __firebase_config no está definido. Usando configuración manual/vacía.");
+            // SI ESTÁS EJECUTANDO EN LOCAL, PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE:
+            firebaseConfig = { 
+                apiKey: "TU_API_KEY_AQUI", 
+                authDomain: "TU_PROYECTO.firebaseapp.com", 
+                projectId: "TU_PROYECTO" 
+            };
+        }
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -441,7 +460,19 @@
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
-                    await signInAnonymously(auth);
+                    // Solo intentar login anónimo si la config parece válida
+                    if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "TU_API_KEY_AQUI") {
+                        await signInAnonymously(auth);
+                    } else {
+                        console.log("Esperando configuración válida de Firebase...");
+                        document.getElementById('loading-screen').innerHTML = `
+                            <div class="text-center p-6">
+                                <i class="ph ph-warning text-4xl text-yellow-500 mb-2"></i>
+                                <p class="text-gray-800 font-bold">Falta Configuración</p>
+                                <p class="text-xs text-gray-500 mt-1">No se detectó __firebase_config.</p>
+                            </div>
+                        `;
+                    }
                 }
             } catch (error) {
                 console.error("Auth Error:", error);
