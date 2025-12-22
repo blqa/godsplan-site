@@ -13,13 +13,13 @@
     
     <!-- Firebase Imports (Modular) -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // Expose Firebase to global scope for the main script
         window.firebaseImports = {
-            initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
+            initializeApp, getApps, getApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
             getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc
         };
     </script>
@@ -457,7 +457,7 @@
     <div id="toast-container"></div>
 
     <script type="module">
-        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } = window.firebaseImports;
+        const { initializeApp, getApps, getApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } = window.firebaseImports;
         
         // APP_ID: Mantenemos el mismo identificador de datos.
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-ultimate-v3';
@@ -478,7 +478,17 @@
         try { if (typeof __firebase_config !== 'undefined' && __firebase_config) firebaseConfig = JSON.parse(__firebase_config); } catch(e) { console.error("Error parsing firebase config:", e); }
         
         let fbApp, auth, db;
-        try { fbApp = initializeApp(firebaseConfig); auth = getAuth(fbApp); db = getFirestore(fbApp); } catch(e) { console.error("Error initializing Firebase:", e); }
+        
+        // CORRECCIÓN LOGIN: Verificar si ya existe una app para no sobrescribir la sesión de la app padre
+        try { 
+            if (getApps().length === 0) {
+                fbApp = initializeApp(firebaseConfig); 
+            } else {
+                fbApp = getApp(); // Usar la instancia existente
+            }
+            auth = getAuth(fbApp); 
+            db = getFirestore(fbApp); 
+        } catch(e) { console.error("Error initializing Firebase:", e); }
 
         const UI = {
             toast(msg, type='info') {
@@ -515,7 +525,7 @@
         window.app = {
             user: null,
             data: { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0 },
-            loansList: [], // Ahora es un array plano de documentos de la colección
+            loansList: [],
             logs: [],
             currentPeriod: null,
             searchQuery: '',
@@ -533,9 +543,15 @@
                         document.getElementById('authModal').classList.remove('active');
                         this.setupListeners();
                     } else {
+                        // CORRECCIÓN LOGIN: No forzar inicio de sesión anónimo si no hay usuario, 
+                        // para evitar sobrescribir la sesión de la app principal si comparten almacenamiento.
                         const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                        if(token) await signInWithCustomToken(auth, token); 
-                        else document.getElementById('authModal').classList.add('active');
+                        if(token) {
+                            await signInWithCustomToken(auth, token); 
+                        } else {
+                            // Solo mostramos el modal, pero no ejecutamos signInAnonymously automáticamente
+                            document.getElementById('authModal').classList.add('active');
+                        }
                     }
                 });
             },
@@ -552,21 +568,24 @@
             setupListeners() {
                 const uid = this.user.uid;
                 
+                // CORRECCIÓN RUTAS: Usando rutas ROOT (/users/...) en lugar de Sandboxed (/artifacts/...)
+                // Esto es necesario para leer los datos de tu aplicación principal.
+                
                 // 1. Configuración General (Ingresos, Gastos Fijos, Ciclo)
-                const userRef = doc(db, 'artifacts', APP_ID, 'users', uid, 'data', 'financials');
+                const userRef = doc(db, 'users', uid, 'finance', 'data'); 
+                // Nota: Asumo que la config general vive en un documento 'data' o 'financials' dentro de finance. 
+                // Ajustado para consistencia con tu petición. Si tu config está en otro lado, avísame.
+                // Por ahora usaré: /users/{uid}/finance/data (documento principal de configuración)
                 
-                // 2. Transacciones (Nueva Ruta: .../finance/data/transactions)
-                // Utilizamos 'finance/data/transactions' para cumplir con la ruta solicitada dentro del sandbox del usuario
-                const txRef = collection(db, 'artifacts', APP_ID, 'users', uid, 'finance', 'data', 'transactions');
+                // 2. Transacciones (Ruta Solicitada: /users/{uid}/finance/data/transactions)
+                const txRef = collection(db, 'users', uid, 'finance', 'data', 'transactions');
                 
-                // 3. Préstamos (Nueva Ruta: .../finance/data/loans)
-                // Ahora es una COLECCIÓN, no un array dentro de financials
-                const loansRef = collection(db, 'artifacts', APP_ID, 'users', uid, 'finance', 'data', 'loans');
+                // 3. Préstamos (Ruta Solicitada: /users/{uid}/finance/data/loans)
+                const loansRef = collection(db, 'users', uid, 'finance', 'data', 'loans');
 
                 // Listener Config
                 onSnapshot(userRef, (snap) => {
                     if(snap.exists()) {
-                        // Nota: Loans ya no viene de aquí, pero mantenemos fixed aquí por ahora
                         this.data = { income: 0, incomeQ2: 0, fixed: [], cycle: 'biweekly', startDay: 1, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
                         document.getElementById('inpIncome').value = this.data.income || '';
                         document.getElementById('inpIncomeQ2').value = this.data.incomeQ2 || '';
@@ -576,7 +595,10 @@
                         this.renderFixed();
                         this.calcPeriod();
                         this.updateExtraUI();
-                    } else setDoc(userRef, { income: 0, fixed: [] });
+                    } else {
+                        // Si no existe, creamos el documento base en la nueva ruta
+                        setDoc(userRef, { income: 0, fixed: [] }, { merge: true });
+                    }
                 });
 
                 // Listener Transacciones
@@ -592,7 +614,7 @@
                 onSnapshot(loansRef, (snap) => {
                     this.loansList = snap.docs.map(d => ({id: d.id, ...d.data()}));
                     this.renderLoans();
-                    this.calcBalance(); // Recalcular balance cuando cambian las deudas
+                    this.calcBalance(); 
                 });
             },
 
@@ -665,19 +687,22 @@
             },
 
             async saveExtraPayDate(val) {
-                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { nextExtraPayDate: val });
+                // Ruta corregida: /users/{uid}/finance/data
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'), { nextExtraPayDate: val });
                 this.resolvePayDate();
             },
 
             async saveExtraPayValue(val) {
                 const amount = parseFloat(val) || 0;
-                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { extraPayAmount: amount });
+                // Ruta corregida
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'), { extraPayAmount: amount });
                 this.calcBalance();
             },
 
             toggleAdherenceModule() {
                 const isEnabled = document.getElementById('adhToggle').checked;
-                updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'), { enableAdherence: isEnabled });
+                // Ruta corregida
+                updateDoc(doc(db,'users',this.user.uid,'finance','data'), { enableAdherence: isEnabled });
             },
 
             toggleSimulation() {
@@ -690,8 +715,8 @@
                 if (amount <= 0) return UI.toast('Monto debe ser mayor a 0', 'error');
                 
                 if (await UI.confirm('Importar Dinero', `¿Registrar ingreso de ${UI.fmtMoney(amount)}?`)) {
-                    // Actualizado a la nueva ruta
-                    await addDoc(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'finance', 'data', 'transactions'), {
+                    // Ruta corregida
+                    await addDoc(collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions'), {
                         amount: amount, desc: `Cobro Extra`, category: 'Otro', type: 'income', date: new Date().toISOString()
                     });
                     UI.toast('Dinero sumado a billetera', 'success');
@@ -1140,8 +1165,8 @@
                     payload.type = this.modalType === 'extra' ? 'income' : 'expense';
                 }
 
-                // NUEVA RUTA DE TRANSACCIONES
-                const ref = collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'finance', 'data', 'transactions');
+                // Ruta corregida
+                const ref = collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions');
                 
                 if(this.editId) await updateDoc(doc(ref, this.editId), payload);
                 else await addDoc(ref, payload);
@@ -1154,15 +1179,16 @@
                 const arr = [...(this.data.fixed||[])];
                 const item = { name: document.getElementById('fixName').value, amount: parseFloat(document.getElementById('fixAmount').value), day: parseInt(document.getElementById('fixDay').value) };
                 if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
-                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{fixed:arr});
+                // Ruta corregida
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{fixed:arr});
                 this.closeModal(); UI.toast('Fijo guardado','success');
             },
 
             async payFixed(idx) {
                 const f = this.data.fixed[idx];
                 if(await UI.confirm('Pagar Fijo', `¿Registrar pago de ${f.name} por ${UI.fmtMoney(f.amount)}?`)) {
-                    // Actualizado a la nueva ruta
-                    await addDoc(collection(db,'artifacts',APP_ID,'users',this.user.uid,'finance','data','transactions'), {
+                    // Ruta corregida
+                    await addDoc(collection(db,'users',this.user.uid,'finance','data','transactions'), {
                         amount: parseFloat(f.amount),
                         desc: `Pago Fijo: ${f.name}`,
                         category: 'Servicios',
@@ -1175,14 +1201,14 @@
             },
 
             async saveLoan() {
-                // Ahora guardamos en la COLECCIÓN de loans
                 const payload = { 
                     name: document.getElementById('loanName').value, 
                     amount: parseFloat(document.getElementById('loanAmount').value), 
                     dueDate: document.getElementById('loanDueDate').value 
                 };
 
-                const ref = collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'finance', 'data', 'loans');
+                // Ruta corregida
+                const ref = collection(db, 'users', this.user.uid, 'finance', 'data', 'loans');
 
                 if(this.editId) {
                     await updateDoc(doc(ref, this.editId), payload);
@@ -1196,7 +1222,8 @@
             async saveConfig() {
                 const inc = parseFloat(document.getElementById('inpIncome').value);
                 const incQ2 = parseFloat(document.getElementById('inpIncomeQ2').value);
-                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{income:inc, incomeQ2: incQ2});
+                // Ruta corregida
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{income:inc, incomeQ2: incQ2});
                 UI.toast('Ingresos actualizados','success');
             },
 
@@ -1220,23 +1247,24 @@
             async saveCycleConfig() {
                 const mode = this.tempCycle || this.data.cycle || 'biweekly';
                 const startDay = parseInt(document.getElementById('configStartDay').value) || 1;
-                await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{cycle: mode, startDay: startDay});
+                // Ruta corregida
+                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{cycle: mode, startDay: startDay});
                 UI.toast('Ciclo actualizado','success'); this.closeModal();
             },
 
             async deleteTxConfirm() { 
                 if(await UI.confirm('Borrar','¿Eliminar esta transacción?')) { 
-                    // Nueva ruta
-                    await deleteDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'finance','data','transactions',this.editId)); 
+                    // Ruta corregida
+                    await deleteDoc(doc(db,'users',this.user.uid,'finance','data','transactions',this.editId)); 
                     this.closeModal(); 
                 } 
             },
-            async deleteFixedConfirm() { if(await UI.confirm('Borrar','¿Eliminar gasto fijo?')) { const arr=this.data.fixed.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'data','financials'),{fixed:arr}); this.closeModal(); } },
+            async deleteFixedConfirm() { if(await UI.confirm('Borrar','¿Eliminar gasto fijo?')) { const arr=this.data.fixed.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{fixed:arr}); this.closeModal(); } },
             
             async deleteLoanConfirm() { 
                 if(await UI.confirm('Liquidar','¿Marcar como pagado y borrar?')) { 
-                    // Nueva lógica: Borrar documento de la colección
-                    await deleteDoc(doc(db,'artifacts',APP_ID,'users',this.user.uid,'finance','data','loans',this.editId));
+                    // Ruta corregida
+                    await deleteDoc(doc(db,'users',this.user.uid,'finance','data','loans',this.editId));
                     this.closeModal(); 
                 } 
             },
@@ -1244,14 +1272,15 @@
             async resetData() {
                  if(await UI.confirm('RESETEO TOTAL','¿Estás seguro? Se borrará TODO.')) {
                      const uid = this.user.uid; const batch = writeBatch(db);
-                     batch.set(doc(db,'artifacts',APP_ID,'users',uid,'data','financials'), {income:0,fixed:[], cycle:'biweekly', startDay:1});
+                     // Ruta corregida
+                     batch.set(doc(db,'users',uid,'finance','data'), {income:0,fixed:[], cycle:'biweekly', startDay:1});
                      
                      // Borrar transacciones de la nueva ruta
-                     const q = await getDocs(collection(db,'artifacts',APP_ID,'users',uid,'finance','data','transactions'));
+                     const q = await getDocs(collection(db,'users',uid,'finance','data','transactions'));
                      q.forEach(d => batch.delete(d.ref));
                      
                      // Borrar préstamos de la nueva ruta
-                     const qLoans = await getDocs(collection(db,'artifacts',APP_ID,'users',uid,'finance','data','loans'));
+                     const qLoans = await getDocs(collection(db,'users',uid,'finance','data','loans'));
                      qLoans.forEach(d => batch.delete(d.ref));
 
                      await batch.commit(); window.location.reload();
