@@ -236,9 +236,19 @@
                         <span class="text-gray-500 flex items-center gap-1"><i class="ph-fill ph-minus-circle text-rose-500"></i> Gastos Mes</span>
                         <span class="font-mono font-medium text-rose-600" id="formula-expense">$0.00</span>
                     </div>
+                    
                     <div class="border-t border-gray-100 pt-3 mt-1 flex justify-between items-center">
-                        <span class="font-bold text-gray-900 text-sm">Total Disponible</span>
-                        <span class="font-bold text-lg text-blue-600 font-mono tracking-tight" id="formula-total">$0.00</span>
+                        <span class="font-medium text-gray-500 text-xs">Total Disponible</span>
+                        <span class="font-bold text-sm text-gray-700 font-mono tracking-tight" id="formula-total">$0.00</span>
+                    </div>
+
+                    <!-- NUEVA SECCION DIARIA -->
+                    <div class="bg-blue-50 mt-2 p-3 rounded-lg flex justify-between items-center border border-blue-100">
+                        <div>
+                            <p class="text-[10px] text-blue-800 font-bold uppercase tracking-wider mb-0.5">Límite Diario</p>
+                            <p class="text-[10px] text-blue-500 font-medium" id="formula-days-left">Calculando días...</p>
+                        </div>
+                        <span class="font-bold text-2xl text-blue-700 font-mono tracking-tight" id="formula-daily">$0.00</span>
                     </div>
                 </div>
             </div>
@@ -1494,7 +1504,23 @@
                 }
             });
             const prevBalance = prevIncome - prevExpense;
+            // Total Available Money
             const formulaTotal = prevBalance + currentMonthIncome - currentMonthExpense;
+            
+            // --- NEW LOGIC: DAILY BUDGET ---
+            const nextPayday = getNextPayday();
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            let dailyBudget = 0;
+            let daysLeft = 0;
+            
+            if (nextPayday) {
+                const diffTime = nextPayday - today;
+                daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            }
+
+            // Update UI
             const prevEl = document.getElementById('formula-prev');
             if(prevEl) {
                 prevEl.textContent = formatCurrency(prevBalance);
@@ -1502,7 +1528,37 @@
             }
             const elInc = document.getElementById('formula-income'); if(elInc) elInc.textContent = formatCurrency(currentMonthIncome);
             const elExp = document.getElementById('formula-expense'); if(elExp) elExp.textContent = formatCurrency(currentMonthExpense);
+            
+            // Total line
             const elTot = document.getElementById('formula-total'); if(elTot) elTot.textContent = formatCurrency(formulaTotal);
+            
+            // Daily Line
+            const elDays = document.getElementById('formula-days-left');
+            const elDaily = document.getElementById('formula-daily');
+            
+            if(elDaily && elDays) {
+                if (daysLeft > 0) {
+                    // Divide total available by days remaining
+                    dailyBudget = formulaTotal / daysLeft;
+                    
+                    if (formulaTotal <= 0) {
+                         elDaily.textContent = "$0.00";
+                         elDays.textContent = `Sin fondos (faltan ${daysLeft} días)`;
+                         elDaily.className = "font-bold text-2xl text-gray-400 font-mono tracking-tight";
+                    } else {
+                         elDaily.textContent = formatCurrency(dailyBudget);
+                         elDays.textContent = `Faltan ${daysLeft} días para cobrar`;
+                         elDaily.className = "font-bold text-2xl text-blue-700 font-mono tracking-tight";
+                    }
+                } else {
+                    // It's Payday! (0 days difference)
+                    // Avoid division by zero. Show the total amount as available "today"
+                    dailyBudget = formulaTotal;
+                    elDaily.textContent = formatCurrency(dailyBudget);
+                    elDays.textContent = "¡Hoy es día de pago!";
+                    elDaily.className = "font-bold text-2xl text-green-600 font-mono tracking-tight";
+                }
+            }
         }
 
         function updatePaydayWidget() {
