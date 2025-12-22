@@ -138,7 +138,7 @@
                         <button onclick="goToCurrentMonth()" class="ml-2 text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-md border border-blue-100 hover:bg-blue-100 transition" title="Ir al mes actual">HOY</button>
                     </div>
                 </div>
-                <!-- MODIFIED: Calls openAddModal instead of openModal directly -->
+                <!-- Add Transaction Button -->
                 <button onclick="openAddModal()" class="bg-blue-600 text-white w-10 h-10 rounded-full shadow-lg shadow-blue-200 hover:bg-blue-700 transition active:scale-95 flex items-center justify-center">
                     <i class="ph ph-plus text-xl font-bold"></i>
                 </button>
@@ -152,11 +152,23 @@
                 <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                     <i class="ph ph-wallet text-9xl"></i>
                 </div>
-                <div class="absolute top-4 right-4 flex bg-black/20 backdrop-blur-md rounded-lg p-1">
-                    <button onclick="setBalanceMode('month')" id="btn-mode-month" class="toggle-btn px-3 py-1 rounded-md text-[10px] font-bold bg-white text-blue-900 shadow-sm">Mes</button>
-                    <button onclick="setBalanceMode('total')" id="btn-mode-total" class="toggle-btn px-3 py-1 rounded-md text-[10px] font-medium text-blue-100 hover:bg-white/10">Total</button>
+                
+                <!-- NEW: Adjustment Button and Mode Toggle Container -->
+                <div class="absolute top-4 right-4 flex items-center gap-2">
+                    <!-- Button to Adjust Balance -->
+                    <button onclick="openAdjustModal()" class="bg-white/20 backdrop-blur-md text-white p-1.5 rounded-lg hover:bg-white/30 transition flex items-center gap-1 border border-white/20" title="Ajustar Saldo Real">
+                        <i class="ph-bold ph-scales text-sm"></i>
+                        <span class="text-[10px] font-bold">Ajustar</span>
+                    </button>
+                    
+                    <!-- Mode Toggle -->
+                    <div class="flex bg-black/20 backdrop-blur-md rounded-lg p-1">
+                        <button onclick="setBalanceMode('month')" id="btn-mode-month" class="toggle-btn px-3 py-1 rounded-md text-[10px] font-bold bg-white text-blue-900 shadow-sm">Mes</button>
+                        <button onclick="setBalanceMode('total')" id="btn-mode-total" class="toggle-btn px-3 py-1 rounded-md text-[10px] font-medium text-blue-100 hover:bg-white/10">Total</button>
+                    </div>
                 </div>
-                <p class="text-blue-100 text-xs font-medium mb-1 mt-6 opacity-80" id="balance-label">Saldo del Mes</p>
+
+                <p class="text-blue-100 text-xs font-medium mb-1 mt-8 opacity-80" id="balance-label">Saldo del Mes</p>
                 <h2 class="text-4xl font-bold mb-4 tracking-tight" id="total-balance">$0.00</h2>
                 <div class="flex gap-3">
                     <div class="bg-white/10 rounded-xl p-2 px-3 backdrop-blur-sm flex-1 border border-white/10">
@@ -404,6 +416,34 @@
         </div>
     </nav>
 
+    <!-- MODAL: ADJUST BALANCE (NUEVO) -->
+    <div id="adjust-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeModal('adjust-modal')"></div>
+        <div class="absolute bottom-0 w-full bg-white rounded-t-3xl p-6 shadow-2xl transform transition-transform duration-300 translate-y-full pb-safe" id="adjust-modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <i class="ph-fill ph-scales text-blue-600"></i> Ajustar Saldo
+                </h3>
+                <button onclick="closeModal('adjust-modal')" class="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <div class="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <p class="text-xs text-blue-800 font-medium mb-1">Saldo Total en Sistema:</p>
+                <p class="text-2xl font-bold text-blue-900" id="adjust-current-display">$0.00</p>
+                <p class="text-[10px] text-blue-600 mt-2 opacity-80">El sistema creará un movimiento automático para igualar tu saldo real.</p>
+            </div>
+            <form id="adjust-form" onsubmit="submitAdjustment(event)">
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-gray-500 mb-1.5 uppercase">¿Cuánto dinero tienes realmente?</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl font-bold">$</span>
+                        <input type="number" id="adjust-amount" step="0.01" class="w-full pl-10 pr-4 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-blue-500 rounded-xl outline-none text-3xl font-bold text-gray-900 placeholder-gray-300 transition-all" placeholder="0.00" required>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-gray-900 text-white py-4 rounded-xl font-bold shadow-lg shadow-gray-300 hover:bg-black active:scale-[0.98] transition">Calcular y Ajustar</button>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL: ADD/EDIT TRANSACTION -->
     <div id="transaction-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeModal('transaction-modal')"></div>
@@ -451,6 +491,7 @@
                             <option value="Deuda">💸 Deuda</option>
                             <option value="Servicios">💡 Servicios</option>
                             <option value="Nómina">💰 Nómina</option>
+                            <option value="Ajuste">⚖️ Ajuste</option>
                             <option value="Otros">📝 Otros</option>
                         </select>
                     </div>
@@ -532,6 +573,67 @@
             transactions: [],
             fixed: [],
             settings: { frequency: 'biweekly', payday: null, payday1: null, payday2: null }
+        };
+
+        // --- ADJUSTMENT LOGIC (NUEVO) ---
+        window.openAdjustModal = function() {
+            // Calculate total historical balance to adjust against
+            let totalIncome = 0; let totalExpense = 0;
+            if(window.appData && window.appData.transactions) {
+                window.appData.transactions.forEach(t => {
+                    if(t.type === 'income') totalIncome += t.amount; else totalExpense += t.amount;
+                });
+            }
+            const totalBalance = totalIncome - totalExpense;
+            
+            document.getElementById('adjust-current-display').textContent = formatCurrency(totalBalance);
+            // Store raw value for calculation
+            document.getElementById('adjust-current-display').dataset.raw = totalBalance; 
+            
+            document.getElementById('adjust-amount').value = '';
+            openModal('adjust-modal');
+        };
+
+        window.submitAdjustment = async function(e) {
+            e.preventDefault();
+            if(!currentUser) return;
+            
+            const realAmount = parseFloat(document.getElementById('adjust-amount').value);
+            const systemAmount = parseFloat(document.getElementById('adjust-current-display').dataset.raw || 0);
+            
+            if(isNaN(realAmount)) return;
+            
+            const difference = realAmount - systemAmount;
+            
+            // Round to 2 decimals to avoid float errors
+            const diffRounded = Math.round(difference * 100) / 100;
+            
+            if (diffRounded === 0) {
+                showToast("¡Tu saldo ya está perfecto!");
+                closeModal('adjust-modal');
+                return;
+            }
+            
+            // Create Transaction object
+            const isPositive = diffRounded > 0;
+            const txData = {
+                type: isPositive ? 'income' : 'expense',
+                amount: Math.abs(diffRounded),
+                title: 'Ajuste de Saldo',
+                category: 'Ajuste',
+                date: new Date().toISOString().split('T')[0], // Today YYYY-MM-DD
+                createdAt: new Date().toISOString()
+            };
+            
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions'), txData);
+                showToast(`Saldo ajustado (${isPositive ? '+' : ''}${diffRounded})`);
+                closeModal('adjust-modal');
+                renderDashboard(); // Force UI Refresh
+            } catch(err) {
+                console.error(err);
+                showToast("Error al ajustar saldo");
+            }
         };
 
         // --- IMPORT/EXPORT LOGIC ---
@@ -861,8 +963,8 @@
             try {
                 if (editingTransactionId) {
                     // Update existing
-                     await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', editingTransactionId), txData);
-                     showToast('Movimiento actualizado');
+                      await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', editingTransactionId), txData);
+                      showToast('Movimiento actualizado');
                 } else {
                     // Create new
                     txData.createdAt = new Date().toISOString();
