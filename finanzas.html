@@ -34,7 +34,7 @@
 
         /* Custom UI for App */
         .nav-item.active { color: #2563eb; }
-        .nav-item.active i { weight: fill; }
+        .nav-item.active i { font-weight: bold; } /* Corrección de sintaxis CSS */
         .toggle-btn { transition: all 0.2s ease; }
 
         /* GOD'S PLAN AUTH THEME */
@@ -152,8 +152,10 @@
                         </div>
                     </div>
                     <div class="relative group">
-                        <i class="ph-bold ph-envelope-simple absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
-                        <input type="text" id="input-id" class="input-gp pl-12" placeholder="Email" required>
+                        <!-- CAMBIO: Icono cambiado a ID card -->
+                        <i class="ph-bold ph-identification-card absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                        <!-- CAMBIO: Placeholder cambiado a "ID de Usuario" -->
+                        <input type="text" id="input-id" class="input-gp pl-12" placeholder="ID de Usuario" required>
                     </div>
                     <div class="relative group">
                         <i class="ph-bold ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
@@ -669,7 +671,8 @@
             },
 
             handleAuthSubmit: async function() {
-                const email = document.getElementById('input-id').value;
+                // CAMBIO CLAVE: Obtener raw input y convertir si es necesario
+                const rawId = document.getElementById('input-id').value.trim();
                 const pass = document.getElementById('input-pass').value;
                 const name = document.getElementById('input-name').value;
                 const errorMsg = document.getElementById('auth-error-msg');
@@ -677,11 +680,14 @@
 
                 errorMsg.classList.add('hidden');
 
-                if (!email || !pass) {
+                if (!rawId || !pass) {
                     errorTxt.textContent = "Completa todos los campos";
                     errorMsg.classList.remove('hidden');
                     return;
                 }
+
+                // CONVERSIÓN AUTOMÁTICA DE ID A EMAIL
+                const email = rawId.includes('@') ? rawId : `${rawId}@godsplan.site`;
 
                 try {
                     if (authMode === 'login') {
@@ -702,9 +708,11 @@
                     if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
                         errorTxt.textContent = "Credenciales incorrectas";
                     } else if (error.code === 'auth/email-already-in-use') {
-                        errorTxt.textContent = "El email ya está registrado";
+                        errorTxt.textContent = "El ID ya está registrado";
                     } else if (error.code === 'auth/weak-password') {
                         errorTxt.textContent = "Contraseña muy débil (min 6 chars)";
+                    } else if (error.code === 'auth/invalid-email') {
+                         errorTxt.textContent = "Formato de ID inválido";
                     } else {
                         errorTxt.textContent = "Error: " + error.message;
                     }
