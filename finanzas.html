@@ -103,7 +103,7 @@
             </a>
             <div class="flex flex-col">
                 <span class="font-bold tracking-tight text-white flex items-center gap-2">
-                    GOD'S PLAN <span class="text-[10px] bg-brand/10 text-brand px-1.5 py-0.5 rounded border border-brand/20">Finanzas</span>
+                    GOD'S PLAN <span class="text-[10px] bg-brand/10 text-brand px-1.5 py-0.5 rounded border border-brand/20">LITE</span>
                 </span>
                 <span id="navUserEmail" class="text-[10px] text-zinc-500 font-mono">Conectando...</span>
             </div>
@@ -124,21 +124,22 @@
             <section id="view-dashboard" class="px-4 md:px-0 animate-fade-in">
                 
                 <!-- Tarjeta Principal -->
-                <div class="glass rounded-3xl p-6 relative overflow-hidden group mb-6">
+                <div onclick="app.toggleMainDisplay()" class="glass rounded-3xl p-6 relative overflow-hidden group mb-6 cursor-pointer hover:bg-white/5 transition-colors">
                     <div class="absolute top-0 right-0 w-64 h-64 bg-brand/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                     
                     <div class="relative z-10">
                         <div class="flex justify-between items-start mb-2">
-                            <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                            <span id="mainLabelDisplay" class="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                                 <i class="ph-fill ph-wallet"></i> Disponible Hoy
                             </span>
-                            <button onclick="app.openModal('adjustment')" class="text-zinc-500 hover:text-white transition-colors p-1" title="Ajustar Saldo Real">
+                            <button onclick="event.stopPropagation(); app.openModal('adjustment')" class="text-zinc-500 hover:text-white transition-colors p-1" title="Ajustar Saldo Real">
                                 <i class="ph-bold ph-sliders-horizontal"></i>
                             </button>
                         </div>
                         
                         <div class="flex items-baseline gap-1 mb-6">
                             <span id="mainAmountDisplay" class="text-5xl md:text-6xl font-black text-white tracking-tighter transition-all">---</span>
+                            <span id="modeIndicator" class="text-xs font-bold text-brand bg-brand/10 px-2 py-0.5 rounded border border-brand/20 hidden">TOTAL</span>
                         </div>
 
                         <!-- Mini Stats -->
@@ -151,6 +152,10 @@
                                 <span class="text-[10px] text-zinc-500 uppercase font-bold block mb-1">Retenido (Fijos)</span>
                                 <span id="reservedFixedDisplay" class="text-lg font-mono font-bold text-orange-500">---</span>
                             </div>
+                        </div>
+                        
+                        <div class="mt-2 text-[10px] text-center text-zinc-600 italic">
+                            Pulsa la tarjeta para alternar vista
                         </div>
                     </div>
                 </div>
@@ -397,6 +402,7 @@
             logs: [],
             currentModal: null,
             editId: null,
+            showTotal: false, // Estado para alternar vista
 
             init() {
                 onAuthStateChanged(auth, (user) => {
@@ -436,6 +442,15 @@
                 });
             },
 
+            toggleMainDisplay() {
+                this.showTotal = !this.showTotal;
+                this.calcBalance();
+                // Feedback visual pequeño
+                const card = document.querySelector('.glass');
+                card.classList.add('scale-[0.98]');
+                setTimeout(() => card.classList.remove('scale-[0.98]'), 100);
+            },
+
             calcBalance() {
                 let total = 0;
                 this.logs.forEach(l => {
@@ -446,7 +461,9 @@
                 let reserved = 0;
                 let displayAmount = total;
                 let daysLeft = 0;
+                let isDaily = false;
 
+                // Lógica de cálculo
                 if (this.data.nextPayDate) {
                     const today = new Date();
                     today.setHours(0,0,0,0);
@@ -462,10 +479,32 @@
                          if (f.day >= currentDay) reserved += parseFloat(f.amount);
                     });
                     
-                    if (daysLeft > 0) displayAmount = (total - reserved) / daysLeft;
+                    if (daysLeft > 0) {
+                        const dailyBudget = (total - reserved) / daysLeft;
+                        if (!this.showTotal) {
+                            displayAmount = dailyBudget;
+                            isDaily = true;
+                        }
+                    }
                 } else {
                     document.getElementById('nextPayDateDisplay').textContent = "Sin definir";
                     document.getElementById('daysLeftBadge').textContent = "--";
+                    // Si no hay fecha, forzamos vista total
+                    this.showTotal = true; 
+                }
+
+                // Actualizar DOM
+                const lbl = document.getElementById('mainLabelDisplay');
+                const ind = document.getElementById('modeIndicator');
+                
+                if (this.showTotal) {
+                    lbl.innerHTML = '<i class="ph-fill ph-wallet"></i> Saldo Total Real';
+                    ind.classList.remove('hidden');
+                    ind.textContent = "TOTAL";
+                } else {
+                    lbl.innerHTML = '<i class="ph-fill ph-calendar-check"></i> Disponible Diario';
+                    ind.classList.remove('hidden');
+                    ind.textContent = "DIARIO";
                 }
 
                 document.getElementById('mainAmountDisplay').textContent = UI.fmtMoney(displayAmount);
