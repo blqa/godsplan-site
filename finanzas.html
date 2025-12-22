@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinanzasPro Cloud</title>
+    <title>FinanzasPro - God's Plan</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -11,53 +11,197 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
+        /* Base */
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Scrollbar */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Animations */
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+
+        .animate-fade-in { animation: fadeInOpacity 1s ease-out forwards; }
+        @keyframes fadeInOpacity { from { opacity: 0; } to { opacity: 0.5; } }
+
+        /* Custom UI for App */
         .nav-item.active { color: #2563eb; }
         .nav-item.active i { weight: fill; }
         .toggle-btn { transition: all 0.2s ease; }
+
+        /* GOD'S PLAN AUTH THEME */
+        :root { --brand: #3b82f6; } /* Blue-500 equivalent */
+        .text-brand { color: var(--brand); }
+        .bg-brand { background-color: var(--brand); }
+        
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-gp {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            outline: none;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+        .input-gp:focus {
+            border-color: var(--brand);
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-glow {
+            background: var(--brand);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        .btn-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+        }
+        .btn-glow:active { transform: translateY(0); }
+
+        /* Auth Switcher */
+        .auth-switch {
+            display: flex;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px;
+            border-radius: 1rem;
+            position: relative;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .auth-switch button {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #71717a;
+            position: relative;
+            z-index: 2;
+            transition: color 0.3s;
+        }
+        .auth-switch button.active { color: white; }
+        .auth-switch-glider {
+            position: absolute;
+            top: 4px; left: 4px; bottom: 4px;
+            width: calc(50% - 4px);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.8rem;
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            z-index: 1;
+        }
+        /* State for glider */
+        .auth-switch[data-state="register"] .auth-switch-glider { transform: translateX(100%); }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden text-gray-800">
 
-    <!-- Loading Overlay -->
-    <div id="loading-screen" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
-        <i class="ph ph-circle-notch text-4xl text-blue-600 animate-spin mb-4"></i>
-        <p class="text-gray-500 font-medium animate-pulse">Sincronizando con la nube...</p>
+    <!-- Loading Overlay (Initial) -->
+    <div id="loading-screen" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center transition-opacity duration-500 p-4">
+        <div class="text-center">
+            <i class="ph ph-circle-notch text-4xl text-blue-600 animate-spin mb-4 inline-block"></i>
+            <p class="text-gray-500 font-medium animate-pulse">Iniciando sistema...</p>
+        </div>
     </div>
 
-    <!-- Main Content Area -->
-    <main id="main-container" class="flex-1 overflow-y-auto hide-scrollbar relative pb-24">
+    <!-- GOD'S PLAN AUTH VIEW -->
+    <div id="login-view" class="fixed inset-0 z-[90] flex items-center justify-center p-6 bg-[#030000] hidden">
+        <div class="absolute top-8 left-8 flex items-center gap-3 animate-fade-in opacity-50">
+             <div class="relative w-8 h-8 flex items-center justify-center"><i class="ph-fill ph-planet text-2xl text-brand"></i></div>
+            <span class="font-bold tracking-widest text-lg text-white">GOD'S PLAN</span>
+        </div>
+        <div class="w-full max-w-md animate-float">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-2 text-white">GOD'S PLAN</h1>
+                <p class="text-zinc-500 text-sm font-mono tracking-widest uppercase">Portal de Acceso Centralizado</p>
+            </div>
+            <div class="glass-panel rounded-3xl p-8 relative overflow-hidden">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-brand blur-md opacity-50"></div>
+                
+                <div class="auth-switch" id="auth-switch-container" data-state="login">
+                    <div class="auth-switch-glider"></div>
+                    <button onclick="window.app.toggleAuth('login')" id="tab-login" class="active">INGRESAR</button>
+                    <button onclick="window.app.toggleAuth('register')" id="tab-register">REGISTRARSE</button>
+                </div>
+
+                <form onsubmit="event.preventDefault(); window.app.handleAuthSubmit();" class="flex flex-col gap-5">
+                    <div id="field-name" class="hidden transition-all duration-300">
+                        <div class="relative group">
+                            <i class="ph-bold ph-user absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                            <input type="text" id="input-name" class="input-gp pl-12" placeholder="Tu Nombre">
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <i class="ph-bold ph-envelope-simple absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                        <input type="text" id="input-id" class="input-gp pl-12" placeholder="Email" required>
+                    </div>
+                    <div class="relative group">
+                        <i class="ph-bold ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                        <input type="password" id="input-pass" class="input-gp pl-12" placeholder="Contraseña Maestra" required>
+                    </div>
+                    
+                    <div id="auth-error-msg" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold text-center flex items-center justify-center gap-2">
+                        <i class="ph-fill ph-warning-circle"></i> <span id="auth-error-txt">Error</span>
+                    </div>
+
+                    <button type="submit" id="btn-submit" class="btn-glow w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm mt-2 flex items-center justify-center gap-2 group cursor-pointer">
+                        <span id="btn-text">INICIAR SESIÓN</span> <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </form>
+
+                <div class="relative my-6 text-center">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                    <span class="relative bg-[#0a0a0a] px-2 text-[10px] text-zinc-600 font-bold uppercase tracking-widest">O accede con</span>
+                </div>
+                <button onclick="window.app.loginGoogle()" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-3 group cursor-pointer">
+                    <i class="ph-bold ph-google-logo text-xl group-hover:text-brand transition-colors"></i> <span>Google Account</span>
+                </button>
+            </div>
+        </div>
+        <footer class="absolute bottom-4 left-0 w-full text-center pointer-events-none opacity-30">
+            <p class="text-[10px] font-mono tracking-[0.5em] text-white">SYSTEM v2.0 // SECURE</p>
+        </footer>
+    </div>
+
+    <!-- Main Content Area (App Dashboard) -->
+    <main id="main-container" class="flex-1 overflow-y-auto hide-scrollbar relative pb-24 hidden">
         
         <!-- HEADER -->
         <header class="bg-white p-6 sticky top-0 z-50 shadow-sm">
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">FinanzasPro</h1>
-                    <!-- Month Navigator -->
                     <div class="flex items-center gap-1 mt-1">
                         <button onclick="changeMonth(-1)" class="p-2 rounded-full hover:bg-gray-100 text-gray-600 active:bg-gray-200 transition">
                             <i class="ph ph-caret-left text-xl"></i>
                         </button>
-                        
                         <div class="flex flex-col items-center mx-1">
                             <p class="text-sm font-bold text-blue-600 w-32 text-center select-none" id="current-date">Cargando...</p>
                         </div>
-
                         <button onclick="changeMonth(1)" class="p-2 rounded-full hover:bg-gray-100 text-gray-600 active:bg-gray-200 transition">
                             <i class="ph ph-caret-right text-xl"></i>
                         </button>
-
-                        <!-- Botón "Hoy" -->
-                        <button onclick="goToCurrentMonth()" class="ml-2 text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-md border border-blue-100 hover:bg-blue-100 transition" title="Ir al mes actual">
-                            HOY
-                        </button>
+                        <button onclick="goToCurrentMonth()" class="ml-2 text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-md border border-blue-100 hover:bg-blue-100 transition" title="Ir al mes actual">HOY</button>
                     </div>
                 </div>
                 <button onclick="openModal('transaction-modal')" class="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition active:scale-95">
@@ -73,15 +217,12 @@
                 <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                     <i class="ph ph-wallet text-9xl"></i>
                 </div>
-
                 <div class="absolute top-4 right-4 flex bg-black/20 backdrop-blur-md rounded-lg p-1">
                     <button onclick="setBalanceMode('month')" id="btn-mode-month" class="toggle-btn px-3 py-1 rounded-md text-xs font-bold bg-white text-blue-900 shadow-sm">Mes</button>
                     <button onclick="setBalanceMode('total')" id="btn-mode-total" class="toggle-btn px-3 py-1 rounded-md text-xs font-medium text-blue-100 hover:bg-white/10">Total</button>
                 </div>
-
                 <p class="text-blue-100 text-sm font-medium mb-1 mt-6" id="balance-label">Saldo del Mes</p>
                 <h2 class="text-4xl font-bold mb-4" id="total-balance">$0.00</h2>
-                
                 <div class="flex gap-4">
                     <div class="bg-white/20 rounded-lg p-2 px-3 backdrop-blur-sm flex-1">
                         <p class="text-xs text-blue-100 mb-1 flex items-center gap-1"><i class="ph ph-arrow-down text-green-300"></i> Ingresos</p>
@@ -118,11 +259,9 @@
                          <button onclick="setChartType('categories')" id="btn-chart-categories" class="toggle-btn px-3 py-1 rounded-md text-xs font-medium text-gray-500 hover:bg-gray-200">Gastos</button>
                     </div>
                 </div>
-                
                 <div class="h-48 w-full relative">
                     <canvas id="financeChart"></canvas>
                 </div>
-
                 <div id="chart-insight" class="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-800 flex items-start gap-2 hidden">
                     <i class="ph ph-lightbulb text-lg flex-shrink-0"></i>
                     <span id="chart-insight-text">Analizando datos...</span>
@@ -172,13 +311,11 @@
         <!-- VIEW: HISTORY -->
         <div id="view-history" class="p-6 hidden fade-in">
             <h2 class="text-xl font-bold mb-4">Historial Completo</h2>
-            
             <div class="flex gap-2 mb-6 overflow-x-auto pb-2 hide-scrollbar">
                 <button onclick="filterHistory('all')" class="filter-btn active px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-medium whitespace-nowrap transition" data-filter="all">Todos</button>
                 <button onclick="filterHistory('income')" class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 border border-gray-200 text-sm font-medium whitespace-nowrap transition" data-filter="income">Ingresos</button>
                 <button onclick="filterHistory('expense')" class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 border border-gray-200 text-sm font-medium whitespace-nowrap transition" data-filter="expense">Gastos</button>
             </div>
-
             <div id="full-history-list" class="space-y-3 pb-20">
                 <div class="text-center text-gray-400 py-10">Cargando historial...</div>
             </div>
@@ -190,11 +327,9 @@
                 <h2 class="text-xl font-bold">Pagos Fijos</h2>
                 <button onclick="openModal('fixed-modal')" class="text-blue-600 text-sm font-medium flex items-center gap-1"><i class="ph ph-plus"></i> Nuevo</button>
             </div>
-            
             <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
                 <p class="text-sm text-blue-800"><i class="ph ph-info inline mr-1"></i> Aquí puedes ver tus suscripciones. Usa el botón <i class="ph ph-check-circle inline text-blue-600"></i> para registrarlos como pagados este mes.</p>
             </div>
-
             <div id="fixed-list" class="space-y-4 grid grid-cols-1 gap-4">
                 <div class="text-center text-gray-400 py-10">Cargando pagos fijos...</div>
             </div>
@@ -203,13 +338,28 @@
         <!-- VIEW: SETTINGS -->
         <div id="view-settings" class="p-6 hidden fade-in">
             <h2 class="text-xl font-bold mb-6">Configuración</h2>
-
             <div class="space-y-6">
+                <!-- User Profile -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                         <div class="bg-blue-100 p-2 rounded-full text-blue-600" id="user-avatar-placeholder">
+                             <i class="ph ph-user text-xl"></i>
+                         </div>
+                         <img id="user-avatar-img" src="" class="w-10 h-10 rounded-full hidden" alt="Avatar">
+                         <div class="overflow-hidden">
+                             <p class="font-bold text-sm text-gray-900 truncate" id="user-name-display">Usuario</p>
+                             <p class="text-xs text-gray-500 truncate" id="user-email-display">usuario@email.com</p>
+                         </div>
+                    </div>
+                    <button onclick="logout()" class="text-red-500 text-sm font-medium hover:bg-red-50 p-2 rounded-lg transition">
+                        <i class="ph ph-sign-out text-lg"></i>
+                    </button>
+                </div>
+
                 <!-- Payday Setting -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="font-semibold mb-2 flex items-center gap-2"><i class="ph ph-calendar text-blue-600"></i> Frecuencia de Nómina</h3>
                     <p class="text-sm text-gray-500 mb-3">Configura cuándo recibes tus pagos. El sistema ajustará automáticamente si cae en fin de semana o festivo.</p>
-                    
                     <div class="space-y-3 mb-4">
                         <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
                             <input type="radio" name="pay-freq" value="biweekly" class="w-4 h-4 text-blue-600" onchange="togglePaydayInput()">
@@ -233,7 +383,6 @@
                             </div>
                         </label>
                     </div>
-
                     <!-- Monthly Input -->
                     <div id="monthly-select-container" class="hidden mb-4">
                         <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Día de pago</label>
@@ -242,7 +391,6 @@
                             <!-- JS fills 1-31 -->
                         </select>
                     </div>
-
                     <!-- Custom Bi-weekly Input -->
                     <div id="biweekly-custom-container" class="hidden grid grid-cols-2 gap-4 mb-4">
                         <div>
@@ -258,32 +406,28 @@
                             </select>
                         </div>
                     </div>
-
                     <button onclick="saveSettings()" class="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition">Guardar Configuración</button>
                 </div>
 
                 <!-- Data Management -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="font-semibold mb-2 flex items-center gap-2"><i class="ph ph-database text-blue-600"></i> Estado de la Nube</h3>
-                    <p class="text-xs text-gray-500 mb-1">Conectado a la carpeta de usuario:</p>
+                    <p class="text-xs text-gray-500 mb-1">ID de Usuario (Privado):</p>
                     <div class="bg-gray-100 p-2 rounded text-xs font-mono text-gray-600 break-all mb-3 select-all" id="user-id-display">
                         Esperando conexión...
                     </div>
-                    
                     <h3 class="font-semibold mb-2 flex items-center gap-2 mt-4"><i class="ph ph-trash text-red-500"></i> Zona de Peligro</h3>
-                    <p class="text-sm text-gray-500 mb-3">Los datos se almacenan en tu cuenta de Firebase.</p>
-                    <button onclick="resetApp()" class="w-full border border-red-200 text-red-500 py-2 rounded-lg font-medium hover:bg-red-50 transition">Resetear Cuenta</button>
+                    <button onclick="resetApp()" class="w-full border border-red-200 text-red-500 py-2 rounded-lg font-medium hover:bg-red-50 transition">Borrar Mis Datos</button>
                 </div>
-
                 <div class="text-center text-xs text-gray-400 mt-10">
-                    Versión 2.1.0 - Cloud ID Verify
+                    Versión 2.3.0 - God's Plan Auth
                 </div>
             </div>
         </div>
     </main>
 
     <!-- BOTTOM NAVIGATION -->
-    <nav class="bg-white border-t border-gray-200 fixed bottom-0 w-full pb-safe z-20">
+    <nav class="bg-white border-t border-gray-200 fixed bottom-0 w-full pb-safe z-20" id="bottom-nav">
         <div class="flex justify-around items-center h-16">
             <button onclick="switchTab('dashboard')" class="nav-item active flex flex-col items-center justify-center w-full h-full text-gray-400 transition" id="nav-dashboard">
                 <i class="ph ph-squares-four text-2xl mb-1"></i>
@@ -312,7 +456,6 @@
                 <h3 class="text-xl font-bold">Nuevo Movimiento</h3>
                 <button onclick="closeModal('transaction-modal')" class="p-2 bg-gray-100 rounded-full"><i class="ph ph-x"></i></button>
             </div>
-            
             <form id="transaction-form" onsubmit="addTransaction(event)">
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <label class="cursor-pointer">
@@ -328,7 +471,6 @@
                         </div>
                     </label>
                 </div>
-
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Monto</label>
                     <div class="relative">
@@ -336,12 +478,10 @@
                         <input type="number" id="t-amount" step="0.01" class="w-full pl-8 p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 text-lg font-semibold" placeholder="0.00" required>
                     </div>
                 </div>
-
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Concepto</label>
                     <input type="text" id="t-title" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500" placeholder="Ej. Supermercado, Nómina" required>
                 </div>
-
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
@@ -362,7 +502,6 @@
                         <input type="date" id="t-date" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500" required>
                     </div>
                 </div>
-
                 <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition">Guardar Movimiento</button>
             </form>
         </div>
@@ -376,13 +515,11 @@
                 <h3 class="text-xl font-bold">Nuevo Pago Fijo</h3>
                 <button onclick="closeModal('fixed-modal')" class="p-2 bg-gray-100 rounded-full"><i class="ph ph-x"></i></button>
             </div>
-            
             <form id="fixed-form" onsubmit="addFixed(event)">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Servicio</label>
                     <input type="text" id="f-title" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500" placeholder="Ej. Netflix, Renta" required>
                 </div>
-
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Monto Aprox.</label>
@@ -395,7 +532,6 @@
                         </select>
                     </div>
                 </div>
-
                 <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition">Guardar Pago Fijo</button>
             </form>
         </div>
@@ -410,10 +546,9 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithCustomToken, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, setDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIG & INIT ---
         const firebaseConfig = {
             apiKey: "AIzaSyC-cUzYmh5G9y_W2RXbO1Uma4DlKKmnnss",
             authDomain: "godsplan-adherencia.firebaseapp.com",
@@ -429,162 +564,226 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         let currentUser = null;
-        let listeners = []; // Store unsubscribe functions
+        let listeners = [];
+        let authMode = 'login'; // 'login' or 'register'
 
         // --- GLOBAL STATE ---
         window.appData = {
             transactions: [],
             fixed: [],
-            settings: {
-                frequency: 'biweekly',
-                payday: null,
-                payday1: null,
-                payday2: null
-            }
+            settings: { frequency: 'biweekly', payday: null, payday1: null, payday2: null }
         };
 
-        // --- AUTHENTICATION ---
+        // --- AUTHENTICATION FLOW ---
         async function initAuth() {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try {
                     await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    // Validar si tenemos API Key real antes de intentar login
-                    if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "TU_API_KEY_AQUI") {
-                        await signInAnonymously(auth);
-                    } else {
-                        console.log("Esperando configuración válida de Firebase...");
-                        document.getElementById('loading-screen').innerHTML = `
-                            <div class="text-center p-6">
-                                <i class="ph ph-warning text-4xl text-yellow-500 mb-2"></i>
-                                <p class="text-gray-800 font-bold">Falta Configuración</p>
-                                <p class="text-xs text-gray-500 mt-1">No se detectó __firebase_config ni manual.</p>
-                            </div>
-                        `;
-                    }
-                }
-            } catch (error) {
-                console.error("Auth Error:", error);
-                showToast("Error de autenticación");
+                } catch (error) { console.error("Custom token error", error); }
+            } else {
+                setTimeout(() => {
+                   if(!auth.currentUser) showLoginScreen();
+                }, 1000);
             }
         }
 
         onAuthStateChanged(auth, (user) => {
+            const loadingScreen = document.getElementById('loading-screen');
+            const loginView = document.getElementById('login-view');
+            const mainContainer = document.getElementById('main-container');
+            const bottomNav = document.getElementById('bottom-nav');
+
             if (user) {
                 currentUser = user;
-                // Mostrar el UID en la interfaz para confirmar que coincide con tu carpeta
+                // Update UI Profile
                 const uidDisplay = document.getElementById('user-id-display');
-                if(uidDisplay) {
-                    uidDisplay.textContent = user.uid;
-                    // Si el UID coincide con GHrSUS..., indicarlo visualmente
-                    if(user.uid === 'GHrSUSQ5nBd37rWS17RTJ6i8UJC3') {
-                        uidDisplay.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-200');
-                        uidDisplay.classList.remove('bg-gray-100', 'text-gray-600');
+                if(uidDisplay) uidDisplay.textContent = user.uid;
+                
+                const nameDisplay = document.getElementById('user-name-display');
+                if(nameDisplay) nameDisplay.textContent = user.displayName || 'Usuario';
+                
+                const emailDisplay = document.getElementById('user-email-display');
+                if(emailDisplay) emailDisplay.textContent = user.email || 'Sin email';
+                
+                if(user.photoURL) {
+                    const avatarImg = document.getElementById('user-avatar-img');
+                    if(avatarImg) {
+                        avatarImg.src = user.photoURL;
+                        avatarImg.classList.remove('hidden');
+                        document.getElementById('user-avatar-placeholder').classList.add('hidden');
                     }
                 }
-                
+
                 setupRealtimeListeners(user.uid);
-                // Hide loading screen
-                setTimeout(() => {
-                    document.getElementById('loading-screen').classList.add('opacity-0');
-                    setTimeout(() => {
-                        document.getElementById('loading-screen').classList.add('hidden');
-                    }, 500);
-                }, 800);
+                
+                // Show App
+                loadingScreen.classList.add('hidden');
+                loginView.classList.add('hidden');
+                mainContainer.classList.remove('hidden');
+                bottomNav.classList.remove('hidden');
+                renderDashboard();
+
             } else {
                 currentUser = null;
-                // Optional: Show login UI if needed, but handled externally usually
+                listeners.forEach(unsub => unsub());
+                listeners = [];
+                
+                // Show Login
+                loadingScreen.classList.add('hidden');
+                mainContainer.classList.add('hidden');
+                bottomNav.classList.add('hidden');
+                loginView.classList.remove('hidden');
             }
         });
 
+        function showLoginScreen() {
+             document.getElementById('loading-screen').classList.add('hidden');
+             document.getElementById('login-view').classList.remove('hidden');
+        }
+
+        // --- APP OBJECT FOR AUTH UI ---
+        window.app = {
+            toggleAuth: function(mode) {
+                authMode = mode;
+                const container = document.getElementById('auth-switch-container');
+                const btnLogin = document.getElementById('tab-login');
+                const btnRegister = document.getElementById('tab-register');
+                const fieldName = document.getElementById('field-name');
+                const btnText = document.getElementById('btn-text');
+                const errorMsg = document.getElementById('auth-error-msg');
+
+                container.setAttribute('data-state', mode);
+                errorMsg.classList.add('hidden');
+                
+                if(mode === 'register') {
+                    btnLogin.classList.remove('active');
+                    btnRegister.classList.add('active');
+                    fieldName.classList.remove('hidden');
+                    btnText.textContent = "CREAR CUENTA";
+                } else {
+                    btnRegister.classList.remove('active');
+                    btnLogin.classList.add('active');
+                    fieldName.classList.add('hidden');
+                    btnText.textContent = "INICIAR SESIÓN";
+                }
+            },
+
+            handleAuthSubmit: async function() {
+                const email = document.getElementById('input-id').value;
+                const pass = document.getElementById('input-pass').value;
+                const name = document.getElementById('input-name').value;
+                const errorMsg = document.getElementById('auth-error-msg');
+                const errorTxt = document.getElementById('auth-error-txt');
+
+                errorMsg.classList.add('hidden');
+
+                if (!email || !pass) {
+                    errorTxt.textContent = "Completa todos los campos";
+                    errorMsg.classList.remove('hidden');
+                    return;
+                }
+
+                try {
+                    if (authMode === 'login') {
+                        await signInWithEmailAndPassword(auth, email, pass);
+                    } else {
+                        // Register
+                        if(!name) {
+                            errorTxt.textContent = "El nombre es obligatorio";
+                            errorMsg.classList.remove('hidden');
+                            return;
+                        }
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                        await updateProfile(userCredential.user, { displayName: name });
+                    }
+                } catch (error) {
+                    console.error(error);
+                    errorMsg.classList.remove('hidden');
+                    if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                        errorTxt.textContent = "Credenciales incorrectas";
+                    } else if (error.code === 'auth/email-already-in-use') {
+                        errorTxt.textContent = "El email ya está registrado";
+                    } else if (error.code === 'auth/weak-password') {
+                        errorTxt.textContent = "Contraseña muy débil (min 6 chars)";
+                    } else {
+                        errorTxt.textContent = "Error: " + error.message;
+                    }
+                }
+            },
+
+            loginGoogle: async function() {
+                const provider = new GoogleAuthProvider();
+                try {
+                    await signInWithPopup(auth, provider);
+                } catch (error) {
+                    const errorMsg = document.getElementById('auth-error-msg');
+                    const errorTxt = document.getElementById('auth-error-txt');
+                    errorMsg.classList.remove('hidden');
+                    errorTxt.textContent = "Error Google: " + error.message;
+                }
+            }
+        };
+
+
         // --- FIRESTORE LISTENERS ---
         function setupRealtimeListeners(userId) {
-            // Unsubscribe previous listeners
             listeners.forEach(unsub => unsub());
             listeners = [];
 
-            // NOTA PARA PRODUCCIÓN:
-            // En este entorno de prueba usamos 'artifacts/...' por seguridad.
-            // Cuando lleves esto a tu servidor real, elimina 'artifacts', appId y usa directamente:
-            // collection(db, 'users', userId, 'transactions');
-            
-            // 1. Transactions Listener (Apunta a users/{uid}/transactions)
             const txQuery = collection(db, 'artifacts', appId, 'users', userId, 'transactions');
             const unsubTx = onSnapshot(txQuery, (snapshot) => {
-                window.appData.transactions = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                // Sort by date desc implicitly or handle in render
+                window.appData.transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderDashboard();
                 renderHistory();
             }, (error) => console.error("Tx Listener Error:", error));
             listeners.push(unsubTx);
 
-            // 2. Fixed Payments Listener
             const fixedQuery = collection(db, 'artifacts', appId, 'users', userId, 'fixed');
             const unsubFixed = onSnapshot(fixedQuery, (snapshot) => {
-                window.appData.fixed = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
+                window.appData.fixed = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderFixed();
             }, (error) => console.error("Fixed Listener Error:", error));
             listeners.push(unsubFixed);
 
-            // 3. Settings Listener
             const settingsDoc = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'config');
             const unsubSettings = onSnapshot(settingsDoc, (snapshot) => {
                 if (snapshot.exists()) {
                     window.appData.settings = { ...window.appData.settings, ...snapshot.data() };
                 }
-                setupSettingsUI(); // Update UI to reflect cloud settings
-                renderDashboard(); // Re-render in case payday calc depends on settings
+                setupSettingsUI(); 
+                renderDashboard(); 
             }, (error) => console.error("Settings Listener Error:", error));
             listeners.push(unsubSettings);
         }
 
-        // --- EXPORT GLOBAL FUNCTIONS FOR HTML ACCESS ---
-        // Since we are in a module, we must attach functions to window
+        // --- GLOBAL EXPORTS ---
+        window.loginWithGoogle = window.app.loginGoogle; // Backward compatibility
+        window.logout = async function() {
+            try { await signOut(auth); } catch(error) { console.error(error); }
+        };
         
+        // Data helpers
         window.addTransaction = async function(e) {
             e.preventDefault();
-            if (!currentUser) return showToast("No conectado");
-
+            if (!currentUser) return;
             const form = document.getElementById('transaction-form');
             const type = form.querySelector('input[name="type"]:checked').value;
             const amount = parseFloat(document.getElementById('t-amount').value);
             const title = document.getElementById('t-title').value;
             const category = document.getElementById('t-category').value;
             const dateStr = document.getElementById('t-date').value;
-
-            const newTx = {
-                type,
-                amount,
-                title,
-                category,
-                date: dateStr,
-                createdAt: new Date().toISOString()
-            };
-
+            const newTx = { type, amount, title, category, date: dateStr, createdAt: new Date().toISOString() };
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions'), newTx);
-                
                 form.reset();
                 document.getElementById('t-date').valueAsDate = new Date();
                 document.getElementById('radio-expense').checked = true;
-
-                // Update view to match transaction date context
                 const txDate = new Date(dateStr + 'T00:00:00');
                 window.currentViewDate = new Date(txDate.getFullYear(), txDate.getMonth(), 1);
                 updateHeaderDate();
-
                 closeModal('transaction-modal');
-                showToast('Movimiento guardado en nube');
-            } catch(err) {
-                console.error(err);
-                showToast("Error al guardar");
-            }
+                showToast('Movimiento guardado');
+            } catch(err) { showToast("Error al guardar"); }
         };
 
         window.deleteTransaction = async function(id) {
@@ -592,39 +791,29 @@
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id));
                     showToast("Eliminado");
-                } catch(err) {
-                    showToast("Error al eliminar");
-                }
+                } catch(err) { showToast("Error al eliminar"); }
             }
         };
 
         window.addFixed = async function(e) {
             e.preventDefault();
             if (!currentUser) return;
-
             const title = document.getElementById('f-title').value;
             const amount = parseFloat(document.getElementById('f-amount').value);
             const day = document.getElementById('f-day').value;
-
             try {
-                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'fixed'), {
-                    title, amount, day
-                });
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'fixed'), { title, amount, day });
                 document.getElementById('fixed-form').reset();
                 closeModal('fixed-modal');
                 showToast('Pago fijo agregado');
-            } catch(err) {
-                showToast("Error al guardar");
-            }
+            } catch(err) { showToast("Error al guardar"); }
         };
 
         window.deleteFixed = async function(id) {
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'fixed', id));
                 showToast("Eliminado");
-            } catch(err) {
-                showToast("Error");
-            }
+            } catch(err) { showToast("Error"); }
         };
 
         window.payFixed = function(id) {
@@ -642,63 +831,47 @@
         window.saveSettings = async function() {
             if (!currentUser) return;
             const freq = document.querySelector('input[name="pay-freq"]:checked').value;
-            
             const newSettings = {
                 frequency: freq,
                 payday: document.getElementById('payday-select').value || null,
                 payday1: document.getElementById('payday-1-select').value || null,
                 payday2: document.getElementById('payday-2-select').value || null
             };
-
             try {
                 await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'config'), newSettings, { merge: true });
-                showToast('Configuración sincronizada');
-            } catch(err) {
-                showToast("Error al guardar configuración");
-            }
+                showToast('Configuración guardada');
+            } catch(err) { showToast("Error al guardar"); }
         };
 
         window.resetApp = async function() {
-            if(confirm('⚠️ ¿Estás seguro? Esto borrará TODOS tus datos de la nube.')) {
-                // Since we can't easily delete collections from client in one go efficiently without cloud functions,
-                // we iterate what we have in memory (which is synced).
+            if(confirm('⚠️ ¿Borrar TODOS tus datos? Esta acción no se puede deshacer.')) {
                 const txs = window.appData.transactions;
                 const fixs = window.appData.fixed;
-                
                 txs.forEach(t => deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', t.id)));
                 fixs.forEach(f => deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'fixed', f.id)));
-                
                 showToast("Datos eliminados");
             }
         };
 
-        // Initialize App
         initAuth();
-        
-        // Export UI functions needed by HTML events that aren't data-related
-        // (Like navigation, modal toggles are handled by inline scripts, but data renderers need access to global state)
     </script>
 
     <!-- Standard UI Scripts (Non-module) -->
     <script>
-        // These handle the UI state (View Date, Tabs) which doesn't necessarily need to be in the module scope
-        // but needs access to appData which we attached to window.
-
         let currentViewDate = new Date();
         let balanceMode = 'month'; 
         let chartType = 'balance';
         let financeChart = null;
-
         const COMMON_HOLIDAYS = ['01-01', '01-05', '16-09', '20-11', '25-12'];
 
         document.addEventListener('DOMContentLoaded', () => {
             initDate();
             initSelects();
-            // render functions are called by Firestore listeners
         });
 
         function initDate() {
-            document.getElementById('t-date').valueAsDate = new Date();
+            const dateInput = document.getElementById('t-date');
+            if(dateInput) dateInput.valueAsDate = new Date();
             updateHeaderDate();
         }
 
@@ -706,7 +879,8 @@
             const options = { year: 'numeric', month: 'long' };
             let dateStr = currentViewDate.toLocaleDateString('es-ES', options);
             dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-            document.getElementById('current-date').textContent = dateStr;
+            const el = document.getElementById('current-date');
+            if(el) el.textContent = dateStr;
         }
 
         function changeMonth(offset) {
@@ -731,6 +905,7 @@
                 document.getElementById('payday-2-select')
             ];
             selects.forEach(sel => {
+                if(!sel) return;
                 sel.innerHTML = '<option value="">Día</option>'; 
                 for(let i=1; i<=31; i++) {
                     const opt = document.createElement('option');
@@ -749,15 +924,15 @@
                 el.classList.add('text-gray-400');
             });
             const activeBtn = document.getElementById(`nav-${tabId}`);
-            activeBtn.classList.add('active', 'text-blue-600');
-            activeBtn.classList.remove('text-gray-400');
-
+            if(activeBtn) {
+                activeBtn.classList.add('active', 'text-blue-600');
+                activeBtn.classList.remove('text-gray-400');
+            }
             if(tabId === 'dashboard') renderDashboard();
             if(tabId === 'history') renderHistory();
             if(tabId === 'fixed') renderFixed();
         }
 
-        // --- UI UTILS ---
         function openModal(id) {
             const modal = document.getElementById(id);
             const content = modal.querySelector('div[id$="-content"]');
@@ -790,25 +965,15 @@
             renderDashboard();
         }
 
-        // --- RENDER LOGIC (Consumes window.appData) ---
-
         function renderDashboard() {
-            // Safety check
             if (!window.appData || !window.appData.transactions) return;
-
             const viewMonth = currentViewDate.getMonth();
             const viewYear = currentViewDate.getFullYear();
-
-            let monthIncome = 0;
-            let monthExpense = 0;
-            let categoryExpenses = {};
-            
-            // Filter by month
+            let monthIncome = 0; let monthExpense = 0; let categoryExpenses = {};
             const monthlyTx = window.appData.transactions.filter(t => {
                 const d = new Date(t.date + 'T00:00:00');
                 return d.getMonth() === viewMonth && d.getFullYear() === viewYear;
             });
-
             monthlyTx.forEach(t => {
                 if(t.type === 'income') monthIncome += t.amount;
                 else {
@@ -817,58 +982,46 @@
                     categoryExpenses[t.category] += t.amount;
                 }
             });
-
-            // Calculate Totals
-            let totalIncome = 0;
-            let totalExpense = 0;
+            let totalIncome = 0; let totalExpense = 0;
             window.appData.transactions.forEach(t => {
-                if(t.type === 'income') totalIncome += t.amount;
-                else totalExpense += t.amount;
+                if(t.type === 'income') totalIncome += t.amount; else totalExpense += t.amount;
             });
-
             const displayBalance = balanceMode === 'month' ? (monthIncome - monthExpense) : (totalIncome - totalExpense);
             const displayIncome = balanceMode === 'month' ? monthIncome : totalIncome;
             const displayExpense = balanceMode === 'month' ? monthExpense : totalExpense;
 
-            // Update UI Elements
             const labelEl = document.getElementById('balance-label');
-            if (balanceMode === 'month') {
-                labelEl.textContent = "Saldo de " + currentViewDate.toLocaleDateString('es-ES', { month: 'long' });
-                toggleBtnStyles('btn-mode-month', 'btn-mode-total');
-            } else {
-                labelEl.textContent = "Saldo Total Acumulado";
-                toggleBtnStyles('btn-mode-total', 'btn-mode-month');
+            if(labelEl) {
+                if (balanceMode === 'month') {
+                    labelEl.textContent = "Saldo de " + currentViewDate.toLocaleDateString('es-ES', { month: 'long' });
+                    toggleBtnStyles('btn-mode-month', 'btn-mode-total');
+                } else {
+                    labelEl.textContent = "Saldo Total Acumulado";
+                    toggleBtnStyles('btn-mode-total', 'btn-mode-month');
+                }
             }
-
             document.getElementById('total-balance').textContent = formatCurrency(displayBalance);
             document.getElementById('total-income').textContent = formatCurrency(displayIncome);
             document.getElementById('total-expense').textContent = formatCurrency(displayExpense);
 
             updatePaydayWidget();
 
-            // Recent List
             const recentList = document.getElementById('recent-list');
-            recentList.innerHTML = '';
-            let listTx = balanceMode === 'month' ? monthlyTx : [...window.appData.transactions];
-            listTx.sort((a,b) => new Date(b.date) - new Date(a.date));
-
-            if(listTx.length === 0) {
-                recentList.innerHTML = '<p class="text-center text-sm text-gray-400 py-4">No hay movimientos.</p>';
-            } else {
-                listTx.slice(0, 5).forEach(t => {
-                    recentList.innerHTML += createTransactionHTML(t);
-                });
+            if(recentList) {
+                recentList.innerHTML = '';
+                let listTx = balanceMode === 'month' ? monthlyTx : [...window.appData.transactions];
+                listTx.sort((a,b) => new Date(b.date) - new Date(a.date));
+                if(listTx.length === 0) recentList.innerHTML = '<p class="text-center text-sm text-gray-400 py-4">No hay movimientos.</p>';
+                else listTx.slice(0, 5).forEach(t => recentList.innerHTML += createTransactionHTML(t));
             }
 
-            // Charts & Insights
             if (chartType === 'balance') {
                 toggleBtnStyles('btn-chart-balance', 'btn-chart-categories');
-                document.getElementById('chart-title').textContent = "Balance General";
+                const title = document.getElementById('chart-title'); if(title) title.textContent = "Balance General";
                 updateChart(displayIncome, displayExpense);
             } else {
                 toggleBtnStyles('btn-chart-categories', 'btn-chart-balance');
-                document.getElementById('chart-title').textContent = "Gastos por Categoría";
-                // Logic for category data based on mode
+                const title = document.getElementById('chart-title'); if(title) title.textContent = "Gastos por Categoría";
                 let targetCats = categoryExpenses;
                 if(balanceMode === 'total') {
                     targetCats = {};
@@ -881,7 +1034,6 @@
                 }
                 updateCategoryChart(targetCats);
             }
-
             updateSmartInsight(categoryExpenses, monthIncome, monthExpense);
             updateFormulaCard(viewMonth, viewYear, monthIncome, monthExpense);
         }
@@ -889,6 +1041,7 @@
         function toggleBtnStyles(activeId, inactiveId) {
             const active = document.getElementById(activeId);
             const inactive = document.getElementById(inactiveId);
+            if(!active || !inactive) return;
             active.className = "toggle-btn px-3 py-1 rounded-md text-xs font-bold bg-white text-blue-900 shadow-sm";
             inactive.className = "toggle-btn px-3 py-1 rounded-md text-xs font-medium text-blue-100 hover:bg-white/10";
             if(activeId.includes('chart')) {
@@ -903,7 +1056,6 @@
             const iconBg = isIncome ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600';
             const icon = isIncome ? 'ph-arrow-down-left' : 'ph-shopping-cart';
             const sign = isIncome ? '+' : '-';
-            
             return `
                 <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between mb-2">
                     <div class="flex items-center gap-3">
@@ -925,9 +1077,8 @@
 
         function renderHistory() {
             if(!window.appData) return;
-            const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
-            
-            // Re-apply styles
+            const activeBtn = document.querySelector('.filter-btn.active');
+            const activeFilter = activeBtn ? activeBtn.dataset.filter : 'all';
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 if(btn.dataset.filter === activeFilter) {
                     btn.classList.add('active', 'bg-blue-600', 'text-white', 'border-transparent');
@@ -937,35 +1088,29 @@
                     btn.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
                 }
             });
-
             const list = document.getElementById('full-history-list');
+            if(!list) return;
             list.innerHTML = '';
-
             const filtered = window.appData.transactions.filter(t => {
                 if(activeFilter === 'all') return true;
                 return t.type === activeFilter;
             });
-
             if (filtered.length === 0) {
                 list.innerHTML = '<div class="text-center text-gray-400 py-10">No hay movimientos.</div>';
                 return;
             }
-
             const grouped = {};
             filtered.forEach(t => {
                 if(!grouped[t.date]) grouped[t.date] = [];
                 grouped[t.date].push(t);
             });
-
             const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a));
-
             sortedDates.forEach(date => {
                 const dateHeader = document.createElement('div');
                 const fancyDate = new Date(date + 'T00:00:00').toLocaleDateString('es-ES', {weekday:'short', day:'numeric', month:'long'});
                 dateHeader.className = "text-xs font-bold text-gray-400 uppercase tracking-wider mt-4 mb-2";
                 dateHeader.textContent = fancyDate;
                 list.appendChild(dateHeader);
-
                 grouped[date].forEach(t => {
                     const div = document.createElement('div');
                     div.innerHTML = createTransactionHTML(t);
@@ -977,13 +1122,12 @@
         function renderFixed() {
             if(!window.appData) return;
             const list = document.getElementById('fixed-list');
+            if(!list) return;
             list.innerHTML = '';
-            
             if(window.appData.fixed.length === 0) {
                 list.innerHTML = '<div class="text-center text-gray-400 py-10">No hay pagos fijos configurados.</div>';
                 return;
             }
-
             window.appData.fixed.forEach(f => {
                 list.innerHTML += `
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
@@ -1009,7 +1153,6 @@
             });
         }
 
-        // --- HELPER FUNCTIONS ---
         function formatCurrency(amount) {
             return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
         }
@@ -1019,18 +1162,18 @@
             const s = window.appData.settings;
             const radios = document.getElementsByName('pay-freq');
             for(let r of radios) { if(r.value === s.frequency) r.checked = true; }
-            if(s.payday) document.getElementById('payday-select').value = s.payday;
-            if(s.payday1) document.getElementById('payday-1-select').value = s.payday1;
-            if(s.payday2) document.getElementById('payday-2-select').value = s.payday2;
+            const selPayday = document.getElementById('payday-select'); if(selPayday && s.payday) selPayday.value = s.payday;
+            const selP1 = document.getElementById('payday-1-select'); if(selP1 && s.payday1) selP1.value = s.payday1;
+            const selP2 = document.getElementById('payday-2-select'); if(selP2 && s.payday2) selP2.value = s.payday2;
             togglePaydayInput();
         }
 
         function togglePaydayInput() {
             const freq = document.querySelector('input[name="pay-freq"]:checked')?.value || 'biweekly';
-            document.getElementById('monthly-select-container').classList.add('hidden');
-            document.getElementById('biweekly-custom-container').classList.add('hidden');
-            if (freq === 'monthly') document.getElementById('monthly-select-container').classList.remove('hidden');
-            else if (freq === 'biweekly-custom') document.getElementById('biweekly-custom-container').classList.remove('hidden');
+            const mCont = document.getElementById('monthly-select-container'); if(mCont) mCont.classList.add('hidden');
+            const bCont = document.getElementById('biweekly-custom-container'); if(bCont) bCont.classList.add('hidden');
+            if (freq === 'monthly' && mCont) mCont.classList.remove('hidden');
+            else if (freq === 'biweekly-custom' && bCont) bCont.classList.remove('hidden');
         }
 
         function updateChart(income, expense) {
@@ -1039,7 +1182,6 @@
             let data = [income, expense];
             let colors = ['#22c55e', '#ef4444'];
             if(income === 0 && expense === 0) { data = [1]; colors = ['#e5e7eb']; }
-
             financeChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -1063,7 +1205,6 @@
             const combined = labels.map((label, i) => ({ label, data: data[i] })).sort((a,b) => b.data - a.data);
             const sortedLabels = combined.map(c => c.label);
             const sortedData = combined.map(c => c.data);
-
             if(sortedData.length === 0) {
                  financeChart = new Chart(ctx, {
                     type: 'bar',
@@ -1072,7 +1213,6 @@
                 });
                 return;
             }
-
             financeChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -1090,6 +1230,7 @@
         function updateSmartInsight(categories, income, expense) {
             const insightBox = document.getElementById('chart-insight');
             const insightText = document.getElementById('chart-insight-text');
+            if(!insightBox || !insightText) return;
             if (balanceMode === 'month') {
                 if (expense > income && income > 0) {
                     insightBox.classList.remove('hidden');
@@ -1114,57 +1255,46 @@
         }
 
         function updateFormulaCard(viewMonth, viewYear, currentMonthIncome, currentMonthExpense) {
-            let prevIncome = 0;
-            let prevExpense = 0;
+            let prevIncome = 0; let prevExpense = 0;
             const startOfMonth = new Date(viewYear, viewMonth, 1);
-
             window.appData.transactions.forEach(t => {
                 const tDate = new Date(t.date + 'T00:00:00');
                 if (tDate < startOfMonth) {
-                    if (t.type === 'income') prevIncome += t.amount;
-                    else prevExpense += t.amount;
+                    if (t.type === 'income') prevIncome += t.amount; else prevExpense += t.amount;
                 }
             });
-
             const prevBalance = prevIncome - prevExpense;
             const formulaTotal = prevBalance + currentMonthIncome - currentMonthExpense;
-
-            document.getElementById('formula-prev').textContent = formatCurrency(prevBalance);
             const prevEl = document.getElementById('formula-prev');
-            prevEl.className = prevBalance >= 0 ? "font-bold text-gray-700" : "font-bold text-red-500";
-            document.getElementById('formula-income').textContent = formatCurrency(currentMonthIncome);
-            document.getElementById('formula-expense').textContent = formatCurrency(currentMonthExpense);
-            document.getElementById('formula-total').textContent = formatCurrency(formulaTotal);
+            if(prevEl) {
+                prevEl.textContent = formatCurrency(prevBalance);
+                prevEl.className = prevBalance >= 0 ? "font-bold text-gray-700" : "font-bold text-red-500";
+            }
+            const elInc = document.getElementById('formula-income'); if(elInc) elInc.textContent = formatCurrency(currentMonthIncome);
+            const elExp = document.getElementById('formula-expense'); if(elExp) elExp.textContent = formatCurrency(currentMonthExpense);
+            const elTot = document.getElementById('formula-total'); if(elTot) elTot.textContent = formatCurrency(formulaTotal);
         }
 
-        // Logic for payday (Copied from original but consumes appData.settings)
         function updatePaydayWidget() {
             if(!window.appData.settings) return;
             const widget = document.getElementById('payday-countdown');
             const detail = document.getElementById('payday-detail');
+            if(!widget || !detail) return;
             const freq = window.appData.settings.frequency;
-            
-            // ... (Payday logic same as before, simplified for brevity in this response)
-            // Just ensure it references window.appData.settings
             let configured = true;
             if (freq === 'monthly' && !window.appData.settings.payday) configured = false;
-            // ... Logic follows standard getNextPayday
             const nextDate = getNextPayday();
-            
             if (!configured || !nextDate) {
                 widget.textContent = "Configura tu fecha en Ajustes";
                 detail.textContent = "";
                 return;
             }
-            
             const today = new Date(); today.setHours(0,0,0,0);
             const diffTime = nextDate - today;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-            
             if (diffDays === 0) widget.textContent = "¡Hoy es día de pago! 🎉";
             else if (diffDays === 1) widget.textContent = "¡Mañana pagan!";
             else widget.textContent = `Faltan ${diffDays} días para tu pago`;
-            
             const options = { weekday: 'long', day: 'numeric', month: 'short' };
             detail.textContent = `Fecha estimada: ${nextDate.toLocaleDateString('es-ES', options)}`;
         }
@@ -1176,8 +1306,6 @@
             const currentMonth = today.getMonth();
             const freq = window.appData.settings.frequency;
             const s = window.appData.settings;
-
-            // Simplified logic call
             if (freq === 'biweekly') {
                 for(let m = 0; m <= 1; m++) {
                     let monthIndex = currentMonth + m; let year = currentYear;
@@ -1203,7 +1331,6 @@
                     candidates.push(new Date(year, monthIndex, Math.min(day, maxDay)));
                 }
             }
-
             let adjustedCandidates = candidates.map(d => getNextBusinessDay(d));
             adjustedCandidates.sort((a,b) => a - b);
             for (let d of adjustedCandidates) {
@@ -1213,7 +1340,6 @@
             return adjustedCandidates[0]; 
         }
 
-        // Helper for business days
         function getNextBusinessDay(date) {
             let d = new Date(date);
             let dayOfWeek = d.getDay();
@@ -1230,11 +1356,9 @@
         }
 
         function filterHistory(filterType) {
-            // Update UI class
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                if(btn.dataset.filter === filterType) btn.classList.add('active'); // simplified logic handled in render
+                if(btn.dataset.filter === filterType) btn.classList.add('active'); 
             });
-            // Just trigger re-render, the actual filtering happens in renderHistory based on active class
             renderHistory();
         }
     </script>
