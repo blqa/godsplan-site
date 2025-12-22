@@ -299,15 +299,13 @@
             appId: "1:1008783768310:web:c09fe541a2f4d23e5b8ad7"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // --- CORRECCIÓN AQUÍ: Renombramos 'app' a 'firebaseApp' para evitar conflictos ---
+        const firebaseApp = initializeApp(firebaseConfig);
+        const auth = getAuth(firebaseApp);
+        const db = getFirestore(firebaseApp);
 
         // CLAVE: Esto permite compartir la sesión con la página principal si están en el mismo dominio
         setPersistence(auth, browserLocalPersistence).catch(console.error);
-
-        // ID de la App eliminado de la ruta (ahora usamos root users)
-        // const APP_ID = 'gods-plan-lite-v1'; 
 
         const UI = {
             toast(msg, type = 'default') {
@@ -334,6 +332,7 @@
             { id: 'Otros', icon: 'ph-dots-three-circle', color: 'text-zinc-400' }
         ];
 
+        // Este objeto 'app' ahora es accesible globalmente sin conflictos
         window.app = {
             user: null,
             data: { fixed: [], nextPayDate: null },
@@ -716,7 +715,8 @@
             }
         };
 
-        app.init();
+        // Invocación segura usando el objeto global
+        window.app.init();
     </script>
 </body>
 </html>
