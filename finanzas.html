@@ -28,12 +28,14 @@
                         dark: { 900: '#030303', card: '#0D0D0D' } 
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.4s ease-out',
+                        'fade-in': 'fadeIn 0.3s ease-out',
                         'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'pop': 'pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        pop: { '0%': { transform: 'scale(0.9)' }, '100%': { transform: 'scale(1)' } }
                     }
                 }
             }
@@ -44,10 +46,23 @@
         :root { --sat: env(safe-area-inset-top); --sab: env(safe-area-inset-bottom); }
         body { background-color: #030303; color: #e5e5e5; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; height: 100dvh; }
         
-        /* Glassmorphism consistente con Main Page */
+        /* Glassmorphism */
         .glass { background: rgba(13, 13, 13, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
-        .glass-nav { background: rgba(3, 3, 3, 0.9); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: var(--sab); }
         
+        /* Dynamic Island Navbar */
+        .dynamic-island {
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        
+        .nav-icon.active {
+            background-color: #e5e5e5;
+            color: #000;
+        }
+
         /* Inputs & UI Elements */
         .input-modern { background: #090909; border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 12px; transition: all 0.2s; font-size: 16px !important; }
         .input-modern:focus { border-color: #FF2A2A; outline: none; background: #0D0D0D; }
@@ -88,7 +103,7 @@
             </a>
             <div class="flex flex-col">
                 <span class="font-bold tracking-tight text-white flex items-center gap-2">
-                    FINANZAS <span class="text-[10px] bg-brand/10 text-brand px-1.5 py-0.5 rounded border border-brand/20">LITE</span>
+                    GOD'S PLAN <span class="text-[10px] bg-brand/10 text-brand px-1.5 py-0.5 rounded border border-brand/20">Finanzas</span>
                 </span>
                 <span id="navUserEmail" class="text-[10px] text-zinc-500 font-mono">Conectando...</span>
             </div>
@@ -99,11 +114,14 @@
     </nav>
 
     <!-- CONTENIDO PRINCIPAL -->
-    <main class="flex-1 overflow-y-auto relative scroll-smooth overflow-x-hidden md:px-6 pb-24 md:pb-8">
+    <!-- Agregamos padding-bottom extra para la Dynamic Island -->
+    <main class="flex-1 overflow-y-auto relative scroll-smooth overflow-x-hidden md:px-6 pb-32">
         <div class="w-full max-w-lg md:max-w-4xl mx-auto pt-6">
 
-            <!-- VISTA: BALANCE -->
-            <section id="view-balance" class="px-4 md:px-0 animate-fade-in">
+            <!-- ==============================
+                 VISTA 1: DASHBOARD (Inicio)
+                 ============================== -->
+            <section id="view-dashboard" class="px-4 md:px-0 animate-fade-in">
                 
                 <!-- Tarjeta Principal -->
                 <div class="glass rounded-3xl p-6 relative overflow-hidden group mb-6">
@@ -147,49 +165,82 @@
                     </button>
                 </div>
 
-                <!-- Próximo Pago Config -->
-                <div onclick="app.openModal('nextpay')" class="mb-8 p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-between group">
-                    <div>
-                        <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-1">Próximo Corte / Pago</p>
-                        <h3 id="nextPayDateDisplay" class="text-white font-bold font-mono">Sin definir</h3>
-                    </div>
-                    <div id="daysLeftBadge" class="px-3 py-1 rounded bg-zinc-900 text-xs font-mono text-zinc-400 border border-zinc-800">--</div>
-                </div>
-
-                <!-- Lista de Transacciones -->
+                <!-- Últimos 3 Movimientos -->
                 <div class="mb-4 flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-white">Actividad Reciente</h3>
-                    <div class="relative w-32">
-                        <input type="text" id="searchTx" placeholder="Buscar..." onkeyup="app.filterTransactions()" class="w-full bg-transparent border-b border-white/10 py-1 text-xs text-white focus:border-brand focus:outline-none placeholder-zinc-700">
-                    </div>
+                    <h3 class="text-sm font-bold text-white">Últimos Movimientos</h3>
+                    <button onclick="app.switchView('history')" class="text-xs text-brand font-bold hover:text-white transition-colors">
+                        Ver todo
+                    </button>
                 </div>
 
-                <div id="transactionsList" class="space-y-2 pb-10">
-                    <div class="text-center py-10 text-zinc-600 animate-pulse text-xs">Cargando datos...</div>
+                <div id="homeTransactionsList" class="space-y-2 pb-10">
+                    <div class="text-center py-6 text-zinc-600 animate-pulse text-xs">Cargando...</div>
                 </div>
             </section>
 
-            <!-- VISTA: GASTOS FIJOS -->
-            <section id="view-plan" class="hidden px-4 md:px-0 animate-fade-in">
-                <div class="glass p-6 rounded-3xl mb-6">
+            <!-- ==============================
+                 VISTA 2: MOVIMIENTOS (Historial)
+                 ============================== -->
+            <section id="view-history" class="hidden px-4 md:px-0 animate-fade-in">
+                <div class="mb-10">
+                    <h2 class="text-xl font-bold text-white mb-4">Historial</h2>
+                    
+                    <!-- Buscador -->
+                    <div class="relative w-full mb-6">
+                        <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                        <input type="text" id="searchTx" placeholder="Buscar transacción..." onkeyup="app.renderLogs()" 
+                               class="w-full bg-zinc-900 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:border-brand focus:outline-none placeholder-zinc-600 transition-colors">
+                    </div>
+
+                    <div id="historyTransactionsList" class="space-y-2">
+                        <!-- Lista completa se renderiza aquí -->
+                        <div class="text-center py-10 text-zinc-600 text-xs">Cargando historial...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==============================
+                 VISTA 3: CONFIGURACIÓN
+                 ============================== -->
+            <section id="view-config" class="hidden px-4 md:px-0 animate-fade-in">
+                
+                <!-- Próximo Pago Config (Movido aquí) -->
+                <div class="mb-10">
+                     <h2 class="text-xl font-bold text-white mb-4">Ajustes de Fecha</h2>
+                     <div onclick="app.openModal('nextpay')" class="p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-between group">
+                        <div>
+                            <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-1">Próximo Corte / Pago</p>
+                            <h3 id="nextPayDateDisplay" class="text-white font-bold font-mono">Sin definir</h3>
+                        </div>
+                        <div id="daysLeftBadge" class="px-3 py-1 rounded bg-zinc-900 text-xs font-mono text-zinc-400 border border-zinc-800">--</div>
+                    </div>
+                </div>
+
+                <div class="w-full h-px bg-white/5 mb-10"></div>
+
+                <!-- Configuración (Gastos Fijos) -->
+                <div class="mb-10">
                     <div class="flex justify-between items-center mb-6">
                         <div>
                             <h2 class="text-xl font-bold text-white">Gastos Recurrentes</h2>
-                            <p class="text-xs text-zinc-500 mt-1">Suscripciones, renta, servicios.</p>
+                            <p class="text-xs text-zinc-500 mt-1">Administra tus gastos fijos mensuales.</p>
                         </div>
-                        <button onclick="app.openModal('fixed')" class="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center hover:bg-brand/80 transition-colors shadow-lg shadow-brand/20">
+                        <button onclick="app.openModal('fixed')" class="w-10 h-10 rounded-full bg-zinc-800 border border-white/10 text-white flex items-center justify-center hover:bg-zinc-700 transition-colors">
                             <i class="ph-bold ph-plus"></i>
                         </button>
                     </div>
+                    
                     <div id="fixedExpensesList" class="space-y-3">
                         <!-- JS Render -->
                     </div>
                 </div>
                 
-                <div class="p-6 rounded-3xl bg-zinc-900/50 border border-white/5">
-                    <h3 class="text-sm font-bold text-white mb-4">Zona de Peligro</h3>
-                    <button onclick="app.resetData()" class="w-full py-3 rounded-xl border border-red-900/30 text-red-500 hover:bg-red-900/10 text-xs font-bold transition-all flex items-center justify-center gap-2">
-                        <i class="ph-bold ph-trash"></i> ELIMINAR TODOS LOS DATOS
+                <!-- Zona de Peligro -->
+                <div class="p-6 rounded-3xl bg-red-900/10 border border-red-500/20 mb-10">
+                    <h3 class="text-sm font-bold text-red-500 mb-4">Zona de Peligro</h3>
+                    <p class="text-xs text-zinc-500 mb-4">Esta acción eliminará todos los datos de tu cuenta actual de forma permanente.</p>
+                    <button onclick="app.resetData()" class="w-full py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-trash"></i> RESTABLECER DATOS
                     </button>
                 </div>
             </section>
@@ -197,19 +248,29 @@
         </div>
     </main>
 
-    <!-- BOTTOM NAV (MÓVIL) -->
-    <div class="md:hidden fixed bottom-0 left-0 w-full h-20 glass-nav z-40 grid grid-cols-2 px-6">
-        <button onclick="app.switchView('balance')" class="nav-btn active group flex flex-col items-center justify-center gap-1 text-zinc-600 transition-colors">
-            <i class="ph-fill ph-wallet text-2xl group-[.active]:text-white transition-colors"></i>
-            <span class="text-[10px] font-bold group-[.active]:text-white">Balance</span>
-        </button>
-        <button onclick="app.switchView('plan')" class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 transition-colors">
-            <i class="ph-fill ph-calendar-check text-2xl group-[.active]:text-white transition-colors"></i>
-            <span class="text-[10px] font-bold group-[.active]:text-white">Fijos</span>
-        </button>
+    <!-- DYNAMIC ISLAND NAV (SUBBARRA FLOTANTE) -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-pop">
+        <div class="dynamic-island flex items-center gap-1 p-1.5 rounded-full">
+            
+            <!-- Dashboard -->
+            <button onclick="app.switchView('dashboard')" id="nav-btn-dashboard" class="nav-icon active w-12 h-12 rounded-full flex items-center justify-center text-zinc-500 hover:text-zinc-300 transition-all duration-300">
+                <i class="ph-fill ph-house text-xl"></i>
+            </button>
+
+            <!-- Movimientos -->
+            <button onclick="app.switchView('history')" id="nav-btn-history" class="nav-icon w-12 h-12 rounded-full flex items-center justify-center text-zinc-500 hover:text-zinc-300 transition-all duration-300">
+                <i class="ph-fill ph-list-dashes text-xl"></i>
+            </button>
+            
+            <!-- Configuración -->
+            <button onclick="app.switchView('config')" id="nav-btn-config" class="nav-icon w-12 h-12 rounded-full flex items-center justify-center text-zinc-500 hover:text-zinc-300 transition-all duration-300">
+                <i class="ph-fill ph-gear text-xl"></i>
+            </button>
+
+        </div>
     </div>
 
-    <!-- MODAL OVERLAY -->
+    <!-- MODAL OVERLAY (Mismo código de modal) -->
     <div id="modalOverlay" class="fixed inset-0 bg-black/80 z-[100] flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm" onclick="if(event.target === this) app.closeModal()">
         <div id="modalSheet" class="w-full md:max-w-md bg-[#0F0F0F] rounded-t-3xl md:rounded-3xl border-t md:border border-white/10 p-6 max-h-[85vh] overflow-y-auto">
             
@@ -289,7 +350,7 @@
             writeBatch 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración idéntica a la página principal
+        // Configuración
         const firebaseConfig = {
             apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
             authDomain: "godsplan-blqa.firebaseapp.com",
@@ -299,12 +360,10 @@
             appId: "1:1008783768310:web:c09fe541a2f4d23e5b8ad7"
         };
 
-        // --- CORRECCIÓN AQUÍ: Renombramos 'app' a 'firebaseApp' para evitar conflictos ---
         const firebaseApp = initializeApp(firebaseConfig);
         const auth = getAuth(firebaseApp);
         const db = getFirestore(firebaseApp);
 
-        // CLAVE: Esto permite compartir la sesión con la página principal si están en el mismo dominio
         setPersistence(auth, browserLocalPersistence).catch(console.error);
 
         const UI = {
@@ -332,7 +391,6 @@
             { id: 'Otros', icon: 'ph-dots-three-circle', color: 'text-zinc-400' }
         ];
 
-        // Este objeto 'app' ahora es accesible globalmente sin conflictos
         window.app = {
             user: null,
             data: { fixed: [], nextPayDate: null },
@@ -349,19 +407,14 @@
                         this.setupListeners();
                         console.log("Conectado como:", user.uid);
                     } else {
-                        // Si no hay usuario, redirigir al login principal o intentar anónimo
-                        // En este caso, para no romper el flujo, iniciaremos anónimo si falla, 
-                        // pero mostramos un aviso.
                         document.getElementById('navUserEmail').textContent = "Desconectado";
                         UI.toast("Sesión no detectada. Redirigiendo...", "error");
-                        // Opcional: window.location.href = "/";
                         signInAnonymously(auth);
                     }
                 });
             },
 
             setupListeners() {
-                // Listener de Configuración de Usuario DIRECTO A ROOT
                 const userRef = doc(db, 'users', this.user.uid, 'finance', 'data');
                 onSnapshot(userRef, (snap) => {
                     if (snap.exists()) {
@@ -373,7 +426,6 @@
                     this.calcBalance();
                 });
 
-                // Listener de Transacciones DIRECTO A ROOT
                 const logsRef = collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions');
                 const q = query(logsRef, orderBy('date', 'desc'), limit(500));
                 
@@ -391,7 +443,6 @@
                     else total -= l.amount;
                 });
 
-                // Lógica de "Disponible Hoy"
                 let reserved = 0;
                 let displayAmount = total;
                 let daysLeft = 0;
@@ -406,10 +457,8 @@
                     document.getElementById('nextPayDateDisplay').textContent = payDate.toLocaleDateString('es-MX', { day: 'numeric', month: 'long' });
                     document.getElementById('daysLeftBadge').textContent = daysLeft <= 0 ? "¡Hoy!" : `${daysLeft} días`;
 
-                    // Calcular retenidos (lógica simplificada para demo)
                     const currentDay = today.getDate();
                     (this.data.fixed || []).forEach(f => {
-                         // Si el día de pago es hoy o futuro cercano antes del pago...
                          if (f.day >= currentDay) reserved += parseFloat(f.amount);
                     });
                     
@@ -424,42 +473,55 @@
                 document.getElementById('reservedFixedDisplay').textContent = reserved > 0 ? `-${UI.fmtMoney(reserved)}` : '$0.00';
             },
 
+            createLogElement(l) {
+                const isInc = l.type === 'income';
+                const cat = Categories.find(c => c.id === l.category) || { icon: 'ph-arrow-right', color: 'text-zinc-400' };
+                
+                const el = document.createElement('div');
+                el.className = 'flex items-center justify-between p-3 rounded-xl hover:bg-white/5 cursor-pointer transition-colors border border-transparent hover:border-white/5';
+                el.onclick = () => this.openModal(isInc ? 'extra' : 'expense', l.id);
+                
+                el.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
+                            <i class="ph-fill ${isInc ? 'ph-arrow-down-left text-green-500' : cat.icon + ' ' + cat.color} text-lg"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-bold text-zinc-300 text-sm truncate">${l.desc || l.category}</div>
+                            <div class="text-[10px] text-zinc-500">${new Date(l.date).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                    <div class="font-bold font-mono ${isInc ? 'text-green-500' : 'text-zinc-300'}">
+                        ${isInc ? '+' : '-'}${UI.fmtMoney(l.amount)}
+                    </div>
+                `;
+                return el;
+            },
+
             renderLogs() {
-                const list = document.getElementById('transactionsList');
-                list.innerHTML = '';
+                // 1. Renderizar en INICIO (Solo 3)
+                const homeList = document.getElementById('homeTransactionsList');
+                homeList.innerHTML = '';
+                const recentLogs = this.logs.slice(0, 3);
+                
+                if (recentLogs.length === 0) {
+                    homeList.innerHTML = '<div class="text-center py-8 text-zinc-600 text-xs">Sin movimientos recientes</div>';
+                } else {
+                    recentLogs.forEach(l => homeList.appendChild(this.createLogElement(l)));
+                }
+
+                // 2. Renderizar en MOVIMIENTOS (Todos + Filtro)
+                const historyList = document.getElementById('historyTransactionsList');
+                historyList.innerHTML = '';
                 
                 const filter = document.getElementById('searchTx').value.toLowerCase();
                 const visible = this.logs.filter(l => (l.desc||'').toLowerCase().includes(filter) || (l.category||'').toLowerCase().includes(filter));
 
                 if (visible.length === 0) {
-                    list.innerHTML = '<div class="text-center py-8 text-zinc-600 text-xs">Sin movimientos recientes</div>';
-                    return;
+                    historyList.innerHTML = '<div class="text-center py-8 text-zinc-600 text-xs">No se encontraron movimientos</div>';
+                } else {
+                    visible.forEach(l => historyList.appendChild(this.createLogElement(l)));
                 }
-
-                visible.forEach(l => {
-                    const isInc = l.type === 'income';
-                    const cat = Categories.find(c => c.id === l.category) || { icon: 'ph-arrow-right', color: 'text-zinc-400' };
-                    
-                    const el = document.createElement('div');
-                    el.className = 'flex items-center justify-between p-3 rounded-xl hover:bg-white/5 cursor-pointer transition-colors border border-transparent hover:border-white/5';
-                    el.onclick = () => this.openModal(isInc ? 'extra' : 'expense', l.id);
-                    
-                    el.innerHTML = `
-                        <div class="flex items-center gap-3 overflow-hidden">
-                            <div class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
-                                <i class="ph-fill ${isInc ? 'ph-arrow-down-left text-green-500' : cat.icon + ' ' + cat.color} text-lg"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <div class="font-bold text-zinc-300 text-sm truncate">${l.desc || l.category}</div>
-                                <div class="text-[10px] text-zinc-500">${new Date(l.date).toLocaleDateString()}</div>
-                            </div>
-                        </div>
-                        <div class="font-bold font-mono ${isInc ? 'text-green-500' : 'text-zinc-300'}">
-                            ${isInc ? '+' : '-'}${UI.fmtMoney(l.amount)}
-                        </div>
-                    `;
-                    list.appendChild(el);
-                });
             },
 
             renderFixed() {
@@ -491,8 +553,6 @@
                     list.appendChild(el);
                 });
             },
-
-            filterTransactions() { this.renderLogs(); },
 
             // GESTIÓN DE MODALES
             openModal(type, id = null) {
@@ -546,7 +606,6 @@
                             document.getElementById('inpText').value = log.desc;
                             document.getElementById('inpDate').value = log.date.split('T')[0];
                             btnDel.classList.remove('hidden');
-                            // Seleccionar categoría si existe
                             if(type === 'expense') setTimeout(() => {
                                 Array.from(catContainer.children).forEach(c => {
                                     if(c.textContent.trim().includes(log.category)) c.click();
@@ -586,10 +645,8 @@
                     }
                 }
 
-                // Mostrar Modal
                 document.getElementById('modalOverlay').classList.add('is-open');
                 
-                // Asignar Acciones
                 btn.onclick = () => this.saveData();
                 btnDel.onclick = () => this.deleteData();
             },
@@ -605,7 +662,6 @@
                 const txt = document.getElementById('inpText').value;
                 const type = this.currentModal;
 
-                // Guardar Transacción
                 if (type === 'expense' || type === 'extra' || type === 'adjustment') {
                     if (isNaN(amt)) return UI.toast('Monto inválido', 'error');
                     
@@ -614,12 +670,11 @@
                     
                     const dateVal = document.getElementById('inpDate').value || new Date().toISOString();
                     const finalDate = new Date(dateVal);
-                    // Mantener hora actual para ordenamiento
                     const now = new Date();
                     finalDate.setHours(now.getHours(), now.getMinutes());
 
                     const payload = {
-                        amount: type === 'adjustment' ? 0 : amt, // Ajuste se calcula abajo
+                        amount: type === 'adjustment' ? 0 : amt,
                         desc: txt || (type === 'adjustment' ? 'Ajuste Manual' : category),
                         category: category,
                         type: type === 'extra' ? 'income' : 'expense',
@@ -627,7 +682,6 @@
                     };
 
                     if (type === 'adjustment') {
-                        // Calcular diferencia para ajustar
                         let currentTotal = 0;
                         this.logs.forEach(l => currentTotal += (l.type === 'income' ? l.amount : -l.amount));
                         const diff = amt - currentTotal;
@@ -645,8 +699,6 @@
                         UI.toast('Guardado', 'success');
                     }
                 }
-                
-                // Guardar Fijo
                 else if (type === 'fixed') {
                     const day = parseInt(document.getElementById('inpDayNum').value);
                     if (isNaN(amt) || isNaN(day) || !txt) return UI.toast('Datos incompletos', 'error');
@@ -660,8 +712,6 @@
                     await updateDoc(doc(db, 'users', this.user.uid, 'finance', 'data'), { fixed: newFixed });
                     UI.toast('Fijo guardado', 'success');
                 }
-
-                // Guardar Fecha Pago
                 else if (type === 'nextpay') {
                     const date = document.getElementById('inpDate').value;
                     if (!date) return UI.toast('Fecha requerida', 'error');
@@ -691,10 +741,8 @@
                     const batch = writeBatch(db);
                     const userRef = doc(db, 'users', this.user.uid, 'finance', 'data');
                     
-                    // Reset config
                     batch.set(userRef, { fixed: [], nextPayDate: null });
                     
-                    // Delete logs
                     this.logs.forEach(l => {
                         const ref = doc(db, 'users', this.user.uid, 'finance', 'data', 'transactions', l.id);
                         batch.delete(ref);
@@ -706,16 +754,17 @@
             },
 
             switchView(view) {
-                document.getElementById('view-balance').classList.add('hidden');
-                document.getElementById('view-plan').classList.add('hidden');
+                document.getElementById('view-dashboard').classList.add('hidden');
+                document.getElementById('view-history').classList.add('hidden');
+                document.getElementById('view-config').classList.add('hidden');
+                
                 document.getElementById('view-' + view).classList.remove('hidden');
                 
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                event.currentTarget.classList.add('active');
+                document.querySelectorAll('.nav-icon').forEach(b => b.classList.remove('active'));
+                document.getElementById('nav-btn-' + view).classList.add('active');
             }
         };
 
-        // Invocación segura usando el objeto global
         window.app.init();
     </script>
 </body>
