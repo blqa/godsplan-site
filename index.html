@@ -965,17 +965,12 @@
 
         // LISTENER DE ESTADO DE AUTENTICACIÓN
         onAuthStateChanged(auth, (user) => {
-            ui.setLoading(false); 
             if (user) {
-                const displayName = user.displayName || (user.isAnonymous ? "INVITADO" : user.email.split('@')[0]);
-                document.getElementById('user-name').textContent = displayName.toUpperCase();
-                
+                const name = user.displayName || (user.isAnonymous ? "INVITADO" : user.email.split('@')[0]);
+                document.getElementById('user-name').textContent = name.toUpperCase();
                 const avatar = user.photoURL || 'ph-planet';
                 document.getElementById('nav-user-icon').className = `ph-duotone ${avatar} text-brand text-2xl`;
-
-                const isAuthView = !document.getElementById('view-auth').classList.contains('hidden');
-                if (isAuthView) ui.toggleView('dashboard');
-                
+                ui.toggleView('dashboard');
             } else {
                 ui.toggleView('auth');
             }
@@ -984,4 +979,5 @@
     </script>
 </body>
 </html>
+
 
