@@ -15,12 +15,11 @@
     <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, collection, query, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        // Expose Firebase to global scope for the main script
         window.firebaseImports = {
             initializeApp, getApps, getApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut,
-            getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc
+            getFirestore, doc, onSnapshot, collection, query, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc
         };
     </script>
 
@@ -471,9 +470,9 @@
     <div id="toast-container"></div>
 
     <script type="module">
-        const { initializeApp, getApps, getApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, orderBy, limit, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } = window.firebaseImports;
+        const { initializeApp, getApps, getApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, getFirestore, doc, onSnapshot, collection, query, setDoc, updateDoc, addDoc, deleteDoc, getDocs, writeBatch, getDoc } = window.firebaseImports;
         
-        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-ultimate-v3';
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-finance';
 
         const fallbackConfig = {
             apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
@@ -546,18 +545,24 @@
             
             async init() {
                 if(!auth) return;
+                
+                // Auth Check Pattern per instructions
+                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                if(token) {
+                    try { await signInWithCustomToken(auth, token); } catch(e) { console.error("Token Auth Failed", e); }
+                } else if (!auth.currentUser) {
+                     // Check if already signed in, otherwise wait for interaction or check modal
+                     document.getElementById('authModal').classList.add('active');
+                }
+
                 onAuthStateChanged(auth, async (u) => {
                     if (u) {
                         this.user = u; this.updateUserUI();
                         document.getElementById('authModal').classList.remove('active');
                         this.setupListeners();
                     } else {
-                        const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                        if(token) {
-                            await signInWithCustomToken(auth, token); 
-                        } else {
-                            document.getElementById('authModal').classList.add('active');
-                        }
+                        // Show login modal
+                        document.getElementById('authModal').classList.add('active');
                     }
                 });
             },
@@ -573,11 +578,13 @@
 
             setupListeners() {
                 const uid = this.user.uid;
-                const userRef = doc(db, 'users', uid, 'finance', 'data'); 
-                const txRef = collection(db, 'users', uid, 'finance', 'data', 'transactions');
-                const loansRef = collection(db, 'users', uid, 'finance', 'data', 'loans');
+                
+                // CORRECTED PATHS: artifacts/{appId}/users/{uid}/...
+                const settingsRef = doc(db, 'artifacts', APP_ID, 'users', uid, 'finance', 'settings'); 
+                const txRef = collection(db, 'artifacts', APP_ID, 'users', uid, 'transactions');
+                const loansRef = collection(db, 'artifacts', APP_ID, 'users', uid, 'loans');
 
-                onSnapshot(userRef, (snap) => {
+                onSnapshot(settingsRef, (snap) => {
                     if(snap.exists()) {
                         this.data = { income: 0, incomeQ2: 0, fixed: [], cycle: 'monthly', startDay: 1, day1: 1, day2: 15, enableAdherence: true, extraPayAmount: 0, ...snap.data() };
                         document.getElementById('inpIncome').value = this.data.income || '';
@@ -589,13 +596,19 @@
                         this.calcPeriod();
                         this.updateExtraUI();
                     } else {
-                        setDoc(userRef, { income: 0, fixed: [] }, { merge: true });
+                        setDoc(settingsRef, { income: 0, fixed: [] }, { merge: true });
                     }
                 });
 
-                const q = query(txRef, orderBy('date', 'desc'), limit(1500));
+                // CORRECTED QUERY: No orderBy/Limit in query. Sort in memory.
+                const q = query(txRef);
                 onSnapshot(q, (snap) => {
-                    this.logs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
+                    const allDocs = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    // Sort descending by date
+                    allDocs.sort((a,b) => new Date(b.date) - new Date(a.date));
+                    // Optional: limit in memory if needed for performance, keeping all for calculation accuracy
+                    this.logs = allDocs; 
+                    
                     this.calcBalance();
                     this.renderTransactions();
                     this.processHistory();
@@ -677,19 +690,19 @@
             },
 
             async saveExtraPayDate(val) {
-                await updateDoc(doc(db,'users',this.user.uid,'finance','data'), { nextExtraPayDate: val });
+                await updateDoc(doc(db,'artifacts', APP_ID, 'users',this.user.uid,'finance','settings'), { nextExtraPayDate: val });
                 this.resolvePayDate();
             },
 
             async saveExtraPayValue(val) {
                 const amount = parseFloat(val) || 0;
-                await updateDoc(doc(db,'users',this.user.uid,'finance','data'), { extraPayAmount: amount });
+                await updateDoc(doc(db,'artifacts', APP_ID, 'users',this.user.uid,'finance','settings'), { extraPayAmount: amount });
                 this.calcBalance();
             },
 
             toggleAdherenceModule() {
                 const isEnabled = document.getElementById('adhToggle').checked;
-                updateDoc(doc(db,'users',this.user.uid,'finance','data'), { enableAdherence: isEnabled });
+                updateDoc(doc(db,'artifacts', APP_ID, 'users',this.user.uid,'finance','settings'), { enableAdherence: isEnabled });
             },
 
             toggleSimulation() {
@@ -702,7 +715,7 @@
                 if (amount <= 0) return UI.toast('Monto debe ser mayor a 0', 'error');
                 
                 if (await UI.confirm('Importar Dinero', `¿Registrar ingreso de ${UI.fmtMoney(amount)}?`)) {
-                    await addDoc(collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions'), {
+                    await addDoc(collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions'), {
                         amount: amount, desc: `Cobro Extra`, category: 'Otro', type: 'income', date: new Date().toISOString()
                     });
                     UI.toast('Dinero sumado a billetera', 'success');
@@ -746,14 +759,12 @@
                             
                             // Determine if Q2 based on which day we are closest to starting from
                             const startDayNum = start.getDate();
-                            // If start day is closer to the second configured day (and days are distinct), treat as Q2
                             if (Math.abs(startDayNum - days[1]) < Math.abs(startDayNum - days[0])) {
                                 isQ2 = true;
                             }
                             break;
                         }
                     }
-                    // Fallback if not found (shouldn't happen with wide enough candidates)
                     if (!start) {
                         start = new Date(y, m, 1);
                         end = new Date(y, m + 1, 0);
@@ -829,7 +840,6 @@
                 });
                 this.updateFixedUI(fixedStatus);
 
-                // Calcular Préstamos usando la nueva lista (colección)
                 const totalLoans = this.loansList.reduce((acc, loan) => {
                     const amount = parseFloat(loan.amount) || 0;
                     if (!loan.dueDate) return acc;
@@ -841,8 +851,6 @@
 
                 let baseInc = parseFloat(this.data.income) || 0;
                 
-                // Logic for "Manual" which replaces Biweekly
-                // If it's manual mode, we check our Q2 flag from getCycleParams
                 if (this.data.cycle === 'manual') {
                     const isQ2 = this.getCycleParams(new Date()).isQ2;
                     if (isQ2) { baseInc = parseFloat(this.data.incomeQ2) || baseInc; }
@@ -1177,7 +1185,8 @@
                     payload.type = this.modalType === 'extra' ? 'income' : 'expense';
                 }
 
-                const ref = collection(db, 'users', this.user.uid, 'finance', 'data', 'transactions');
+                // CORRECTED PATH
+                const ref = collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'transactions');
                 
                 if(this.editId) await updateDoc(doc(ref, this.editId), payload);
                 else await addDoc(ref, payload);
@@ -1190,14 +1199,14 @@
                 const arr = [...(this.data.fixed||[])];
                 const item = { name: document.getElementById('fixName').value, amount: parseFloat(document.getElementById('fixAmount').value), day: parseInt(document.getElementById('fixDay').value) };
                 if(this.editId!==null) arr[this.editId]=item; else arr.push(item);
-                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{fixed:arr});
+                await updateDoc(doc(db,'artifacts', APP_ID, 'users',this.user.uid,'finance','settings'),{fixed:arr});
                 this.closeModal(); UI.toast('Fijo guardado','success');
             },
 
             async payFixed(idx) {
                 const f = this.data.fixed[idx];
                 if(await UI.confirm('Pagar Fijo', `¿Registrar pago de ${f.name} por ${UI.fmtMoney(f.amount)}?`)) {
-                    await addDoc(collection(db,'users',this.user.uid,'finance','data','transactions'), {
+                    await addDoc(collection(db,'artifacts', APP_ID, 'users',this.user.uid,'transactions'), {
                         amount: parseFloat(f.amount),
                         desc: `Pago Fijo: ${f.name}`,
                         category: 'Servicios',
@@ -1216,7 +1225,7 @@
                     dueDate: document.getElementById('loanDueDate').value 
                 };
 
-                const ref = collection(db, 'users', this.user.uid, 'finance', 'data', 'loans');
+                const ref = collection(db, 'artifacts', APP_ID, 'users', this.user.uid, 'loans');
 
                 if(this.editId) {
                     await updateDoc(doc(ref, this.editId), payload);
@@ -1230,7 +1239,7 @@
             async saveConfig() {
                 const inc = parseFloat(document.getElementById('inpIncome').value);
                 const incQ2 = parseFloat(document.getElementById('inpIncomeQ2').value);
-                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{income:inc, incomeQ2: incQ2});
+                await updateDoc(doc(db,'artifacts', APP_ID, 'users',this.user.uid,'finance','settings'),{income:inc, incomeQ2: incQ2});
                 UI.toast('Ingresos actualizados','success');
             },
 
@@ -1257,21 +1266,21 @@
                 const d1 = parseInt(document.getElementById('configDay1').value) || 1;
                 const d2 = parseInt(document.getElementById('configDay2').value) || 15;
                 
-                await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{cycle: mode, startDay: startDay, day1: d1, day2: d2});
+                await updateDoc(doc(db,'artifacts', APP_ID, 'users',this.user.uid,'finance','settings'),{cycle: mode, startDay: startDay, day1: d1, day2: d2});
                 UI.toast('Ciclo actualizado','success'); this.closeModal();
             },
 
             async deleteTxConfirm() { 
                 if(await UI.confirm('Borrar','¿Eliminar esta transacción?')) { 
-                    await deleteDoc(doc(db,'users',this.user.uid,'finance','data','transactions',this.editId)); 
+                    await deleteDoc(doc(db,'artifacts', APP_ID, 'users',this.user.uid,'transactions',this.editId)); 
                     this.closeModal(); 
                 } 
             },
-            async deleteFixedConfirm() { if(await UI.confirm('Borrar','¿Eliminar gasto fijo?')) { const arr=this.data.fixed.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'users',this.user.uid,'finance','data'),{fixed:arr}); this.closeModal(); } },
+            async deleteFixedConfirm() { if(await UI.confirm('Borrar','¿Eliminar gasto fijo?')) { const arr=this.data.fixed.filter((_,i)=>i!==this.editId); await updateDoc(doc(db,'artifacts', APP_ID, 'users',this.user.uid,'finance','settings'),{fixed:arr}); this.closeModal(); } },
             
             async deleteLoanConfirm() { 
                 if(await UI.confirm('Liquidar','¿Marcar como pagado y borrar?')) { 
-                    await deleteDoc(doc(db,'users',this.user.uid,'finance','data','loans',this.editId));
+                    await deleteDoc(doc(db,'artifacts', APP_ID, 'users',this.user.uid,'loans',this.editId));
                     this.closeModal(); 
                 } 
             },
@@ -1279,12 +1288,12 @@
             async resetData() {
                  if(await UI.confirm('RESETEO TOTAL','¿Estás seguro? Se borrará TODO.')) {
                      const uid = this.user.uid; const batch = writeBatch(db);
-                     batch.set(doc(db,'users',uid,'finance','data'), {income:0,fixed:[], cycle:'monthly', startDay:1});
+                     batch.set(doc(db,'artifacts', APP_ID, 'users',uid,'finance','settings'), {income:0,fixed:[], cycle:'monthly', startDay:1});
                      
-                     const q = await getDocs(collection(db,'users',uid,'finance','data','transactions'));
+                     const q = await getDocs(collection(db,'artifacts', APP_ID, 'users',uid,'transactions'));
                      q.forEach(d => batch.delete(d.ref));
                      
-                     const qLoans = await getDocs(collection(db,'users',uid,'finance','data','loans'));
+                     const qLoans = await getDocs(collection(db,'artifacts', APP_ID, 'users',uid,'loans'));
                      qLoans.forEach(d => batch.delete(d.ref));
 
                      await batch.commit(); window.location.reload();
