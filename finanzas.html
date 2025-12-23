@@ -295,7 +295,7 @@
                          <div class="mb-6 bg-gradient-to-r from-zinc-900 to-black border border-zinc-800 rounded-2xl p-4 flex justify-between items-center relative overflow-hidden">
                             <div class="absolute inset-0 bg-blue-500/5"></div>
                             <div class="relative z-10">
-                                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-0.5">Presupuesto Diario (Real)</p>
+                                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-0.5">Presupuesto Diario</p>
                                 <p class="text-[10px] text-blue-400 font-bold" id="formula-days-left">Calculando...</p>
                             </div>
                             <span class="font-mono font-bold text-2xl text-white relative z-10 tracking-tight" id="formula-daily">$0.00</span>
@@ -424,6 +424,21 @@
                         <button onclick="saveSettings()" class="w-full bg-white text-black py-3 rounded-xl font-bold text-xs hover:bg-zinc-200 transition">GUARDAR CAMBIOS</button>
                     </div>
 
+                    <!-- Forced Savings -->
+                    <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl md:col-span-2">
+                        <h3 class="font-bold text-zinc-200 text-sm mb-4 flex items-center gap-2"><i class="ph-fill ph-brain text-purple-500"></i> Psicología Financiera</h3>
+                        <label class="flex items-center justify-between p-4 bg-black/40 border border-zinc-800 rounded-xl cursor-pointer hover:border-zinc-600 transition">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold text-zinc-200">Modo "Ahorro Forzoso"</span>
+                                <span class="text-[10px] text-zinc-500 font-medium">Oculta el 10% de tu saldo disponible para engañar a tu cerebro.</span>
+                            </div>
+                            <div class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-forced-savings" class="sr-only peer" onchange="saveSettings()">
+                                <div class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            </div>
+                        </label>
+                    </div>
+
                     <!-- Data -->
                     <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl md:col-span-2">
                         <h3 class="font-bold text-zinc-200 text-sm mb-4">Gestión de Datos</h3>
@@ -535,7 +550,7 @@
                 </button>
              </div>
              <div class="bg-blue-900/10 border border-blue-500/20 p-4 rounded-2xl mb-6 text-center">
-                 <p class="text-[10px] text-blue-400 uppercase font-bold mb-1">Saldo Sistema</p>
+                 <p class="text-[10px] text-blue-400 uppercase font-bold mb-1">Saldo Sistema (Real)</p>
                  <p class="text-2xl font-black text-white" id="adjust-current-display">$0.00</p>
              </div>
              <form onsubmit="submitAdjustment(event)">
@@ -560,20 +575,20 @@
              </div>
              <form id="fixed-form" onsubmit="addFixed(event)">
                  <div class="mb-4">
-                     <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Nombre</label>
-                     <input type="text" id="f-title" class="glass-input w-full p-4 rounded-xl text-sm font-bold placeholder-zinc-600" placeholder="Ej. Netflix" required>
+                      <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Nombre</label>
+                      <input type="text" id="f-title" class="glass-input w-full p-4 rounded-xl text-sm font-bold placeholder-zinc-600" placeholder="Ej. Netflix" required>
                  </div>
                  <div class="grid grid-cols-2 gap-4 mb-6">
-                     <div>
+                      <div>
                         <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Monto</label>
                         <input type="number" id="f-amount" step="0.01" class="glass-input w-full p-4 rounded-xl text-sm font-bold placeholder-zinc-600" placeholder="0.00" required>
-                     </div>
-                     <div>
+                      </div>
+                      <div>
                         <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Día Pago</label>
                         <select id="f-day" class="glass-input w-full p-4 rounded-xl text-sm font-bold appearance-none">
                             <!-- JS Fills -->
                         </select>
-                     </div>
+                      </div>
                  </div>
                  <button type="submit" class="w-full bg-white text-black h-14 rounded-2xl font-black text-sm hover:bg-zinc-200 transition-colors">GUARDAR</button>
              </form>
@@ -614,7 +629,7 @@
         window.appData = {
             transactions: [],
             fixed: [],
-            settings: { frequency: 'biweekly', payday: null }
+            settings: { frequency: 'biweekly', payday: null, forcedSavings: false }
         };
 
         // --- AUTH FUNCTIONS ---
@@ -848,12 +863,14 @@
             const payday = document.getElementById('payday-select').value;
             const payday1 = document.getElementById('payday-1-select').value;
             const payday2 = document.getElementById('payday-2-select').value;
+            const forcedSavings = document.getElementById('toggle-forced-savings').checked;
             
             await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'config'), { 
                 frequency: freq, 
                 payday, 
                 payday1, 
-                payday2 
+                payday2,
+                forcedSavings
             }, { merge: true });
             showToast('Configuración Guardada');
         };
@@ -1038,7 +1055,12 @@
             // Display Values (Based on Mode)
             const showInc = balanceMode === 'month' ? incM : incT;
             const showExp = balanceMode === 'month' ? expM : expT;
-            const bal = showInc - showExp;
+            let bal = showInc - showExp;
+
+            // FORCED SAVINGS LOGIC (VISUAL REDUCTION)
+            if (window.appData.settings.forcedSavings) {
+                bal = bal * 0.90; // Reduce by 10%
+            }
 
             document.getElementById('total-balance').textContent = formatCurrency(bal);
             document.getElementById('total-income').textContent = formatCurrency(showInc);
@@ -1061,8 +1083,9 @@
                 listEl.innerHTML = listHTML;
             }
             
-            // Formula & Payday
-            updatePaydayInfo(totalBalanceReal);
+            // Formula & Payday - Pass the modified balance if Forced Savings is on
+            // This ensures the daily budget also reflects the scarcity
+            updatePaydayInfo(bal);
             updateChart(displayTx);
         }
 
@@ -1425,6 +1448,10 @@
             const selPayday = document.getElementById('payday-select'); if(selPayday && s.payday) selPayday.value = s.payday;
             const selP1 = document.getElementById('payday-1-select'); if(selP1 && s.payday1) selP1.value = s.payday1;
             const selP2 = document.getElementById('payday-2-select'); if(selP2 && s.payday2) selP2.value = s.payday2;
+            
+            // Forced Savings Toggle
+            const toggle = document.getElementById('toggle-forced-savings');
+            if(toggle && s.forcedSavings !== undefined) toggle.checked = s.forcedSavings;
             
             togglePaydayInput();
         }
