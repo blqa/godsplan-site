@@ -870,8 +870,15 @@
         
         // --- ADJUSTMENT ---
         window.openAdjustModal = function() {
-            let bal = 0;
-            window.appData.transactions.forEach(t => bal += (t.type === 'income' ? t.amount : -t.amount));
+            // Integer math for precise sum
+            let balCents = 0;
+            window.appData.transactions.forEach(t => {
+                const amountCents = Math.round(t.amount * 100);
+                if (t.type === 'income') balCents += amountCents;
+                else balCents -= amountCents;
+            });
+            const bal = balCents / 100;
+
             document.getElementById('adjust-current-display').textContent = formatCurrency(bal);
             document.getElementById('adjust-current-display').dataset.raw = bal;
             document.getElementById('adjust-amount').value = '';
@@ -882,7 +889,12 @@
             e.preventDefault();
             const real = parseFloat(document.getElementById('adjust-amount').value);
             const sys = parseFloat(document.getElementById('adjust-current-display').dataset.raw);
-            const diff = real - sys;
+            
+            // Integer Math to find difference
+            // Example: 10.01 - 10.00 = 0.009999 (Floating Point Error)
+            // Fix: (1001 - 1000) / 100 = 0.01 (Correct)
+            const diff = (Math.round(real * 100) - Math.round(sys * 100)) / 100;
+            
             if(Math.abs(diff) < 0.01) return closeModal('adjust-modal');
             
             await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions'), {
@@ -1001,14 +1013,27 @@
                 return tMonth === m && tYear === y;
             });
 
-            // Calcs (Month)
-            let incM = 0, expM = 0;
-            monthlyTx.forEach(t => t.type === 'income' ? incM += t.amount : expM += t.amount);
+            // Calcs (Month) - Using Integer Math
+            let incMCents = 0, expMCents = 0;
+            monthlyTx.forEach(t => {
+                const val = Math.round(t.amount * 100);
+                if (t.type === 'income') incMCents += val;
+                else expMCents += val;
+            });
+            const incM = incMCents / 100;
+            const expM = expMCents / 100;
             
-            // Calcs (Total)
-            let incT = 0, expT = 0;
-            window.appData.transactions.forEach(t => t.type === 'income' ? incT += t.amount : expT += t.amount);
-            const totalBalanceReal = incT - expT;
+            // Calcs (Total) - Using Integer Math
+            let incTCents = 0, expTCents = 0;
+            window.appData.transactions.forEach(t => {
+                 const val = Math.round(t.amount * 100);
+                 if (t.type === 'income') incTCents += val;
+                 else expTCents += val;
+            });
+            const incT = incTCents / 100;
+            const expT = expTCents / 100;
+            
+            const totalBalanceReal = (incTCents - expTCents) / 100;
 
             // Display Values (Based on Mode)
             const showInc = balanceMode === 'month' ? incM : incT;
@@ -1024,16 +1049,16 @@
             document.getElementById('balance-progress').style.width = `${percent}%`;
             document.getElementById('progress-percent').textContent = `${Math.round(percent)}%`;
 
-            // List
+            // List - Optimized DOM Rendering (No innerHTML += in loop)
             const listEl = document.getElementById('recent-list');
-            listEl.innerHTML = '';
             const displayTx = balanceMode === 'month' ? monthlyTx : [...window.appData.transactions];
             displayTx.sort((a,b) => new Date(b.date) - new Date(a.date));
             
             if(displayTx.length === 0) {
                 listEl.innerHTML = '<div class="text-center text-zinc-600 text-xs py-8">Sin movimientos</div>';
             } else {
-                displayTx.slice(0, 5).forEach(t => listEl.innerHTML += createTxHTML(t));
+                const listHTML = displayTx.slice(0, 5).map(t => createTxHTML(t)).join('');
+                listEl.innerHTML = listHTML;
             }
             
             // Formula & Payday
@@ -1103,26 +1128,29 @@
                 if(dateObj.getTime() === today.getTime()) label = "Hoy";
                 else if(dateObj.getTime() === yesterday.getTime()) label = "Ayer";
 
-                groupDiv.innerHTML = `<h3 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-6 mb-2 pl-2">${label}</h3>`;
+                // Optimized DOM Rendering (No innerHTML += in loop)
+                const txItemsHTML = grouped[date].map(t => createTxHTML(t)).join('');
                 
-                const stack = document.createElement('div');
-                stack.className = "space-y-2";
-                grouped[date].forEach(t => {
-                    stack.innerHTML += createTxHTML(t);
-                });
-                groupDiv.appendChild(stack);
+                groupDiv.innerHTML = `
+                    <h3 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-6 mb-2 pl-2">${label}</h3>
+                    <div class="space-y-2">
+                        ${txItemsHTML}
+                    </div>
+                `;
                 list.appendChild(groupDiv);
             });
         }
 
         function renderFixed() {
             const list = document.getElementById('fixed-list');
-            list.innerHTML = '';
+            
             if(window.appData.fixed.length === 0) {
                 list.innerHTML = '<div class="text-center text-zinc-600 py-10 col-span-full">Sin pagos fijos</div>';
                 return;
             }
-            window.appData.fixed.forEach(f => {
+
+            // Optimized DOM Rendering (No innerHTML += in loop)
+            const fixedHTML = window.appData.fixed.map(f => {
                 const isPaid = isFixedPaidThisMonth(f.id);
                 
                 // Styles based on status
@@ -1136,7 +1164,7 @@
                     ? `<div class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-emerald-500 cursor-default"><i class="ph-bold ph-check"></i></div>`
                     : `<button onclick="payFixed('${f.id}')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-emerald-500 hover:bg-emerald-500 hover:text-white transition shadow-lg"><i class="ph-bold ph-check"></i></button>`;
 
-                list.innerHTML += `
+                return `
                 <div class="${containerClass}">
                     <div>
                         <p class="font-bold ${textClass} text-sm">${f.title}</p>
@@ -1148,7 +1176,9 @@
                     </div>
                 </div>
                 `;
-            });
+            }).join('');
+
+            list.innerHTML = fixedHTML;
         }
 
         // --- FORMULA & PAYDAY (LOGIC UPDATE: MONTH END FIX + HOLIDAYS + PENDING FIXED) ---
@@ -1267,14 +1297,19 @@
                     if(parseInt(f.day) === dayNum) {
                         // Check if this specific Fixed Payment has been paid this month
                         if (!isFixedPaidThisMonth(f.id)) {
-                             pendingFixedSum += parseFloat(f.amount);
+                             // Integer math for accumulation
+                             pendingFixedSum = (Math.round(pendingFixedSum * 100) + Math.round(parseFloat(f.amount) * 100)) / 100;
                         }
                     }
                 });
             }
 
             // New Formula: (Balance - Pending Fixed) / Days
-            const effectiveBalance = totalBalance - pendingFixedSum;
+            // Ensure precise subtraction
+            const balanceCents = Math.round(totalBalance * 100);
+            const pendingCents = Math.round(pendingFixedSum * 100);
+            const effectiveBalance = (balanceCents - pendingCents) / 100;
+            
             const daily = effectiveBalance > 0 ? (effectiveBalance / daysLeft) : 0;
 
             document.getElementById('formula-days-left').textContent = `${daysLeft} días • -${formatCurrency(pendingFixedSum)} fijos`;
@@ -1290,7 +1325,10 @@
             // Aggregate Expenses by Category
             const cats = {};
             txs.filter(t => t.type === 'expense').forEach(t => {
-                cats[t.category] = (cats[t.category] || 0) + t.amount;
+                // Precise addition using Integer Math
+                const currentValCents = Math.round((cats[t.category] || 0) * 100);
+                const addValCents = Math.round(t.amount * 100);
+                cats[t.category] = (currentValCents + addValCents) / 100;
             });
 
             const labels = Object.keys(cats);
@@ -1356,14 +1394,19 @@
             container.innerHTML = '';
             const list = type === 'expense' ? CATEGORIES.expense : CATEGORIES.income;
             
+            // Use DocumentFragment for performant DOM Insertion
+            const fragment = document.createDocumentFragment();
+            
             list.forEach(c => {
                 const div = document.createElement('div');
                 div.className = "chip px-4 py-2 rounded-full text-[10px] font-bold cursor-pointer flex items-center gap-1";
                 div.innerHTML = `<i class="ph-fill ${c.icon} ${c.color}"></i> ${c.id}`;
                 div.onclick = () => selectChip(c.id);
                 div.dataset.id = c.id;
-                container.appendChild(div);
+                fragment.appendChild(div);
             });
+            
+            container.appendChild(fragment);
         }
 
         function selectChip(catId) {
