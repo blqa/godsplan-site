@@ -379,6 +379,14 @@
                                 </div>
                                 <span class="text-xs font-bold text-zinc-300">Quincenal (15 y 30)</span>
                             </label>
+
+                            <label class="flex items-center gap-3 p-3 bg-black/40 border border-zinc-800 rounded-xl cursor-pointer hover:border-zinc-600 transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-900/10">
+                                <input type="radio" name="pay-freq" value="biweekly-custom" class="hidden peer" onchange="togglePaydayInput()">
+                                <div class="w-4 h-4 rounded-full border border-zinc-600 peer-checked:bg-emerald-500 peer-checked:border-emerald-500 flex items-center justify-center">
+                                    <div class="w-1.5 h-1.5 bg-black rounded-full opacity-0 peer-checked:opacity-100"></div>
+                                </div>
+                                <span class="text-xs font-bold text-zinc-300">Quincenal (Personalizado)</span>
+                            </label>
                             
                             <label class="flex items-center gap-3 p-3 bg-black/40 border border-zinc-800 rounded-xl cursor-pointer hover:border-zinc-600 transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-900/10">
                                 <input type="radio" name="pay-freq" value="monthly" class="hidden peer" onchange="togglePaydayInput()">
@@ -395,6 +403,22 @@
                             <select id="payday-select" class="glass-input w-full p-2.5 rounded-lg text-xs font-bold appearance-none">
                                 <option value="">Seleccionar día</option>
                             </select>
+                        </div>
+
+                        <!-- Custom Bi-weekly Input -->
+                        <div id="biweekly-custom-container" class="hidden grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="text-[10px] text-zinc-500 font-bold uppercase mb-2 block">Pago 1</label>
+                                <select id="payday-1-select" class="glass-input w-full p-2.5 rounded-lg text-xs font-bold appearance-none">
+                                    <!-- JS fills -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-zinc-500 font-bold uppercase mb-2 block">Pago 2</label>
+                                <select id="payday-2-select" class="glass-input w-full p-2.5 rounded-lg text-xs font-bold appearance-none">
+                                    <!-- JS fills -->
+                                </select>
+                            </div>
                         </div>
                         
                         <button onclick="saveSettings()" class="w-full bg-white text-black py-3 rounded-xl font-bold text-xs hover:bg-zinc-200 transition">GUARDAR CAMBIOS</button>
@@ -797,7 +821,15 @@
         window.saveSettings = async function() {
             const freq = document.querySelector('input[name="pay-freq"]:checked').value;
             const payday = document.getElementById('payday-select').value;
-            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'config'), { frequency: freq, payday }, { merge: true });
+            const payday1 = document.getElementById('payday-1-select').value;
+            const payday2 = document.getElementById('payday-2-select').value;
+            
+            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'config'), { 
+                frequency: freq, 
+                payday, 
+                payday1, 
+                payday2 
+            }, { merge: true });
             showToast('Configuración Guardada');
         };
 
@@ -1038,23 +1070,44 @@
                 return;
             }
             
-            // Simple calc for next date (simplified logic from original)
             const today = new Date();
             let next = new Date();
-            const day = parseInt(set.payday || 15); // Default logic fallback
-            
-            if (today.getDate() >= day) {
-                next.setMonth(next.getMonth() + 1);
-                next.setDate(day);
-            } else {
-                next.setDate(day);
-            }
-            
-            // Bi-weekly approximation
-            if(set.frequency === 'biweekly') {
-                if(today.getDate() < 15) next.setDate(15);
-                else if(today.getDate() >= 15 && today.getDate() < 30) next.setDate(30);
-                else { next.setMonth(next.getMonth()+1); next.setDate(15); }
+            today.setHours(0,0,0,0);
+            next.setHours(0,0,0,0);
+
+            // Calculation Logic
+            if(set.frequency === 'monthly') {
+                const day = parseInt(set.payday || 15);
+                if (today.getDate() >= day) {
+                    next.setMonth(next.getMonth() + 1);
+                    next.setDate(day);
+                } else {
+                    next.setDate(day);
+                }
+            } else if (set.frequency === 'biweekly') {
+                // 15th and Last Day
+                const day15 = new Date(today.getFullYear(), today.getMonth(), 15);
+                const dayLast = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                
+                if (today < day15) next = day15;
+                else if (today < dayLast) next = dayLast;
+                else next = new Date(today.getFullYear(), today.getMonth() + 1, 15);
+            } else if (set.frequency === 'biweekly-custom' && set.payday1 && set.payday2) {
+                // Custom days e.g. 5 and 20
+                const p1 = parseInt(set.payday1);
+                const p2 = parseInt(set.payday2);
+                const d1 = new Date(today.getFullYear(), today.getMonth(), p1);
+                const d2 = new Date(today.getFullYear(), today.getMonth(), p2);
+                
+                // Sort dates for current month
+                const dates = [d1, d2].sort((a,b) => a - b);
+                
+                if (today < dates[0]) next = dates[0];
+                else if (today < dates[1]) next = dates[1];
+                else {
+                    // Next month first date
+                    next = new Date(today.getFullYear(), today.getMonth() + 1, Math.min(p1, p2));
+                }
             }
 
             const diff = Math.ceil((next - today) / (1000 * 60 * 60 * 24));
@@ -1169,11 +1222,29 @@
             document.getElementById('t-category').value = catId;
         }
 
+        function setupSettingsUI() {
+            if(!window.appData.settings) return;
+            const s = window.appData.settings;
+            const radios = document.getElementsByName('pay-freq');
+            for(let r of radios) { if(r.value === s.frequency) r.checked = true; }
+            
+            const selPayday = document.getElementById('payday-select'); if(selPayday && s.payday) selPayday.value = s.payday;
+            const selP1 = document.getElementById('payday-1-select'); if(selP1 && s.payday1) selP1.value = s.payday1;
+            const selP2 = document.getElementById('payday-2-select'); if(selP2 && s.payday2) selP2.value = s.payday2;
+            
+            togglePaydayInput();
+        }
+
         function togglePaydayInput() {
-            const freq = document.querySelector('input[name="pay-freq"]:checked')?.value;
-            const cont = document.getElementById('monthly-select-container');
-            if(freq === 'monthly') cont.classList.remove('hidden');
-            else cont.classList.add('hidden');
+            const freq = document.querySelector('input[name="pay-freq"]:checked')?.value || 'biweekly';
+            const mCont = document.getElementById('monthly-select-container');
+            const bCont = document.getElementById('biweekly-custom-container');
+            
+            if (mCont) mCont.classList.add('hidden');
+            if (bCont) bCont.classList.add('hidden');
+            
+            if (freq === 'monthly' && mCont) mCont.classList.remove('hidden');
+            if (freq === 'biweekly-custom' && bCont) bCont.classList.remove('hidden');
         }
 
         // MODAL HELPERS
@@ -1187,7 +1258,7 @@
 
         // Init Selects
         document.addEventListener('DOMContentLoaded', () => {
-            const sels = [document.getElementById('f-day'), document.getElementById('payday-select')];
+            const sels = [document.getElementById('f-day'), document.getElementById('payday-select'), document.getElementById('payday-1-select'), document.getElementById('payday-2-select')];
             sels.forEach(s => {
                 if(s) {
                     for(let i=1; i<=31; i++) s.innerHTML += `<option value="${i}">${i}</option>`;
