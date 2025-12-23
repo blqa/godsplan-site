@@ -132,14 +132,15 @@
 
         <!-- HEADER -->
         <div class="w-full mb-8 text-center animate-fade-in-up">
-            <h1 class="text-3xl md:text-5xl font-black text-white tracking-tighter mb-2">GENERADOR <span class="text-brand">MACRO MOBIL</span></h1>
+            <h1 class="text-3xl md:text-5xl font-black text-white tracking-tighter mb-2">GENERADOR <span class="text-brand">AUTOMÁTICO</span></h1>
             <p class="text-zinc-500 text-sm md:text-base font-light">Completa tu matrícula y selecciona la región.</p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full animate-fade-in-up" style="animation-delay: 0.1s;">
+        <!-- MAIN GRID: Changed to 2 columns for a 50/50 split -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full animate-fade-in-up" style="animation-delay: 0.1s;">
 
-            <!-- LEFT COLUMN: CONTROLS -->
-            <div class="lg:col-span-4 space-y-6">
+            <!-- LEFT COLUMN: CONTROLS (Formulario) -->
+            <div class="space-y-6 flex flex-col">
                 
                 <!-- 1. CREDENTIALS CARD -->
                 <div class="glass-panel p-6 rounded-2xl relative overflow-hidden">
@@ -156,7 +157,7 @@
                             </div>
                             <div class="relative flex-grow h-[50px]">
                                 <input type="text" id="input-id" class="w-full h-full bg-black/40 border border-border focus:border-brand rounded-r-lg px-4 outline-none transition-all font-mono text-brand uppercase text-lg" placeholder="" autocomplete="off">
-                                <label for="input-id" class="absolute left-4 top-3.5 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">XOC</label>
+                                <label for="input-id" class="absolute left-4 top-3.5 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">Matrícula</label>
                             </div>
                         </div>
 
@@ -219,7 +220,15 @@
                             <span class="text-[10px] opacity-50">IM01</span>
                         </button>
                     </div>
+
+                    <div class="mt-4 pt-4 border-t border-white/5">
+                         <button onclick="generateAll()" class="w-full py-3 bg-zinc-800 hover:bg-white text-zinc-300 hover:text-black font-bold text-sm rounded-lg transition-all flex items-center justify-center gap-2 group border border-zinc-700">
+                            <i class="ph-bold ph-files text-lg"></i>
+                            GENERAR TODAS (R1-R9)
+                        </button>
                     </div>
+                </div>
+
                 <!-- 3. COMPATIBILITY NOTE -->
                 <div class="glass-panel p-6 rounded-2xl border-l-4 border-l-blue-500/50">
                     <div class="flex items-start gap-3">
@@ -238,9 +247,10 @@
                     </div>
                 </div>
             </div>
-            <!-- RIGHT COLUMN: OUTPUT -->
-            <div class="lg:col-span-8 flex flex-col h-full">
-                <div class="glass-panel p-0 rounded-2xl flex-grow flex flex-col overflow-hidden h-full min-h-[500px]">
+
+            <!-- RIGHT COLUMN: OUTPUT (Código) -->
+            <div class="flex flex-col h-full">
+                <div class="glass-panel p-0 rounded-2xl flex-grow flex flex-col overflow-hidden h-full min-h-[500px] sticky top-24">
                     <!-- Toolbar -->
                     <div class="p-4 border-b border-white/5 bg-black/20 flex justify-between items-center">
                         <div class="flex items-center gap-2">
