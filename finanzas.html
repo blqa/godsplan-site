@@ -295,7 +295,7 @@
                          <div class="mb-6 bg-gradient-to-r from-zinc-900 to-black border border-zinc-800 rounded-2xl p-4 flex justify-between items-center relative overflow-hidden">
                             <div class="absolute inset-0 bg-blue-500/5"></div>
                             <div class="relative z-10">
-                                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-0.5">Presupuesto Diario Real</p>
+                                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-0.5">Presupuesto Diario (Real)</p>
                                 <p class="text-[10px] text-blue-400 font-bold" id="formula-days-left">Calculando...</p>
                             </div>
                             <span class="font-mono font-bold text-2xl text-white relative z-10 tracking-tight" id="formula-daily">$0.00</span>
@@ -921,7 +921,10 @@
         let chartInstance = null;
         
         // --- CONSTANTS ---
-        const COMMON_HOLIDAYS = ['01-01', '01-05', '16-09', '20-11', '25-12']; // Basic MX Holidays
+        // Festivos de México (Ley Federal del Trabajo + Comunes)
+        // 1 Ene, 5 Feb, 21 Mar, 1 May, 16 Sep, 20 Nov, 25 Dic
+        const COMMON_HOLIDAYS = ['01-01', '02-05', '03-21', '05-01', '09-16', '11-20', '12-25'];
+
         const CATEGORIES = {
             expense: [
                 { id: 'Comida', icon: 'ph-hamburger', color: 'text-orange-400' },
@@ -1013,8 +1016,7 @@
             }
             
             // Formula & Payday
-            updatePaydayInfo();
-            updateDailyFormula(totalBalanceReal);
+            updatePaydayInfo(totalBalanceReal);
             updateChart(displayTx);
         }
 
@@ -1115,13 +1117,16 @@
             });
         }
 
-        // --- FORMULA & PAYDAY (RESTORED LOGIC) ---
-        function updatePaydayInfo() {
+        // --- FORMULA & PAYDAY (LOGIC UPDATE: MONTH END FIX + HOLIDAYS + PENDING FIXED) ---
+        function updatePaydayInfo(totalBalance) {
             const set = window.appData.settings;
             const badge = document.getElementById('payday-badge');
+            
             if(!set || (set.frequency === 'monthly' && !set.payday)) {
                 badge.textContent = "Sin Config";
                 badge.className = "text-[10px] bg-zinc-800 text-zinc-500 border border-zinc-700 px-3 py-1.5 rounded-full font-mono font-bold";
+                document.getElementById('formula-days-left').textContent = "Configura tu cobro";
+                document.getElementById('formula-daily').textContent = "$0.00";
                 return;
             }
             
@@ -1131,10 +1136,14 @@
             const today = new Date(); today.setHours(0,0,0,0);
             const diff = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
             
+            // Badge Update
             badge.textContent = diff <= 0 ? "¡Hoy Cobras!" : `${diff} Días Restantes`;
             badge.className = diff <= 3 
                 ? "text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full font-mono font-bold whitespace-nowrap shadow-[0_0_10px_rgba(239,68,68,0.1)]"
                 : "text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-full font-mono font-bold whitespace-nowrap shadow-[0_0_10px_rgba(16,185,129,0.1)]";
+
+            // Formula Calculation
+            updateDailyFormula(totalBalance, diff, nextDate);
         }
 
         function getNextPayday() {
@@ -1144,83 +1153,95 @@
             const currentMonth = today.getMonth();
             const s = window.appData.settings;
             
+            // Logic to handle month overflow (Day 0 of next month = Last day of current month)
+            const getSafeDate = (year, month, day) => {
+                const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+                const safeDay = Math.min(day, lastDayOfMonth);
+                return new Date(year, month, safeDay);
+            };
+
             if (s.frequency === 'biweekly') {
                 for(let m = 0; m <= 1; m++) {
                     let monthIndex = currentMonth + m; let year = currentYear;
                     if(monthIndex > 11) { monthIndex = 0; year++; }
-                    candidates.push(new Date(year, monthIndex, 15));
-                    candidates.push(new Date(year, monthIndex + 1, 0));
+                    candidates.push(getSafeDate(year, monthIndex, 15));
+                    candidates.push(getSafeDate(year, monthIndex, 30)); // 30 will auto-adjust for Feb
                 }
             } else if (s.frequency === 'biweekly-custom' && s.payday1 && s.payday2) {
                 const p1 = parseInt(s.payday1); const p2 = parseInt(s.payday2);
                 for(let m = 0; m <= 1; m++) {
                     let monthIndex = currentMonth + m; let year = currentYear;
                     if(monthIndex > 11) { monthIndex = 0; year++; }
-                    const maxDay = new Date(year, monthIndex + 1, 0).getDate();
-                    candidates.push(new Date(year, monthIndex, Math.min(p1, maxDay)));
-                    candidates.push(new Date(year, monthIndex, Math.min(p2, maxDay)));
+                    candidates.push(getSafeDate(year, monthIndex, p1));
+                    candidates.push(getSafeDate(year, monthIndex, p2));
                 }
             } else if (s.frequency === 'monthly' && s.payday) {
                 const day = parseInt(s.payday);
                 for(let m = 0; m <= 1; m++) {
                     let monthIndex = currentMonth + m; let year = currentYear;
                     if(monthIndex > 11) { monthIndex = 0; year++; }
-                    let maxDay = new Date(year, monthIndex + 1, 0).getDate();
-                    candidates.push(new Date(year, monthIndex, Math.min(day, maxDay)));
+                    candidates.push(getSafeDate(year, monthIndex, day));
                 }
             }
             
-            let adjusted = candidates.map(d => getNextBusinessDay(d));
-            adjusted.sort((a,b) => a - b);
+            // Apply Holiday/Weekend Shift Logic to ALL candidates first
+            let adjustedCandidates = candidates.map(d => getNextBusinessDay(d));
+            adjustedCandidates.sort((a,b) => a - b);
             
-            for (let d of adjusted) {
+            // Find first date that is >= Today
+            for (let d of adjustedCandidates) {
                 d.setHours(0,0,0,0);
                 if (d >= today) return d;
             }
-            return adjusted[0];
+            return adjustedCandidates[0]; // Fallback
         }
 
         function getNextBusinessDay(date) {
             let d = new Date(date);
-            // Function to check holidays
-            const isHoliday = (date) => {
-                const dd = date.getDate().toString().padStart(2, '0');
-                const mm = (date.getMonth() + 1).toString().padStart(2, '0');
-                return COMMON_HOLIDAYS.includes(`${dd}-${mm}`);
-            }
-            // Move forward if Sat(6), Sun(0) or Holiday
-            while (d.getDay() === 0 || d.getDay() === 6 || isHoliday(d)) {
+            // Helper to format MM-DD for comparison
+            const fmt = (x) => `${(x.getMonth()+1).toString().padStart(2,'0')}-${x.getDate().toString().padStart(2,'0')}`;
+
+            // Check if Sat(6), Sun(0) or Holiday
+            while (d.getDay() === 0 || d.getDay() === 6 || COMMON_HOLIDAYS.includes(fmt(d))) {
                 d.setDate(d.getDate() + 1);
             }
             return d;
         }
 
-        function updateDailyFormula(totalBalance) {
-            // Formula: Real Money / Days Left Until Next Payday
-            const nextPayday = getNextPayday();
-            const today = new Date(); today.setHours(0,0,0,0);
-            
-            let daily = 0;
-            let daysLeft = 0;
-
-            if (nextPayday) {
-                const diffTime = nextPayday - today;
-                daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            } else {
-                daysLeft = 30; // Default fallback
-            }
-
+        function updateDailyFormula(totalBalance, daysLeft, nextPaydayDate) {
             if(daysLeft <= 0) {
                 // It's payday!
-                daily = totalBalance;
                 document.getElementById('formula-days-left').textContent = "¡Hoy Cobras!";
                 document.getElementById('formula-days-left').className = "text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-0.5";
-            } else {
-                daily = totalBalance > 0 ? (totalBalance / daysLeft) : 0;
-                document.getElementById('formula-days-left').textContent = `${daysLeft} días para cobrar`;
-                document.getElementById('formula-days-left').className = "text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-0.5";
+                document.getElementById('formula-daily').textContent = formatCurrency(totalBalance);
+                return;
             }
 
+            // Logic: Calculate Sum of Fixed Payments due strictly in the remaining period
+            let pendingFixedSum = 0;
+            const today = new Date(); today.setHours(0,0,0,0);
+            
+            // Loop through each day from Tomorrow until Payday
+            // We check if any fixed payment falls on these days
+            for(let i=1; i <= daysLeft; i++) {
+                let checkDate = new Date(today);
+                checkDate.setDate(today.getDate() + i);
+                const dayNum = checkDate.getDate();
+                
+                // Find fixed payments that match this day number
+                window.appData.fixed.forEach(f => {
+                    if(parseInt(f.day) === dayNum) {
+                        pendingFixedSum += parseFloat(f.amount);
+                    }
+                });
+            }
+
+            // New Formula: (Balance - Pending Fixed) / Days
+            const effectiveBalance = totalBalance - pendingFixedSum;
+            const daily = effectiveBalance > 0 ? (effectiveBalance / daysLeft) : 0;
+
+            document.getElementById('formula-days-left').textContent = `${daysLeft} días • -${formatCurrency(pendingFixedSum)} fijos`;
+            document.getElementById('formula-days-left').className = "text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-0.5";
             document.getElementById('formula-daily').textContent = formatCurrency(daily);
         }
 
