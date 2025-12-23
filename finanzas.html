@@ -29,7 +29,7 @@
                     },
                     colors: { 
                         dark: { 900: '#050505', card: '#18181b' },
-                        primary: '#ef4444' // Red theme based on design
+                        primary: '#ef4444'
                     },
                     animation: {
                         'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -510,9 +510,15 @@
                     <input type="date" id="t-date" class="glass-input w-full p-4 rounded-xl text-sm font-bold text-center appearance-none" required>
                 </div>
 
-                <button type="submit" id="btn-save-tx" class="w-full bg-white text-black h-14 rounded-2xl font-black text-sm hover:bg-zinc-200 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-                    GUARDAR
-                </button>
+                <div class="flex flex-col gap-3">
+                    <button type="submit" id="btn-save-tx" class="w-full bg-white text-black h-14 rounded-2xl font-black text-sm hover:bg-zinc-200 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                        GUARDAR
+                    </button>
+                    <!-- Delete button hidden by default, shown via JS when editing -->
+                    <button type="button" id="btn-delete-tx" onclick="deleteCurrentTransaction()" class="hidden w-full bg-red-500/10 text-red-500 h-14 rounded-2xl font-black text-sm hover:bg-red-500 hover:text-white transition-colors border border-red-500/20">
+                        ELIMINAR
+                    </button>
+                </div>
              </form>
         </div>
     </div>
@@ -732,18 +738,16 @@
         }
 
         // --- EXPORTED FUNCTIONS ---
-        // These are attached to window for HTML onclick events
         
         window.openAddModal = function(type) {
             editingTransactionId = null;
             document.getElementById('modal-tx-title').textContent = type === 'expense' ? "Nuevo Gasto" : "Nuevo Ingreso";
+            document.getElementById('btn-save-tx').textContent = "GUARDAR";
+            document.getElementById('btn-delete-tx').classList.add('hidden');
             document.getElementById('transaction-form').reset();
             document.getElementById('t-date').valueAsDate = new Date();
             
-            // Set Hidden Radio
             document.getElementById(type === 'expense' ? 'radio-expense' : 'radio-income').checked = true;
-            
-            // Render Chips based on type
             renderCategoryChips(type);
             
             openModal('transaction-modal');
@@ -774,21 +778,35 @@
         };
 
         window.deleteTransaction = async function(id) {
-            if(confirm('¿Eliminar?')) {
+            // Stop propagation handled in HTML onclick for list items
+            if(confirm('¿Eliminar este movimiento?')) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', id));
                 showToast('Eliminado');
             }
         };
+        
+        window.deleteCurrentTransaction = async function() {
+            if(!editingTransactionId) return;
+            if(confirm('¿Eliminar este movimiento permanentemente?')) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'transactions', editingTransactionId));
+                showToast('Eliminado');
+                closeModal('transaction-modal');
+            }
+        }
 
         window.editTransaction = function(id) {
             const tx = window.appData.transactions.find(t => t.id === id);
             if(!tx) return;
             editingTransactionId = id;
             document.getElementById('modal-tx-title').textContent = "Editar Movimiento";
+            document.getElementById('btn-save-tx').textContent = "ACTUALIZAR";
+            document.getElementById('btn-delete-tx').classList.remove('hidden'); // Show delete button in modal
+            
             document.getElementById('t-amount').value = tx.amount;
             document.getElementById('t-title').value = tx.title;
             document.getElementById('t-date').value = tx.date;
             document.getElementById(tx.type === 'expense' ? 'radio-expense' : 'radio-income').checked = true;
+            
             renderCategoryChips(tx.type);
             selectChip(tx.category);
             openModal('transaction-modal');
@@ -996,7 +1014,6 @@
             
             // Formula & Payday
             updatePaydayInfo();
-            // ALWAYS use Total Balance for Daily Formula (You can't budget money you don't have)
             updateDailyFormula(totalBalanceReal);
             updateChart(displayTx);
         }
@@ -1009,8 +1026,8 @@
             const iconColor = catObj ? catObj.color : 'text-zinc-400';
             
             return `
-            <div onclick="editTransaction('${t.id}')" class="flex justify-between items-center p-3 rounded-2xl bg-zinc-900/30 hover:bg-zinc-800 transition-colors cursor-pointer border border-white/5 group">
-                <div class="flex items-center gap-3 overflow-hidden">
+            <div class="flex justify-between items-center p-3 rounded-2xl bg-zinc-900/30 hover:bg-zinc-800 transition-colors border border-white/5 group relative">
+                <div class="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer" onclick="editTransaction('${t.id}')">
                     <div class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                         <i class="ph-fill ${icon} ${iconColor} text-lg"></i>
                     </div>
@@ -1019,9 +1036,15 @@
                         <p class="text-[10px] text-zinc-600 uppercase font-bold">${t.category} • ${t.date.substring(5)}</p>
                     </div>
                 </div>
-                <span class="font-bold text-sm ${isInc ? 'text-emerald-500' : 'text-zinc-200'} whitespace-nowrap">
-                    ${isInc ? '+' : '-'}${formatCurrency(t.amount)}
-                </span>
+                
+                <div class="flex flex-col items-end gap-1">
+                    <span class="font-bold text-sm ${isInc ? 'text-emerald-500' : 'text-zinc-200'} whitespace-nowrap">
+                        ${isInc ? '+' : '-'}${formatCurrency(t.amount)}
+                    </span>
+                    <button onclick="event.stopPropagation(); deleteTransaction('${t.id}')" class="text-zinc-600 hover:text-red-500 p-1 rounded-md hover:bg-red-500/10 transition z-10" title="Eliminar">
+                        <i class="ph-bold ph-trash"></i>
+                    </button>
+                </div>
             </div>
             `;
         }
