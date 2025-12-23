@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Macro Generator Tool">
+    <meta name="theme-color" content="#000000">
+    <title>GOD'S PLAN // MACRO GEN</title>
+
+    <!-- FAVICON -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪐</text></svg>">
+
+    <!-- LIBRERÍAS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: { DEFAULT: '#FF2A2A', hover: '#D90000', glow: 'rgba(255, 42, 42, 0.5)' },
+                        bg: { main: '#030303', surface: '#0D0D0D', glass: 'rgba(20, 20, 20, 0.6)' },
+                        border: { DEFAULT: 'rgba(255,255,255,0.08)', hover: 'rgba(255,255,255,0.15)' },
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'mesh': 'radial-gradient(circle at 50% -20%, rgba(255, 42, 42, 0.15), transparent 70%)'
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px) scale(0.98)' },
+                            '100%': { opacity: '1', transform: 'translateY(0) scale(1)' }
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.4' },
+                            '50%': { opacity: '0.8' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* BASE & UTILS */
+        body { background-color: #030303; color: #E5E5E5; overflow-x: hidden; }
+        
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #030303; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #FF2A2A; }
+
+        /* GLASSMORPHISM */
+        .glass-panel {
+            background: rgba(13, 13, 13, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* INPUT ANIMATION */
+        .input-group input:focus ~ label,
+        .input-group input:not(:placeholder-shown) ~ label {
+            transform: translateY(-24px) scale(0.85);
+            color: #FF2A2A;
+        }
+
+        /* REGION BUTTONS */
+        .region-btn {
+            transition: all 0.2s ease;
+        }
+        .region-btn:hover {
+            border-color: #FF2A2A;
+            background: rgba(255, 42, 42, 0.1);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .region-btn.active {
+            background: #FF2A2A;
+            color: white;
+            border-color: #FF2A2A;
+            box-shadow: 0 0 20px rgba(255, 42, 42, 0.3);
+        }
+
+        /* TOAST NOTIFICATION */
+        .toast {
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast.show { transform: translateX(0); }
+
+        pre code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative selection:bg-brand selection:text-white">
+
+    <!-- FONDO AMBIENTAL -->
+    <div class="fixed inset-0 z-0 pointer-events-none">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[80vh] bg-mesh opacity-60"></div>
+        <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-brand-glow blur-[120px] rounded-full opacity-10"></div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="fixed top-6 right-6 z-[70] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 w-full z-40 border-b border-border bg-bg-glass backdrop-blur-md px-6 py-3 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <i class="ph-duotone ph-terminal-window text-brand text-2xl"></i>
+            <span class="font-bold tracking-tight text-lg">GOD'S PLAN <span class="text-zinc-500 font-mono text-xs ml-2">// MACRO AUTO-GEN</span></span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span id="nav-time" class="hidden md:block text-xs font-mono text-zinc-500">00:00:00</span>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col items-center justify-start pt-24 pb-12 px-4 relative z-10 w-full max-w-7xl mx-auto">
+
+        <!-- HEADER -->
+        <div class="w-full mb-8 text-center animate-fade-in-up">
+            <h1 class="text-3xl md:text-5xl font-black text-white tracking-tighter mb-2">GENERADOR <span class="text-brand">MACRO MOBIL</span></h1>
+            <p class="text-zinc-500 text-sm md:text-base font-light">Completa tu matrícula y selecciona la región.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full animate-fade-in-up" style="animation-delay: 0.1s;">
+
+            <!-- LEFT COLUMN: CONTROLS -->
+            <div class="lg:col-span-4 space-y-6">
+                
+                <!-- 1. CREDENTIALS CARD -->
+                <div class="glass-panel p-6 rounded-2xl relative overflow-hidden">
+                    <div class="flex items-center gap-2 mb-6">
+                        <i class="ph-bold ph-fingerprint text-brand text-xl"></i>
+                        <h2 class="font-bold text-white">Credenciales</h2>
+                    </div>
+
+                    <div class="space-y-5">
+                        <!-- User ID (X90 Fixed) -->
+                        <div class="relative input-group group flex items-end">
+                            <div class="h-[50px] bg-zinc-900 border border-border border-r-0 rounded-l-lg flex items-center justify-center px-3 text-zinc-400 font-mono font-bold select-none border-zinc-700">
+                                X90
+                            </div>
+                            <div class="relative flex-grow h-[50px]">
+                                <input type="text" id="input-id" class="w-full h-full bg-black/40 border border-border focus:border-brand rounded-r-lg px-4 outline-none transition-all font-mono text-brand uppercase text-lg" placeholder="" autocomplete="off">
+                                <label for="input-id" class="absolute left-4 top-3.5 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">XOC</label>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="relative input-group group">
+                            <input type="password" id="input-pass" class="w-full bg-black/40 border border-border focus:border-brand rounded-lg px-4 py-3 outline-none transition-all placeholder-transparent font-mono" placeholder="Password" autocomplete="off">
+                            <label for="input-pass" class="absolute left-4 top-3 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">Contraseña</label>
+                            <button onclick="togglePass()" class="absolute right-4 top-3.5 text-zinc-600 hover:text-white transition-colors">
+                                <i id="eye-icon" class="ph-bold ph-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. REGION SELECTOR -->
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-globe text-brand text-xl"></i>
+                            <h2 class="font-bold text-white">Seleccionar Región</h2>
+                        </div>
+                        <span id="current-code" class="text-xs font-mono text-zinc-500 bg-zinc-900 px-2 py-1 rounded border border-zinc-800">--</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="setRegion('R1', 'IA01')" class="region-btn p-3 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 font-mono text-sm flex flex-col items-center gap-1 group">
+                            <span class="font-bold group-hover:text-white">R1</span>
+                            <span class="text-[10px] opacity-50">IA01</span>
+                        </button>
+                        <button onclick="setRegion('R2', 'IC01')" class="region-btn p-3 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 font-mono text-sm flex flex-col items-center gap-1 group">
+                            <span class="font-bold group-hover:text-white">R2</span>
+                            <span class="text-[10px] opacity-50">IC01</span>
+                        </button>
+                        <button onclick="setRegion('R3', 'IE01')" class="region-btn p-3 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 font-mono text-sm flex flex-col items-center gap-1 group">
+                            <span class="font-bold group-hover:text-white">R3</span>
+                            <span class="text-[10px] opacity-50">IE01</span>
+                        </button>
+                        <button onclick="setRegion('R4', 'IP01')" class="region-btn p-3 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 font-mono text-sm flex flex-col items-center gap-1 group">
+                            <span class="font-bold group-hover:text-white">R4</span>
+                            <span class="text-[10px] opacity-50">IP01</span>
+                        </button>
+                        <button onclick="setRegion('R5', 'II01')" class="region-btn p-3 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 font-mono text-sm flex flex-col items-center gap-1 group">
+                            <span class="font-bold group-hover:text-white">R5</span>
+                            <span class="text-[10px] opacity-50">II01</span>
+                        </button>
+                        <button onclick="setRegion('R6', 'IK01')" class="region-btn p-3 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 font-mono text-sm flex flex-col items-center gap-1 group">
+                            <span class="font-bold group-hover:text-white">R6</span>
+                            <span class="text-[10px] opacity-50">IK01</span>
+                        </button>
+                        <button onclick="setRegion('R7', 'IS01')" class="region-btn p-3 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 font-mono text-sm flex flex-col items-center gap-1 group">
+                            <span class="font-bold group-hover:text-white">R7</span>
+                            <span class="text-[10px] opacity-50">IS01</span>
+                        </button>
+                        <button onclick="setRegion('R8', 'IQ01')" class="region-btn p-3 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 font-mono text-sm flex flex-col items-center gap-1 group">
+                            <span class="font-bold group-hover:text-white">R8</span>
+                            <span class="text-[10px] opacity-50">IQ01</span>
+                        </button>
+                        <button onclick="setRegion('R9', 'IM01')" class="region-btn p-3 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 font-mono text-sm flex flex-col items-center gap-1 group">
+                            <span class="font-bold group-hover:text-white">R9</span>
+                            <span class="text-[10px] opacity-50">IM01</span>
+                        </button>
+                    </div>
+                    </div>
+                <!-- 3. COMPATIBILITY NOTE -->
+                <div class="glass-panel p-6 rounded-2xl border-l-4 border-l-blue-500/50">
+                    <div class="flex items-start gap-3">
+                        <i class="ph-fill ph-info text-blue-400 text-xl mt-0.5"></i>
+                        <div class="space-y-2">
+                            <h3 class="font-bold text-white text-sm">Compatibilidad Operativa</h3>
+                            <p class="text-[11px] text-zinc-400 leading-relaxed text-justify">
+                                Las regiones <span class="text-white font-bold">R9, R5 y R4</span> son compatibles entre sí. Todas las demás (<span class="text-white font-bold">R1, R2...</span>) son compatibles entre ellas mismas.
+                            </p>
+                            <div class="bg-blue-500/10 p-3 rounded-lg border border-blue-500/20">
+                                <p class="text-[10px] text-blue-200 leading-relaxed">
+                                    <span class="font-bold text-blue-400">TIP:</span> Si abres con R9, ingresa el comando <span class="font-mono text-white bg-blue-500/30 px-1 rounded mx-0.5">Q</span> (donde pondrías FEATS) e ingresa la clave de R5 o R4 para cambiar. Aplica igual para el grupo de R1 hacia sus compatibles.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- RIGHT COLUMN: OUTPUT -->
+            <div class="lg:col-span-8 flex flex-col h-full">
+                <div class="glass-panel p-0 rounded-2xl flex-grow flex flex-col overflow-hidden h-full min-h-[500px]">
+                    <!-- Toolbar -->
+                    <div class="p-4 border-b border-white/5 bg-black/20 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+                            <span class="ml-2 text-xs font-mono text-zinc-500">macro_output.vba</span>
+                        </div>
+                        <button onclick="copyToClipboard()" class="text-xs font-bold bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-brand/20">
+                            <i class="ph-bold ph-copy"></i> COPIAR CÓDIGO
+                        </button>
+                    </div>
+
+                    <!-- Code Area -->
+                    <div class="relative flex-grow bg-[#050505]">
+                        <textarea id="output-area" class="w-full h-full bg-transparent text-sm font-mono text-zinc-300 p-6 resize-none outline-none leading-relaxed" spellcheck="false" placeholder="// El código generado aparecerá aquí..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="mt-12 text-center text-xs text-zinc-600 font-mono">
+            GOD'S PLAN OS // SYSTEM READY
+        </footer>
+
+    </main>
+
+    <!-- LOGICA -->
+    <script>
+        // Reloj
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('nav-time').textContent = now.toLocaleTimeString('es-ES', { hour12: false });
+        }, 1000);
+
+        // Variables Globales
+        let selectedRegion = null;
+        let selectedCode = null;
+
+        // Toggle Password
+        function togglePass() {
+            const input = document.getElementById('input-pass');
+            const icon = document.getElementById('eye-icon');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace('ph-eye', 'ph-eye-slash');
+                icon.classList.add('text-brand');
+            } else {
+                input.type = "password";
+                icon.classList.replace('ph-eye-slash', 'ph-eye');
+                icon.classList.remove('text-brand');
+            }
+        }
+
+        // Template Base - AHORA CON LOGICA DINAMICA DE R0X
+        function getTemplate(userId, password, regionCode, regionName) {
+            // Extraer el numero de la region (ej: "R1" -> "01", "R9" -> "09")
+            const regionNum = regionName.replace('R', '').padStart(2, '0');
+            const initialCommand = `R${regionNum}`; // ej: R09, R01, etc.
+
+            return `Sub ZMain()
+Dim Text, ret
+SendHostKeys ("${initialCommand}<ENTER>")
+ret = WaitForHostUpdate(10)
+ret = WaitForHostUpdate(10)
+ret = WaitForHostUpdate(10)
+ret = WaitForHostUpdate(10)
+ret = WaitForHostUpdate(10)
+SendHostKeys ("<CLEAR>")
+ret = WaitForHostUpdate(10)
+SendHostKeys ("CESN<ENTER>")
+ret = WaitForHostUpdate(10)
+SendHostKeys ("${userId}<TAB>")
+SendHostKeys ("<TAB>")
+SendHostKeys ("${password}<ENTER>")
+ret = WaitForHostUpdate(10)
+SendHostKeys ("${regionCode}<ENTER>")
+ret = WaitForHostUpdate(10)
+SendHostKeys ("FEATS<ENTER>")
+ret = WaitForHostUpdate(10)
+SendHostKeys ("<TAB>")
+End Sub`;
+        }
+
+        // Validar Inputs
+        function validateInputs() {
+            let idPart = document.getElementById('input-id').value.trim();
+            let pass = document.getElementById('input-pass').value.trim();
+            
+            if (!idPart || !pass) {
+                toast("Faltan Credenciales: Completa tu matrícula", "error");
+                return false;
+            }
+
+            // AUTO-FORMATO: Agregar X90 si el usuario no lo puso (aunque hay prefijo visual, por seguridad en el string final)
+            // Como tenemos el prefijo visual fijo "X90", concatenamos directamente.
+            const fullId = "X90" + idPart;
+
+            return { 
+                id: fullId.toUpperCase(), 
+                pass: pass.toUpperCase() // Convertir pass a mayusculas siempre
+            }; 
+        }
+
+        // Selección de Región
+        function setRegion(name, code) {
+            // Actualizar UI Botones
+            document.querySelectorAll('.region-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            // Actualizar Estado
+            selectedRegion = name;
+            selectedCode = code;
+            document.getElementById('current-code').textContent = code;
+            document.getElementById('current-code').classList.add('text-brand', 'border-brand');
+
+            // Generar inmediatamente si hay datos
+            generateSingle();
+        }
+
+        // Generar Macro Única
+        function generateSingle() {
+            const creds = validateInputs();
+            if (!creds) return;
+
+            if (!selectedCode) {
+                toast("Selecciona una Región primero", "warning");
+                return;
+            }
+
+            const macro = getTemplate(creds.id, creds.pass, selectedCode, selectedRegion);
+            document.getElementById('output-area').value = macro;
+            // Efecto visual
+            document.getElementById('output-area').animate([
+                { opacity: 0.5 }, { opacity: 1 }
+            ], { duration: 300 });
+        }
+
+        // Generar TODAS las Macros
+        function generateAll() {
+            const creds = validateInputs();
+            if (!creds) return;
+
+            const regions = [
+                {name: "R1", code: "IA01"}, {name: "R2", code: "IC01"}, {name: "R3", code: "IE01"},
+                {name: "R4", code: "IP01"}, {name: "R5", code: "II01"}, {name: "R6", code: "IK01"},
+                {name: "R7", code: "IS01"}, {name: "R8", code: "IQ01"}, {name: "R9", code: "IM01"}
+            ];
+
+            let fullText = `' ==========================================\n' MACROS GENERADAS PARA ${creds.id}\n' ==========================================\n\n`;
+
+            regions.forEach(reg => {
+                fullText += `' --- REGION ${reg.name} (${reg.code}) ---\n`;
+                let macro = getTemplate(creds.id, creds.pass, reg.code, reg.name);
+                macro = macro.replace("Sub ZMain()", `Sub ZMain_${reg.name}()`); 
+                fullText += macro + "\n\n";
+            });
+
+            document.getElementById('output-area').value = fullText;
+            toast("Pack Completo Generado (R1-R9)", "success");
+        }
+
+        // Copiar al Portapapeles
+        function copyToClipboard() {
+            const text = document.getElementById('output-area').value;
+            if (!text) {
+                toast("No hay código para copiar", "warning");
+                return;
+            }
+
+            navigator.clipboard.writeText(text).then(() => {
+                toast("Macro copiada al portapapeles", "success");
+            }).catch(err => {
+                toast("Error al copiar", "error");
+            });
+        }
+
+        // Sistema de Notificaciones (Toast)
+        function toast(msg, type = 'default') {
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            
+            const colors = {
+                error: 'border-red-500 text-red-100 bg-red-900/90',
+                success: 'border-green-500 text-green-100 bg-green-900/90',
+                warning: 'border-yellow-500 text-yellow-100 bg-yellow-900/90',
+                default: 'border-zinc-700 text-white bg-zinc-900/90'
+            };
+            
+            const iconMap = {
+                error: 'ph-warning-circle',
+                success: 'ph-check-circle',
+                warning: 'ph-warning',
+                default: 'ph-bell'
+            };
+
+            el.className = `toast pointer-events-auto flex items-center gap-3 min-w-[300px] p-4 rounded-lg border backdrop-blur-md shadow-2xl ${colors[type] || colors.default}`;
+            el.innerHTML = `
+                <i class="ph-fill ${iconMap[type] || iconMap.default} text-xl"></i>
+                <div class="text-sm font-medium">${msg}</div>
+            `;
+
+            container.appendChild(el);
+            requestAnimationFrame(() => el.classList.add('show'));
+            setTimeout(() => {
+                el.classList.remove('show');
+                setTimeout(() => el.remove(), 400);
+            }, 4000);
+        }
+
+        // Trigger generation on input (ergonomics)
+        document.getElementById('input-id').addEventListener('input', () => {
+            if(selectedRegion) generateSingle();
+        });
+        document.getElementById('input-pass').addEventListener('input', () => {
+            if(selectedRegion) generateSingle();
+        });
+
+    </script>
+</body>
+</html>
