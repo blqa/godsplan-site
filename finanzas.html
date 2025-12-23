@@ -339,7 +339,7 @@
                 </div>
                  <div class="bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 mb-6 flex gap-3">
                     <i class="ph-fill ph-info text-blue-400 text-lg flex-shrink-0"></i>
-                    <p class="text-xs text-blue-200/70 leading-relaxed">Gestiona tus suscripciones y rentas. Pulsa el check para registrarlos como pagados este mes.</p>
+                    <p class="text-xs text-blue-200/70 leading-relaxed">Gestiona tus suscripciones y rentas. Pulsa el check para registrarlos como pagados este mes. Los pagados no se restan del presupuesto diario.</p>
                 </div>
                 <div id="fixed-list" class="grid grid-cols-1 md:grid-cols-2 gap-3 pb-24">
                     <!-- JS Injected -->
@@ -481,10 +481,11 @@
              </div>
 
              <form id="transaction-form" onsubmit="addTransaction(event)">
-                <!-- Type Toggle Hidden -->
+                <!-- Hidden inputs -->
                 <div class="hidden">
                      <input type="radio" name="type" value="expense" id="radio-expense" checked>
                      <input type="radio" name="type" value="income" id="radio-income">
+                     <input type="hidden" id="t-fixed-id">
                 </div>
 
                 <div class="relative mb-8 text-center">
@@ -723,6 +724,7 @@
                 window.appData.transactions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderDashboard();
                 renderHistory();
+                renderFixed(); // Rerender fixed to update "paid" status
             }));
 
             listeners.push(onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'fixed'), (snap) => {
@@ -739,7 +741,7 @@
 
         // --- EXPORTED FUNCTIONS ---
         
-        window.openAddModal = function(type) {
+        window.openAddModal = function(type, fixedId = null) {
             editingTransactionId = null;
             document.getElementById('modal-tx-title').textContent = type === 'expense' ? "Nuevo Gasto" : "Nuevo Ingreso";
             document.getElementById('btn-save-tx').textContent = "GUARDAR";
@@ -748,6 +750,8 @@
             document.getElementById('t-date').valueAsDate = new Date();
             
             document.getElementById(type === 'expense' ? 'radio-expense' : 'radio-income').checked = true;
+            document.getElementById('t-fixed-id').value = fixedId || ''; // Set fixed ID if coming from fixed list
+            
             renderCategoryChips(type);
             
             openModal('transaction-modal');
@@ -762,8 +766,10 @@
             const title = document.getElementById('t-title').value || (type === 'expense' ? 'Gasto' : 'Ingreso');
             const category = document.getElementById('t-category').value || 'General';
             const date = document.getElementById('t-date').value;
+            const fixedPaymentId = document.getElementById('t-fixed-id').value;
 
             const txData = { type, amount, title, category, date, createdAt: new Date().toISOString() };
+            if(fixedPaymentId) txData.fixedPaymentId = fixedPaymentId;
 
             try {
                 if (editingTransactionId) {
@@ -806,6 +812,7 @@
             document.getElementById('t-title').value = tx.title;
             document.getElementById('t-date').value = tx.date;
             document.getElementById(tx.type === 'expense' ? 'radio-expense' : 'radio-income').checked = true;
+            document.getElementById('t-fixed-id').value = tx.fixedPaymentId || '';
             
             renderCategoryChips(tx.type);
             selectChip(tx.category);
@@ -825,7 +832,7 @@
 
         window.payFixed = function(id) {
             const f = window.appData.fixed.find(x => x.id === id);
-            window.openAddModal('expense');
+            window.openAddModal('expense', id); // Pass ID to link transaction
             document.getElementById('t-amount').value = f.amount;
             document.getElementById('t-title').value = f.title;
             selectChip('Servicios');
@@ -921,8 +928,6 @@
         let chartInstance = null;
         
         // --- CONSTANTS ---
-        // Festivos de México (Ley Federal del Trabajo + Comunes)
-        // 1 Ene, 5 Feb, 21 Mar, 1 May, 16 Sep, 20 Nov, 25 Dic
         const COMMON_HOLIDAYS = ['01-01', '02-05', '03-21', '05-01', '09-16', '11-20', '12-25'];
 
         const CATEGORIES = {
@@ -967,6 +972,20 @@
             renderDashboard();
         }
 
+        // New Helper: Check if fixed payment is paid in current month
+        function isFixedPaidThisMonth(fixedId) {
+            const now = new Date();
+            const m = now.getMonth();
+            const y = now.getFullYear();
+            return window.appData.transactions.some(t => {
+                // Parse date carefully, assuming t.date is YYYY-MM-DD
+                const parts = t.date.split('-');
+                const tYear = parseInt(parts[0]);
+                const tMonth = parseInt(parts[1]) - 1; // JS months are 0-indexed
+                return t.fixedPaymentId === fixedId && tMonth === m && tYear === y;
+            });
+        }
+
         // --- RENDERING ---
         function renderDashboard() {
             if (!window.appData || !window.appData.transactions) return;
@@ -976,8 +995,10 @@
             const y = currentViewDate.getFullYear();
             
             const monthlyTx = window.appData.transactions.filter(t => {
-                const d = new Date(t.date + 'T00:00:00');
-                return d.getMonth() === m && d.getFullYear() === y;
+                const parts = t.date.split('-');
+                const tYear = parseInt(parts[0]);
+                const tMonth = parseInt(parts[1]) - 1;
+                return tMonth === m && tYear === y;
             });
 
             // Calcs (Month)
@@ -1102,14 +1123,27 @@
                 return;
             }
             window.appData.fixed.forEach(f => {
+                const isPaid = isFixedPaidThisMonth(f.id);
+                
+                // Styles based on status
+                const containerClass = isPaid 
+                    ? "bg-emerald-900/10 border border-emerald-500/50 p-4 rounded-2xl flex justify-between items-center transition-all"
+                    : "bg-zinc-900/50 border border-zinc-800 p-4 rounded-2xl flex justify-between items-center transition-all";
+                
+                const textClass = isPaid ? "text-emerald-400" : "text-zinc-200";
+                
+                const actionBtn = isPaid 
+                    ? `<div class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-emerald-500 cursor-default"><i class="ph-bold ph-check"></i></div>`
+                    : `<button onclick="payFixed('${f.id}')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-emerald-500 hover:bg-emerald-500 hover:text-white transition shadow-lg"><i class="ph-bold ph-check"></i></button>`;
+
                 list.innerHTML += `
-                <div class="bg-zinc-900/50 border border-zinc-800 p-4 rounded-2xl flex justify-between items-center">
+                <div class="${containerClass}">
                     <div>
-                        <p class="font-bold text-zinc-200 text-sm">${f.title}</p>
+                        <p class="font-bold ${textClass} text-sm">${f.title}</p>
                         <p class="text-[10px] text-zinc-500 font-bold uppercase">Día ${f.day} • ${formatCurrency(f.amount)}</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="payFixed('${f.id}')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-emerald-500 hover:bg-emerald-500 hover:text-white transition"><i class="ph-bold ph-check"></i></button>
+                        ${actionBtn}
                         <button onclick="deleteFixed('${f.id}')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition"><i class="ph-bold ph-trash"></i></button>
                     </div>
                 </div>
@@ -1231,7 +1265,10 @@
                 // Find fixed payments that match this day number
                 window.appData.fixed.forEach(f => {
                     if(parseInt(f.day) === dayNum) {
-                        pendingFixedSum += parseFloat(f.amount);
+                        // Check if this specific Fixed Payment has been paid this month
+                        if (!isFixedPaidThisMonth(f.id)) {
+                             pendingFixedSum += parseFloat(f.amount);
+                        }
                     }
                 });
             }
@@ -1368,6 +1405,17 @@
         }
         function closeModal(id) {
             document.getElementById(id).classList.remove('is-open');
+        }
+        
+        // Show Toast Helper
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            const tm = document.getElementById('toast-msg');
+            tm.textContent = msg;
+            t.classList.remove('opacity-0', 'translate-y-[-20px]');
+            setTimeout(() => {
+                 t.classList.add('opacity-0', 'translate-y-[-20px]');
+            }, 3000);
         }
 
         // Init Selects
