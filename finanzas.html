@@ -1116,13 +1116,26 @@
             const iconColor = catObj ? catObj.color : 'text-zinc-400';
             
             // Format Date Subtitle
-            const d = new Date(t.date);
-            let timeStr = '';
-            // Only show time if valid date object and not just YYYY-MM-DD
-            if (!isNaN(d.getTime())) {
-                timeStr = t.date.includes('T') 
-                    ? d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
-                    : '';
+            let dateDisplay = '';
+            
+            if (t.date) {
+                if (t.date.includes('T')) {
+                    // New Format: YYYY-MM-DDTHH:MM
+                    const d = new Date(t.date);
+                    if (!isNaN(d.getTime())) {
+                        const day = d.getDate().toString().padStart(2, '0');
+                        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+                        const hour = d.getHours().toString().padStart(2, '0');
+                        const min = d.getMinutes().toString().padStart(2, '0');
+                        dateDisplay = `${day}/${month} ${hour}:${min}`;
+                    }
+                } else {
+                    // Old Format: YYYY-MM-DD
+                    const parts = t.date.split('-');
+                    if (parts.length === 3) {
+                        dateDisplay = `${parts[2]}/${parts[1]}`; // DD/MM
+                    }
+                }
             }
 
             return `
@@ -1134,7 +1147,7 @@
                     <div class="min-w-0">
                         <h4 class="font-bold text-zinc-300 text-xs truncate">${t.title}</h4>
                         <p class="text-[10px] text-zinc-600 uppercase font-bold">
-                            ${t.category} ${timeStr ? '• ' + timeStr : ''}
+                            ${t.category} ${dateDisplay ? '• ' + dateDisplay : ''}
                         </p>
                     </div>
                 </div>
