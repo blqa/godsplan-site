@@ -522,8 +522,8 @@
                 </div>
 
                 <div class="mb-6">
-                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Fecha</label>
-                    <input type="date" id="t-date" class="glass-input w-full p-4 rounded-xl text-sm font-bold text-center appearance-none" required>
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Fecha y Hora</label>
+                    <input type="datetime-local" id="t-date" class="glass-input w-full p-4 rounded-xl text-sm font-bold text-center appearance-none" required>
                 </div>
 
                 <div class="flex flex-col gap-3">
@@ -762,7 +762,12 @@
             document.getElementById('btn-save-tx').textContent = "GUARDAR";
             document.getElementById('btn-delete-tx').classList.add('hidden');
             document.getElementById('transaction-form').reset();
-            document.getElementById('t-date').valueAsDate = new Date();
+            
+            // Set current datetime-local
+            const now = new Date();
+            // Subtract timezone offset to get local ISO string correctly for input value
+            const localIso = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+            document.getElementById('t-date').value = localIso;
             
             document.getElementById(type === 'expense' ? 'radio-expense' : 'radio-income').checked = true;
             document.getElementById('t-fixed-id').value = fixedId || ''; // Set fixed ID if coming from fixed list
@@ -780,7 +785,7 @@
             const amount = parseFloat(document.getElementById('t-amount').value);
             const title = document.getElementById('t-title').value || (type === 'expense' ? 'Gasto' : 'Ingreso');
             const category = document.getElementById('t-category').value || 'General';
-            const date = document.getElementById('t-date').value;
+            const date = document.getElementById('t-date').value; // Now returns YYYY-MM-DDTHH:MM
             const fixedPaymentId = document.getElementById('t-fixed-id').value;
 
             const txData = { type, amount, title, category, date, createdAt: new Date().toISOString() };
@@ -825,7 +830,14 @@
             
             document.getElementById('t-amount').value = tx.amount;
             document.getElementById('t-title').value = tx.title;
-            document.getElementById('t-date').value = tx.date;
+            
+            // Handle legacy date format (YYYY-MM-DD) vs new (YYYY-MM-DDTHH:MM)
+            let dateVal = tx.date;
+            if (dateVal && dateVal.length === 10) {
+                dateVal += "T12:00"; // Default time for legacy data
+            }
+            document.getElementById('t-date').value = dateVal;
+            
             document.getElementById(tx.type === 'expense' ? 'radio-expense' : 'radio-income').checked = true;
             document.getElementById('t-fixed-id').value = tx.fixedPaymentId || '';
             
@@ -1007,13 +1019,14 @@
             const m = now.getMonth();
             const y = now.getFullYear();
             return window.appData.transactions.some(t => {
-                // Parse date carefully, assuming t.date is YYYY-MM-DD
+                // Parse date carefully, assuming t.date is YYYY-MM-DD or YYYY-MM-DDTHH:MM
                 if (!t.date) return false;
-                const parts = t.date.split('-');
-                if(parts.length < 2) return false;
-                const tYear = parseInt(parts[0]);
-                const tMonth = parseInt(parts[1]) - 1; // JS months are 0-indexed
-                return t.fixedPaymentId === fixedId && tMonth === m && tYear === y;
+                
+                // Safe Date parsing
+                const d = new Date(t.date);
+                if (isNaN(d.getTime())) return false; // Invalid date check
+                
+                return t.fixedPaymentId === fixedId && d.getMonth() === m && d.getFullYear() === y;
             });
         }
 
@@ -1027,11 +1040,11 @@
             
             const monthlyTx = window.appData.transactions.filter(t => {
                 if (!t.date) return false;
-                const parts = t.date.split('-');
-                if(parts.length < 2) return false;
-                const tYear = parseInt(parts[0]);
-                const tMonth = parseInt(parts[1]) - 1;
-                return tMonth === m && tYear === y;
+                // Robust parsing for filter
+                const d = new Date(t.date);
+                if(isNaN(d.getTime())) return false;
+                
+                return d.getMonth() === m && d.getFullYear() === y;
             });
 
             // Calcs (Month) - Using Integer Math
@@ -1078,6 +1091,8 @@
             // List - Optimized DOM Rendering (No innerHTML += in loop)
             const listEl = document.getElementById('recent-list');
             const displayTx = balanceMode === 'month' ? monthlyTx : [...window.appData.transactions];
+            
+            // SORT BY FULL DATE OBJECT (Includes time)
             displayTx.sort((a,b) => new Date(b.date) - new Date(a.date));
             
             if(displayTx.length === 0) {
@@ -1100,6 +1115,16 @@
             const icon = catObj ? catObj.icon : 'ph-circle';
             const iconColor = catObj ? catObj.color : 'text-zinc-400';
             
+            // Format Date Subtitle
+            const d = new Date(t.date);
+            let timeStr = '';
+            // Only show time if valid date object and not just YYYY-MM-DD
+            if (!isNaN(d.getTime())) {
+                timeStr = t.date.includes('T') 
+                    ? d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
+                    : '';
+            }
+
             return `
             <div class="flex justify-between items-center p-3 rounded-2xl bg-zinc-900/30 hover:bg-zinc-800 transition-colors border border-white/5 group relative">
                 <div class="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer" onclick="editTransaction('${t.id}')">
@@ -1108,7 +1133,9 @@
                     </div>
                     <div class="min-w-0">
                         <h4 class="font-bold text-zinc-300 text-xs truncate">${t.title}</h4>
-                        <p class="text-[10px] text-zinc-600 uppercase font-bold">${t.category} • ${t.date ? t.date.substring(5) : '??-??'}</p>
+                        <p class="text-[10px] text-zinc-600 uppercase font-bold">
+                            ${t.category} ${timeStr ? '• ' + timeStr : ''}
+                        </p>
                     </div>
                 </div>
                 
@@ -1132,6 +1159,7 @@
             const list = document.getElementById('full-history-list');
             list.innerHTML = '';
             
+            // Sort by full date time
             let txs = [...window.appData.transactions].sort((a,b) => new Date(b.date) - new Date(a.date));
             if(filter !== 'all') txs = txs.filter(t => t.type === filter);
             
@@ -1140,18 +1168,22 @@
                 return;
             }
 
-            // GROUPING LOGIC
+            // GROUPING LOGIC (BY DAY)
             const grouped = {};
             txs.forEach(t => {
                 if(!t.date) return;
-                if(!grouped[t.date]) grouped[t.date] = [];
-                grouped[t.date].push(t);
+                // Robust key generation (take first 10 chars YYYY-MM-DD)
+                const dateKey = t.date.substring(0, 10);
+                if(!grouped[dateKey]) grouped[dateKey] = [];
+                grouped[dateKey].push(t);
             });
 
             // RENDER GROUPS
             Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a)).forEach(date => {
                 const groupDiv = document.createElement('div');
+                // Force time to midnight to avoid timezone shift on just the date part
                 const dateObj = new Date(date + 'T00:00:00');
+                
                 const today = new Date(); today.setHours(0,0,0,0);
                 const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1); yesterday.setHours(0,0,0,0);
                 
