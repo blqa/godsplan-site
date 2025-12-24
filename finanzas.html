@@ -737,20 +737,20 @@
             
             listeners.push(onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'transactions'), (snap) => {
                 window.appData.transactions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderDashboard();
-                renderHistory();
-                renderFixed(); // Rerender fixed to update "paid" status
+                // Wrap renders in try-catch to prevent one error stopping the others
+                try { renderDashboard(); } catch(e) { console.error("Dash error", e); }
+                try { renderHistory(); } catch(e) { console.error("Hist error", e); }
+                try { renderFixed(); } catch(e) { console.error("Fixed error", e); }
             }));
 
             listeners.push(onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'fixed'), (snap) => {
                 window.appData.fixed = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderFixed();
+                try { renderFixed(); } catch(e) {}
             }));
 
             listeners.push(onSnapshot(doc(db, 'artifacts', appId, 'users', userId, 'settings', 'config'), (snap) => {
                 if(snap.exists()) window.appData.settings = { ...window.appData.settings, ...snap.data() };
-                setupSettingsUI();
-                renderDashboard();
+                try { setupSettingsUI(); renderDashboard(); } catch(e) {}
             }));
         }
 
@@ -1008,7 +1008,9 @@
             const y = now.getFullYear();
             return window.appData.transactions.some(t => {
                 // Parse date carefully, assuming t.date is YYYY-MM-DD
+                if (!t.date) return false;
                 const parts = t.date.split('-');
+                if(parts.length < 2) return false;
                 const tYear = parseInt(parts[0]);
                 const tMonth = parseInt(parts[1]) - 1; // JS months are 0-indexed
                 return t.fixedPaymentId === fixedId && tMonth === m && tYear === y;
@@ -1024,7 +1026,9 @@
             const y = currentViewDate.getFullYear();
             
             const monthlyTx = window.appData.transactions.filter(t => {
+                if (!t.date) return false;
                 const parts = t.date.split('-');
+                if(parts.length < 2) return false;
                 const tYear = parseInt(parts[0]);
                 const tMonth = parseInt(parts[1]) - 1;
                 return tMonth === m && tYear === y;
@@ -1104,7 +1108,7 @@
                     </div>
                     <div class="min-w-0">
                         <h4 class="font-bold text-zinc-300 text-xs truncate">${t.title}</h4>
-                        <p class="text-[10px] text-zinc-600 uppercase font-bold">${t.category} • ${t.date.substring(5)}</p>
+                        <p class="text-[10px] text-zinc-600 uppercase font-bold">${t.category} • ${t.date ? t.date.substring(5) : '??-??'}</p>
                     </div>
                 </div>
                 
@@ -1121,7 +1125,10 @@
         }
 
         function renderHistory() {
-            const filter = document.querySelector('.filter-btn.active').dataset.filter;
+            // FIX: Safely get filter, default to 'all' if element not found yet
+            const activeBtn = document.querySelector('.filter-btn.active');
+            const filter = activeBtn ? activeBtn.dataset.filter : 'all';
+            
             const list = document.getElementById('full-history-list');
             list.innerHTML = '';
             
@@ -1136,6 +1143,7 @@
             // GROUPING LOGIC
             const grouped = {};
             txs.forEach(t => {
+                if(!t.date) return;
                 if(!grouped[t.date]) grouped[t.date] = [];
                 grouped[t.date].push(t);
             });
