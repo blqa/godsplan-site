@@ -291,14 +291,33 @@
                     <!-- RIGHT COL (List) -->
                     <div class="md:col-span-7 lg:col-span-8">
                         
-                        <!-- Daily Budget Info (Formula) -->
-                         <div class="mb-6 bg-gradient-to-r from-zinc-900 to-black border border-zinc-800 rounded-2xl p-4 flex justify-between items-center relative overflow-hidden">
-                            <div class="absolute inset-0 bg-blue-500/5"></div>
-                            <div class="relative z-10">
-                                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-0.5">Presupuesto Diario</p>
-                                <p class="text-[10px] text-blue-400 font-bold" id="formula-days-left">Calculando...</p>
+                        <!-- Daily Budget Info (Formula Update) -->
+                        <div class="mb-6 bg-gradient-to-br from-zinc-900 to-black border border-zinc-800 rounded-2xl p-5 relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition"></div>
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                            
+                            <div class="relative z-10 flex flex-col gap-3">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                                            <i class="ph-fill ph-calendar-check"></i> Plan Para Hoy
+                                        </p>
+                                        <p class="text-xs text-zinc-400 leading-relaxed max-w-[90%]">
+                                            Hoy, podías gastar <span id="formula-allowance" class="text-white font-bold">...</span>.
+                                            Has gastado <span id="formula-spent" class="text-red-400 font-bold">...</span>.
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-[10px] text-zinc-500 font-bold uppercase">Meta Diaria</p>
+                                        <p id="formula-days-left" class="text-[10px] font-mono text-zinc-600">Calculando...</p>
+                                    </div>
+                                </div>
+
+                                <div class="pt-2 border-t border-white/5 mt-1">
+                                    <p class="text-[10px] text-zinc-500 uppercase font-bold mb-0.5">Te queda disponible hoy:</p>
+                                    <span class="font-mono font-black text-3xl text-white tracking-tight" id="formula-daily">$0.00</span>
+                                </div>
                             </div>
-                            <span class="font-mono font-bold text-2xl text-white relative z-10 tracking-tight" id="formula-daily">$0.00</span>
                         </div>
 
                         <div class="flex justify-between items-center mb-4 px-1">
@@ -1257,16 +1276,24 @@
             list.innerHTML = fixedHTML;
         }
 
-        // --- FORMULA & PAYDAY (LOGIC UPDATE: MONTH END FIX + HOLIDAYS + PENDING FIXED) ---
+        // --- FORMULA & PAYDAY (LOGIC UPDATE: Today Breakdown) ---
         function updatePaydayInfo(totalBalance) {
             const set = window.appData.settings;
             const badge = document.getElementById('payday-badge');
             
+            // Elements for the new breakdown
+            const daysLabel = document.getElementById('formula-days-left');
+            const dailyLabel = document.getElementById('formula-daily');
+            const allowanceLabel = document.getElementById('formula-allowance');
+            const spentLabel = document.getElementById('formula-spent');
+            
             if(!set || (set.frequency === 'monthly' && !set.payday)) {
                 badge.textContent = "Sin Config";
                 badge.className = "text-[10px] bg-zinc-800 text-zinc-500 border border-zinc-700 px-3 py-1.5 rounded-full font-mono font-bold";
-                document.getElementById('formula-days-left').textContent = "Configura tu cobro";
-                document.getElementById('formula-daily').textContent = "$0.00";
+                daysLabel.textContent = "Configura tu cobro";
+                dailyLabel.textContent = "$0.00";
+                allowanceLabel.textContent = "...";
+                spentLabel.textContent = "...";
                 return;
             }
             
@@ -1348,49 +1375,72 @@
             return d;
         }
 
-        function updateDailyFormula(totalBalance, daysLeft, nextPaydayDate) {
-            if(daysLeft <= 0) {
-                // It's payday!
-                document.getElementById('formula-days-left').textContent = "¡Hoy Cobras!";
-                document.getElementById('formula-days-left').className = "text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-0.5";
-                document.getElementById('formula-daily').textContent = formatCurrency(totalBalance);
-                return;
-            }
+        function updateDailyFormula(currentBalance, daysLeft, nextPaydayDate) {
+            // 1. Calculate Expenses made TODAY
+            let spentToday = 0;
+            const todayDate = new Date();
+            todayDate.setHours(0,0,0,0);
+            
+            window.appData.transactions.forEach(t => {
+                if(t.type === 'expense' && t.date) {
+                     const tDate = new Date(t.date);
+                     tDate.setHours(0,0,0,0);
+                     if(tDate.getTime() === todayDate.getTime()) {
+                         spentToday += parseFloat(t.amount);
+                     }
+                }
+            });
 
-            // Logic: Calculate Sum of Fixed Payments due strictly in the remaining period
+            // 2. Calculate Pending Fixed Payments
             let pendingFixedSum = 0;
-            const today = new Date(); today.setHours(0,0,0,0);
             
             // Loop through each day from Tomorrow until Payday
-            // We check if any fixed payment falls on these days
             for(let i=1; i <= daysLeft; i++) {
-                let checkDate = new Date(today);
-                checkDate.setDate(today.getDate() + i);
+                let checkDate = new Date(todayDate);
+                checkDate.setDate(todayDate.getDate() + i);
                 const dayNum = checkDate.getDate();
                 
-                // Find fixed payments that match this day number
                 window.appData.fixed.forEach(f => {
                     if(parseInt(f.day) === dayNum) {
-                        // Check if this specific Fixed Payment has been paid this month
                         if (!isFixedPaidThisMonth(f.id)) {
-                             // Integer math for accumulation
                              pendingFixedSum = (Math.round(pendingFixedSum * 100) + Math.round(parseFloat(f.amount) * 100)) / 100;
                         }
                     }
                 });
             }
 
-            // New Formula: (Balance - Pending Fixed) / Days
-            // Ensure precise subtraction
-            const balanceCents = Math.round(totalBalance * 100);
-            const pendingCents = Math.round(pendingFixedSum * 100);
-            const effectiveBalance = (balanceCents - pendingCents) / 100;
+            // 3. Logic: 
+            // - CurrentBalance has already subtracted today's expenses.
+            // - To find "What I COULD spend today", we need the balance at the START of the day.
+            const startOfDayBalance = currentBalance + spentToday;
             
-            const daily = effectiveBalance > 0 ? (effectiveBalance / daysLeft) : 0;
+            // - Effective Disposable Balance (Start of Day)
+            const effectiveStartBalance = startOfDayBalance - pendingFixedSum;
+            
+            // - Budget for Today (Allocation)
+            // If daysLeft is 0 (payday), we divide by 1 to show remaining for "today"
+            const divisor = daysLeft <= 0 ? 1 : daysLeft;
+            const budgetForToday = effectiveStartBalance / divisor;
+            
+            // - Remaining for Today
+            const remainingToday = budgetForToday - spentToday;
+            
+            // UPDATE UI
+            document.getElementById('formula-allowance').textContent = formatCurrency(budgetForToday);
+            document.getElementById('formula-spent').textContent = formatCurrency(spentToday);
+            
+            const remainingEl = document.getElementById('formula-daily');
+            remainingEl.textContent = formatCurrency(remainingToday);
+            
+            if(remainingToday < 0) {
+                 remainingEl.classList.remove('text-white');
+                 remainingEl.classList.add('text-red-500');
+            } else {
+                 remainingEl.classList.add('text-white');
+                 remainingEl.classList.remove('text-red-500');
+            }
 
             document.getElementById('formula-days-left').textContent = `${daysLeft} días • -${formatCurrency(pendingFixedSum)} fijos`;
-            document.getElementById('formula-days-left').className = "text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-0.5";
-            document.getElementById('formula-daily').textContent = formatCurrency(daily);
         }
 
         // --- CHART JS ---
