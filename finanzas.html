@@ -195,13 +195,8 @@
                         <div class="flex justify-between items-end mb-4 px-1">
                             <div>
                                 <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mb-1">
-                                    BALANCE <span id="balance-period-label">MENSUAL</span>
+                                    BALANCE MENSUAL
                                 </p>
-                                <div class="flex items-center gap-2">
-                                     <button onclick="toggleBalanceMode()" class="text-xs bg-zinc-900 border border-zinc-800 px-2 py-1 rounded text-zinc-400 hover:text-white transition">
-                                        <i class="ph-bold ph-arrows-left-right"></i> Cambiar
-                                     </button>
-                                </div>
                             </div>
                             <div id="payday-badge" class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-full font-mono font-bold whitespace-nowrap shadow-[0_0_10px_rgba(16,185,129,0.1)]">
                                 ...
@@ -1049,7 +1044,6 @@
 
     <script>
         let currentViewDate = new Date();
-        let balanceMode = 'month';
         let chartInstance = null;
         
         const COMMON_HOLIDAYS = ['01-01', '02-05', '03-21', '05-01', '09-16', '11-20', '12-25'];
@@ -1089,11 +1083,6 @@
         function goToCurrentMonth() {
             currentViewDate = new Date();
             updateDateHeader();
-            renderDashboard();
-        }
-        function toggleBalanceMode() {
-            balanceMode = balanceMode === 'month' ? 'total' : 'month';
-            document.getElementById('balance-period-label').textContent = balanceMode === 'month' ? 'MENSUAL' : 'TOTAL';
             renderDashboard();
         }
 
@@ -1137,13 +1126,11 @@
                  if (t.type === 'income') incTCents += val;
                  else expTCents += val;
             });
-            const incT = incTCents / 100;
-            const expT = expTCents / 100;
             
             const totalBalanceReal = (incTCents - expTCents) / 100;
 
-            const showInc = balanceMode === 'month' ? incM : incT;
-            const showExp = balanceMode === 'month' ? expM : expT;
+            const showInc = incM;
+            const showExp = expM;
             let bal = showInc - showExp;
 
             if (window.appData.settings.forcedSavings) {
@@ -1159,12 +1146,12 @@
             document.getElementById('progress-percent').textContent = `${Math.round(percent)}%`;
 
             const listEl = document.getElementById('recent-list');
-            const displayTx = balanceMode === 'month' ? monthlyTx : [...window.appData.transactions];
+            const displayTx = monthlyTx; // Always show monthly transactions in the list by default
             
             displayTx.sort((a,b) => new Date(b.date) - new Date(a.date));
             
             if(displayTx.length === 0) {
-                listEl.innerHTML = '<div class="text-center text-zinc-600 text-xs py-8">Sin movimientos</div>';
+                listEl.innerHTML = '<div class="text-center text-zinc-600 text-xs py-8">Sin movimientos este mes</div>';
             } else {
                 const listHTML = displayTx.slice(0, 5).map(t => createTxHTML(t)).join('');
                 listEl.innerHTML = listHTML;
