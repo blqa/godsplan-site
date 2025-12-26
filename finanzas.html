@@ -5,19 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>God's Plan | Finanzas</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Tailwind Config -->
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -46,16 +41,13 @@
         }
     </script>
 
-    <!-- Custom CSS -->
     <style>
         :root { --sat: env(safe-area-inset-top); --sab: env(safe-area-inset-bottom); }
         body { background-color: #050505; color: #e5e5e5; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; height: 100dvh; }
         
-        /* Inputs & Form */
         input, select, textarea { font-size: 16px !important; }
         input:focus, select:focus, textarea:focus { outline: none; }
         
-        /* Scrollbars */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
@@ -63,21 +55,18 @@
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* Glass Effects */
         .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
         .glass-highlight { background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.08); }
         .glass-nav { background: rgba(5, 5, 5, 0.90); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: var(--sab); }
         .glass-input { background: #09090b; border: 1px solid #27272a; color: white; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
         .glass-input:focus { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); background: #18181b; }
 
-        /* Links & Nav */
         .g-links { display: flex; align-items: center; gap: 20px; overflow-x: auto; }
         .g-link { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; color: #71717a; transition: color 0.2s; text-decoration: none; white-space: nowrap; text-transform: uppercase; cursor: pointer; }
         .g-link:hover, .g-link.active { color: white; }
         .g-link.active { position: relative; }
         .g-link.active::after { content: ''; position: absolute; bottom: -18px; left: 0; width: 100%; height: 2px; background: #ef4444; box-shadow: 0 -4px 10px rgba(239, 68, 68, 0.5); }
         
-        /* Modal Animation & Layout */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; display: flex; align-items: flex-end; justify-content: center; }
         .modal-overlay.is-open { opacity: 1; pointer-events: auto; }
         
@@ -91,12 +80,10 @@
             main { padding-bottom: 20px !important; }
         }
 
-        /* Chips */
         .chip { transition: all 0.2s; user-select: none; white-space: nowrap; border: 1px solid #27272a; background: #09090b; color: #a1a1aa; }
         .chip:hover { background: #27272a; }
         .chip.active { background: #ef4444; color: white; transform: scale(1.02); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); border-color: #ef4444; }
 
-        /* Loader */
         .loader-dots span { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block; animation: loader 1.4s infinite ease-in-out both; margin: 0 2px; }
         .loader-dots span:nth-child(1) { animation-delay: -0.32s; }
         .loader-dots span:nth-child(2) { animation-delay: -0.16s; }
@@ -105,15 +92,12 @@
 </head>
 <body class="flex flex-col overflow-hidden text-sm sm:text-base">
 
-    <!-- Loading Screen -->
     <div id="loading-screen" class="fixed inset-0 bg-[#050505] z-[2000] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="loader-dots mb-4"><span></span><span></span><span></span></div>
         <p class="text-zinc-500 font-bold text-xs uppercase tracking-widest animate-pulse">Cargando...</p>
     </div>
 
-    <!-- LOGIN / REGISTER VIEW -->
     <div id="login-view" class="fixed inset-0 z-[1500] bg-[#050505] flex flex-col items-center justify-center p-6 hidden">
-        <!-- Radial BG -->
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-600/20 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div class="w-full max-w-sm glass rounded-[2rem] p-8 relative z-10 fade-in border border-white/10">
@@ -125,7 +109,6 @@
                 <p class="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">Control Financiero</p>
             </div>
 
-            <!-- Toggles -->
             <div class="flex p-1 bg-zinc-900 rounded-xl mb-6 border border-zinc-800">
                 <button onclick="window.authApp.toggleAuth('login')" id="tab-login" class="flex-1 py-2.5 text-xs font-bold rounded-lg bg-[#27272a] text-white shadow transition-all">INGRESAR</button>
                 <button onclick="window.authApp.toggleAuth('register')" id="tab-register" class="flex-1 py-2.5 text-xs font-bold text-zinc-500 hover:text-zinc-300 transition-all">REGISTRO</button>
@@ -163,10 +146,7 @@
             </form>
         </div>
     </div>
-
-    <!-- MAIN APP STRUCTURE -->
     
-    <!-- NAVBAR TOP -->
     <nav id="global-nav" class="h-16 bg-[#050505]/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-5 shrink-0 z-50 sticky top-0">
         <div class="flex items-center gap-3">
              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-red-900/20">
@@ -178,7 +158,6 @@
             </div>
         </div>
         
-        <!-- Desktop Tabs -->
         <div class="hidden md:flex g-links no-scrollbar ml-8">
             <a onclick="switchTab('dashboard')" class="g-link active" id="desk-link-dashboard">Panel</a>
             <a onclick="switchTab('history')" class="g-link" id="desk-link-history">Historial</a>
@@ -199,19 +178,15 @@
         </div>
     </nav>
 
-    <!-- CONTENT -->
     <main id="main-container" class="flex-1 overflow-y-auto pb-32 relative scroll-smooth overflow-x-hidden md:px-6 hidden">
         <div class="w-full max-w-lg md:max-w-5xl mx-auto h-full pt-6">
 
-            <!-- VIEW: DASHBOARD -->
             <section id="view-dashboard" class="px-5 md:px-0 fade-in">
                 
                 <div class="grid grid-cols-1 md:grid-cols-12 md:gap-8 items-start">
                     
-                    <!-- LEFT COL -->
                     <div class="md:col-span-5 lg:col-span-4 md:sticky md:top-6">
                         
-                        <!-- Header Balance -->
                         <div class="flex justify-between items-end mb-4 px-1">
                             <div>
                                 <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mb-1">
@@ -228,9 +203,7 @@
                             </div>
                         </div>
 
-                        <!-- MAIN CARD -->
                         <div class="glass rounded-[2rem] p-6 relative overflow-hidden group mb-6 shadow-2xl shadow-black/50 border-t border-white/10">
-                            <!-- Glow -->
                             <div class="absolute -top-12 -right-12 w-40 h-40 bg-red-600/30 rounded-full blur-[60px] animate-pulse-slow"></div>
                             
                             <div class="relative z-10">
@@ -239,12 +212,10 @@
                                     <button onclick="openAdjustModal()" class="text-zinc-500 hover:text-white transition"><i class="ph-bold ph-scales"></i></button>
                                 </div>
                                 
-                                <!-- Big Money -->
                                 <div class="text-5xl font-black text-white tracking-tighter mb-4 break-all relative leading-none" id="total-balance">
                                     $0.00
                                 </div>
                                 
-                                <!-- Progress -->
                                 <div class="mb-6">
                                     <div class="flex justify-between text-[10px] font-bold text-zinc-500 mb-1.5 uppercase tracking-wide">
                                         <span>Gasto vs Ingreso</span>
@@ -255,7 +226,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Stats Footer -->
                                 <div class="grid grid-cols-2 gap-4 border-t border-white/5 pt-4">
                                     <div>
                                         <span class="block text-[10px] text-zinc-500 uppercase font-bold mb-1 flex items-center gap-1"><i class="ph-fill ph-arrow-down-left text-emerald-500"></i> Ingresos</span>
@@ -269,7 +239,6 @@
                             </div>
                         </div>
 
-                        <!-- Quick Actions -->
                         <div class="grid grid-cols-2 gap-3 mb-8">
                             <button onclick="openAddModal('income')" class="glass-highlight h-14 rounded-2xl text-emerald-500 font-bold text-xs flex items-center justify-center gap-2 transition-all hover:bg-emerald-500/10 border-transparent hover:border-emerald-500/30 active:scale-95">
                                 <i class="ph-bold ph-arrow-down-left text-lg"></i> INGRESO
@@ -279,7 +248,6 @@
                             </button>
                         </div>
                         
-                        <!-- Chart Container (Desktop) -->
                         <div class="hidden md:block glass rounded-2xl p-5 border border-white/5 mb-6">
                             <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Análisis</h3>
                             <div class="h-40 relative">
@@ -287,12 +255,10 @@
                             </div>
                         </div>
 
-                    </div> <!-- End Left Col -->
+                    </div>
 
-                    <!-- RIGHT COL (List) -->
                     <div class="md:col-span-7 lg:col-span-8">
                         
-                        <!-- Daily Budget Info (Formula Update) -->
                         <div class="mb-6 bg-gradient-to-br from-zinc-900 to-black border border-zinc-800 rounded-2xl p-5 relative overflow-hidden group">
                             <div class="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition"></div>
                             <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
@@ -327,14 +293,12 @@
                         </div>
 
                         <div id="recent-list" class="space-y-3 pb-24 md:pb-0">
-                            <!-- JS Injected -->
                         </div>
                     </div>
 
                 </div>
             </section>
 
-            <!-- VIEW: HISTORY -->
             <section id="view-history" class="px-5 md:px-0 hidden fade-in">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-white">Historial</h2>
@@ -349,7 +313,6 @@
                 </div>
             </section>
 
-            <!-- VIEW: FIXED -->
             <section id="view-fixed" class="px-5 md:px-0 hidden fade-in">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-white">Pagos Fijos</h2>
@@ -362,11 +325,9 @@
                     <p class="text-xs text-blue-200/70 leading-relaxed">Gestiona tus suscripciones y rentas. Pulsa el check para registrarlos como pagados este mes. Los pagados no se restan del presupuesto diario.</p>
                 </div>
                 <div id="fixed-list" class="grid grid-cols-1 md:grid-cols-2 gap-3 pb-24">
-                    <!-- JS Injected -->
                 </div>
             </section>
 
-            <!-- VIEW: LOANS (LOGIC ADDED) -->
             <section id="view-loans" class="px-5 md:px-0 hidden fade-in">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-white">Préstamos</h2>
@@ -375,7 +336,6 @@
                     </button>
                 </div>
                 
-                <!-- Summary Cards -->
                 <div class="grid grid-cols-2 gap-3 mb-6">
                     <div class="bg-emerald-900/10 border border-emerald-500/20 p-4 rounded-2xl">
                         <p class="text-[10px] text-emerald-400 uppercase font-bold mb-1">Me deben</p>
@@ -392,19 +352,15 @@
                     <p class="text-xs text-purple-200/70 leading-relaxed">Aquí puedes llevar el control de quién te debe dinero y a quién le debes. ¡Cuentas claras, amistades largas!</p>
                 </div>
 
-                <!-- List -->
                 <div id="loans-list" class="space-y-3 pb-24">
-                    <!-- JS Injected -->
                     <div class="text-center text-zinc-600 py-10 text-xs font-mono">Sin préstamos activos</div>
                 </div>
             </section>
 
-            <!-- VIEW: SETTINGS -->
             <section id="view-settings" class="px-5 md:px-0 hidden fade-in">
                 <h2 class="text-xl font-bold text-white mb-6">Configuración</h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-24">
-                    <!-- Account -->
                     <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl">
                          <div class="flex items-center gap-4 mb-6">
                             <div class="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-white text-xl">
@@ -420,7 +376,6 @@
                         </button>
                     </div>
 
-                    <!-- Payday Config -->
                     <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl">
                         <h3 class="font-bold text-zinc-200 text-sm mb-4 flex items-center gap-2"><i class="ph-fill ph-calendar text-emerald-500"></i> Frecuencia de Cobro</h3>
                         
@@ -450,7 +405,6 @@
                             </label>
                         </div>
 
-                        <!-- Monthly Input -->
                         <div id="monthly-select-container" class="hidden mb-4">
                             <label class="text-[10px] text-zinc-500 font-bold uppercase mb-2 block">Día de pago</label>
                             <select id="payday-select" class="glass-input w-full p-2.5 rounded-lg text-xs font-bold appearance-none">
@@ -458,18 +412,15 @@
                             </select>
                         </div>
 
-                        <!-- Custom Bi-weekly Input -->
                         <div id="biweekly-custom-container" class="hidden grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label class="text-[10px] text-zinc-500 font-bold uppercase mb-2 block">Pago 1</label>
                                 <select id="payday-1-select" class="glass-input w-full p-2.5 rounded-lg text-xs font-bold appearance-none">
-                                    <!-- JS fills -->
                                 </select>
                             </div>
                             <div>
                                 <label class="text-[10px] text-zinc-500 font-bold uppercase mb-2 block">Pago 2</label>
                                 <select id="payday-2-select" class="glass-input w-full p-2.5 rounded-lg text-xs font-bold appearance-none">
-                                    <!-- JS fills -->
                                 </select>
                             </div>
                         </div>
@@ -477,7 +428,6 @@
                         <button onclick="saveSettings()" class="w-full bg-white text-black py-3 rounded-xl font-bold text-xs hover:bg-zinc-200 transition">GUARDAR CAMBIOS</button>
                     </div>
 
-                    <!-- Forced Savings -->
                     <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl md:col-span-2">
                         <h3 class="font-bold text-zinc-200 text-sm mb-4 flex items-center gap-2"><i class="ph-fill ph-brain text-purple-500"></i> Psicología Financiera</h3>
                         <label class="flex items-center justify-between p-4 bg-black/40 border border-zinc-800 rounded-xl cursor-pointer hover:border-zinc-600 transition">
@@ -492,7 +442,6 @@
                         </label>
                     </div>
 
-                    <!-- Data -->
                     <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl md:col-span-2">
                         <h3 class="font-bold text-zinc-200 text-sm mb-4">Gestión de Datos</h3>
                         <div class="flex gap-4">
@@ -512,7 +461,6 @@
         </div>
     </main>
 
-    <!-- MOBILE FAB -->
     <div class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40" id="fab-container">
         <button onclick="openAddModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
             <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
@@ -520,7 +468,6 @@
         </button>
     </div>
 
-    <!-- MOBILE NAV -->
     <nav class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-5 z-50 pb-2" id="bottom-nav">
         <button onclick="switchTab('dashboard')" class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" id="nav-dashboard">
             <div class="relative p-1"><i class="ph-fill ph-squares-four text-2xl group-[.active]:text-white"></i></div>
@@ -539,7 +486,6 @@
         </button>
     </nav>
 
-    <!-- MODAL: TRANSACTION -->
     <div id="transaction-modal" class="modal-overlay">
         <div id="transaction-modal-content" class="modal-sheet">
              <div class="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0 md:hidden"></div>
@@ -552,7 +498,6 @@
              </div>
 
              <form id="transaction-form" onsubmit="addTransaction(event)">
-                <!-- Hidden inputs -->
                 <div class="hidden">
                      <input type="radio" name="type" value="expense" id="radio-expense" checked>
                      <input type="radio" name="type" value="income" id="radio-income">
@@ -567,7 +512,6 @@
                 <div class="mb-6">
                     <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-2 block">Categoría</label>
                     <div class="flex flex-wrap gap-2" id="category-chips">
-                        <!-- JS renders chips -->
                     </div>
                     <input type="hidden" id="t-category" required>
                 </div>
@@ -586,7 +530,6 @@
                     <button type="submit" id="btn-save-tx" class="w-full bg-white text-black h-14 rounded-2xl font-black text-sm hover:bg-zinc-200 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)]">
                         GUARDAR
                     </button>
-                    <!-- Delete button hidden by default, shown via JS when editing -->
                     <button type="button" id="btn-delete-tx" onclick="deleteCurrentTransaction()" class="hidden w-full bg-red-500/10 text-red-500 h-14 rounded-2xl font-black text-sm hover:bg-red-500 hover:text-white transition-colors border border-red-500/20">
                         ELIMINAR
                     </button>
@@ -595,7 +538,6 @@
         </div>
     </div>
 
-    <!-- MODAL: ADJUST -->
     <div id="adjust-modal" class="modal-overlay">
         <div id="adjust-modal-content" class="modal-sheet">
             <div class="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0 md:hidden"></div>
@@ -619,7 +561,6 @@
         </div>
     </div>
 
-    <!-- MODAL: FIXED -->
     <div id="fixed-modal" class="modal-overlay">
         <div id="fixed-modal-content" class="modal-sheet">
             <div class="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0 md:hidden"></div>
@@ -642,7 +583,6 @@
                       <div>
                         <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Día Pago</label>
                         <select id="f-day" class="glass-input w-full p-4 rounded-xl text-sm font-bold appearance-none">
-                            <!-- JS Fills -->
                         </select>
                       </div>
                  </div>
@@ -651,7 +591,6 @@
         </div>
     </div>
 
-    <!-- MODAL: LOANS (FUNCTIONAL) -->
     <div id="loans-modal" class="modal-overlay">
         <div id="loans-modal-content" class="modal-sheet">
             <div class="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0 md:hidden"></div>
@@ -663,7 +602,6 @@
             </div>
             
             <form onsubmit="saveLoan(event)">
-                <!-- Type Toggle -->
                  <div class="flex p-1 bg-zinc-900 rounded-xl mb-6 border border-zinc-800">
                     <button type="button" onclick="setLoanType('lent')" id="btn-lent" class="flex-1 py-2 text-xs font-bold rounded-lg bg-[#27272a] text-emerald-400 shadow transition-all">ME DEBEN</button>
                     <button type="button" onclick="setLoanType('borrowed')" id="btn-borrowed" class="flex-1 py-2 text-xs font-bold text-zinc-500 hover:text-zinc-300 transition-all">YO DEBO</button>
@@ -688,13 +626,11 @@
         </div>
     </div>
 
-    <!-- TOAST -->
     <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-zinc-900 border border-zinc-800 text-white px-6 py-3 rounded-full shadow-2xl z-[2000] transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none flex items-center gap-2">
         <div class="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_10px_#10b981]"></div>
         <span id="toast-msg" class="text-xs font-bold uppercase tracking-wide">Acción realizada</span>
     </div>
 
-    <!-- FIREBASE & LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -718,15 +654,13 @@
         let listeners = [];
         let editingTransactionId = null;
 
-        // GLOBAL STATE
         window.appData = {
             transactions: [],
             fixed: [],
-            loans: [], // NEW: Loans Data
+            loans: [], 
             settings: { frequency: 'biweekly', payday: null, forcedSavings: false }
         };
 
-        // --- AUTH FUNCTIONS ---
         window.authApp = {
             isRegistering: false,
             toggleAuth(mode) {
@@ -785,7 +719,6 @@
             }
         };
 
-        // --- INIT ---
         async function initAuth() {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 try { await signInWithCustomToken(auth, __initial_auth_token); } catch (e) {}
@@ -841,7 +774,6 @@
                 try { renderFixed(); } catch(e) {}
             }));
 
-            // NEW LISTENER: LOANS
             listeners.push(onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'loans'), (snap) => {
                 window.appData.loans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 try { renderLoans(); } catch(e) {}
@@ -853,7 +785,6 @@
             }));
         }
 
-        // --- EXPORTED FUNCTIONS ---
         
         window.openAddModal = function(type, fixedId = null) {
             editingTransactionId = null;
@@ -941,7 +872,6 @@
             openModal('transaction-modal');
         };
 
-        // --- FIXED ---
         window.addFixed = async function(e) {
             e.preventDefault();
             const title = document.getElementById('f-title').value;
@@ -964,7 +894,6 @@
             if(confirm('¿Borrar?')) await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'fixed', id));
         };
 
-        // --- LOANS LOGIC ---
         window.openLoanModal = function() {
             document.getElementById('loan-person').value = '';
             document.getElementById('loan-amount').value = '';
@@ -1014,7 +943,6 @@
              }
         };
 
-        // --- SETTINGS ---
         window.saveSettings = async function() {
             const freq = document.querySelector('input[name="pay-freq"]:checked').value;
             const payday = document.getElementById('payday-select').value;
@@ -1046,7 +974,6 @@
             }
         };
         
-        // --- ADJUSTMENT ---
         window.openAdjustModal = function() {
             let balCents = 0;
             window.appData.transactions.forEach(t => {
@@ -1083,7 +1010,6 @@
             showToast('Saldo Ajustado');
         }
 
-        // --- JSON IMPORT/EXPORT ---
         window.exportData = function() {
             const data = { transactions: window.appData.transactions, fixed: window.appData.fixed, loans: window.appData.loans, settings: window.appData.settings };
             const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
@@ -1108,13 +1034,11 @@
         initAuth();
     </script>
 
-    <!-- UI Logic Script -->
     <script>
         let currentViewDate = new Date();
         let balanceMode = 'month';
         let chartInstance = null;
         
-        // --- CONSTANTS ---
         const COMMON_HOLIDAYS = ['01-01', '02-05', '03-21', '05-01', '09-16', '11-20', '12-25'];
 
         const CATEGORIES = {
@@ -1135,7 +1059,6 @@
             ]
         };
 
-        // --- HELPERS ---
         const formatCurrency = (amount) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
         
         function updateDateHeader() {
@@ -1159,7 +1082,6 @@
             renderDashboard();
         }
 
-        // New Helper: Check if fixed payment is paid in current month
         function isFixedPaidThisMonth(fixedId) {
             const now = new Date();
             const m = now.getMonth();
@@ -1172,7 +1094,6 @@
             });
         }
 
-        // --- RENDERING ---
         function renderDashboard() {
             if (!window.appData || !window.appData.transactions) return;
             
@@ -1186,7 +1107,6 @@
                 return d.getMonth() === m && d.getFullYear() === y;
             });
 
-            // Calcs (Month)
             let incMCents = 0, expMCents = 0;
             monthlyTx.forEach(t => {
                 const val = Math.round(t.amount * 100);
@@ -1196,7 +1116,6 @@
             const incM = incMCents / 100;
             const expM = expMCents / 100;
             
-            // Calcs (Total)
             let incTCents = 0, expTCents = 0;
             window.appData.transactions.forEach(t => {
                  const val = Math.round(t.amount * 100);
@@ -1213,7 +1132,7 @@
             let bal = showInc - showExp;
 
             if (window.appData.settings.forcedSavings) {
-                bal = bal * 0.90; // Reduce by 10%
+                bal = bal * 0.90; 
             }
 
             document.getElementById('total-balance').textContent = formatCurrency(bal);
@@ -1261,7 +1180,7 @@
                 } else {
                     const parts = t.date.split('-');
                     if (parts.length === 3) {
-                        dateDisplay = `${parts[2]}/${parts[1]}`; // DD/MM
+                        dateDisplay = `${parts[2]}/${parts[1]}`; 
                     }
                 }
             }
@@ -1376,12 +1295,10 @@
             list.innerHTML = fixedHTML;
         }
 
-        // --- RENDER LOANS (NEW FUNCTION) ---
         function renderLoans() {
             const list = document.getElementById('loans-list');
             const loans = window.appData.loans || [];
 
-            // Totals Calculation
             let owedToMe = 0;
             let iOwe = 0;
 
@@ -1400,7 +1317,7 @@
             }
 
             const html = loans.map(l => {
-                const isLent = l.type === 'lent'; // Me deben
+                const isLent = l.type === 'lent'; 
                 const icon = isLent ? 'ph-arrow-up-right' : 'ph-arrow-down-left';
                 const color = isLent ? 'text-emerald-500' : 'text-red-500';
                 const statusText = isLent ? 'Me deben' : 'Debo';
@@ -1427,7 +1344,6 @@
             list.innerHTML = html;
         }
 
-        // --- FORMULA & PAYDAY ---
         function updatePaydayInfo(totalBalance) {
             const set = window.appData.settings;
             const badge = document.getElementById('payday-badge');
@@ -1573,7 +1489,6 @@
             document.getElementById('formula-days-left').textContent = `${daysLeft} días • -${formatCurrency(pendingFixedSum)} fijos`;
         }
 
-        // --- CHART JS ---
         function updateChart(txs) {
             const ctx = document.getElementById('financeChart');
             if(!ctx) return;
@@ -1613,7 +1528,6 @@
             });
         }
 
-        // --- UI INTERACTION ---
         function switchTab(id) {
             document.querySelectorAll('section[id^="view-"]').forEach(el => el.classList.add('hidden'));
             document.getElementById(`view-${id}`).classList.remove('hidden');
