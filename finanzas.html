@@ -183,6 +183,8 @@
             <a onclick="switchTab('dashboard')" class="g-link active" id="desk-link-dashboard">Panel</a>
             <a onclick="switchTab('history')" class="g-link" id="desk-link-history">Historial</a>
             <a onclick="switchTab('fixed')" class="g-link" id="desk-link-fixed">Fijos</a>
+            <!-- NUEVA PESTAÑA: PRÉSTAMOS -->
+            <a onclick="switchTab('loans')" class="g-link" id="desk-link-loans">Préstamos</a>
             <a onclick="switchTab('settings')" class="g-link" id="desk-link-settings">Ajustes</a>
         </div>
 
@@ -365,6 +367,58 @@
                 </div>
             </section>
 
+            <!-- VIEW: LOANS (NUEVA PANTALLA VISUAL) -->
+            <section id="view-loans" class="px-5 md:px-0 hidden fade-in">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-white">Préstamos</h2>
+                    <button onclick="openModal('loans-modal')" class="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-zinc-700 transition">
+                        <i class="ph-bold ph-plus"></i> Nuevo
+                    </button>
+                </div>
+                
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="bg-emerald-900/10 border border-emerald-500/20 p-4 rounded-2xl">
+                        <p class="text-[10px] text-emerald-400 uppercase font-bold mb-1">Me deben</p>
+                        <p class="text-xl font-black text-white">$0.00</p>
+                    </div>
+                    <div class="bg-red-900/10 border border-red-500/20 p-4 rounded-2xl">
+                        <p class="text-[10px] text-red-400 uppercase font-bold mb-1">Debo</p>
+                        <p class="text-xl font-black text-white">$0.00</p>
+                    </div>
+                </div>
+
+                <div class="bg-purple-900/10 border border-purple-500/20 rounded-xl p-4 mb-6 flex gap-3">
+                    <i class="ph-fill ph-hand-coins text-purple-400 text-lg flex-shrink-0"></i>
+                    <p class="text-xs text-purple-200/70 leading-relaxed">Aquí puedes llevar el control de quién te debe dinero y a quién le debes. ¡Cuentas claras, amistades largas!</p>
+                </div>
+
+                <!-- Filters (Mock) -->
+                <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
+                     <button class="chip active px-4 py-1.5 rounded-full text-[10px] font-bold uppercase">Todos</button>
+                     <button class="chip px-4 py-1.5 rounded-full text-[10px] font-bold uppercase">Por Cobrar</button>
+                     <button class="chip px-4 py-1.5 rounded-full text-[10px] font-bold uppercase">Por Pagar</button>
+                </div>
+
+                <!-- Mock List -->
+                <div id="loans-list" class="space-y-3 pb-24">
+                    <!-- Mock Item 1 -->
+                    <div class="bg-zinc-900/50 border border-zinc-800 p-4 rounded-2xl flex justify-between items-center opacity-60">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500">
+                                <i class="ph-bold ph-user"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-zinc-300 text-sm">Ejemplo: Juan Pérez</p>
+                                <p class="text-[10px] text-zinc-500 font-bold uppercase">Me debe • Hace 2 días</p>
+                            </div>
+                        </div>
+                         <p class="font-bold text-emerald-500 text-sm">$500.00</p>
+                    </div>
+                     <div class="text-center text-zinc-600 py-4 text-xs font-mono">Próximamente funcional...</div>
+                </div>
+            </section>
+
             <!-- VIEW: SETTINGS -->
             <section id="view-settings" class="px-5 md:px-0 hidden fade-in">
                 <h2 class="text-xl font-bold text-white mb-6">Configuración</h2>
@@ -486,8 +540,8 @@
         </button>
     </div>
 
-    <!-- MOBILE NAV -->
-    <nav class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-4 z-50 pb-2" id="bottom-nav">
+    <!-- MOBILE NAV (UPDATED: 5 COLS FOR LOANS) -->
+    <nav class="md:hidden glass-nav fixed bottom-0 w-full h-[80px] grid grid-cols-5 z-50 pb-2" id="bottom-nav">
         <button onclick="switchTab('dashboard')" class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" id="nav-dashboard">
             <div class="relative p-1"><i class="ph-fill ph-squares-four text-2xl group-[.active]:text-white"></i></div>
         </button>
@@ -496,6 +550,10 @@
         </button>
          <button onclick="switchTab('fixed')" class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" id="nav-fixed">
             <div class="relative p-1"><i class="ph-fill ph-receipt text-2xl group-[.active]:text-white"></i></div>
+        </button>
+        <!-- NUEVO BOTÓN: PRÉSTAMOS -->
+        <button onclick="switchTab('loans')" class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" id="nav-loans">
+            <div class="relative p-1"><i class="ph-fill ph-hand-coins text-2xl group-[.active]:text-white"></i></div>
         </button>
         <button onclick="switchTab('settings')" class="nav-btn group flex flex-col items-center justify-center gap-1 text-zinc-600 active:scale-95 transition-transform" id="nav-settings">
             <div class="relative p-1"><i class="ph-fill ph-gear text-2xl group-[.active]:text-white"></i></div>
@@ -611,6 +669,35 @@
                  </div>
                  <button type="submit" class="w-full bg-white text-black h-14 rounded-2xl font-black text-sm hover:bg-zinc-200 transition-colors">GUARDAR</button>
              </form>
+        </div>
+    </div>
+
+    <!-- MODAL: LOANS (NUEVO VISUAL) -->
+    <div id="loans-modal" class="modal-overlay">
+        <div id="loans-modal-content" class="modal-sheet">
+            <div class="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0 md:hidden"></div>
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-white">Nuevo Préstamo</h3>
+                <button onclick="closeModal('loans-modal')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+            <!-- Mock Form -->
+            <form onsubmit="event.preventDefault(); closeModal('loans-modal');">
+                 <div class="flex p-1 bg-zinc-900 rounded-xl mb-6 border border-zinc-800">
+                    <button type="button" class="flex-1 py-2 text-xs font-bold rounded-lg bg-[#27272a] text-emerald-400 shadow transition-all">ME DEBEN</button>
+                    <button type="button" class="flex-1 py-2 text-xs font-bold text-zinc-500 transition-all">YO DEBO</button>
+                </div>
+                 <div class="mb-4">
+                      <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Persona / Entidad</label>
+                      <input type="text" class="glass-input w-full p-4 rounded-xl text-sm font-bold placeholder-zinc-600" placeholder="Ej. Juan Pérez">
+                 </div>
+                 <div class="mb-6">
+                    <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Monto</label>
+                    <input type="number" class="glass-input w-full p-4 rounded-xl text-sm font-bold placeholder-zinc-600" placeholder="0.00">
+                 </div>
+                 <button class="w-full bg-white text-black h-14 rounded-2xl font-black text-sm hover:bg-zinc-200 transition-colors">GUARDAR (DEMO)</button>
+            </form>
         </div>
     </div>
 
@@ -1383,11 +1470,11 @@
             
             window.appData.transactions.forEach(t => {
                 if(t.type === 'expense' && t.date) {
-                     const tDate = new Date(t.date);
-                     tDate.setHours(0,0,0,0);
-                     if(tDate.getTime() === todayDate.getTime()) {
-                         spentToday += parseFloat(t.amount);
-                     }
+                      const tDate = new Date(t.date);
+                      tDate.setHours(0,0,0,0);
+                      if(tDate.getTime() === todayDate.getTime()) {
+                          spentToday += parseFloat(t.amount);
+                      }
                 }
             });
 
