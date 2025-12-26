@@ -5,13 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>God's Plan | Finanzas</title>
     
+    <!-- Preconnect para acelerar fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Tailwind (Idealmente usar CLI para prod, pero mantenemos CDN por simplicidad del archivo único) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <!-- Fuentes -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Iconos y Gráficos (Defer para no bloquear renderizado) -->
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
     <script>
         tailwind.config = {
@@ -27,13 +33,9 @@
                         primary: '#ef4444'
                     },
                     animation: {
-                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                        'fade-in': 'fadeIn 0.3s ease-out',
                         'pulse-slow': 'pulseRed 3s infinite',
                     },
                     keyframes: {
-                        slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } },
-                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
                         pulseRed: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.5' } }
                     }
                 }
@@ -48,13 +50,11 @@
         input, select, textarea { font-size: 16px !important; }
         input:focus, select:focus, textarea:focus { outline: none; }
         
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        /* Scrollbar oculta pero funcional */
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         
+        /* Estilos Glassmorphism optimizados */
         .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.05); }
         .glass-highlight { background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.08); }
         .glass-nav { background: rgba(5, 5, 5, 0.90); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: var(--sab); }
@@ -67,9 +67,9 @@
         .g-link.active { position: relative; }
         .g-link.active::after { content: ''; position: absolute; bottom: -18px; left: 0; width: 100%; height: 2px; background: #ef4444; box-shadow: 0 -4px 10px rgba(239, 68, 68, 0.5); }
         
+        /* Modales */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; display: flex; align-items: flex-end; justify-content: center; }
         .modal-overlay.is-open { opacity: 1; pointer-events: auto; }
-        
         .modal-sheet { background: #121212; width: 100%; max-height: 90dvh; border-top-left-radius: 32px; border-top-right-radius: 32px; border-top: 1px solid #27272a; padding: 24px; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding-bottom: calc(40px + var(--sab)); }
         .modal-overlay.is-open .modal-sheet { transform: translateY(0); }
         
@@ -77,7 +77,6 @@
             .modal-overlay { align-items: center; padding: 20px; }
             .modal-sheet { width: 100%; max-width: 420px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); max-height: 85vh; padding: 24px; transform: scale(0.95); opacity: 0; transition: all 0.2s ease-out; }
             .modal-overlay.is-open .modal-sheet { transform: scale(1); opacity: 1; }
-            main { padding-bottom: 20px !important; }
         }
 
         .chip { transition: all 0.2s; user-select: none; white-space: nowrap; border: 1px solid #27272a; background: #09090b; color: #a1a1aa; }
@@ -90,13 +89,15 @@
         @keyframes loader { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
     </style>
 </head>
-<body class="flex flex-col overflow-hidden text-sm sm:text-base">
+<body class="flex flex-col overflow-hidden text-sm sm:text-base selection:bg-red-500/30">
 
+    <!-- Loading -->
     <div id="loading-screen" class="fixed inset-0 bg-[#050505] z-[2000] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="loader-dots mb-4"><span></span><span></span><span></span></div>
         <p class="text-zinc-500 font-bold text-xs uppercase tracking-widest animate-pulse">Cargando...</p>
     </div>
 
+    <!-- Login View -->
     <div id="login-view" class="fixed inset-0 z-[1500] bg-[#050505] flex flex-col items-center justify-center p-6 hidden">
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-600/20 rounded-full blur-[100px] pointer-events-none"></div>
 
@@ -147,7 +148,8 @@
         </div>
     </div>
     
-    <nav id="global-nav" class="h-16 bg-[#050505]/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-5 shrink-0 z-50 sticky top-0">
+    <!-- Navbar Global -->
+    <nav id="global-nav" class="h-16 bg-[#050505]/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-5 shrink-0 z-50 sticky top-0 hidden">
         <div class="flex items-center gap-3">
              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-red-900/20">
                 <i class="ph-bold ph-wallet text-lg"></i>
@@ -158,7 +160,7 @@
             </div>
         </div>
         
-        <div class="hidden md:flex g-links no-scrollbar ml-8">
+        <div class="hidden md:flex g-links hide-scrollbar ml-8">
             <a onclick="switchTab('dashboard')" class="g-link active" id="desk-link-dashboard">Panel</a>
             <a onclick="switchTab('history')" class="g-link" id="desk-link-history">Historial</a>
             <a onclick="switchTab('fixed')" class="g-link" id="desk-link-fixed">Fijos</a>
@@ -178,13 +180,16 @@
         </div>
     </nav>
 
+    <!-- Main Content -->
     <main id="main-container" class="flex-1 overflow-y-auto pb-32 relative scroll-smooth overflow-x-hidden md:px-6 hidden">
         <div class="w-full max-w-lg md:max-w-5xl mx-auto h-full pt-6">
 
+            <!-- VISTA DASHBOARD -->
             <section id="view-dashboard" class="px-5 md:px-0 fade-in">
                 
                 <div class="grid grid-cols-1 md:grid-cols-12 md:gap-8 items-start">
                     
+                    <!-- Columna Izq (Saldo) -->
                     <div class="md:col-span-5 lg:col-span-4 md:sticky md:top-6">
                         
                         <div class="flex justify-between items-end mb-4 px-1">
@@ -208,7 +213,7 @@
                             
                             <div class="relative z-10">
                                 <div class="flex justify-between items-start mb-2">
-                                    <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Disponible</span>
+                                    <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Disponible Real</span>
                                     <button onclick="openAdjustModal()" class="text-zinc-500 hover:text-white transition"><i class="ph-bold ph-scales"></i></button>
                                 </div>
                                 
@@ -248,6 +253,7 @@
                             </button>
                         </div>
                         
+                        <!-- Gráfico -->
                         <div class="hidden md:block glass rounded-2xl p-5 border border-white/5 mb-6">
                             <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Análisis</h3>
                             <div class="h-40 relative">
@@ -257,21 +263,22 @@
 
                     </div>
 
+                    <!-- Columna Der (Fórmula y Lista) -->
                     <div class="md:col-span-7 lg:col-span-8">
                         
-                        <div class="mb-6 bg-gradient-to-br from-zinc-900 to-black border border-zinc-800 rounded-2xl p-5 relative overflow-hidden group">
-                            <div class="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition"></div>
-                            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                        <!-- Tarjeta Plan del Día -->
+                        <div class="mb-6 bg-gradient-to-br from-zinc-900 to-black border border-zinc-800 rounded-2xl p-5 relative overflow-hidden group" id="formula-card">
+                            <div class="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition" id="formula-bg"></div>
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" id="formula-blob"></div>
                             
                             <div class="relative z-10 flex flex-col gap-3">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <p class="text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                                        <p class="text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1" id="formula-title">
                                             <i class="ph-fill ph-calendar-check"></i> Plan Para Hoy
                                         </p>
-                                        <p class="text-xs text-zinc-400 leading-relaxed max-w-[90%]">
-                                            Hoy, podías gastar <span id="formula-allowance" class="text-white font-bold">...</span>.
-                                            Has gastado <span id="formula-spent" class="text-red-400 font-bold">...</span>.
+                                        <p class="text-xs text-zinc-400 leading-relaxed max-w-[90%]" id="formula-explanation">
+                                            Analizando tus gastos...
                                         </p>
                                     </div>
                                     <div class="text-right">
@@ -293,12 +300,14 @@
                         </div>
 
                         <div id="recent-list" class="space-y-3 pb-24 md:pb-0">
+                            <!-- Items -->
                         </div>
                     </div>
 
                 </div>
             </section>
 
+            <!-- VISTA HISTORIAL -->
             <section id="view-history" class="px-5 md:px-0 hidden fade-in">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-white">Historial</h2>
@@ -313,6 +322,7 @@
                 </div>
             </section>
 
+            <!-- VISTA FIJOS -->
             <section id="view-fixed" class="px-5 md:px-0 hidden fade-in">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-white">Pagos Fijos</h2>
@@ -322,12 +332,13 @@
                 </div>
                  <div class="bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 mb-6 flex gap-3">
                     <i class="ph-fill ph-info text-blue-400 text-lg flex-shrink-0"></i>
-                    <p class="text-xs text-blue-200/70 leading-relaxed">Gestiona tus suscripciones y rentas. Pulsa el check para registrarlos como pagados este mes. Los pagados no se restan del presupuesto diario.</p>
+                    <p class="text-xs text-blue-200/70 leading-relaxed">Gestiona tus suscripciones y rentas. Pulsa el check para registrarlos como pagados este mes. Los NO pagados se restan automáticamente de tu presupuesto diario.</p>
                 </div>
                 <div id="fixed-list" class="grid grid-cols-1 md:grid-cols-2 gap-3 pb-24">
                 </div>
             </section>
 
+            <!-- VISTA PRÉSTAMOS -->
             <section id="view-loans" class="px-5 md:px-0 hidden fade-in">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-white">Préstamos</h2>
@@ -347,20 +358,17 @@
                     </div>
                 </div>
 
-                <div class="bg-purple-900/10 border border-purple-500/20 rounded-xl p-4 mb-6 flex gap-3">
-                    <i class="ph-fill ph-hand-coins text-purple-400 text-lg flex-shrink-0"></i>
-                    <p class="text-xs text-purple-200/70 leading-relaxed">Aquí puedes llevar el control de quién te debe dinero y a quién le debes. ¡Cuentas claras, amistades largas!</p>
-                </div>
-
                 <div id="loans-list" class="space-y-3 pb-24">
                     <div class="text-center text-zinc-600 py-10 text-xs font-mono">Sin préstamos activos</div>
                 </div>
             </section>
 
+            <!-- VISTA AJUSTES -->
             <section id="view-settings" class="px-5 md:px-0 hidden fade-in">
                 <h2 class="text-xl font-bold text-white mb-6">Configuración</h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-24">
+                    <!-- User Info -->
                     <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl">
                          <div class="flex items-center gap-4 mb-6">
                             <div class="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-white text-xl">
@@ -376,6 +384,7 @@
                         </button>
                     </div>
 
+                    <!-- Frecuencia Cobro -->
                     <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl">
                         <h3 class="font-bold text-zinc-200 text-sm mb-4 flex items-center gap-2"><i class="ph-fill ph-calendar text-emerald-500"></i> Frecuencia de Cobro</h3>
                         
@@ -415,33 +424,49 @@
                         <div id="biweekly-custom-container" class="hidden grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label class="text-[10px] text-zinc-500 font-bold uppercase mb-2 block">Pago 1</label>
-                                <select id="payday-1-select" class="glass-input w-full p-2.5 rounded-lg text-xs font-bold appearance-none">
-                                </select>
+                                <select id="payday-1-select" class="glass-input w-full p-2.5 rounded-lg text-xs font-bold appearance-none"></select>
                             </div>
                             <div>
                                 <label class="text-[10px] text-zinc-500 font-bold uppercase mb-2 block">Pago 2</label>
-                                <select id="payday-2-select" class="glass-input w-full p-2.5 rounded-lg text-xs font-bold appearance-none">
-                                </select>
+                                <select id="payday-2-select" class="glass-input w-full p-2.5 rounded-lg text-xs font-bold appearance-none"></select>
                             </div>
                         </div>
                         
                         <button onclick="saveSettings()" class="w-full bg-white text-black py-3 rounded-xl font-bold text-xs hover:bg-zinc-200 transition">GUARDAR CAMBIOS</button>
                     </div>
 
+                    <!-- Psicología -->
                     <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl md:col-span-2">
                         <h3 class="font-bold text-zinc-200 text-sm mb-4 flex items-center gap-2"><i class="ph-fill ph-brain text-purple-500"></i> Psicología Financiera</h3>
-                        <label class="flex items-center justify-between p-4 bg-black/40 border border-zinc-800 rounded-xl cursor-pointer hover:border-zinc-600 transition">
+                        
+                        <!-- Ahorro Forzoso -->
+                        <label class="flex items-center justify-between p-4 bg-black/40 border border-zinc-800 rounded-xl cursor-pointer hover:border-zinc-600 transition mb-3">
                             <div class="flex flex-col">
                                 <span class="text-sm font-bold text-zinc-200">Modo "Ahorro Forzoso"</span>
-                                <span class="text-[10px] text-zinc-500 font-medium">Oculta el 10% de tu saldo disponible para engañar a tu cerebro.</span>
+                                <span class="text-[10px] text-zinc-500 font-medium">Oculta el 10% de tu saldo disponible.</span>
                             </div>
                             <div class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="toggle-forced-savings" class="sr-only peer" onchange="saveSettings()">
                                 <div class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                             </div>
                         </label>
+                        
+                         <!-- Mínimo Vital (Supervivencia) -->
+                         <div class="p-4 bg-black/40 border border-zinc-800 rounded-xl">
+                             <div class="flex justify-between items-center mb-2">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-bold text-zinc-200">Mínimo Vital Diario</span>
+                                    <span class="text-[10px] text-zinc-500 font-medium">¿Con cuánto sobrevives al día (comida/bus)?</span>
+                                </div>
+                            </div>
+                             <div class="flex items-center gap-2">
+                                <span class="text-zinc-500 text-lg font-bold">$</span>
+                                <input type="number" id="input-min-vital" class="bg-transparent border-b border-zinc-700 w-full py-1 text-white font-bold outline-none focus:border-emerald-500 transition" placeholder="100">
+                            </div>
+                         </div>
                     </div>
 
+                    <!-- Datos -->
                     <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl md:col-span-2">
                         <h3 class="font-bold text-zinc-200 text-sm mb-4">Gestión de Datos</h3>
                         <div class="flex gap-4">
@@ -461,6 +486,7 @@
         </div>
     </main>
 
+    <!-- FAB & Bottom Nav -->
     <div class="md:hidden fixed bottom-[calc(90px+var(--sab))] left-1/2 -translate-x-1/2 z-40" id="fab-container">
         <button onclick="openAddModal('expense')" class="w-16 h-16 bg-gradient-to-b from-red-600 to-red-700 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(220,38,38,0.4)] border-[6px] border-[#050505] active:scale-90 transition-transform duration-200 group relative overflow-hidden">
             <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
@@ -486,6 +512,9 @@
         </button>
     </nav>
 
+    <!-- Modals (Transaction, Adjust, Fixed, Loans) -->
+    <!-- [Mismos modales que antes, sin cambios estructurales mayores] -->
+    
     <div id="transaction-modal" class="modal-overlay">
         <div id="transaction-modal-content" class="modal-sheet">
              <div class="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0 md:hidden"></div>
@@ -511,8 +540,7 @@
 
                 <div class="mb-6">
                     <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-2 block">Categoría</label>
-                    <div class="flex flex-wrap gap-2" id="category-chips">
-                    </div>
+                    <div class="flex flex-wrap gap-2" id="category-chips"></div>
                     <input type="hidden" id="t-category" required>
                 </div>
 
@@ -527,12 +555,8 @@
                 </div>
 
                 <div class="flex flex-col gap-3">
-                    <button type="submit" id="btn-save-tx" class="w-full bg-white text-black h-14 rounded-2xl font-black text-sm hover:bg-zinc-200 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-                        GUARDAR
-                    </button>
-                    <button type="button" id="btn-delete-tx" onclick="deleteCurrentTransaction()" class="hidden w-full bg-red-500/10 text-red-500 h-14 rounded-2xl font-black text-sm hover:bg-red-500 hover:text-white transition-colors border border-red-500/20">
-                        ELIMINAR
-                    </button>
+                    <button type="submit" id="btn-save-tx" class="w-full bg-white text-black h-14 rounded-2xl font-black text-sm hover:bg-zinc-200 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.1)]">GUARDAR</button>
+                    <button type="button" id="btn-delete-tx" onclick="deleteCurrentTransaction()" class="hidden w-full bg-red-500/10 text-red-500 h-14 rounded-2xl font-black text-sm hover:bg-red-500 hover:text-white transition-colors border border-red-500/20">ELIMINAR</button>
                 </div>
              </form>
         </div>
@@ -540,12 +564,9 @@
 
     <div id="adjust-modal" class="modal-overlay">
         <div id="adjust-modal-content" class="modal-sheet">
-            <div class="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0 md:hidden"></div>
              <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-bold text-white"><i class="ph-bold ph-scales text-blue-500"></i> Ajustar Saldo</h3>
-                <button onclick="closeModal('adjust-modal')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition">
-                    <i class="ph-bold ph-x"></i>
-                </button>
+                <button onclick="closeModal('adjust-modal')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition"><i class="ph-bold ph-x"></i></button>
              </div>
              <div class="bg-blue-900/10 border border-blue-500/20 p-4 rounded-2xl mb-6 text-center">
                  <p class="text-[10px] text-blue-400 uppercase font-bold mb-1">Saldo Sistema (Real)</p>
@@ -563,12 +584,9 @@
 
     <div id="fixed-modal" class="modal-overlay">
         <div id="fixed-modal-content" class="modal-sheet">
-            <div class="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0 md:hidden"></div>
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-bold text-white">Nuevo Pago Fijo</h3>
-                <button onclick="closeModal('fixed-modal')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition">
-                    <i class="ph-bold ph-x"></i>
-                </button>
+                <button onclick="closeModal('fixed-modal')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition"><i class="ph-bold ph-x"></i></button>
              </div>
              <form id="fixed-form" onsubmit="addFixed(event)">
                  <div class="mb-4">
@@ -582,8 +600,7 @@
                       </div>
                       <div>
                         <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Día Pago</label>
-                        <select id="f-day" class="glass-input w-full p-4 rounded-xl text-sm font-bold appearance-none">
-                        </select>
+                        <select id="f-day" class="glass-input w-full p-4 rounded-xl text-sm font-bold appearance-none"></select>
                       </div>
                  </div>
                  <button type="submit" class="w-full bg-white text-black h-14 rounded-2xl font-black text-sm hover:bg-zinc-200 transition-colors">GUARDAR</button>
@@ -593,21 +610,16 @@
 
     <div id="loans-modal" class="modal-overlay">
         <div id="loans-modal-content" class="modal-sheet">
-            <div class="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 shrink-0 md:hidden"></div>
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-bold text-white">Nuevo Préstamo</h3>
-                <button onclick="closeModal('loans-modal')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition">
-                    <i class="ph-bold ph-x"></i>
-                </button>
+                <button onclick="closeModal('loans-modal')" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition"><i class="ph-bold ph-x"></i></button>
             </div>
-            
             <form onsubmit="saveLoan(event)">
                  <div class="flex p-1 bg-zinc-900 rounded-xl mb-6 border border-zinc-800">
                     <button type="button" onclick="setLoanType('lent')" id="btn-lent" class="flex-1 py-2 text-xs font-bold rounded-lg bg-[#27272a] text-emerald-400 shadow transition-all">ME DEBEN</button>
                     <button type="button" onclick="setLoanType('borrowed')" id="btn-borrowed" class="flex-1 py-2 text-xs font-bold text-zinc-500 hover:text-zinc-300 transition-all">YO DEBO</button>
                 </div>
                 <input type="hidden" id="loan-type" value="lent">
-
                  <div class="mb-4">
                       <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Persona / Entidad</label>
                       <input type="text" id="loan-person" class="glass-input w-full p-4 rounded-xl text-sm font-bold placeholder-zinc-600" placeholder="Ej. Juan Pérez" required>
@@ -620,7 +632,6 @@
                     <label class="text-[10px] text-zinc-500 font-bold uppercase ml-1 mb-1 block">Fecha</label>
                     <input type="date" id="loan-date" class="glass-input w-full p-4 rounded-xl text-sm font-bold text-center appearance-none" required>
                 </div>
-
                  <button type="submit" class="w-full bg-white text-black h-14 rounded-2xl font-black text-sm hover:bg-zinc-200 transition-colors">GUARDAR</button>
             </form>
         </div>
@@ -658,9 +669,10 @@
             transactions: [],
             fixed: [],
             loans: [], 
-            settings: { frequency: 'biweekly', payday: null, forcedSavings: false }
+            settings: { frequency: 'biweekly', payday: null, forcedSavings: false, minVital: 0 }
         };
 
+        // --- AUTH & INIT ---
         window.authApp = {
             isRegistering: false,
             toggleAuth(mode) {
@@ -764,14 +776,14 @@
             
             listeners.push(onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'transactions'), (snap) => {
                 window.appData.transactions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                try { renderDashboard(); } catch(e) { console.error("Dash error", e); }
-                try { renderHistory(); } catch(e) { console.error("Hist error", e); }
-                try { renderFixed(); } catch(e) { console.error("Fixed error", e); }
+                try { renderDashboard(); } catch(e) {}
+                try { renderHistory(); } catch(e) {}
+                try { renderFixed(); } catch(e) {}
             }));
 
             listeners.push(onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'fixed'), (snap) => {
                 window.appData.fixed = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                try { renderFixed(); } catch(e) {}
+                try { renderFixed(); renderDashboard(); } catch(e) {}
             }));
 
             listeners.push(onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'loans'), (snap) => {
@@ -785,7 +797,7 @@
             }));
         }
 
-        
+        // --- FUNCIONES GLOBAL ---
         window.openAddModal = function(type, fixedId = null) {
             editingTransactionId = null;
             document.getElementById('modal-tx-title').textContent = type === 'expense' ? "Nuevo Gasto" : "Nuevo Ingreso";
@@ -801,7 +813,6 @@
             document.getElementById('t-fixed-id').value = fixedId || ''; 
             
             renderCategoryChips(type);
-            
             openModal('transaction-modal');
         };
 
@@ -949,13 +960,15 @@
             const payday1 = document.getElementById('payday-1-select').value;
             const payday2 = document.getElementById('payday-2-select').value;
             const forcedSavings = document.getElementById('toggle-forced-savings').checked;
+            const minVital = parseFloat(document.getElementById('input-min-vital').value) || 0;
             
             await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'config'), { 
                 frequency: freq, 
                 payday, 
                 payday1, 
                 payday2,
-                forcedSavings
+                forcedSavings,
+                minVital
             }, { merge: true });
             showToast('Configuración Guardada');
         };
@@ -1049,12 +1062,14 @@
                 { id: 'Ocio', icon: 'ph-film-strip', color: 'text-pink-400' },
                 { id: 'Salud', icon: 'ph-heartbeat', color: 'text-red-400' },
                 { id: 'Servicios', icon: 'ph-lightning', color: 'text-yellow-400' },
-                { id: 'Otros', icon: 'ph-dots-three-circle', color: 'text-gray-400' }
+                { id: 'Otros', icon: 'ph-dots-three-circle', color: 'text-gray-400' },
+                { id: 'Ajuste', icon: 'ph-scales', color: 'text-zinc-500' }
             ],
             income: [
                 { id: 'Nómina', icon: 'ph-money', color: 'text-emerald-400' },
                 { id: 'Venta', icon: 'ph-tag', color: 'text-blue-400' },
                 { id: 'Regalo', icon: 'ph-gift', color: 'text-pink-400' },
+                { id: 'Ajuste', icon: 'ph-scales', color: 'text-zinc-500' },
                 { id: 'Otro', icon: 'ph-dots-three-circle', color: 'text-gray-400' }
             ]
         };
@@ -1155,7 +1170,7 @@
                 listEl.innerHTML = listHTML;
             }
             
-            updatePaydayInfo(bal);
+            updatePaydayInfo(totalBalanceReal);
             updateChart(displayTx);
         }
 
@@ -1166,22 +1181,10 @@
             const iconColor = catObj ? catObj.color : 'text-zinc-400';
             
             let dateDisplay = '';
-            
             if (t.date) {
-                if (t.date.includes('T')) {
-                    const d = new Date(t.date);
-                    if (!isNaN(d.getTime())) {
-                        const day = d.getDate().toString().padStart(2, '0');
-                        const month = (d.getMonth() + 1).toString().padStart(2, '0');
-                        const hour = d.getHours().toString().padStart(2, '0');
-                        const min = d.getMinutes().toString().padStart(2, '0');
-                        dateDisplay = `${day}/${month} ${hour}:${min}`;
-                    }
-                } else {
-                    const parts = t.date.split('-');
-                    if (parts.length === 3) {
-                        dateDisplay = `${parts[2]}/${parts[1]}`; 
-                    }
+                const d = new Date(t.date);
+                if (!isNaN(d.getTime())) {
+                     dateDisplay = d.getDate() + '/' + (d.getMonth()+1);
                 }
             }
 
@@ -1350,16 +1353,14 @@
             
             const daysLabel = document.getElementById('formula-days-left');
             const dailyLabel = document.getElementById('formula-daily');
-            const allowanceLabel = document.getElementById('formula-allowance');
-            const spentLabel = document.getElementById('formula-spent');
+            const explanation = document.getElementById('formula-explanation');
             
             if(!set || (set.frequency === 'monthly' && !set.payday)) {
                 badge.textContent = "Sin Config";
                 badge.className = "text-[10px] bg-zinc-800 text-zinc-500 border border-zinc-700 px-3 py-1.5 rounded-full font-mono font-bold";
                 daysLabel.textContent = "Configura tu cobro";
                 dailyLabel.textContent = "$0.00";
-                allowanceLabel.textContent = "...";
-                spentLabel.textContent = "...";
+                explanation.textContent = "Ve a Ajustes para configurar.";
                 return;
             }
             
@@ -1435,6 +1436,7 @@
         }
 
         function updateDailyFormula(currentBalance, daysLeft, nextPaydayDate) {
+            // 1. Obtener lo que ya gasté hoy
             let spentToday = 0;
             const todayDate = new Date();
             todayDate.setHours(0,0,0,0);
@@ -1449,31 +1451,62 @@
                 }
             });
 
+            // 2. Calcular los Fijos Pendientes (Reales)
             let pendingFixedSum = 0;
-            
-            for(let i=1; i <= daysLeft; i++) {
-                let checkDate = new Date(todayDate);
-                checkDate.setDate(todayDate.getDate() + i);
-                const dayNum = checkDate.getDate();
-                
-                window.appData.fixed.forEach(f => {
-                    if(parseInt(f.day) === dayNum) {
-                        if (!isFixedPaidThisMonth(f.id)) {
-                             pendingFixedSum = (Math.round(pendingFixedSum * 100) + Math.round(parseFloat(f.amount) * 100)) / 100;
-                        }
-                    }
-                });
-            }
+            const nextPaydayDay = nextPaydayDate.getDate();
+            const todayDay = todayDate.getDate();
 
+            window.appData.fixed.forEach(f => {
+                const fDay = parseInt(f.day);
+                if (isFixedPaidThisMonth(f.id)) return;
+
+                // Deuda vieja (menor a hoy) o deuda inminente (antes del cobro)
+                if (fDay < todayDay) {
+                    pendingFixedSum += parseFloat(f.amount);
+                } else if (fDay >= todayDay && fDay <= nextPaydayDay) {
+                     pendingFixedSum += parseFloat(f.amount);
+                }
+            });
+
+            // 3. FÓRMULA DE SUPERVIVENCIA
+            const minVital = window.appData.settings.minVital || 0;
+            
             const startOfDayBalance = currentBalance + spentToday;
             const effectiveStartBalance = startOfDayBalance - pendingFixedSum;
-            
             const divisor = daysLeft <= 0 ? 1 : daysLeft;
-            const budgetForToday = effectiveStartBalance / divisor;
+            
+            let budgetForToday = effectiveStartBalance / divisor;
+            let survivalMode = false;
+            let deficit = 0;
+
+            // Si el presupuesto real es menor que el mínimo vital, activamos supervivencia
+            if (minVital > 0 && budgetForToday < minVital) {
+                survivalMode = true;
+                deficit = (minVital * divisor) - effectiveStartBalance; // Cuánto me falta
+                budgetForToday = minVital; // Forzamos el presupuesto al mínimo vital
+            }
+
             const remainingToday = budgetForToday - spentToday;
             
-            document.getElementById('formula-allowance').textContent = formatCurrency(budgetForToday);
-            document.getElementById('formula-spent').textContent = formatCurrency(spentToday);
+            // Actualizar UI
+            const titleEl = document.getElementById('formula-title');
+            const bgEl = document.getElementById('formula-bg');
+            const blobEl = document.getElementById('formula-blob');
+            const explEl = document.getElementById('formula-explanation');
+
+            if (survivalMode) {
+                titleEl.innerHTML = '<i class="ph-fill ph-warning-circle text-red-500"></i> SUPERVIVENCIA';
+                titleEl.className = "text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1 text-red-400 animate-pulse";
+                bgEl.className = "absolute inset-0 bg-red-900/20 transition";
+                blobEl.className = "absolute top-0 right-0 w-24 h-24 bg-red-500/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2";
+                explEl.innerHTML = `No te alcanza para todo. Prioridad: <strong class="text-white">Comida/Bus</strong>.<br>Acumularás una deuda de <strong class="text-red-400">-${formatCurrency(deficit)}</strong> en tus fijos.`;
+            } else {
+                titleEl.innerHTML = '<i class="ph-fill ph-calendar-check"></i> Plan Para Hoy';
+                titleEl.className = "text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1 text-blue-400";
+                bgEl.className = "absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition";
+                blobEl.className = "absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2";
+                explEl.innerHTML = `Presupuesto diario seguro: <strong class="text-white">${formatCurrency(budgetForToday)}</strong>.<br>Has gastado <strong class="text-red-400">${formatCurrency(spentToday)}</strong>.`;
+            }
             
             const remainingEl = document.getElementById('formula-daily');
             remainingEl.textContent = formatCurrency(remainingToday);
@@ -1595,6 +1628,9 @@
             const toggle = document.getElementById('toggle-forced-savings');
             if(toggle && s.forcedSavings !== undefined) toggle.checked = s.forcedSavings;
             
+            const minVitalInput = document.getElementById('input-min-vital');
+            if(minVitalInput && s.minVital) minVitalInput.value = s.minVital;
+
             togglePaydayInput();
         }
 
