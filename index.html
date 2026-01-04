@@ -126,6 +126,13 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
+        /* LEGAL PAGES */
+        .legal-content h2 { font-size: 1.5rem; font-weight: 700; color: white; margin-top: 2rem; margin-bottom: 1rem; }
+        .legal-content h3 { font-size: 1.25rem; font-weight: 600; color: #e4e4e7; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .legal-content p { color: #a1a1aa; margin-bottom: 1rem; line-height: 1.6; }
+        .legal-content ul { list-style-type: disc; padding-left: 1.5rem; color: #a1a1aa; margin-bottom: 1rem; }
+        .legal-content li { margin-bottom: 0.5rem; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative selection:bg-brand selection:text-white">
@@ -148,15 +155,14 @@
     <!-- TOAST CONTAINER -->
     <div id="toast-container" class="fixed top-6 right-6 z-[70] flex flex-col gap-3 pointer-events-none"></div>
 
-    <!-- PUBLIC NAVBAR (Visible en Landing) -->
+    <!-- PUBLIC NAVBAR (Visible en Landing y Páginas Legales) -->
     <nav id="public-nav" class="fixed top-0 w-full z-40 border-b border-border bg-bg-glass backdrop-blur-md px-6 py-4 flex justify-between items-center transition-all duration-300">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="window.app.returnToLanding()">
             <i class="ph-duotone ph-planet text-brand text-2xl"></i>
             <span class="font-bold tracking-tight text-lg text-white">GOD'S PLAN</span>
         </div>
         <div class="flex items-center gap-4">
-            <a href="#features" class="text-sm text-zinc-400 hover:text-white hidden md:block transition-colors">Características</a>
-            <a href="#about" class="text-sm text-zinc-400 hover:text-white hidden md:block transition-colors">Sobre el Autor</a>
+            <button onclick="window.app.returnToLanding()" class="text-sm text-zinc-400 hover:text-white hidden md:block transition-colors">Inicio</button>
             <button onclick="window.app.toggleAuthModal()" class="px-5 py-2 bg-white text-black text-sm font-bold rounded-full hover:bg-brand hover:text-white transition-all">
                 Acceder
             </button>
@@ -183,7 +189,7 @@
 
     <main class="flex-grow flex flex-col items-center justify-center relative z-10 w-full">
 
-        <!-- ==================== LANDING PAGE VIEW (REQUIRED FOR ADSENSE) ==================== -->
+        <!-- ==================== LANDING PAGE VIEW ==================== -->
         <section id="view-landing" class="w-full pt-32 pb-20 px-4 flex flex-col items-center animate-fade-in-up">
             
             <!-- Hero Section -->
@@ -287,7 +293,7 @@
 
             </div>
 
-             <!-- About Section (Required content for Adsense) -->
+             <!-- About Section -->
              <div id="about" class="w-full max-w-4xl glass-panel p-10 rounded-2xl mb-20">
                 <h2 class="text-2xl font-bold text-white mb-6">¿Por qué God's Plan?</h2>
                 <div class="space-y-4 text-zinc-400 text-sm leading-7">
@@ -303,20 +309,130 @@
                 </div>
             </div>
 
-            <!-- Footer Legal (MANDATORY FOR ADSENSE) -->
+            <!-- Footer Legal -->
             <footer class="w-full max-w-6xl border-t border-zinc-900 pt-10 pb-6">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-6">
                     <div class="text-zinc-600 text-sm">
                         &copy; 2024 God's Plan. Todos los derechos reservados.
                     </div>
                     <div class="flex gap-6 text-sm text-zinc-500">
-                        <a href="/privacy.html" class="hover:text-brand transition-colors">Política de Privacidad</a>
-                        <a href="/terms.html" class="hover:text-brand transition-colors">Términos de Uso</a>
-                        <a href="mailto:contacto@godsplan.site" class="hover:text-brand transition-colors">Contacto</a>
+                        <button onclick="window.app.toggleView('privacy')" class="hover:text-brand transition-colors">Política de Privacidad</button>
+                        <button onclick="window.app.toggleView('terms')" class="hover:text-brand transition-colors">Términos de Uso</button>
+                        <button onclick="window.app.toggleView('contact')" class="hover:text-brand transition-colors">Contacto</button>
                     </div>
                 </div>
             </footer>
 
+        </section>
+
+        <!-- ==================== LEGAL: PRIVACY POLICY ==================== -->
+        <section id="view-privacy" class="hidden w-full max-w-4xl pt-32 pb-20 px-4 animate-fade-in-up">
+            <h1 class="text-4xl font-bold text-white mb-8">Política de Privacidad</h1>
+            <div class="glass-panel p-10 rounded-2xl legal-content">
+                <p>Última actualización: 04 de Enero de 2024</p>
+
+                <h2>1. Introducción</h2>
+                <p>En God's Plan ("nosotros", "nuestro"), respetamos su privacidad y nos comprometemos a proteger los datos personales que pueda compartir con nosotros. Esta política describe cómo recopilamos y usamos su información.</p>
+
+                <h2>2. Información que recopilamos</h2>
+                <p>Recopilamos información que usted nos proporciona directamente, como cuando crea una cuenta, utiliza nuestros módulos interactivos (Finanzas, Coding) o se comunica con nosotros.</p>
+                <ul>
+                    <li><strong>Datos de cuenta:</strong> Correo electrónico, nombre de usuario y contraseña cifrada (gestionada a través de Firebase Auth).</li>
+                    <li><strong>Datos de uso:</strong> Información sobre cómo interactúa con nuestros módulos para mejorar la experiencia del usuario.</li>
+                    <li><strong>Cookies:</strong> Utilizamos cookies para mantener su sesión activa y recordar sus preferencias.</li>
+                </ul>
+
+                <h2>3. Uso de la información</h2>
+                <p>Utilizamos la información recopilada para:</p>
+                <ul>
+                    <li>Proveer, mantener y mejorar nuestros servicios.</li>
+                    <li>Procesar transacciones y enviar notificaciones relacionadas.</li>
+                    <li>Responder a sus comentarios y preguntas de soporte.</li>
+                </ul>
+
+                <h2>4. Google AdSense y Terceros</h2>
+                <p>Utilizamos Google AdSense para mostrar anuncios. Google y sus socios utilizan cookies para mostrar anuncios basados en sus visitas anteriores a nuestro sitio web u otros sitios web.</p>
+                <p>Los usuarios pueden inhabilitar la publicidad personalizada visitando la <a href="https://www.google.com/settings/ads" target="_blank" class="text-brand underline">Configuración de anuncios de Google</a>.</p>
+
+                <h2>5. Seguridad de los datos</h2>
+                <p>Implementamos medidas de seguridad robustas para proteger su información personal. Utilizamos Firebase de Google para el almacenamiento seguro de datos y autenticación.</p>
+
+                <h2>6. Sus derechos</h2>
+                <p>Usted tiene derecho a acceder, corregir o eliminar sus datos personales. Puede gestionar su información desde la sección "Mi Cuenta" o contactarnos directamente.</p>
+            </div>
+            <div class="mt-8 text-center">
+                <button onclick="window.app.returnToLanding()" class="text-zinc-400 hover:text-white underline">Volver al Inicio</button>
+            </div>
+        </section>
+
+        <!-- ==================== LEGAL: TERMS OF USE ==================== -->
+        <section id="view-terms" class="hidden w-full max-w-4xl pt-32 pb-20 px-4 animate-fade-in-up">
+            <h1 class="text-4xl font-bold text-white mb-8">Términos de Uso</h1>
+            <div class="glass-panel p-10 rounded-2xl legal-content">
+                <p>Última actualización: 04 de Enero de 2024</p>
+
+                <h2>1. Aceptación de los Términos</h2>
+                <p>Al acceder y utilizar God's Plan, usted acepta estar sujeto a estos Términos de Uso y a todas las leyes y regulaciones aplicables. Si no está de acuerdo con alguno de estos términos, tiene prohibido utilizar este sitio.</p>
+
+                <h2>2. Licencia de Uso</h2>
+                <p>Se concede permiso para utilizar temporalmente los materiales (software o servicios) en el sitio web de God's Plan solo para uso personal y no comercial transitorio.</p>
+                <p>Esta licencia no permite:</p>
+                <ul>
+                    <li>Modificar o copiar los materiales (excepto su propio código en el módulo Canvas).</li>
+                    <li>Utilizar los materiales para cualquier fin comercial público sin consentimiento.</li>
+                    <li>Intentar descompilar o realizar ingeniería inversa de cualquier software contenido en el sitio.</li>
+                </ul>
+
+                <h2>3. Descargo de Responsabilidad</h2>
+                <p>Los materiales en el sitio web de God's Plan se proporcionan "tal cual". No ofrecemos garantías, expresas o implícitas, y por la presente renunciamos a todas las otras garantías, incluyendo, sin limitación, garantías implícitas o condiciones de comerciabilidad.</p>
+
+                <h2>4. Limitaciones</h2>
+                <p>En ningún caso God's Plan o sus proveedores serán responsables de ningún daño (incluyendo, sin limitación, daños por pérdida de datos o beneficios) que surjan del uso o la imposibilidad de usar nuestros servicios.</p>
+
+                <h2>5. Modificaciones</h2>
+                <p>Podemos revisar estos términos de servicio en cualquier momento sin previo aviso. Al utilizar este sitio web, usted acepta estar sujeto a la versión actual de estos términos.</p>
+            </div>
+            <div class="mt-8 text-center">
+                <button onclick="window.app.returnToLanding()" class="text-zinc-400 hover:text-white underline">Volver al Inicio</button>
+            </div>
+        </section>
+
+        <!-- ==================== LEGAL: CONTACT ==================== -->
+        <section id="view-contact" class="hidden w-full max-w-2xl pt-32 pb-20 px-4 animate-fade-in-up">
+            <h1 class="text-4xl font-bold text-white mb-8 text-center">Contacto</h1>
+            
+            <div class="glass-panel p-10 rounded-2xl mb-8">
+                <p class="text-zinc-400 text-center mb-8">¿Tienes alguna pregunta, sugerencia o necesitas soporte? Estamos aquí para ayudarte. Completa el formulario a continuación o envíanos un correo directo.</p>
+                
+                <form onsubmit="event.preventDefault(); window.app.toast('Mensaje enviado. Te contactaremos pronto.', 'success');" class="space-y-6">
+                    <div class="input-group relative">
+                        <input type="text" required class="w-full bg-black/40 border border-border focus:border-brand rounded-lg px-4 py-3 outline-none transition-all placeholder-transparent" placeholder="Tu Nombre">
+                        <label class="absolute left-4 top-3 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">Tu Nombre</label>
+                    </div>
+                    
+                    <div class="input-group relative">
+                        <input type="email" required class="w-full bg-black/40 border border-border focus:border-brand rounded-lg px-4 py-3 outline-none transition-all placeholder-transparent" placeholder="Tu Email">
+                        <label class="absolute left-4 top-3 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">Tu Email</label>
+                    </div>
+                    
+                    <div class="input-group relative">
+                        <textarea required rows="4" class="w-full bg-black/40 border border-border focus:border-brand rounded-lg px-4 py-3 outline-none transition-all placeholder-transparent resize-none" placeholder="Mensaje"></textarea>
+                        <label class="absolute left-4 top-3 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">Mensaje</label>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 bg-white text-black font-bold rounded-lg hover:bg-zinc-200 transition-all flex items-center justify-center gap-2">
+                        Enviar Mensaje <i class="ph-bold ph-paper-plane-right"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="text-center space-y-2">
+                <p class="text-zinc-500 text-sm">O escríbenos directamente a:</p>
+                <a href="mailto:contacto@godsplan.site" class="text-brand font-mono hover:underline text-lg">contacto@godsplan.site</a>
+                <div class="pt-6">
+                    <button onclick="window.app.returnToLanding()" class="text-zinc-400 hover:text-white underline">Volver al Inicio</button>
+                </div>
+            </div>
         </section>
 
 
@@ -777,11 +893,14 @@
         class UIManager {
             constructor() {
                 this.views = {
-                    auth: document.getElementById('auth-modal'), // Ahora es un modal
-                    landing: document.getElementById('view-landing'), // Nueva Landing
+                    auth: document.getElementById('auth-modal'), 
+                    landing: document.getElementById('view-landing'), 
                     dash: document.getElementById('view-dashboard'),
                     settings: document.getElementById('view-settings'),
                     info: document.getElementById('view-info'),
+                    privacy: document.getElementById('view-privacy'),
+                    terms: document.getElementById('view-terms'),
+                    contact: document.getElementById('view-contact'),
                     dashNav: document.getElementById('navbar'),
                     publicNav: document.getElementById('public-nav'),
                     loader: document.getElementById('app-loader')
@@ -878,11 +997,10 @@
             toggleView(viewName) {
                 this.views.loader.classList.add('opacity-0', 'pointer-events-none');
                 
-                // Ocultar vistas principales
-                this.views.landing.classList.add('hidden');
-                this.views.dash.classList.add('hidden');
-                this.views.settings.classList.add('hidden');
-                this.views.info.classList.add('hidden');
+                // Ocultar todas las vistas
+                Object.values(this.views).forEach(el => {
+                    if (el && el.tagName === 'SECTION') el.classList.add('hidden');
+                });
                 
                 // Ocultar Navs
                 this.views.dashNav.classList.add('hidden');
@@ -904,6 +1022,10 @@
                 } else if (viewName === 'info') {
                     this.views.info.classList.remove('hidden');
                     this.views.dashNav.classList.remove('hidden');
+                } else if (['privacy', 'terms', 'contact'].includes(viewName)) {
+                    this.views[viewName].classList.remove('hidden');
+                    this.views.publicNav.classList.remove('hidden'); // Mostrar navbar público en páginas legales
+                    window.scrollTo(0,0);
                 }
             }
 
@@ -1067,7 +1189,9 @@
 
             goToInfo: () => ui.toggleView('info'),
             returnToDash: () => ui.toggleView('dashboard'),
+            returnToLanding: () => ui.toggleView('landing'),
             toggleView: (v) => ui.toggleView(v),
+            toast: (m, t) => ui.toast(m, t),
             
             updateUserData: async () => {
                 const newName = document.getElementById('settings-name').value;
