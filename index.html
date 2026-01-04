@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Personal Operating System">
+    <!-- SEO OPTIMIZADO PARA ADSENSE -->
+    <meta name="description" content="GOD'S PLAN: Sistema Operativo Personal para gestión de finanzas, adherencia laboral, programación y productividad. La suite definitiva de herramientas personales.">
+    <meta name="keywords" content="productividad, finanzas personales, coding, dashboard, gestión de tiempo">
     <meta name="theme-color" content="#000000">
-    <title>GOD'S PLAN</title>
+    <title>GOD'S PLAN | Sistema Operativo Personal</title>
 
     <!-- FAVICON -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪐</text></svg>">
@@ -14,6 +16,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- ADSENSE SCRIPT (Descomentar al tener la aprobación) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8248737244883883"
+     crossorigin="anonymous"></script>
 
     <script>
         tailwind.config = {
@@ -35,7 +41,6 @@
                     animation: {
                         'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
-                        'spin-slow': 'spin 3s linear infinite',
                     },
                     keyframes: {
                         fadeInUp: {
@@ -76,7 +81,7 @@
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-style: preserve-3d;
             background: #090909;
-            text-decoration: none; /* For links */
+            text-decoration: none;
             position: relative;
         }
         .module-card:hover {
@@ -114,6 +119,13 @@
             background-color: rgba(255, 42, 42, 0.1);
             color: white;
         }
+
+        /* LANDING SPECIFIC */
+        .hero-text {
+            background: linear-gradient(to right, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative selection:bg-brand selection:text-white">
@@ -136,10 +148,24 @@
     <!-- TOAST CONTAINER -->
     <div id="toast-container" class="fixed top-6 right-6 z-[70] flex flex-col gap-3 pointer-events-none"></div>
 
-    <!-- NAVBAR -->
+    <!-- PUBLIC NAVBAR (Visible en Landing) -->
+    <nav id="public-nav" class="fixed top-0 w-full z-40 border-b border-border bg-bg-glass backdrop-blur-md px-6 py-4 flex justify-between items-center transition-all duration-300">
+        <div class="flex items-center gap-2">
+            <i class="ph-duotone ph-planet text-brand text-2xl"></i>
+            <span class="font-bold tracking-tight text-lg text-white">GOD'S PLAN</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="#features" class="text-sm text-zinc-400 hover:text-white hidden md:block transition-colors">Características</a>
+            <a href="#about" class="text-sm text-zinc-400 hover:text-white hidden md:block transition-colors">Sobre el Autor</a>
+            <button onclick="window.app.toggleAuthModal()" class="px-5 py-2 bg-white text-black text-sm font-bold rounded-full hover:bg-brand hover:text-white transition-all">
+                Acceder
+            </button>
+        </div>
+    </nav>
+
+    <!-- DASHBOARD NAVBAR (Oculto en Landing) -->
     <nav id="navbar" class="hidden fixed top-0 w-full z-40 border-b border-border bg-bg-glass backdrop-blur-md px-6 py-3 flex justify-between items-center transition-all duration-300">
         <div class="flex items-center gap-3">
-            <!-- Icono Navbar Dinámico -->
             <i id="nav-user-icon" class="ph-duotone ph-planet text-brand text-2xl"></i>
             <span class="font-bold tracking-tight text-lg">GOD'S PLAN</span>
         </div>
@@ -155,72 +181,217 @@
         </div>
     </nav>
 
-    <main class="flex-grow flex flex-col items-center justify-center relative z-10 w-full p-4">
+    <main class="flex-grow flex flex-col items-center justify-center relative z-10 w-full">
 
-        <!-- ==================== LOGIN VIEW ==================== -->
-        <section id="view-auth" class="hidden w-full max-w-[400px] animate-fade-in-up">
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-800 to-black border border-white/10 mb-4 shadow-lg shadow-brand/10">
-                    <i class="ph-fill ph-fingerprint text-3xl text-brand"></i>
+        <!-- ==================== LANDING PAGE VIEW (REQUIRED FOR ADSENSE) ==================== -->
+        <section id="view-landing" class="w-full pt-32 pb-20 px-4 flex flex-col items-center animate-fade-in-up">
+            
+            <!-- Hero Section -->
+            <div class="text-center max-w-4xl mb-20">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs text-brand font-mono mb-6">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-brand"></span>
+                    </span>
+                    SISTEMA OPERATIVO PERSONAL v2.0
                 </div>
-                <h1 class="text-3xl font-bold text-white tracking-tight">Access Control</h1>
-                <p class="text-zinc-500 text-sm mt-1 font-mono">SECURE ENVIRONMENT // BLQA</p>
+                <h1 class="text-5xl md:text-7xl font-black tracking-tighter mb-6 hero-text leading-[1.1]">
+                    Ordena tu caos digital.<br>Maximiza tu vida.
+                </h1>
+                <p class="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+                    God's Plan es la suite definitiva para desarrolladores y creativos. Gestiona tus finanzas, controla tu tiempo y optimiza tu flujo de trabajo en una sola interfaz unificada.
+                </p>
+                <div class="flex flex-col md:flex-row gap-4 justify-center">
+                    <button onclick="window.app.toggleAuthModal()" class="px-8 py-4 bg-brand text-white font-bold rounded-xl hover:bg-brand-hover hover:scale-105 transition-all shadow-lg shadow-brand/20 flex items-center justify-center gap-2">
+                        Iniciar Sistema <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                    <a href="#features" class="px-8 py-4 bg-zinc-900 border border-zinc-800 text-zinc-300 font-bold rounded-xl hover:bg-zinc-800 transition-all flex items-center justify-center">
+                        Explorar Módulos
+                    </a>
+                </div>
             </div>
 
-            <div class="glass-panel p-8 rounded-2xl">
-                <form onsubmit="event.preventDefault(); window.app.handleAuth();" class="flex flex-col gap-6">
-                    
-                    <!-- Input Dinámico: Nombre (Solo registro) -->
-                    <div id="field-name-container" class="hidden relative input-group group">
-                        <input type="text" id="input-name" class="w-full bg-black/40 border border-border focus:border-brand rounded-lg px-4 py-3 outline-none transition-all placeholder-transparent" placeholder="Name" autocomplete="name">
-                        <label for="input-name" class="absolute left-4 top-3 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">Nombre Operativo</label>
-                        <i class="ph-bold ph-user absolute right-4 top-3.5 text-zinc-600"></i>
+            <!-- ADSENSE PLACEHOLDER 1 -->
+            <div class="w-full max-w-4xl h-[100px] bg-zinc-900/30 border border-zinc-800/50 rounded-lg flex items-center justify-center mb-20 text-zinc-600 text-xs uppercase tracking-widest">
+                Espacio Publicitario
+            </div>
+
+            <!-- Features Grid (LANDING) -->
+            <div id="features" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl w-full mb-24">
+                
+                <!-- Adherencia -->
+                <a href="https://adherencia.godsplan.site/" target="_blank" class="glass-panel p-8 rounded-2xl hover:border-brand/30 transition-colors group block">
+                    <div class="w-12 h-12 rounded-lg bg-brand/10 text-brand flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-briefcase"></i>
                     </div>
+                    <h3 class="text-xl font-bold text-white mb-3 group-hover:text-brand transition-colors">Adherencia</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Control de asistencia y flujo de tiempos laborales. Optimiza tu jornada.
+                    </p>
+                </a>
 
-                    <!-- Email -->
-                    <div class="relative input-group group">
-                        <input type="text" id="input-email" class="w-full bg-black/40 border border-border focus:border-brand rounded-lg px-4 py-3 outline-none transition-all placeholder-transparent" placeholder="Email" autocomplete="username">
-                        <label for="input-email" class="absolute left-4 top-3 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">ID / Email</label>
-                        <i class="ph-bold ph-envelope-simple absolute right-4 top-3.5 text-zinc-600"></i>
+                <!-- Finanzas -->
+                <a href="https://finanzas.godsplan.site" target="_blank" class="glass-panel p-8 rounded-2xl hover:border-green-500/30 transition-colors group block">
+                    <div class="w-12 h-12 rounded-lg bg-green-500/10 text-green-500 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-wallet"></i>
                     </div>
+                    <h3 class="text-xl font-bold text-white mb-3 group-hover:text-green-500 transition-colors">Finanzas</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Sistema contable personal. Ingresos, egresos y proyecciones en tiempo real.
+                    </p>
+                </a>
 
-                    <!-- Password -->
-                    <div class="relative input-group group">
-                        <input type="password" id="input-pass" class="w-full bg-black/40 border border-border focus:border-brand rounded-lg px-4 py-3 outline-none transition-all placeholder-transparent" placeholder="Password" autocomplete="current-password">
-                        <label for="input-pass" class="absolute left-4 top-3 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">Contraseña</label>
-                        <i class="ph-bold ph-lock-key absolute right-4 top-3.5 text-zinc-600"></i>
+                <!-- Coding -->
+                <a href="https://coding.godsplan.site" target="_blank" class="glass-panel p-8 rounded-2xl hover:border-indigo-500/30 transition-colors group block">
+                    <div class="w-12 h-12 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-brackets-curly"></i>
                     </div>
+                    <h3 class="text-xl font-bold text-white mb-3 group-hover:text-indigo-500 transition-colors">Coding</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Plataforma de aprendizaje y documentación técnica para desarrolladores.
+                    </p>
+                </a>
 
-                    <button type="submit" id="btn-submit" class="relative overflow-hidden w-full bg-white text-black font-bold py-3.5 rounded-lg hover:bg-zinc-200 transition-all active:scale-[0.98] mt-2 flex items-center justify-center gap-2">
-                        <span id="btn-text">INICIAR SISTEMA</span>
-                        <i id="btn-icon" class="ph-bold ph-arrow-right"></i>
-                        <div id="btn-loader" class="hidden w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
-                    </button>
-                </form>
+                <!-- Macros -->
+                <a href="https://godsplan.site/macros" target="_blank" class="glass-panel p-8 rounded-2xl hover:border-fuchsia-500/30 transition-colors group block">
+                    <div class="w-12 h-12 rounded-lg bg-fuchsia-500/10 text-fuchsia-500 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-robot"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3 group-hover:text-fuchsia-500 transition-colors">Macros</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Automatización de tareas repetitivas y generación de scripts para Mobil2000.
+                    </p>
+                </a>
 
-                <div class="mt-6 pt-6 border-t border-white/5 space-y-4">
-                    <button onclick="window.app.loginGoogle()" class="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-border rounded-lg transition-all flex items-center justify-center gap-3 text-sm font-medium text-zinc-300 group">
-                        <i class="ph-bold ph-google-logo text-lg group-hover:text-white transition-colors"></i> 
-                        Acceder con Google
-                    </button>
-                    
-                    <button onclick="window.app.loginGuest()" class="w-full py-3 bg-transparent hover:bg-white/5 border border-white/10 hover:border-white/20 rounded-lg transition-all flex items-center justify-center gap-3 text-sm font-medium text-zinc-400 hover:text-white group">
-                        <i class="ph-bold ph-user-circle text-lg group-hover:text-brand transition-colors"></i> 
-                        Entrar como Invitado
-                    </button>
+                <!-- Canvas -->
+                <a href="https://canvas.godsplan.site" target="_blank" class="glass-panel p-8 rounded-2xl hover:border-orange-500/30 transition-colors group block">
+                    <div class="w-12 h-12 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-code"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3 group-hover:text-orange-500 transition-colors">Canvas</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Sandbox de desarrollo web HTML/JS/CSS con previsualización en vivo.
+                    </p>
+                </a>
 
-                    <p class="text-center text-xs text-zinc-500">
-                        <span id="auth-switch-label">¿Sin credenciales?</span>
-                        <button onclick="window.app.toggleMode()" class="text-white hover:text-brand font-bold ml-1 transition-colors underline decoration-transparent hover:decoration-brand">
-                            <span id="auth-switch-action">Solicitar Acceso</span>
-                        </button>
+                <!-- Seguridad / Cuenta -->
+                <button onclick="window.app.toggleAuthModal()" class="glass-panel p-8 rounded-2xl hover:border-zinc-500/30 transition-colors group block text-left w-full">
+                    <div class="w-12 h-12 rounded-lg bg-zinc-800 text-zinc-300 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-shield-check"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3 group-hover:text-zinc-300 transition-colors">Seguridad</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">
+                        Gestión de identidad, cifrado de datos y personalización de perfil de usuario.
+                    </p>
+                </button>
+
+            </div>
+
+             <!-- About Section (Required content for Adsense) -->
+             <div id="about" class="w-full max-w-4xl glass-panel p-10 rounded-2xl mb-20">
+                <h2 class="text-2xl font-bold text-white mb-6">¿Por qué God's Plan?</h2>
+                <div class="space-y-4 text-zinc-400 text-sm leading-7">
+                    <p>
+                        En un mundo digital saturado de aplicaciones desconectadas, <strong>God's Plan</strong> nace como una respuesta minimalista y potente. Desarrollado por <span class="text-white">blqa</span>, este sistema no es solo una colección de herramientas, es una filosofía de orden.
+                    </p>
+                    <p>
+                        Nuestro objetivo es proporcionar un hub centralizado donde la gestión personal se encuentra con la eficiencia técnica. Desde el control de activos financieros hasta la compilación de código en la nube, todo sucede en un entorno seguro, rápido y estéticamente refinado.
+                    </p>
+                    <p>
+                        La plataforma utiliza tecnologías de vanguardia como Firebase para la persistencia de datos en tiempo real y Tailwind CSS para una interfaz que responde instantáneamente a tus necesidades.
                     </p>
                 </div>
             </div>
+
+            <!-- Footer Legal (MANDATORY FOR ADSENSE) -->
+            <footer class="w-full max-w-6xl border-t border-zinc-900 pt-10 pb-6">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div class="text-zinc-600 text-sm">
+                        &copy; 2024 God's Plan. Todos los derechos reservados.
+                    </div>
+                    <div class="flex gap-6 text-sm text-zinc-500">
+                        <a href="/privacy.html" class="hover:text-brand transition-colors">Política de Privacidad</a>
+                        <a href="/terms.html" class="hover:text-brand transition-colors">Términos de Uso</a>
+                        <a href="mailto:contacto@godsplan.site" class="hover:text-brand transition-colors">Contacto</a>
+                    </div>
+                </div>
+            </footer>
+
         </section>
 
 
-        <!-- ==================== DASHBOARD VIEW ==================== -->
+        <!-- ==================== AUTH MODAL (OVERLAY) ==================== -->
+        <div id="auth-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center px-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="window.app.toggleAuthModal()"></div>
+            
+            <div class="relative w-full max-w-[400px] animate-fade-in-up">
+                <button onclick="window.app.toggleAuthModal()" class="absolute -top-12 right-0 text-zinc-400 hover:text-white transition-colors">
+                    <i class="ph-bold ph-x text-2xl"></i>
+                </button>
+
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-800 to-black border border-white/10 mb-4 shadow-lg shadow-brand/10">
+                        <i class="ph-fill ph-fingerprint text-3xl text-brand"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-white tracking-tight" id="auth-title">Access Control</h1>
+                    <p class="text-zinc-500 text-sm mt-1 font-mono">SECURE ENVIRONMENT // BLQA</p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-2xl bg-[#090909]">
+                    <form onsubmit="event.preventDefault(); window.app.handleAuth();" class="flex flex-col gap-6">
+                        
+                        <!-- Input Dinámico: Nombre (Solo registro) -->
+                        <div id="field-name-container" class="hidden relative input-group group">
+                            <input type="text" id="input-name" class="w-full bg-black/40 border border-border focus:border-brand rounded-lg px-4 py-3 outline-none transition-all placeholder-transparent" placeholder="Name" autocomplete="name">
+                            <label for="input-name" class="absolute left-4 top-3 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">Nombre Operativo</label>
+                            <i class="ph-bold ph-user absolute right-4 top-3.5 text-zinc-600"></i>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="relative input-group group">
+                            <input type="text" id="input-email" class="w-full bg-black/40 border border-border focus:border-brand rounded-lg px-4 py-3 outline-none transition-all placeholder-transparent" placeholder="Email" autocomplete="username">
+                            <label for="input-email" class="absolute left-4 top-3 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">ID / Email</label>
+                            <i class="ph-bold ph-envelope-simple absolute right-4 top-3.5 text-zinc-600"></i>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="relative input-group group">
+                            <input type="password" id="input-pass" class="w-full bg-black/40 border border-border focus:border-brand rounded-lg px-4 py-3 outline-none transition-all placeholder-transparent" placeholder="Password" autocomplete="current-password">
+                            <label for="input-pass" class="absolute left-4 top-3 text-zinc-500 text-sm transition-all pointer-events-none bg-transparent px-1">Contraseña</label>
+                            <i class="ph-bold ph-lock-key absolute right-4 top-3.5 text-zinc-600"></i>
+                        </div>
+
+                        <button type="submit" id="btn-submit" class="relative overflow-hidden w-full bg-white text-black font-bold py-3.5 rounded-lg hover:bg-zinc-200 transition-all active:scale-[0.98] mt-2 flex items-center justify-center gap-2">
+                            <span id="btn-text">INICIAR SISTEMA</span>
+                            <i id="btn-icon" class="ph-bold ph-arrow-right"></i>
+                            <div id="btn-loader" class="hidden w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                        </button>
+                    </form>
+
+                    <div class="mt-6 pt-6 border-t border-white/5 space-y-4">
+                        <button onclick="window.app.loginGoogle()" class="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-border rounded-lg transition-all flex items-center justify-center gap-3 text-sm font-medium text-zinc-300 group">
+                            <i class="ph-bold ph-google-logo text-lg group-hover:text-white transition-colors"></i> 
+                            Acceder con Google
+                        </button>
+                        
+                        <button onclick="window.app.loginGuest()" class="w-full py-3 bg-transparent hover:bg-white/5 border border-white/10 hover:border-white/20 rounded-lg transition-all flex items-center justify-center gap-3 text-sm font-medium text-zinc-400 hover:text-white group">
+                            <i class="ph-bold ph-user-circle text-lg group-hover:text-brand transition-colors"></i> 
+                            Entrar como Invitado
+                        </button>
+
+                        <p class="text-center text-xs text-zinc-500">
+                            <span id="auth-switch-label">¿Sin credenciales?</span>
+                            <button onclick="window.app.toggleMode()" class="text-white hover:text-brand font-bold ml-1 transition-colors underline decoration-transparent hover:decoration-brand">
+                                <span id="auth-switch-action">Solicitar Acceso</span>
+                            </button>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==================== DASHBOARD VIEW (PRIVATE) ==================== -->
         <section id="view-dashboard" class="hidden w-full max-w-6xl mt-16 md:mt-24 px-4 pb-20 animate-fade-in-up">
             
             <!-- 1. HEADER (Minimalista) -->
@@ -237,6 +408,11 @@
                 </h1>
                 <p id="greeting-msg" class="text-zinc-500 font-light text-lg">Panel de control operativo.</p>
             </header>
+
+            <!-- ADSENSE PLACEHOLDER DASHBOARD -->
+            <div class="w-full h-[90px] bg-zinc-900/50 border border-dashed border-zinc-800 rounded-lg flex items-center justify-center mb-10 text-zinc-600 text-xs uppercase">
+                Adsense Banner Top
+            </div>
 
             <!-- 2. GRID DE MÓDULOS -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -275,7 +451,7 @@
                     </div>
                 </a>
 
-                 <!-- MÓDULO 3: CODING (REEMPLAZA A TICKETS) -->
+                 <!-- MÓDULO 3: CODING -->
                  <a href="https://coding.godsplan.site" target="_blank" class="module-card border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between block">
                     <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
                         <i class="ph-fill ph-brackets-curly text-8xl text-white"></i>
@@ -292,7 +468,7 @@
                     </div>
                 </a>
 
-                <!-- MÓDULO 4: MACROS (NUEVO) -->
+                <!-- MÓDULO 4: MACROS -->
                 <a href="https://godsplan.site/macros" target="_blank" class="module-card border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between block">
                     <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
                         <i class="ph-fill ph-lightning text-8xl text-white"></i>
@@ -360,61 +536,6 @@
                     </div>
                 </button>
 
-            </div>
-
-            <!-- 3. NUEVA SECCIÓN: HISTORIA & AUTOR -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 animate-fade-in-up" style="animation-delay: 0.1s;">
-                <!-- Columna Izquierda: Manifiesto God's Plan -->
-                <div class="glass-panel p-8 rounded-2xl relative overflow-hidden group">
-                     <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <i class="ph-fill ph-scroll text-9xl text-white"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white">
-                                <i class="ph-bold ph-planet text-xl"></i>
-                            </div>
-                            <h3 class="text-xl font-bold text-white">El Origen</h3>
-                        </div>
-                        <p class="text-zinc-400 text-sm leading-relaxed mb-4">
-                            <strong class="text-brand">GOD'S PLAN</strong> es una colección proyectos personales creados para simplificar áreas críticas de mi día a día. 
-                        </p>
-                        <p class="text-zinc-500 text-sm leading-relaxed">
-                            No es solo código, es una búsqueda constante de estilo, facilidad y eficiencia. Cada herramienta es una solución a medida para elevar el estándar de mi vida cotidiana.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Columna Derecha: Sobre el Autor -->
-<div class="glass-panel p-8 rounded-2xl relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <i class="ph-fill ph-code-block text-9xl text-white"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white">
-                                <i class="ph-bold ph-terminal-window text-xl"></i> </div>
-                            <h3 class="text-xl font-bold text-white">El Dev | blqa</h3>
-                        </div>
-                        <p class="text-zinc-400 text-sm leading-relaxed mb-4">
-                            Desarrollado por <strong class="text-white">blqa</strong>. Soy un desarrollador obsesionado con el orden y la utilidad real.
-                        </p>
-                        <ul class="space-y-3 mt-4">
-                            <li class="flex items-start gap-3 text-sm text-zinc-500">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5"></i>
-                                <span>Enfoque absoluto en código limpio y estructura.</span>
-                            </li>
-                            <li class="flex items-start gap-3 text-sm text-zinc-500">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5"></i>
-                                <span>Prioridad a la funcionalidad, que sirva y punto.</span>
-                            </li>
-                            <li class="flex items-start gap-3 text-sm text-zinc-500">
-                                <i class="ph-fill ph-check-circle text-brand mt-0.5"></i>
-                                <span>Soluciones directas, sin complicaciones innecesarias.</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
             </div>
 
             <!-- FOOTER -->
@@ -630,7 +751,6 @@
             browserLocalPersistence
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
-        // IMPORTAR FIRESTORE (Base de datos) - Aunque ya no se use para finanzas, se deja por si acaso
         import { 
             getFirestore
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -657,11 +777,13 @@
         class UIManager {
             constructor() {
                 this.views = {
-                    auth: document.getElementById('view-auth'),
+                    auth: document.getElementById('auth-modal'), // Ahora es un modal
+                    landing: document.getElementById('view-landing'), // Nueva Landing
                     dash: document.getElementById('view-dashboard'),
                     settings: document.getElementById('view-settings'),
                     info: document.getElementById('view-info'),
-                    nav: document.getElementById('navbar'),
+                    dashNav: document.getElementById('navbar'),
+                    publicNav: document.getElementById('public-nav'),
                     loader: document.getElementById('app-loader')
                 };
                 this.isRegisterMode = false;
@@ -756,24 +878,32 @@
             toggleView(viewName) {
                 this.views.loader.classList.add('opacity-0', 'pointer-events-none');
                 
-                // Ocultar todo
-                Object.values(this.views).forEach(el => {
-                    if(el && el.id !== 'app-loader' && el.id !== 'navbar') el.classList.add('hidden');
-                });
-                this.views.nav.classList.add('hidden', '-translate-y-full');
+                // Ocultar vistas principales
+                this.views.landing.classList.add('hidden');
+                this.views.dash.classList.add('hidden');
+                this.views.settings.classList.add('hidden');
+                this.views.info.classList.add('hidden');
+                
+                // Ocultar Navs
+                this.views.dashNav.classList.add('hidden');
+                this.views.publicNav.classList.add('hidden');
+                
+                // Cerrar modal si se cambia de vista
+                this.views.auth.classList.add('hidden');
 
                 if (viewName === 'dashboard') {
                     this.views.dash.classList.remove('hidden');
-                    this.views.nav.classList.remove('hidden', '-translate-y-full');
+                    this.views.dashNav.classList.remove('hidden');
                     this.updateGreeting();
-                } else if (viewName === 'auth') {
-                    this.views.auth.classList.remove('hidden');
+                } else if (viewName === 'landing') {
+                    this.views.landing.classList.remove('hidden');
+                    this.views.publicNav.classList.remove('hidden');
                 } else if (viewName === 'settings') {
                     this.views.settings.classList.remove('hidden');
-                    this.views.nav.classList.remove('hidden', '-translate-y-full');
+                    this.views.dashNav.classList.remove('hidden');
                 } else if (viewName === 'info') {
                     this.views.info.classList.remove('hidden');
-                    this.views.nav.classList.remove('hidden', '-translate-y-full');
+                    this.views.dashNav.classList.remove('hidden');
                 }
             }
 
@@ -798,7 +928,6 @@
             }
 
             addCardEffects() {
-                // Se re-aplica el efecto al cargar o cambiar vistas
                 const apply = () => {
                     document.querySelectorAll('.module-card, .glass-panel').forEach(card => {
                         card.onmousemove = e => {
@@ -811,7 +940,6 @@
                     });
                 };
                 apply();
-                // Observador por si se agregan elementos dinámicamente
                 setTimeout(apply, 1000); 
             }
         }
@@ -821,10 +949,21 @@
         // CONTROLADOR GLOBAL
         window.app = {
             
+            toggleAuthModal: () => {
+                const modal = document.getElementById('auth-modal');
+                if (modal.classList.contains('hidden')) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                } else {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+            },
+
             toggleMode: () => {
                 ui.isRegisterMode = !ui.isRegisterMode;
                 const nameField = document.getElementById('field-name-container');
-                const title = document.querySelector('#view-auth h1');
+                const title = document.getElementById('auth-title');
                 const switchLabel = document.getElementById('auth-switch-label');
                 const switchAction = document.getElementById('auth-switch-action');
                 const btnText = document.getElementById('btn-text');
@@ -866,6 +1005,7 @@
                         await signInWithEmailAndPassword(auth, finalEmail, pass);
                         ui.toast("Credenciales verificadas. Acceso concedido.", "success");
                     }
+                    window.app.toggleAuthModal(); // Cerrar modal al éxito
                 } catch (error) {
                     console.error(error);
                     let msg = "Error desconocido";
@@ -883,6 +1023,7 @@
                 try {
                     await signInWithPopup(auth, new GoogleAuthProvider());
                     ui.toast("Autenticado con Google", "success");
+                    window.app.toggleAuthModal();
                 } catch (error) {
                     ui.toast("Error al conectar con Google", "error");
                 }
@@ -893,6 +1034,7 @@
                     ui.toast("Accediendo como invitado...", "info");
                     await signInAnonymously(auth);
                     ui.toast("Modo Invitado Activo", "success");
+                    window.app.toggleAuthModal();
                 } catch (error) {
                     console.error(error);
                     ui.toast("Error en modo invitado", "error");
@@ -985,12 +1127,11 @@
                 document.getElementById('nav-user-icon').className = `ph-duotone ${avatar} text-brand text-2xl`;
                 ui.toggleView('dashboard');
             } else {
-                ui.toggleView('auth');
+                // IMPORTANTÍSIMO PARA ADSENSE: Si no hay user, mostramos la LANDING PAGE, no el login
+                ui.toggleView('landing');
             }
         });
 
     </script>
 </body>
 </html>
-
-
