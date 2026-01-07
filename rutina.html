@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gods Plan | Protocolo</title>
+    
+    <!-- FUENTES -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- ICONOS -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- TAILWIND CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        background: '#050505',
+                        surface: '#0A0A0A',
+                        surface2: '#121212',
+                        border: '#222222',
+                        primary: '#ef4444', 
+                        primaryGlow: '#dc2626',
+                        accent: '#ffffff',
+                        muted: '#737373'
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { from: { opacity: 0 }, to: { opacity: 1 } },
+                        slideUp: { from: { opacity: 0, transform: 'translateY(20px)' }, to: { opacity: 1, transform: 'translateY(0)' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* BASE & RESET */
+        body { 
+            background-color: var(--bg-color, #050505); 
+            color: #ffffff; 
+            overflow-x: hidden; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* CUSTOM SCROLLBAR */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+        /* EFECTOS DE FONDO */
+        .ambient-glow {
+            position: fixed; top: -20%; left: 50%; transform: translateX(-50%);
+            width: 100vw; height: 60vh;
+            background: radial-gradient(circle, rgba(220, 38, 38, 0.15) 0%, transparent 70%);
+            pointer-events: none; z-index: -1;
+            filter: blur(60px);
+        }
+
+        /* COMPONENTES DE INTERFAZ */
+        .glass-card {
+            background: rgba(18, 18, 18, 0.6);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        /* CHECKBOX PERSONALIZADO */
+        .task-checkbox {
+            appearance: none; width: 22px; height: 22px;
+            border: 2px solid #333; border-radius: 6px;
+            background: transparent; cursor: pointer;
+            position: relative; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .task-checkbox:checked {
+            background: var(--primary-color, #ef4444);
+            border-color: var(--primary-color, #ef4444);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+        }
+        .task-checkbox::after {
+            content: "\2713"; font-family: system-ui; font-weight: 900;
+            font-size: 14px; color: black; opacity: 0; transform: scale(0.5);
+            transition: all 0.2s;
+        }
+        .task-checkbox:checked::after { opacity: 1; transform: scale(1); }
+
+        /* ITEM DE LISTA */
+        .task-item { transition: all 0.2s ease; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .task-item:last-child { border-bottom: none; }
+        .task-item:active { background: rgba(255,255,255,0.05); }
+        .task-item.completed .task-text { text-decoration: line-through; color: #525252; }
+        .task-item.completed .task-time { color: #404040; }
+
+        /* INPUTS */
+        .gp-input {
+            background: #000; border: 1px solid #333; color: white;
+            padding: 12px 16px; border-radius: 8px; font-size: 14px; width: 100%;
+            transition: border-color 0.2s;
+        }
+        .gp-input:focus { outline: none; border-color: #ef4444; }
+
+        /* NAV ITEM */
+        .nav-item {
+            color: #525252; transition: all 0.3s ease; position: relative;
+        }
+        .nav-item.active { color: #ef4444; }
+        .nav-item.active::after {
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            width: 4px; height: 4px; background: #ef4444; border-radius: 50%;
+            box-shadow: 0 0 10px #ef4444;
+        }
+
+        /* HIDDEN UTILS */
+        .hidden { display: none !important; }
+
+        /* PROGRESS BAR COLORS */
+        .bar-red { background-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+        .bar-yellow { background-color: #eab308; box-shadow: 0 0 10px rgba(234, 179, 8, 0.4); }
+        .bar-green { background-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
+    </style>
+</head>
+
+<body class="flex flex-col min-h-screen antialiased selection:bg-red-900 selection:text-white">
+
+    <!-- LUZ AMBIENTAL -->
+    <div class="ambient-glow"></div>
+
+    <!-- PANTALLA DE CARGA -->
+    <div id="loader-view" class="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center gap-4 transition-opacity duration-500">
+        <div class="w-12 h-12 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+        <div class="text-xs font-mono text-zinc-500 tracking-widest uppercase">Cargando Protocolo...</div>
+    </div>
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="auth-view" class="hidden fixed inset-0 z-50 flex items-center justify-center p-6 bg-black">
+        <div class="w-full max-w-sm animate-slide-up">
+            <div class="text-center mb-10">
+                <i class="ph-fill ph-sword text-4xl text-red-600 mb-4 inline-block drop-shadow-[0_0_15px_rgba(220,38,38,0.8)]"></i>
+                <h1 class="text-3xl font-black tracking-tighter text-white mb-2">GOD'S PLAN</h1>
+                <p class="text-zinc-500 text-xs font-mono uppercase tracking-[0.2em]">Dominio & Disciplina</p>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl space-y-4">
+                <div class="flex bg-black/50 p-1 rounded-lg mb-2">
+                    <button onclick="window.app.toggleAuthMode('login')" id="tab-login" class="flex-1 py-2 text-xs font-bold rounded-md bg-zinc-800 text-white transition-all">ENTRAR</button>
+                    <button onclick="window.app.toggleAuthMode('register')" id="tab-register" class="flex-1 py-2 text-xs font-bold rounded-md text-zinc-500 hover:text-white transition-all">REGISTRO</button>
+                </div>
+
+                <form onsubmit="event.preventDefault(); window.app.handleAuth();" class="flex flex-col gap-3">
+                    <div id="name-field" class="hidden">
+                        <label class="text-[10px] uppercase text-zinc-500 font-bold ml-1">Nombre</label>
+                        <input type="text" id="input-name" class="gp-input" placeholder="Tu Nombre">
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase text-zinc-500 font-bold ml-1">Email</label>
+                        <input type="email" id="input-email" class="gp-input" placeholder="correo@ejemplo.com" required>
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase text-zinc-500 font-bold ml-1">Contraseña</label>
+                        <input type="password" id="input-pass" class="gp-input" placeholder="******" required>
+                    </div>
+                    
+                    <div id="auth-error" class="text-red-500 text-xs font-medium text-center hidden py-2"></div>
+
+                    <button type="submit" id="btn-auth-submit" class="btn-primary btn-primary mt-2 w-full py-3 font-bold bg-red-600 rounded-lg hover:bg-red-500 transition-colors uppercase tracking-widest text-xs">
+                        INICIAR SESIÓN
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- APLICACIÓN PRINCIPAL -->
+    <div id="app-view" class="hidden flex-1 flex flex-col pb-24 relative">
+        
+        <!-- HEADER -->
+        <header class="fixed top-0 w-full z-40 bg-black/80 backdrop-blur-xl border-b border-white/5 h-16 px-5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center shadow-[0_0_15px_rgba(220,38,38,0.3)]">
+                    <i class="ph-bold ph-check text-white text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-sm leading-none text-white tracking-tight" id="header-title">RUTINA DIARIA</h2>
+                    <p class="text-[10px] text-zinc-500 font-mono mt-0.5 uppercase" id="header-date">CARGANDO...</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <button onclick="window.app.openEditor()" id="btn-settings" class="w-9 h-9 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 flex items-center justify-center hover:bg-zinc-800 hover:text-white transition-colors">
+                    <i class="ph-fill ph-gear"></i>
+                </button>
+                <button onclick="window.app.logout()" class="w-9 h-9 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 flex items-center justify-center hover:text-red-500 transition-colors">
+                    <i class="ph-bold ph-sign-out"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTENIDO PRINCIPAL (VISTAS) -->
+        <main class="w-full max-w-lg mx-auto pt-20 px-5 flex-1 relative">
+            
+            <!-- VISTA 1: HOY (RUTINA) -->
+            <div id="view-today" class="flex flex-col gap-6 animate-fade-in">
+                <!-- Tarjeta de Progreso -->
+                <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="ph-fill ph-chart-line-up text-6xl text-white"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-end mb-3">
+                            <div>
+                                <span class="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Productividad</span>
+                                <span class="text-4xl font-black text-white tracking-tighter" id="progress-text">0%</span>
+                            </div>
+                        </div>
+                        <div class="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+                            <div id="progress-bar" class="h-full bg-red-600 transition-all duration-700 ease-out w-0 shadow-[0_0_12px_rgba(220,38,38,0.8)]"></div>
+                        </div>
+                        <p class="text-[11px] text-zinc-400 mt-4 font-mono border-l-2 border-red-900 pl-3 py-1 italic" id="daily-quote">
+                            "La disciplina te llevará a lugares donde la motivación no puede."
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Lista de Tareas -->
+                <div id="tasks-container" class="flex flex-col gap-4">
+                    <div class="py-10 text-center">
+                        <div class="inline-block animate-spin text-red-600 mb-2"><i class="ph-bold ph-spinner text-2xl"></i></div>
+                        <p class="text-xs text-zinc-600">Sincronizando tareas...</p>
+                    </div>
+                </div>
+                
+                <!-- Estado Vacío -->
+                <div id="empty-state" class="hidden text-center py-10 opacity-50">
+                    <i class="ph-duotone ph-clipboard-text text-4xl text-zinc-600 mb-2"></i>
+                    <p class="text-sm text-zinc-500">Sin tareas configuradas.<br>Usa el engranaje.</p>
+                </div>
+            </div>
+
+            <!-- VISTA 2: HISTORIAL (ANALYTICS) -->
+            <div id="view-history" class="hidden flex-col gap-6 animate-fade-in">
+                
+                <!-- Analítica Principal -->
+                <div class="glass-card rounded-2xl p-6 text-center border-t-2 border-red-900">
+                    <p class="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-bold mb-2">CONSTANCIA PROMEDIO (7 DÍAS)</p>
+                    <div class="flex items-center justify-center gap-1 mb-2">
+                        <h2 class="text-5xl font-black text-white" id="stats-avg">--%</h2>
+                    </div>
+                    <div id="stats-badge" class="inline-block px-3 py-1 rounded bg-zinc-800 text-[10px] font-bold uppercase text-zinc-400">
+                        Calculando...
+                    </div>
+                </div>
+
+                <!-- Lista de Feedback -->
+                <div class="glass-card rounded-xl p-5 border-l-2 border-zinc-700">
+                    <h3 class="flex items-center gap-2 text-sm font-bold text-white mb-3">
+                        <i class="ph-fill ph-strategy text-red-500"></i> ANÁLISIS TÁCTICO
+                    </h3>
+                    <p class="text-sm text-zinc-400 leading-relaxed italic" id="stats-feedback">
+                        Recopilando datos de combate...
+                    </p>
+                </div>
+
+                <!-- Historial Reciente -->
+                <div>
+                    <h4 class="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-4 ml-1">Últimos Registros</h4>
+                    <div id="history-list" class="space-y-3">
+                        <!-- Items inyectados -->
+                    </div>
+                </div>
+
+                <!-- Frase Random -->
+                <div class="mt-4 p-6 border border-zinc-900 rounded-xl bg-black/40 text-center">
+                    <i class="ph-fill ph-quotes text-zinc-700 text-2xl mb-2"></i>
+                    <p class="text-sm font-serif text-zinc-300 italic" id="random-quote">...</p>
+                    <p class="text-[10px] text-zinc-600 mt-2 font-bold uppercase tracking-widest">— Protocolo</p>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- BOTTOM NAVIGATION -->
+        <nav class="fixed bottom-0 left-0 w-full bg-black/90 backdrop-blur-xl border-t border-white/5 h-16 z-40 flex justify-around items-center pb-safe">
+            <button onclick="window.app.switchView('today')" id="nav-today" class="nav-item active flex flex-col items-center justify-center w-full h-full gap-1">
+                <i class="ph-bold ph-list-checks text-xl"></i>
+                <span class="text-[10px] font-bold tracking-wide uppercase">Rutina</span>
+            </button>
+            <button onclick="window.app.switchView('history')" id="nav-history" class="nav-item flex flex-col items-center justify-center w-full h-full gap-1">
+                <i class="ph-bold ph-chart-bar text-xl"></i>
+                <span class="text-[10px] font-bold tracking-wide uppercase">Legado</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- MODAL EDITOR (CONFIGURACIÓN) -->
+    <div id="editor-modal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4">
+        <div class="modal-backdrop absolute inset-0" onclick="window.app.closeEditor()"></div>
+        <div class="bg-[#09090b] w-full max-w-lg h-[85vh] sm:h-[80vh] sm:rounded-2xl rounded-t-2xl flex flex-col relative animate-slide-up border border-white/10 shadow-2xl">
+            <div class="flex items-center justify-between p-4 border-b border-white/5 bg-zinc-900/50 rounded-t-2xl">
+                <h3 class="font-bold text-white tracking-tight">Editar Rutina Base</h3>
+                <div class="flex gap-2">
+                    <button onclick="window.app.saveEditor()" class="px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded shadow-lg shadow-red-900/20 transition-all">GUARDAR</button>
+                    <button onclick="window.app.closeEditor()" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white"><i class="ph-bold ph-x"></i></button>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-4" id="editor-list"></div>
+            <div class="p-4 border-t border-white/5 bg-zinc-900/30 pb-8 sm:pb-4">
+                <button onclick="window.app.addEditorItem()" class="w-full py-3 border border-dashed border-zinc-700 text-zinc-500 hover:text-white hover:border-zinc-500 rounded-lg text-xs font-bold uppercase transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-plus"></i> Agregar Tarea
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-white text-black px-4 py-2 rounded-full shadow-2xl z-[70] text-xs font-bold transform -translate-y-20 transition-transform duration-300 flex items-center gap-2">
+        <i class="ph-fill ph-check-circle text-green-600"></i>
+        <span id="toast-msg">Guardado</span>
+    </div>
+
+    <!-- LÓGICA -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-cUzYmh5G9y_W2RXbO1Uma4DlKKmnnss",
+            authDomain: "godsplan-adherencia.firebaseapp.com",
+            projectId: "godsplan-adherencia",
+            storageBucket: "godsplan-adherencia.firebasestorage.app",
+            messagingSenderId: "660801277434",
+            appId: "1:660801277434:web:3a37ece56538dc2b22a843"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- DATA ---
+        const QUOTES = [
+            "El dolor del sacrificio o el dolor del arrepentimiento. Elige.",
+            "No te detengas cuando estés cansado, detente cuando hayas terminado.",
+            "Tu futuro se esconde en tu rutina diaria.",
+            "La motivación te inicia. El hábito te mantiene.",
+            "La disciplina es el puente entre metas y logros.",
+            "Hazlo con miedo, pero hazlo.",
+            "Nadie vendrá a salvarte. Salva tu propio futuro.",
+            "Sé más fuerte que tus excusas.",
+            "El éxito se alquila cada día.",
+            "Controla tu mente o ella te controlará a ti."
+        ];
+
+        const DEFAULT_ROUTINE = [
+            { id: 't1', time: '06:00', text: 'Despertar sin Snooze' },
+            { id: 't2', time: '06:15', text: 'Hidratación & Café' },
+            { id: 't3', time: '07:00', text: 'Deep Work / Proyecto' },
+            { id: 't4', time: '08:30', text: 'Entrenamiento' },
+            { id: 't5', time: '22:00', text: 'Lectura / Desconexión' }
+        ];
+
+        // --- STATE ---
+        window.app = {
+            user: null,
+            todayStr: new Date().toLocaleDateString('en-CA'),
+            tasks: [], 
+            isRegistering: false,
+            unsubscribe: null,
+            currentView: 'today',
+
+            init() {
+                const options = { weekday: 'long', day: 'numeric', month: 'long' };
+                document.getElementById('header-date').textContent = new Date().toLocaleDateString('es-ES', options);
+
+                onAuthStateChanged(auth, (user) => {
+                    const loader = document.getElementById('loader-view');
+                    const authView = document.getElementById('auth-view');
+                    const appView = document.getElementById('app-view');
+
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.classList.add('hidden'), 500);
+
+                    if (user) {
+                        this.user = user;
+                        authView.classList.add('hidden');
+                        appView.classList.remove('hidden');
+                        this.loadData();
+                    } else {
+                        this.user = null;
+                        this.tasks = [];
+                        if (this.unsubscribe) this.unsubscribe();
+                        authView.classList.remove('hidden');
+                        appView.classList.add('hidden');
+                    }
+                });
+            },
+
+            // --- NAVIGATION ---
+            switchView(view) {
+                this.currentView = view;
+                const vToday = document.getElementById('view-today');
+                const vHistory = document.getElementById('view-history');
+                const nToday = document.getElementById('nav-today');
+                const nHistory = document.getElementById('nav-history');
+                const btnSet = document.getElementById('btn-settings');
+                const title = document.getElementById('header-title');
+
+                if (view === 'today') {
+                    vToday.classList.remove('hidden');
+                    vHistory.classList.add('hidden');
+                    nToday.classList.add('active');
+                    nHistory.classList.remove('active');
+                    btnSet.classList.remove('hidden');
+                    title.textContent = "RUTINA DIARIA";
+                } else {
+                    vToday.classList.add('hidden');
+                    vHistory.classList.remove('hidden');
+                    nToday.classList.remove('active');
+                    nHistory.classList.add('active');
+                    btnSet.classList.add('hidden');
+                    title.textContent = "MI LEGADO";
+                    this.loadHistoryStats(); // Cargar datos al cambiar
+                }
+            },
+
+            // --- DATA LOGIC ---
+            async loadData() {
+                if (!this.user) return;
+                const dayRef = doc(db, 'users', this.user.uid, 'days', this.todayStr);
+                
+                this.unsubscribe = onSnapshot(dayRef, async (snap) => {
+                    if (snap.exists()) {
+                        this.tasks = snap.data().tasks || [];
+                        this.renderTasks();
+                    } else {
+                        const templateRef = doc(db, 'users', this.user.uid, 'settings', 'template');
+                        const templateSnap = await getDoc(templateRef);
+                        let initialTasks = templateSnap.exists() 
+                            ? templateSnap.data().tasks.map(t => ({...t, done: false})) 
+                            : DEFAULT_ROUTINE.map(t => ({...t, done: false}));
+                        
+                        if (!templateSnap.exists()) setDoc(templateRef, { tasks: DEFAULT_ROUTINE });
+                        await setDoc(dayRef, { tasks: initialTasks });
+                    }
+                });
+            },
+
+            // --- HISTORY LOGIC ---
+            async loadHistoryStats() {
+                if (!this.user) return;
+                document.getElementById('stats-feedback').innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Analizando datos...';
+                
+                // Fetch ALL days (limitación de Firestore sin índices compuestos)
+                // En una app real, usaríamos query con límites e índices.
+                const colRef = collection(db, 'users', this.user.uid, 'days');
+                const snap = await getDocs(colRef);
+                
+                let daysData = [];
+                snap.forEach(doc => {
+                    daysData.push({ date: doc.id, tasks: doc.data().tasks || [] });
+                });
+
+                // Ordenar por fecha descendente (más reciente primero)
+                daysData.sort((a, b) => b.date.localeCompare(a.date));
+
+                // Tomar los últimos 7 días (excluyendo hoy si está vacío o incompleto, opcional)
+                const last7 = daysData.slice(0, 7);
+
+                this.renderHistoryUI(last7);
+            },
+
+            renderHistoryUI(historyDays) {
+                // 1. Calcular Promedio
+                let totalPct = 0;
+                let count = 0;
+
+                const historyHtml = historyDays.map(d => {
+                    const total = d.tasks.length;
+                    const done = d.tasks.filter(t => t.done).length;
+                    const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+                    
+                    totalPct += pct;
+                    count++;
+
+                    // Formato fecha
+                    const dateObj = new Date(d.date + 'T12:00:00'); // Evitar timezone shift
+                    const dateStr = dateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' });
+
+                    let barColor = 'bg-red-600';
+                    if (pct >= 80) barColor = 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]';
+                    else if (pct >= 50) barColor = 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.4)]';
+
+                    return `
+                        <div class="flex items-center gap-3 p-3 bg-zinc-900/40 rounded-lg border border-white/5">
+                            <div class="w-12 text-center leading-tight">
+                                <div class="text-[10px] uppercase font-bold text-zinc-500">${dateStr.split(' ')[0]}</div>
+                                <div class="text-lg font-bold text-white">${dateStr.split(' ')[1]}</div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="h-2 w-full bg-black rounded-full overflow-hidden">
+                                    <div class="h-full ${barColor} rounded-full" style="width: ${pct}%"></div>
+                                </div>
+                            </div>
+                            <div class="text-xs font-mono font-bold text-zinc-300 w-8 text-right">${pct}%</div>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('history-list').innerHTML = historyHtml || '<div class="text-center text-zinc-600 py-4 text-xs">Sin registros aún.</div>';
+
+                // 2. Render Global Stats
+                const avg = count === 0 ? 0 : Math.round(totalPct / count);
+                document.getElementById('stats-avg').textContent = `${avg}%`;
+                
+                // Feedback Logic
+                const feedbackEl = document.getElementById('stats-feedback');
+                const badgeEl = document.getElementById('stats-badge');
+                
+                if (avg >= 90) {
+                    badgeEl.className = "inline-block px-3 py-1 rounded bg-green-900/30 text-green-400 border border-green-900 text-[10px] font-bold uppercase";
+                    badgeEl.textContent = "RANGO: ELITE";
+                    feedbackEl.textContent = "Impecable. Tu consistencia es peligrosa para tu competencia. No bajes la guardia, el éxito alquila y tú estás pagando por adelantado.";
+                } else if (avg >= 70) {
+                    badgeEl.className = "inline-block px-3 py-1 rounded bg-yellow-900/30 text-yellow-400 border border-yellow-900 text-[10px] font-bold uppercase";
+                    badgeEl.textContent = "RANGO: SOLDADO";
+                    feedbackEl.textContent = "Sólido, pero no extraordinario. Estás cumpliendo, pero hay días donde la debilidad se filtra. Aprieta los tornillos en las noches.";
+                } else if (avg >= 40) {
+                    badgeEl.className = "inline-block px-3 py-1 rounded bg-orange-900/30 text-orange-400 border border-orange-900 text-[10px] font-bold uppercase";
+                    badgeEl.textContent = "RANGO: RECLUTA";
+                    feedbackEl.textContent = "Inconsistente. Un día eres un león, al otro una oveja. La disciplina no es un interruptor que enciendes cuando quieres. Necesitas estructura urgente.";
+                } else {
+                    badgeEl.className = "inline-block px-3 py-1 rounded bg-red-900/30 text-red-400 border border-red-900 text-[10px] font-bold uppercase";
+                    badgeEl.textContent = "RANGO: TURISTA";
+                    feedbackEl.textContent = "Tus resultados son el reflejo directo de tus excusas. Estás negociando demasiado contigo mismo. Deja de pensar y empieza a ejecutar.";
+                }
+
+                // Random Quote
+                document.getElementById('random-quote').textContent = `"${QUOTES[Math.floor(Math.random() * QUOTES.length)]}"`;
+            },
+
+            // --- RENDER TASKS ---
+            renderTasks() {
+                const container = document.getElementById('tasks-container');
+                const emptyState = document.getElementById('empty-state');
+                
+                if (this.tasks.length === 0) {
+                    container.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    this.updateProgress();
+                    return;
+                }
+                
+                emptyState.classList.add('hidden');
+                const sortedTasks = [...this.tasks].sort((a, b) => a.time.localeCompare(b.time));
+                
+                container.innerHTML = sortedTasks.map(task => `
+                    <div class="task-item flex items-center gap-4 p-4 rounded-xl ${task.done ? 'completed bg-white/5' : ''}">
+                        <button onclick="window.app.toggleTask('${task.id}')" class="task-checkbox shrink-0 ${task.done ? 'checked' : ''}"></button>
+                        <div class="flex-1 min-w-0 flex flex-col justify-center h-full" onclick="window.app.toggleTask('${task.id}')">
+                            <span class="task-time font-mono text-[11px] font-bold text-red-500 tracking-wider mb-0.5">${task.time}</span>
+                            <span class="task-text text-sm font-medium text-zinc-200 truncate leading-tight">${task.text}</span>
+                        </div>
+                    </div>
+                `).join('');
+                this.updateProgress();
+            },
+
+            updateProgress() {
+                const total = this.tasks.length;
+                const done = this.tasks.filter(t => t.done).length;
+                const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+                
+                document.getElementById('progress-text').textContent = `${pct}%`;
+                const bar = document.getElementById('progress-bar');
+                bar.style.width = `${pct}%`;
+
+                if (pct === 100) {
+                    bar.className = 'h-full rounded-full transition-all duration-700 ease-out bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.8)]';
+                } else {
+                    bar.className = 'h-full rounded-full transition-all duration-700 ease-out bg-red-600 shadow-[0_0_12px_rgba(220,38,38,0.8)]';
+                }
+            },
+
+            toggleTask(id) {
+                const taskIndex = this.tasks.findIndex(t => t.id === id);
+                if (taskIndex === -1) return;
+                this.tasks[taskIndex].done = !this.tasks[taskIndex].done;
+                this.renderTasks();
+                if (navigator.vibrate) navigator.vibrate(10);
+                const dayRef = doc(db, 'users', this.user.uid, 'days', this.todayStr);
+                setDoc(dayRef, { tasks: this.tasks }, { merge: true });
+            },
+
+            // --- EDITOR ---
+            editorTempTasks: [],
+            openEditor() {
+                this.editorTempTasks = JSON.parse(JSON.stringify(this.tasks));
+                this.editorTempTasks.sort((a, b) => a.time.localeCompare(b.time));
+                this.renderEditor();
+                document.getElementById('editor-modal').classList.remove('hidden');
+            },
+            closeEditor() { document.getElementById('editor-modal').classList.add('hidden'); },
+            
+            renderEditor() {
+                const list = document.getElementById('editor-list');
+                list.innerHTML = this.editorTempTasks.map((t, idx) => `
+                    <div class="flex items-center gap-2 bg-zinc-900/50 p-2 rounded-lg border border-white/5 animate-fade-in" style="animation-delay: ${idx * 0.05}s">
+                        <input type="time" value="${t.time}" onchange="window.app.updateEditorItem('${t.id}', 'time', this.value)" class="bg-black border border-zinc-700 text-white text-xs rounded p-2 font-mono w-[80px] focus:border-red-500 outline-none">
+                        <input type="text" value="${t.text}" onchange="window.app.updateEditorItem('${t.id}', 'text', this.value)" placeholder="Descripción..." class="bg-transparent border-b border-zinc-700 text-white text-sm py-2 flex-1 focus:border-red-500 outline-none placeholder-zinc-600">
+                        <button onclick="window.app.removeEditorItem('${t.id}')" class="text-zinc-600 hover:text-red-500 p-2 transition-colors"><i class="ph-bold ph-trash"></i></button>
+                    </div>
+                `).join('');
+            },
+            
+            addEditorItem() {
+                this.editorTempTasks.push({ id: 't-'+Date.now(), time: '08:00', text: '', done: false });
+                this.renderEditor();
+                setTimeout(() => document.getElementById('editor-list').scrollTop = 9999, 50);
+            },
+            
+            removeEditorItem(id) {
+                this.editorTempTasks = this.editorTempTasks.filter(t => t.id !== id);
+                this.renderEditor();
+            },
+            
+            updateEditorItem(id, f, v) { 
+                const i = this.editorTempTasks.find(t => t.id === id); 
+                if(i) i[f] = v; 
+            },
+            
+            async saveEditor() {
+                const finalTasks = this.editorTempTasks.filter(t => t.text.trim() !== '');
+                const dayRef = doc(db, 'users', this.user.uid, 'days', this.todayStr);
+                await setDoc(dayRef, { tasks: finalTasks });
+                const templateRef = doc(db, 'users', this.user.uid, 'settings', 'template');
+                const templateTasks = finalTasks.map(t => ({ id: t.id, time: t.time, text: t.text }));
+                await setDoc(templateRef, { tasks: templateTasks });
+                this.showToast('Rutina Actualizada');
+                this.closeEditor();
+            },
+
+            // --- AUTH ---
+            toggleAuthMode(mode) {
+                this.isRegistering = (mode === 'register');
+                document.getElementById('tab-login').className = this.isRegistering ? 'flex-1 py-2 text-xs font-bold rounded-md text-zinc-500 hover:text-white transition-all' : 'flex-1 py-2 text-xs font-bold rounded-md bg-zinc-800 text-white transition-all';
+                document.getElementById('tab-register').className = !this.isRegistering ? 'flex-1 py-2 text-xs font-bold rounded-md text-zinc-500 hover:text-white transition-all' : 'flex-1 py-2 text-xs font-bold rounded-md bg-zinc-800 text-white transition-all';
+                document.getElementById('name-field').classList.toggle('hidden', !this.isRegistering);
+                document.getElementById('btn-auth-submit').textContent = this.isRegistering ? 'CREAR CUENTA' : 'INICIAR SESIÓN';
+                document.getElementById('auth-error').classList.add('hidden');
+            },
+
+            async handleAuth() {
+                const email = document.getElementById('input-email').value;
+                const pass = document.getElementById('input-pass').value;
+                const name = document.getElementById('input-name').value;
+                const btn = document.getElementById('btn-auth-submit');
+                const err = document.getElementById('auth-error');
+                btn.disabled = true; btn.style.opacity = '0.5'; err.classList.add('hidden');
+                try {
+                    if (this.isRegistering) {
+                        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                        if (name) await updateProfile(cred.user, { displayName: name });
+                    } else {
+                        await signInWithEmailAndPassword(auth, email, pass);
+                    }
+                } catch (e) {
+                    err.textContent = e.code === 'auth/invalid-credential' ? "Credenciales incorrectas" : e.message;
+                    err.classList.remove('hidden');
+                    btn.disabled = false; btn.style.opacity = '1';
+                }
+            },
+            
+            logout() { signOut(auth); },
+            showToast(msg) {
+                const t = document.getElementById('toast');
+                document.getElementById('toast-msg').textContent = msg;
+                t.classList.remove('-translate-y-20');
+                setTimeout(() => t.classList.add('-translate-y-20'), 2500);
+            }
+        };
+
+        window.app.init();
+    </script>
+</body>
+</html>
