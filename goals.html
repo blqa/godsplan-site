@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>God's Plan | Metas</title>
+    
+    <!-- FAVICON -->
+    <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/3163/3163212.png" type="image/x-icon">
+
+    <!-- FUENTE UNIFICADA: PLUS JAKARTA SANS -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- SCRIPT DE ICONOS -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- CANVAS CONFETTI (Para celebrar metas) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- TAILWIND CSS & CONFIGURACIÓN DE TEMA -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#000000',
+                        card: '#111111',
+                        border: '#262626',
+                        'input-bg': '#0a0a0a',
+                        text: '#e5e5e5',
+                        'text-mute': '#737373',
+                        brand: '#dc2626',     /* Rojo de la app original */
+                        gold: '#fbbf24',      /* Dorado para metas */
+                        success: '#10b981',   /* Verde para logros */
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.3s ease-out forwards',
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'pulse-slow': 'pulse 3s infinite',
+                    },
+                    keyframes: {
+                        slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } },
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+                        fadeIn: { from: { opacity: 0, transform: 'translateY(-5px)' }, to: { opacity: 1, transform: 'translateY(0)' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg: #000000;
+            --text: #e5e5e5;
+        }
+
+        * { -webkit-tap-highlight-color: transparent; outline: none; }
+        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
+        
+        /* Scrollbar oculta */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Fondos Animados (Igual que la app original) */
+        .aurora-bg {
+            position: fixed; inset: 0; z-index: -2;
+            background: radial-gradient(circle at 50% 0%, rgba(220, 38, 38, 0.15) 0%, transparent 60%),
+                        radial-gradient(circle at 0% 50%, rgba(251, 191, 36, 0.05) 0%, transparent 40%);
+            filter: blur(80px); pointer-events: none;
+        }
+
+        .grid-bg {
+            position: fixed; inset: 0; z-index: -1;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            pointer-events: none;
+        }
+
+        /* Inputs & Componentes */
+        .input-gp {
+            background: var(--bg); border: 1px solid var(--border); color: white;
+            transition: all 0.3s; width: 100%; padding: 14px 16px; border-radius: 12px;
+            font-size: 0.95rem; font-weight: 600;
+        }
+        .input-gp:focus { border-color: var(--gold); background: rgba(251, 191, 36, 0.05); }
+        
+        .glass-panel {
+            background: rgba(17, 17, 17, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-overlay.is-open { display: flex; }
+        .modal-content { background: #111; width: 100%; max-width: 400px; border-radius: 24px; border: 1px solid var(--border); padding: 24px; position: relative; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* Progress Bar Animada */
+        .progress-bar-shine {
+            position: relative; overflow: hidden;
+        }
+        .progress-bar-shine::after {
+            content: ''; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            animation: shine 2s infinite;
+        }
+        @keyframes shine { 100% { transform: translateX(100%); } }
+
+        input[type="date"] { color-scheme: dark; }
+    </style>
+</head>
+<body class="font-sans flex flex-col h-[100dvh] overflow-hidden selection:bg-gold selection:text-black">
+
+    <div class="aurora-bg"></div>
+    <div class="grid-bg"></div>
+
+    <!-- Loading -->
+    <div id="loading-screen" class="fixed inset-0 bg-bg z-[2000] flex items-center justify-center">
+        <div class="text-center">
+            <div class="w-8 h-8 border-4 border-border border-t-gold rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-text-mute font-mono text-xs tracking-widest uppercase">Cargando Metas...</p>
+        </div>
+    </div>
+
+    <!-- Login View (Reutilizando estilo) -->
+    <div id="login-view" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#030000] hidden">
+        <div class="w-full max-w-md animate-float">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-gold/20 text-gold shadow-[0_0_30px_rgba(251,191,36,0.2)]">
+                    <i class="ph-fill ph-trophy text-3xl"></i>
+                </div>
+                <h1 class="text-4xl font-black tracking-tight mb-2 text-white">METAS</h1>
+                <p class="text-text-mute text-xs font-mono tracking-widest uppercase">Visualiza. Planifica. Ejecuta.</p>
+            </div>
+            
+            <div class="glass-panel rounded-3xl p-8">
+                <button onclick="signInAnonymouslyFunc()" class="w-full py-4 bg-white text-black rounded-xl font-black uppercase tracking-widest text-sm hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                    Ingresar <i class="ph-bold ph-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <nav class="fixed top-0 left-0 w-full z-50 px-6 py-4 flex items-center justify-between bg-black/80 backdrop-blur-md border-b border-white/5">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold border border-gold/20">
+                <i class="ph-fill ph-target"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-black text-xs uppercase tracking-widest">God's Plan</h1>
+                <p class="text-[9px] text-text-mute font-bold">Goals Tracker</p>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <div class="text-right">
+                <p class="text-[9px] text-text-mute uppercase font-black">Total Ahorrado</p>
+                <p class="text-sm font-bold text-success tracking-tight" id="header-total-saved">$0.00</p>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main id="main-container" class="flex-1 overflow-y-auto pt-24 pb-32 px-4 md:px-0 w-full max-w-md mx-auto hide-scrollbar hidden relative">
+        
+        <!-- RESUMEN HERO -->
+        <section class="mb-8 animate-fade-in">
+            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group">
+                <div class="absolute -right-6 -top-6 text-gold opacity-5 rotate-12">
+                    <i class="ph-fill ph-crown text-9xl"></i>
+                </div>
+                
+                <p class="text-xs font-black text-gold uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <i class="ph-fill ph-sparkle"></i> Progreso Global
+                </p>
+                
+                <div class="flex items-end gap-2 mb-4">
+                    <span class="text-4xl font-black text-white tracking-tighter" id="hero-percentage">0%</span>
+                    <span class="text-xs text-text-mute font-bold mb-2">Completado</span>
+                </div>
+
+                <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden mb-2">
+                    <div id="hero-progress-bar" class="h-full bg-gold progress-bar-shine transition-all duration-1000 w-0"></div>
+                </div>
+                
+                <div class="flex justify-between text-[10px] font-bold text-text-mute uppercase tracking-wide">
+                    <span id="hero-saved">$0.00 Ahorrados</span>
+                    <span id="hero-target">Meta: $0.00</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- LISTA DE METAS -->
+        <section class="space-y-4 animate-fade-in" id="goals-list">
+            <!-- Las metas se inyectan aquí -->
+        </section>
+
+        <!-- EMPTY STATE -->
+        <div id="empty-state" class="hidden flex-col items-center justify-center py-12 opacity-50">
+            <i class="ph-duotone ph-rocket-launch text-4xl mb-3 text-text-mute"></i>
+            <p class="text-xs font-bold text-text-mute uppercase tracking-widest">Sin metas activas</p>
+        </div>
+
+    </main>
+
+    <!-- BOTÓN FLOTANTE (FAB) -->
+    <button onclick="openModal('goal-modal')" class="fixed bottom-8 right-8 w-14 h-14 bg-gold hover:bg-yellow-400 text-black rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(251,191,36,0.4)] z-40 transition-transform hover:scale-110 active:scale-95 border-4 border-black hidden" id="fab-add">
+        <i class="ph-bold ph-plus text-2xl"></i>
+    </button>
+
+    <!-- MODAL NUEVA/EDITAR META -->
+    <div id="goal-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-black text-white uppercase text-lg" id="modal-title">Nueva Meta</h3>
+                <button onclick="closeModal('goal-modal')" class="w-8 h-8 rounded-full bg-input-bg flex items-center justify-center text-text-mute hover:text-white"><i class="ph-bold ph-x"></i></button>
+            </div>
+
+            <form onsubmit="handleSaveGoal(event)" class="space-y-5">
+                <input type="hidden" id="goal-id">
+                
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-text-mute block mb-1">Nombre de la Meta</label>
+                    <input type="text" id="g-title" class="input-gp" placeholder="Ej. Viaje a Japón, Auto Nuevo..." required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-text-mute block mb-1">Monto Objetivo</label>
+                        <input type="number" id="g-target" step="0.01" class="input-gp text-gold font-bold" placeholder="$0.00" required>
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-text-mute block mb-1">Ya tienes ahorrado</label>
+                        <input type="number" id="g-current" step="0.01" class="input-gp" placeholder="$0.00" value="0">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-text-mute block mb-1">Fecha Límite</label>
+                    <input type="date" id="g-date" class="input-gp" required>
+                    <p class="text-[10px] text-text-mute mt-1 opacity-70 italic">*Necesario para calcular el ahorro diario.</p>
+                </div>
+
+                <!-- Selección de Icono Simple -->
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-text-mute block mb-2">Icono</label>
+                    <div class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar" id="icon-selector">
+                        <!-- JS inyectará iconos -->
+                    </div>
+                    <input type="hidden" id="g-icon" value="ph-star">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button type="button" onclick="deleteGoal()" id="btn-delete" class="hidden py-3 border border-brand/50 text-brand font-bold text-xs rounded-xl hover:bg-brand/10 uppercase">Eliminar</button>
+                    <button type="submit" id="btn-save" class="col-span-2 py-3 bg-white text-black font-black text-xs rounded-xl hover:bg-gray-200 uppercase tracking-widest shadow-lg">GUARDAR META</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DEPOSITO -->
+    <div id="deposit-modal" class="modal-overlay">
+        <div class="modal-content text-center">
+            <button onclick="closeModal('deposit-modal')" class="absolute top-4 right-4 text-text-mute hover:text-white"><i class="ph-bold ph-x"></i></button>
+            
+            <div class="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center text-success mx-auto mb-4 border border-success/20">
+                <i class="ph-fill ph-piggy-bank text-3xl"></i>
+            </div>
+            
+            <h3 class="font-black text-white text-xl mb-1" id="deposit-title">Añadir Ahorro</h3>
+            <p class="text-xs text-text-mute mb-6" id="deposit-subtitle">Para: ...</p>
+
+            <form onsubmit="handleDeposit(event)">
+                <input type="hidden" id="deposit-goal-id">
+                <div class="relative mb-6">
+                    <span class="absolute left-1/2 -translate-x-12 top-1/2 -translate-y-1/2 text-2xl font-bold text-text-mute">$</span>
+                    <input type="number" id="deposit-amount" step="0.01" class="w-full bg-transparent border-b-2 border-border text-5xl font-black text-white py-4 text-center focus:border-success transition-colors outline-none" placeholder="0" required autofocus>
+                </div>
+                
+                <button type="submit" class="w-full py-4 bg-success text-white rounded-xl font-black text-sm hover:bg-green-600 uppercase tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                    CONFIRMAR DEPÓSITO
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- LOGICA -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // CONFIGURACIÓN FIREBASE ACTUALIZADA
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-cUzYmh5G9y_W2RXbO1Uma4DlKKmnnss",
+            authDomain: "godsplan-adherencia.firebaseapp.com",
+            projectId: "godsplan-adherencia",
+            storageBucket: "godsplan-adherencia.firebasestorage.app",
+            messagingSenderId: "660801277434",
+            appId: "1:660801277434:web:3a37ece56538dc2b22a843"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Si no hay config (ej. entorno local puro sin canvas), no romperá inmediatamente pero no funcionará la BD.
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (e) {
+            console.error("Firebase no configurado correctamente.", e);
+        }
+
+        let currentUser = null;
+        let goals = [];
+        const icons = ['ph-star', 'ph-airplane', 'ph-car', 'ph-house', 'ph-graduation-cap', 'ph-desktop', 'ph-gift', 'ph-heart'];
+
+        // --- AUTH ---
+        window.signInAnonymouslyFunc = async () => {
+             // Priorizar token personalizado si existe (lógica del sistema)
+             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                // En un caso real usaríamos signInWithCustomToken, aquí simplificamos a anónimo si falla o no es el flujo
+                try {
+                     const { signInWithCustomToken } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+                     await signInWithCustomToken(auth, __initial_auth_token);
+                } catch(e) { await signInAnonymously(auth); }
+            } else {
+                await signInAnonymously(auth);
+            }
+        };
+
+        if(auth) {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    document.getElementById('login-view').classList.add('hidden');
+                    document.getElementById('main-container').classList.remove('hidden');
+                    document.getElementById('fab-add').classList.remove('hidden');
+                    document.getElementById('loading-screen').classList.add('hidden');
+                    initListeners();
+                } else {
+                    document.getElementById('login-view').classList.remove('hidden');
+                    document.getElementById('loading-screen').classList.add('hidden');
+                }
+            });
+        }
+
+        function initListeners() {
+            if(!currentUser) return;
+            // RULE 1: Strict path artifacts/{appId}/users/{userId}/goals
+            const q = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'goals');
+            
+            onSnapshot(q, (snapshot) => {
+                goals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderApp();
+            }, (error) => {
+                console.error("Error fetching goals:", error);
+            });
+        }
+
+        // --- RENDER ---
+        function renderApp() {
+            renderHero();
+            renderGoalsList();
+        }
+
+        function renderHero() {
+            const totalTarget = goals.reduce((acc, g) => acc + parseFloat(g.targetAmount), 0);
+            const totalSaved = goals.reduce((acc, g) => acc + parseFloat(g.currentAmount), 0);
+            
+            let percent = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
+            if(percent > 100) percent = 100;
+
+            document.getElementById('header-total-saved').textContent = formatMoney(totalSaved);
+            document.getElementById('hero-saved').textContent = `${formatMoney(totalSaved)} AHORRADOS`;
+            document.getElementById('hero-target').textContent = `META: ${formatMoney(totalTarget)}`;
+            
+            // Animación números
+            animateValue("hero-percentage", parseInt(document.getElementById('hero-percentage').innerText), Math.round(percent), 1000);
+            
+            document.getElementById('hero-progress-bar').style.width = `${percent}%`;
+        }
+
+        function renderGoalsList() {
+            const container = document.getElementById('goals-list');
+            container.innerHTML = '';
+
+            if (goals.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('empty-state').classList.add('flex');
+                return;
+            } else {
+                document.getElementById('empty-state').classList.add('hidden');
+                document.getElementById('empty-state').classList.remove('flex');
+            }
+
+            // Ordenar: Primero las que están más cerca de vencer
+            const sorted = [...goals].sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            sorted.forEach(g => {
+                const target = parseFloat(g.targetAmount);
+                const current = parseFloat(g.currentAmount);
+                const percent = Math.min((current / target) * 100, 100);
+                const remaining = target - current;
+                
+                // Cálculo de motivación diaria
+                const today = new Date(); today.setHours(0,0,0,0);
+                const limit = new Date(g.date); limit.setHours(0,0,0,0);
+                const diffTime = limit - today;
+                const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                let motivationText = "";
+                let statusColor = "text-text-mute";
+                
+                if (current >= target) {
+                    motivationText = "¡META COMPLETADA! 🎉";
+                    statusColor = "text-success font-black";
+                } else if (daysLeft <= 0) {
+                    motivationText = "Fecha límite vencida.";
+                    statusColor = "text-brand";
+                } else {
+                    const dailyNeed = remaining / daysLeft;
+                    motivationText = `Necesitas ahorrar <span class="text-white font-bold">${formatMoney(dailyNeed)}</span> al día`;
+                    statusColor = "text-gold";
+                }
+
+                const card = document.createElement('div');
+                card.className = "glass-panel p-5 rounded-2xl border border-border hover:border-white/10 transition-colors group cursor-pointer";
+                card.onclick = (e) => {
+                    // Si no se hizo click en el botón de depósito, abrir edición
+                    if(!e.target.closest('.btn-deposit')) openEditModal(g.id);
+                };
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-input-bg flex items-center justify-center text-text border border-border group-hover:border-gold group-hover:text-gold transition-colors">
+                                <i class="ph-fill ${g.icon} text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-sm uppercase tracking-wide leading-none mb-1">${g.title}</h3>
+                                <p class="text-[10px] text-text-mute font-bold uppercase">${daysLeft > 0 ? daysLeft + ' días restantes' : 'Finalizado'}</p>
+                            </div>
+                        </div>
+                        <button onclick="openDepositModal('${g.id}', '${g.title}')" class="btn-deposit bg-white text-black px-3 py-1.5 rounded-lg text-xs font-black uppercase hover:bg-success hover:text-white transition-all shadow-lg shadow-white/5">
+                            + Depósito
+                        </button>
+                    </div>
+
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-xs font-bold text-text-mute">${Math.round(percent)}%</span>
+                        <span class="text-lg font-black text-white tracking-tight">${formatMoney(current)} <span class="text-[10px] text-text-mute font-medium text-right block">de ${formatMoney(target)}</span></span>
+                    </div>
+
+                    <div class="w-full bg-input-bg h-2 rounded-full overflow-hidden mb-3 border border-white/5">
+                        <div class="h-full ${percent >= 100 ? 'bg-success' : 'bg-gold'} transition-all duration-700" style="width: ${percent}%"></div>
+                    </div>
+
+                    <div class="bg-black/40 rounded-lg p-2 text-center border border-white/5">
+                        <p class="text-[10px] ${statusColor} uppercase tracking-wide">
+                            ${motivationText}
+                        </p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- UTILS ---
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
+        }
+
+        function animateValue(id, start, end, duration) {
+            if (start === end) return;
+            const range = end - start;
+            let current = start;
+            const increment = end > start ? 1 : -1;
+            const stepTime = Math.abs(Math.floor(duration / range));
+            const obj = document.getElementById(id);
+            if(!obj) return;
+            
+            const timer = setInterval(function() {
+                current += increment;
+                obj.innerHTML = current + "%";
+                if (current == end) {
+                    clearInterval(timer);
+                }
+            }, stepTime || 10); // fallback if stepTime is 0 or infinity
+        }
+
+        // --- MODALES Y FORMULARIOS ---
+        window.openModal = (id) => {
+            document.getElementById(id).classList.add('is-open');
+            if(id === 'goal-modal') {
+                // Reset form si es nuevo
+                if(!document.getElementById('goal-id').value) {
+                    document.getElementById('g-title').value = '';
+                    document.getElementById('g-target').value = '';
+                    document.getElementById('g-current').value = '0';
+                    document.getElementById('g-date').value = '';
+                    document.getElementById('modal-title').innerText = "Nueva Meta";
+                    document.getElementById('btn-delete').classList.add('hidden');
+                    document.getElementById('btn-save').classList.add('col-span-2');
+                    renderIconSelector();
+                }
+            }
+        };
+
+        window.closeModal = (id) => {
+            document.getElementById(id).classList.remove('is-open');
+            // Limpiar estado
+            if(id === 'goal-modal') document.getElementById('goal-id').value = '';
+        };
+
+        window.openDepositModal = (id, title) => {
+            document.getElementById('deposit-goal-id').value = id;
+            document.getElementById('deposit-title').innerText = "Añadir a " + title;
+            document.getElementById('deposit-subtitle').innerText = "Cada centavo cuenta para tu objetivo.";
+            document.getElementById('deposit-amount').value = '';
+            openModal('deposit-modal');
+        };
+
+        window.openEditModal = (id) => {
+            const g = goals.find(x => x.id === id);
+            if(!g) return;
+            
+            document.getElementById('goal-id').value = g.id;
+            document.getElementById('g-title').value = g.title;
+            document.getElementById('g-target').value = g.targetAmount;
+            document.getElementById('g-current').value = g.currentAmount;
+            document.getElementById('g-date').value = g.date;
+            document.getElementById('g-icon').value = g.icon;
+            
+            document.getElementById('modal-title').innerText = "Editar Meta";
+            document.getElementById('btn-delete').classList.remove('hidden');
+            document.getElementById('btn-save').classList.remove('col-span-2');
+            
+            renderIconSelector(g.icon);
+            openModal('goal-modal');
+        };
+
+        // --- MANEJO DE DATOS ---
+
+        // Selector de Iconos
+        function renderIconSelector(selected = 'ph-star') {
+            const container = document.getElementById('icon-selector');
+            container.innerHTML = '';
+            icons.forEach(icon => {
+                const div = document.createElement('div');
+                div.className = `w-10 h-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer border transition-all ${icon === selected ? 'bg-gold text-black border-gold scale-110' : 'bg-input-bg text-text-mute border-border hover:bg-white/10'}`;
+                div.innerHTML = `<i class="ph-fill ${icon}"></i>`;
+                div.onclick = () => {
+                    document.getElementById('g-icon').value = icon;
+                    renderIconSelector(icon);
+                };
+                container.appendChild(div);
+            });
+        }
+
+        window.handleSaveGoal = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('goal-id').value;
+            const title = document.getElementById('g-title').value;
+            const targetAmount = parseFloat(document.getElementById('g-target').value);
+            const currentAmount = parseFloat(document.getElementById('g-current').value) || 0;
+            const date = document.getElementById('g-date').value;
+            const icon = document.getElementById('g-icon').value;
+
+            const data = { title, targetAmount, currentAmount, date, icon };
+
+            if(id) {
+                await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'goals', id), data);
+            } else {
+                data.createdAt = new Date().toISOString();
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'goals'), data);
+            }
+            closeModal('goal-modal');
+        };
+
+        window.deleteGoal = async () => {
+            const id = document.getElementById('goal-id').value;
+            if(confirm("¿Eliminar esta meta?")) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'goals', id));
+                closeModal('goal-modal');
+            }
+        };
+
+        window.handleDeposit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('deposit-goal-id').value;
+            const amount = parseFloat(document.getElementById('deposit-amount').value);
+            
+            const g = goals.find(x => x.id === id);
+            if(g) {
+                const newAmount = parseFloat(g.currentAmount) + amount;
+                await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'goals', id), {
+                    currentAmount: newAmount
+                });
+                
+                // Efecto Confeti
+                closeModal('deposit-modal');
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#fbbf24', '#ffffff', '#10b981']
+                });
+            }
+        };
+
+    </script>
+</body>
+</html>
