@@ -1,53 +1,62 @@
 <!DOCTYPE html>
-<html lang="es" class="antialiased">
+<html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- SEO OPTIMIZADO -->
-    <meta name="description" content="GOD'S PLAN: El Hub central donde recopilo mis proyectos personales. Herramientas de finanzas, adherencia laboral, programación y productividad.">
-    <meta name="keywords" content="proyectos personales, hub de herramientas, portafolio desarrollador, productividad, finanzas, coding">
+    
+    <!-- SEO & METADATA -->
+    <meta name="description" content="GOD'S PLAN: Hub central de proyectos. Finanzas, productividad, desarrollo y herramientas personales.">
+    <meta name="keywords" content="dashboard, developer portfolio, tools, finance, productivity, valorant stats">
+    <meta name="author" content="blqa">
     <meta name="theme-color" content="#000000">
-    <title>GOD'S PLAN | Open Hub</title>
+    <title>GOD'S PLAN | Nexus Hub</title>
 
     <!-- FAVICON -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪐</text></svg>">
 
-    <!-- LIBRERÍAS -->
+    <!-- LIBRARIES -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-    <!-- ADSENSE SCRIPT (Placeholder) -->
-    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script> -->
-
+    <!-- CONFIGURACIÓN TAILWIND -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        sans: ['"Outfit"', 'sans-serif'],
                         mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        brand: { DEFAULT: '#FF2A2A', hover: '#D90000', glow: 'rgba(255, 42, 42, 0.5)' },
-                        bg: { main: '#030303', surface: '#0D0D0D', glass: 'rgba(20, 20, 20, 0.6)' },
-                        border: { DEFAULT: 'rgba(255,255,255,0.08)', hover: 'rgba(255,255,255,0.15)' },
-                    },
-                    backgroundImage: {
-                        'mesh': 'radial-gradient(circle at 50% -20%, rgba(255, 42, 42, 0.15), transparent 70%)'
+                        brand: {
+                            DEFAULT: '#FF2A2A',
+                            dim: '#991b1b',
+                            accent: '#ff5555'
+                        },
+                        dark: {
+                            bg: '#030303',
+                            card: '#0A0A0A',
+                            border: 'rgba(255, 255, 255, 0.08)'
+                        }
                     },
                     animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
                     },
                     keyframes: {
-                        fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px) scale(0.98)' },
-                            '100%': { opacity: '1', transform: 'translateY(0) scale(1)' }
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
                         },
-                        pulseGlow: {
-                            '0%, 100%': { opacity: '0.4' },
-                            '50%': { opacity: '0.8' }
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
                         }
                     }
                 }
@@ -56,511 +65,737 @@
     </script>
 
     <style>
-        /* BASE & UTILS */
-        body { background-color: #030303; color: #E5E5E5; overflow-x: hidden; }
-        
+        /* CSS CORE */
+        body {
+            background-color: #030303;
+            color: #e4e4e7;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #030303; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #FF2A2A; }
 
-        /* GLASSMORPHISM */
-        .glass-panel {
-            background: rgba(13, 13, 13, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+        /* CANVAS BACKGROUND */
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none; /* Dejar pasar clicks */
+        }
+
+        /* GLASS & CARDS */
+        .glass-card {
+            background: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        /* CARD HOVER EFFECT 3D */
-        .module-card {
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
             transform-style: preserve-3d;
-            background: #090909;
-            text-decoration: none;
-            position: relative;
-        }
-        .module-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            border-color: rgba(255, 42, 42, 0.4);
-            box-shadow: 0 0 30px rgba(255, 42, 42, 0.15);
-            background: #0D0D0D;
-        }
-        .module-card::after {
-            content: ''; position: absolute; inset: 0;
-            background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.06), transparent 40%);
-            opacity: 0; transition: opacity 0.5s; pointer-events: none; border-radius: inherit;
-        }
-        .module-card:hover::after { opacity: 1; }
-
-        /* INPUT ANIMATION */
-        .input-group input:focus ~ label,
-        .input-group input:not(:placeholder-shown) ~ label,
-        .input-group textarea:focus ~ label,
-        .input-group textarea:not(:placeholder-shown) ~ label {
-            transform: translateY(-24px) scale(0.85);
-            color: #FF2A2A;
+            will-change: transform;
         }
 
-        /* HERO TEXT */
-        .hero-text {
-            background: linear-gradient(to right, #ffffff 0%, #a1a1aa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        /* TILT & SPOTLIGHT */
+        .card-container {
+            perspective: 1000px;
         }
         
-        /* LEGAL TYPOGRAPHY */
-        .legal-content h2 { font-size: 1.5rem; font-weight: 700; color: white; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; }
-        .legal-content h3 { font-size: 1.25rem; font-weight: 600; color: #e4e4e7; margin-top: 1.5rem; margin-bottom: 0.75rem; }
-        .legal-content p { color: #a1a1aa; margin-bottom: 1rem; line-height: 1.7; font-size: 0.95rem; }
-        .legal-content ul { list-style-type: disc; padding-left: 1.5rem; color: #a1a1aa; margin-bottom: 1rem; }
-        .legal-content li { margin-bottom: 0.5rem; }
+        .spotlight-card {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.1s ease-out, box-shadow 0.3s ease; 
+            /* Transform es muy rápido para el tilt instantáneo */
+        }
+        
+        /* Brillo Spotlight */
+        .spotlight-card::before {
+            content: '';
+            position: absolute;
+            height: 100%; width: 100%; left: 0; top: 0;
+            background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.05), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Borde Spotlight */
+        .spotlight-card::after {
+            content: '';
+            position: absolute;
+            height: 100%; width: 100%; left: 0; top: 0;
+            background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(255, 42, 42, 0.5), transparent 40%);
+            opacity: 0;
+            z-index: 1;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            border-radius: inherit;
+            padding: 1px;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+
+        .spotlight-card:hover::before, 
+        .spotlight-card:hover::after { opacity: 1; }
+
+        /* VIEW TRANSITIONS */
+        .view-section {
+            transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
+            opacity: 1;
+            filter: blur(0);
+            transform: scale(1);
+        }
+        
+        .view-hidden {
+            display: none;
+            opacity: 0;
+            filter: blur(10px);
+            transform: scale(0.98);
+        }
+
+        /* UTILS */
+        .text-glow { text-shadow: 0 0 30px rgba(255, 42, 42, 0.6); }
+        .stagger-1 { animation-delay: 100ms; }
+        .stagger-2 { animation-delay: 200ms; }
+        .stagger-3 { animation-delay: 300ms; }
+        .stagger-4 { animation-delay: 400ms; }
+        .stagger-5 { animation-delay: 500ms; }
+        .stagger-6 { animation-delay: 600ms; }
+
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative selection:bg-brand selection:text-white">
 
-    <!-- FONDO AMBIENTAL -->
-    <div class="fixed inset-0 z-0 pointer-events-none">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[80vh] bg-mesh opacity-60"></div>
-        <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-brand-glow blur-[120px] rounded-full opacity-10"></div>
-    </div>
+    <!-- BACKGROUND SYSTEM -->
+    <canvas id="bg-canvas"></canvas>
+    <div class="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-15 pointer-events-none z-0 mix-blend-overlay"></div>
 
-    <!-- NAVBAR UNIFICADO -->
-    <nav class="fixed top-0 w-full z-40 border-b border-border bg-bg-glass backdrop-blur-md px-6 py-4 flex justify-between items-center transition-all duration-300">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="window.app.returnHome()">
-            <i class="ph-duotone ph-planet text-brand text-2xl"></i>
-            <span class="font-bold tracking-tight text-lg text-white">GOD'S PLAN</span>
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="hidden md:flex flex-col items-end">
-                <span id="nav-time" class="text-xs font-mono text-white">00:00:00</span>
-                <span id="nav-date" class="text-[10px] text-zinc-500 uppercase tracking-wider">LOADING...</span>
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4 backdrop-blur-md border-b border-white/5 bg-black/40 transition-all duration-500">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            
+            <!-- Logo -->
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="window.app.router('home')">
+                <div class="relative w-9 h-9 flex items-center justify-center overflow-hidden rounded-full bg-zinc-900 border border-zinc-800 group-hover:border-brand/50 transition-colors">
+                    <i class="ph-duotone ph-planet text-brand text-2xl relative z-10 group-hover:rotate-180 transition-transform duration-700 ease-in-out"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold tracking-tight text-white leading-none hover-scramble" data-text="GOD'S PLAN">GOD'S PLAN</span>
+                    <span class="text-[9px] text-zinc-500 font-mono tracking-widest uppercase">Nexus Hub v3.1</span>
+                </div>
             </div>
-            <!-- Botón opcional para contacto rápido -->
-            <button onclick="window.app.toggleView('contact')" class="w-8 h-8 flex items-center justify-center rounded-full border border-zinc-800 hover:bg-white hover:text-black hover:border-white transition-all">
-                <i class="ph-bold ph-paper-plane-right"></i>
-            </button>
+
+            <!-- Right Controls -->
+            <div class="flex items-center gap-6">
+                <!-- Clock -->
+                <div class="hidden md:flex flex-col items-end text-right border-r border-white/10 pr-6">
+                    <span id="sys-time" class="font-mono text-xs text-zinc-300 font-bold">00:00:00</span>
+                    <span id="sys-date" class="text-[10px] text-zinc-600 uppercase tracking-widest">SYSTEM READY</span>
+                </div>
+
+                <!-- Status -->
+                <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/30 border border-emerald-500/20">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="hidden sm:block text-[10px] font-bold text-emerald-500 tracking-wider">ONLINE</span>
+                </div>
+
+                <!-- Contact -->
+                <button onclick="window.app.router('contact')" class="w-9 h-9 flex items-center justify-center rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all border border-white/10 group">
+                    <i class="ph-bold ph-paper-plane-right group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform"></i>
+                </button>
+            </div>
         </div>
     </nav>
 
-    <main class="flex-grow flex flex-col items-center justify-center relative z-10 w-full pt-20">
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-grow pt-32 pb-12 px-4 relative z-10 flex flex-col items-center w-full max-w-7xl mx-auto">
 
-        <!-- ==================== HOME VIEW (HERO + GRID) ==================== -->
-        <section id="view-home" class="w-full pb-20 px-4 flex flex-col items-center animate-fade-in-up">
+        <!-- ================= VIEW: HOME ================= -->
+        <section id="view-home" class="view-section w-full flex flex-col items-center">
             
-            <!-- Hero Section -->
-            <div class="text-center max-w-4xl mt-12 mb-16">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs text-brand font-mono mb-6">
-                    <span class="relative flex h-2 w-2">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2 w-2 bg-brand"></span>
-                    </span>
-                    HUB PERSONAL OPEN ACCESS
+            <!-- Hero -->
+            <div class="text-center max-w-3xl mx-auto mb-20 animate-fade-in-up">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-brand-accent mb-8 backdrop-blur-sm hover:bg-white/10 transition-colors cursor-default">
+                    <i class="ph-fill ph-terminal-window"></i>
+                    <span class="tracking-wider">DEVELOPER_ENVIRONMENT</span>
                 </div>
-                <h1 class="text-5xl md:text-7xl font-black tracking-tighter mb-6 hero-text leading-[1.1]">
-                    GOD'S PLAN<br>
-                    <span class="text-3xl md:text-5xl font-bold tracking-tight text-white mt-2 block">El centro digital de mis proyectos.</span>
-                </h1>
-                <p class="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-                    Un ecosistema unificado.
-                </p>
                 
-                <!-- ADSENSE BANNER TOP -->
-                <div class="w-full max-w-2xl mx-auto h-[90px] bg-zinc-900/50 border border-dashed border-zinc-800 rounded-lg flex items-center justify-center text-zinc-600 text-xs uppercase tracking-widest">
-                    Espacio Publicitario
+                <!-- TÍTULO CON EFECTO EN TODO EL TEXTO -->
+                <h1 class="text-6xl md:text-8xl font-black tracking-tighter text-white mb-6 leading-[0.9]">
+                    <span class="inline-block hover-scramble" data-text="GOD'S">GOD'S</span>
+                    <span class="inline-block text-transparent bg-clip-text bg-gradient-to-r from-brand to-red-600 text-glow hover-scramble" data-text="PLAN">PLAN</span>
+                </h1>
+                
+                <p class="text-zinc-400 text-lg md:text-xl max-w-xl mx-auto leading-relaxed font-light">
+                    Ecosistema digital centralizado. <br class="hidden md:block">
+                    <span class="text-zinc-500">Productividad, finanzas y desarrollo en un solo punto de acceso.</span>
+                </p>
+            </div>
+
+            <!-- Ad/Banner Space -->
+            <div class="w-full max-w-lg mx-auto mb-20 animate-fade-in-up stagger-1">
+                <div class="h-[80px] rounded-xl border border-dashed border-zinc-800 bg-zinc-900/20 flex items-center justify-center group cursor-help transition-all hover:border-zinc-700 hover:bg-zinc-900/40 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                    <span class="text-xs text-zinc-600 font-mono uppercase tracking-widest group-hover:text-zinc-400 z-10">
+                        // Espacio Publicitario //
+                    </span>
                 </div>
             </div>
 
-            <!-- PROJECTS GRID -->
-            <div id="projects" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full mb-20">
+            <!-- Projects Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-24 card-container perspective-container">
                 
                 <!-- Adherencia -->
-                <a href="https://adherencia.godsplan.site/" target="_blank" class="module-card border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between block">
-                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                        <i class="ph-fill ph-briefcase text-8xl text-white"></i>
-                    </div>
-                    <div class="flex justify-between items-start z-10">
-                        <div class="bg-brand/10 p-2.5 rounded-xl text-brand border border-brand/20 group-hover:bg-brand group-hover:text-white transition-colors">
-                            <i class="ph-bold ph-chart-line-up text-2xl"></i>
+                <a href="https://adherencia.godsplan.site/" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-1">
+                    <div class="flex justify-between items-start">
+                        <div class="w-12 h-12 rounded-xl bg-brand/10 text-brand flex items-center justify-center text-2xl border border-brand/20 group-hover:bg-brand group-hover:text-white transition-all duration-300 shadow-lg shadow-brand/10">
+                            <i class="ph-bold ph-briefcase"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-1 group-hover:text-brand transition-colors">Adherencia</h3>
-                        <p class="text-zinc-500 text-xs leading-relaxed">Gestión de tiempos, asistencia y control laboral.</p>
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-brand transition-colors">Adherencia</h3>
+                        <p class="text-sm text-zinc-500 font-medium">Gestión inteligente de asistencia y control de horarios laborales.</p>
                     </div>
+                    <i class="ph-fill ph-briefcase absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
 
                 <!-- Finanzas -->
-                <a href="https://finanzas.godsplan.site" target="_blank" class="module-card border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between block">
-                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                        <i class="ph-fill ph-wallet text-8xl text-white"></i>
-                    </div>
-                    <div class="flex justify-between items-start z-10">
-                        <div class="bg-green-500/10 p-2.5 rounded-xl text-green-500 border border-green-500/20 group-hover:bg-green-500 group-hover:text-white transition-colors">
-                            <i class="ph-bold ph-currency-dollar text-2xl"></i>
+                <a href="https://finanzas.godsplan.site" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-2">
+                    <div class="flex justify-between items-start">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-emerald-500/10">
+                            <i class="ph-bold ph-currency-dollar"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-1 group-hover:text-green-500 transition-colors">Finanzas</h3>
-                        <p class="text-zinc-500 text-xs leading-relaxed">Contabilidad personal y proyecciones de ahorro.</p>
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-emerald-500 transition-colors">Finanzas</h3>
+                        <p class="text-sm text-zinc-500 font-medium">Sistema integral de contabilidad personal y proyecciones.</p>
                     </div>
+                    <i class="ph-fill ph-wallet absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
+                </a>
+
+                <!-- Goals (NUEVO) -->
+                <a href="https://godsplan.site/goals" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-2">
+                    <div class="flex justify-between items-start">
+                        <div class="w-12 h-12 rounded-xl bg-yellow-500/10 text-yellow-500 flex items-center justify-center text-2xl border border-yellow-500/20 group-hover:bg-yellow-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-yellow-500/10">
+                            <i class="ph-bold ph-trophy"></i>
+                        </div>
+                        <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-yellow-500 transition-colors">Goals</h3>
+                        <p class="text-sm text-zinc-500 font-medium">Gestor de metas de ahorro y objetivos financieros.</p>
+                    </div>
+                    <i class="ph-fill ph-trophy absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
 
                 <!-- Coding -->
-                <a href="https://coding.godsplan.site" target="_blank" class="module-card border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between block">
-                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                        <i class="ph-fill ph-brackets-curly text-8xl text-white"></i>
-                    </div>
-                    <div class="flex justify-between items-start z-10">
-                        <div class="bg-indigo-500/10 p-2.5 rounded-xl text-indigo-500 border border-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
-                            <i class="ph-bold ph-code text-2xl"></i>
+                <a href="https://coding.godsplan.site" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-3">
+                    <div class="flex justify-between items-start">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-2xl border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-blue-500/10">
+                            <i class="ph-bold ph-code"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-1 group-hover:text-indigo-500 transition-colors">Coding</h3>
-                        <p class="text-zinc-500 text-xs leading-relaxed">Base de conocimiento para desarrolladores.</p>
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-blue-500 transition-colors">Coding</h3>
+                        <p class="text-sm text-zinc-500 font-medium">Base de conocimiento técnico y repositorio de snippets.</p>
                     </div>
+                    <i class="ph-fill ph-brackets-curly absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
 
                 <!-- Macros -->
-                <a href="https://godsplan.site/macros" target="_blank" class="module-card border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between block">
-                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                        <i class="ph-fill ph-lightning text-8xl text-white"></i>
-                    </div>
-                    <div class="flex justify-between items-start z-10">
-                        <div class="bg-fuchsia-500/10 p-2.5 rounded-xl text-fuchsia-500 border border-fuchsia-500/20 group-hover:bg-fuchsia-500 group-hover:text-white transition-colors">
-                            <i class="ph-bold ph-robot text-2xl"></i>
+                <a href="https://godsplan.site/macros" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-4">
+                    <div class="flex justify-between items-start">
+                        <div class="w-12 h-12 rounded-xl bg-fuchsia-500/10 text-fuchsia-500 flex items-center justify-center text-2xl border border-fuchsia-500/20 group-hover:bg-fuchsia-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-fuchsia-500/10">
+                            <i class="ph-bold ph-robot"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-1 group-hover:text-fuchsia-500 transition-colors">Macros</h3>
-                        <p class="text-zinc-500 text-xs leading-relaxed">Scripts y automatización (Mobil2000).</p>
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-fuchsia-500 transition-colors">Macros</h3>
+                        <p class="text-sm text-zinc-500 font-medium">Automatización de tareas y scripts (Mobil2000).</p>
                     </div>
+                    <i class="ph-fill ph-lightning absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
 
                 <!-- Canvas -->
-                <a href="https://canvas.godsplan.site" target="_blank" class="module-card border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between block">
-                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                        <i class="ph-fill ph-terminal-window text-8xl text-white"></i>
-                    </div>
-                    <div class="flex justify-between items-start z-10">
-                        <div class="bg-orange-500/10 p-2.5 rounded-xl text-orange-500 border border-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-colors">
-                            <i class="ph-bold ph-desktop text-2xl"></i>
+                <a href="https://canvas.godsplan.site" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-5">
+                    <div class="flex justify-between items-start">
+                        <div class="w-12 h-12 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center text-2xl border border-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-orange-500/10">
+                            <i class="ph-bold ph-paint-brush-broad"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-1 group-hover:text-orange-500 transition-colors">Canvas</h3>
-                        <p class="text-zinc-500 text-xs leading-relaxed">Sandbox para prototipado rápido HTML/JS.</p>
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-orange-500 transition-colors">Canvas</h3>
+                        <p class="text-sm text-zinc-500 font-medium">Entorno de pruebas y prototipado rápido.</p>
                     </div>
+                    <i class="ph-fill ph-palette absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
 
-                <!-- Valorant Stats (NUEVO) -->
-                <a href="https://stats.godsplan.site" target="_blank" class="module-card border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between block">
-                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                        <i class="ph-fill ph-crosshair text-8xl text-white"></i>
-                    </div>
-                    <div class="flex justify-between items-start z-10">
-                        <div class="bg-rose-500/10 p-2.5 rounded-xl text-rose-500 border border-rose-500/20 group-hover:bg-rose-500 group-hover:text-white transition-colors">
-                            <i class="ph-bold ph-chart-bar text-2xl"></i>
+                <!-- Valorant Stats -->
+                <a href="https://godsplan.site/vstats" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-6">
+                    <div class="flex justify-between items-start">
+                        <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-2xl border border-rose-500/20 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-rose-500/10">
+                            <i class="ph-bold ph-crosshair"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-1 group-hover:text-rose-500 transition-colors">Valorant Stats</h3>
-                        <p class="text-zinc-500 text-xs leading-relaxed">Valorant Stats Tracker. Seguimiento de rendimiento.</p>
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-rose-500 transition-colors">Valorant Stats</h3>
+                        <p class="text-sm text-zinc-500 font-medium">Análisis detallado de rendimiento y estadísticas.</p>
                     </div>
+                    <i class="ph-fill ph-target absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
-
-                <!-- INFO / SYSTEM -->
-                <button onclick="window.app.toggleView('info')" class="module-card border border-zinc-800 rounded-2xl p-6 cursor-pointer overflow-hidden group min-h-[220px] flex flex-col justify-between block text-left w-full">
-                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                        <i class="ph-fill ph-cpu text-8xl text-white"></i>
-                    </div>
-                    <div class="flex justify-between items-start z-10">
-                        <div class="bg-cyan-500/10 p-2.5 rounded-xl text-cyan-500 border border-cyan-500/20 group-hover:bg-cyan-500 group-hover:text-black transition-colors">
-                            <i class="ph-bold ph-info text-2xl"></i>
-                        </div>
-                        <i class="ph-bold ph-caret-right text-zinc-600 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <div class="z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-1 group-hover:text-cyan-500 transition-colors">Info</h3>
-                        <p class="text-zinc-500 text-xs leading-relaxed">Acerca del Hub y Estado del Sistema.</p>
-                    </div>
-                </button>
-
             </div>
 
-             <!-- About Section (Restaurado) -->
-             <div id="about" class="w-full max-w-4xl glass-panel p-10 rounded-2xl mb-20 relative overflow-hidden">
-                <div class="absolute -top-24 -right-24 w-64 h-64 bg-brand/10 rounded-full blur-3xl pointer-events-none"></div>
+            <!-- About / Info Card -->
+            <div class="w-full glass-card rounded-2xl p-10 relative overflow-hidden group border-t border-brand/20 animate-fade-in-up stagger-6 mb-16">
+                <!-- Glowing Orb Background -->
+                <div class="absolute -top-32 -right-32 w-96 h-96 bg-brand rounded-full blur-[128px] opacity-10 group-hover:opacity-20 transition-opacity duration-700"></div>
                 
-                <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                    <i class="ph-fill ph-planet text-brand"></i> ¿Qué es God's Plan?
-                </h2>
-                <div class="space-y-4 text-zinc-400 text-sm leading-7 relative z-10">
-                    <p>
-                        <strong>God's Plan</strong> es el nombre en clave de mi ecosistema digital. No es una sola aplicación, sino el lugar donde <strong>recopilo y centralizo</strong> todos mis proyectos personales activos.
-                    </p>
-                    <p>
-                        Desarrollado por <span class="text-white">blqa</span>, este sitio actúa como un "Hub" o lanzador. Aquí se unen herramientas de finanzas, productividad y desarrollo bajo una misma interfaz segura y estética.
-                    </p>
-                    <p>
-                        El objetivo es eliminar la fricción entre mis ideas y su ejecución. Si estás buscando alguno de mis proyectos (como la calculadora de Macros o el sistema de Finanzas), estás en el lugar correcto.
-                    </p>
+                <div class="relative z-10 flex flex-col md:flex-row gap-10 items-center md:items-start">
+                    <div class="flex-shrink-0 relative">
+                        <div class="absolute inset-0 bg-brand blur-xl opacity-20 animate-pulse"></div>
+                        <div class="w-20 h-20 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-3xl text-white relative z-10 shadow-2xl">
+                            👾
+                        </div>
+                    </div>
+                    <div class="text-center md:text-left">
+                        <h2 class="text-2xl font-bold text-white mb-4">La Singularidad Digital</h2>
+                        <p class="text-zinc-400 leading-relaxed mb-8 max-w-2xl">
+                            <strong>God's Plan</strong> no es solo un portafolio; es el sistema nervioso central de mis operaciones digitales. Diseñado por <span class="text-brand font-bold">blqa</span>, elimina la fricción entre la concepción de una idea y su ejecución técnica.
+                        </p>
+                        <button onclick="window.app.router('info')" class="group inline-flex items-center gap-2 text-xs font-mono font-bold text-brand uppercase tracking-widest hover:text-white transition-colors">
+                            <span>Ver Especificaciones</span>
+                            <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Footer Legal -->
-            <footer class="w-full max-w-6xl border-t border-zinc-900 pt-10 pb-6">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div class="text-zinc-600 text-sm">
-                        &copy; 2024 God's Plan Project Hub.
-                    </div>
-                    <div class="flex gap-6 text-sm text-zinc-500">
-                        <button onclick="window.app.toggleView('privacy')" class="hover:text-brand transition-colors">Privacidad</button>
-                        <button onclick="window.app.toggleView('terms')" class="hover:text-brand transition-colors">Términos</button>
-                        <button onclick="window.app.toggleView('contact')" class="hover:text-brand transition-colors">Contacto</button>
-                    </div>
+            <!-- Footer -->
+            <footer class="w-full border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-zinc-600 text-sm">© 2024 God's Plan Project. <span class="hidden md:inline mx-2">|</span> <span class="text-zinc-700">All systems nominal.</span></p>
+                <div class="flex gap-8 text-sm font-mono text-zinc-500 font-medium">
+                    <button onclick="window.app.router('privacy')" class="hover:text-brand transition-colors">PRIVACY</button>
+                    <button onclick="window.app.router('terms')" class="hover:text-brand transition-colors">TERMS</button>
+                    <button onclick="window.app.router('contact')" class="hover:text-brand transition-colors">CONTACT</button>
                 </div>
             </footer>
         </section>
 
-        <!-- ==================== LEGAL: PRIVACY POLICY ==================== -->
-        <section id="view-privacy" class="hidden w-full max-w-4xl py-20 px-4 animate-fade-in-up">
-            <h1 class="text-4xl font-bold text-white mb-8">Política de Privacidad</h1>
-            <div class="glass-panel p-10 rounded-2xl legal-content">
-                <p><strong>Última actualización: 04 de Enero de 2024</strong></p>
-
-                <h2>1. Introducción</h2>
-                <p>Bienvenido a God's Plan. Nos comprometemos a proteger su privacidad y garantizar la seguridad de su información personal. Esta Política de Privacidad describe cómo recopilamos, utilizamos y protegemos su información cuando accede a nuestro Hub de herramientas personales.</p>
-
-                <h2>2. Información que recopilamos</h2>
-                <p>Actualmente, el portal principal opera en un modo de "Acceso Abierto", lo que significa que no requerimos registro ni inicio de sesión para acceder a la mayoría de las herramientas. Sin embargo, podemos recopilar:</p>
-                <ul>
-                    <li><strong>Datos de Uso Automático:</strong> Información técnica como su dirección IP, tipo de navegador y tiempos de acceso, utilizada para fines de seguridad y optimización.</li>
-                    <li><strong>Información de Contacto:</strong> Si decide utilizar nuestro formulario de contacto, almacenaremos el nombre y correo electrónico que proporcione únicamente para responder a su consulta.</li>
-                </ul>
-
-                <h2>3. Uso de la Información</h2>
-                <p>La información recopilada se utiliza exclusivamente para:</p>
-                <ul>
-                    <li>Garantizar el funcionamiento técnico y la seguridad del sitio.</li>
-                    <li>Mejorar la experiencia del usuario y la interfaz de las herramientas.</li>
-                    <li>Responder a solicitudes de soporte o consultas enviadas por el usuario.</li>
-                </ul>
-
-                <h2>4. Cookies y Publicidad</h2>
-                <p>Utilizamos Google AdSense para mostrar anuncios. Google, como proveedor externo, utiliza cookies para publicar anuncios en su sitio. El uso de la cookie de DART permite a Google publicar anuncios a los usuarios basados en su visita a este y otros sitios en Internet. Los usuarios pueden optar por no usar la cookie de DART visitando la política de privacidad de la red de contenido y anuncios de Google.</p>
-
-                <h2>5. Seguridad de Datos</h2>
-                <p>Implementamos medidas de seguridad estándar de la industria para proteger sus datos contra el acceso no autorizado. Aunque nos esforzamos por proteger su información personal, no podemos garantizar la seguridad absoluta de los datos transmitidos a través de Internet.</p>
-
-                <h2>6. Sus Derechos</h2>
-                <p>Usted tiene derecho a solicitar acceso, corrección o eliminación de cualquier dato personal que hayamos almacenado sobre usted contactándonos directamente.</p>
-            </div>
-            <div class="mt-8 text-center">
-                <button onclick="window.app.returnHome()" class="text-zinc-400 hover:text-white underline">Volver al Inicio</button>
+        <!-- ================= VIEW: TEXT/LEGAL ================= -->
+        <section id="view-legal" class="view-section view-hidden w-full max-w-3xl">
+            <button onclick="window.app.router('home')" class="mb-10 flex items-center gap-3 text-zinc-500 hover:text-white transition-colors group px-4 py-2 rounded-full border border-transparent hover:border-zinc-800 hover:bg-zinc-900/50 w-fit">
+                <i class="ph-bold ph-arrow-left group-hover:-translate-x-1 transition-transform"></i> 
+                <span class="font-mono text-xs uppercase tracking-widest">Retornar</span>
+            </button>
+            
+            <div id="legal-content" class="glass-card p-12 rounded-3xl prose prose-invert prose-zinc max-w-none">
+                <!-- Injected via JS -->
             </div>
         </section>
 
-        <!-- ==================== LEGAL: TERMS ==================== -->
-        <section id="view-terms" class="hidden w-full max-w-4xl py-20 px-4 animate-fade-in-up">
-            <h1 class="text-4xl font-bold text-white mb-8">Términos de Uso</h1>
-            <div class="glass-panel p-10 rounded-2xl legal-content">
-                <p><strong>Última actualización: 04 de Enero de 2024</strong></p>
-
-                <h2>1. Aceptación de los Términos</h2>
-                <p>Al acceder y utilizar God's Plan ("el Sitio"), usted acepta estar sujeto a estos Términos de Uso y a todas las leyes y regulaciones aplicables. Si no está de acuerdo con alguno de estos términos, tiene prohibido usar o acceder a este sitio.</p>
-
-                <h2>2. Licencia de Uso</h2>
-                <p>Se concede permiso para utilizar las herramientas y recursos disponibles en el sitio para fines personales y no comerciales. Esta es la concesión de una licencia, no una transferencia de título, y bajo esta licencia usted no puede:</p>
-                <ul>
-                    <li>Modificar o copiar los materiales del código fuente sin atribución.</li>
-                    <li>Utilizar los materiales para cualquier fin comercial o exhibición pública.</li>
-                    <li>Intentar descompilar o realizar ingeniería inversa de cualquier software contenido en el Sitio.</li>
-                </ul>
-
-                <h2>3. Propiedad Intelectual</h2>
-                <p>Todo el contenido, características y funcionalidad (incluyendo pero no limitado a información, software, texto, pantallas, imágenes) son propiedad de God's Plan (desarrollado por blqa) y están protegidos por derechos de autor internacionales, marcas registradas y otras leyes de propiedad intelectual.</p>
-
-                <h2>4. Descargo de Responsabilidad</h2>
-                <p>Los materiales en el Sitio se proporcionan "tal cual". No ofrecemos garantías, expresas o implícitas, y por la presente renunciamos y negamos todas las demás garantías, incluidas, entre otras, las garantías implícitas de comerciabilidad o idoneidad para un propósito particular. No garantizamos la exactitud o confiabilidad del uso de las herramientas financieras o de cálculo (Macros, Finanzas) para decisiones críticas.</p>
-
-                <h2>5. Limitaciones</h2>
-                <p>En ningún caso God's Plan o sus proveedores serán responsables de ningún daño (incluidos, entre otros, daños por pérdida de datos o ganancias) que surjan del uso o la imposibilidad de usar los materiales en el Sitio.</p>
+        <!-- ================= VIEW: CONTACT ================= -->
+        <section id="view-contact" class="view-section view-hidden w-full max-w-2xl flex-col items-center text-center pt-10">
+            <div class="mb-12">
+                <h2 class="text-5xl font-black text-white mb-4 tracking-tight">Conectar</h2>
+                <p class="text-zinc-500 text-lg">Inicia el protocolo de comunicación.</p>
             </div>
-            <div class="mt-8 text-center">
-                <button onclick="window.app.returnHome()" class="text-zinc-400 hover:text-white underline">Volver al Inicio</button>
+
+            <div class="grid grid-cols-2 gap-4 w-full mb-16">
+                <!-- WhatsApp -->
+                <a href="https://wa.me/" target="_blank" class="aspect-[4/3] glass-card rounded-2xl flex flex-col items-center justify-center gap-4 hover:bg-[#25D366]/5 hover:border-[#25D366]/40 transition-all group spotlight-card">
+                    <div class="w-14 h-14 rounded-full bg-[#25D366]/10 flex items-center justify-center text-[#25D366] group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-whatsapp-logo text-3xl"></i>
+                    </div>
+                    <span class="text-xs text-zinc-500 font-mono uppercase tracking-widest group-hover:text-white transition-colors">WhatsApp</span>
+                </a>
+                <!-- X -->
+                <a href="#" class="aspect-[4/3] glass-card rounded-2xl flex flex-col items-center justify-center gap-4 hover:bg-white/5 hover:border-white/40 transition-all group spotlight-card">
+                    <div class="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-x-logo text-3xl"></i>
+                    </div>
+                    <span class="text-xs text-zinc-500 font-mono uppercase tracking-widest group-hover:text-white transition-colors">Twitter / X</span>
+                </a>
+                <!-- Email -->
+                <a href="mailto:contact@godsplan.site" class="aspect-[4/3] glass-card rounded-2xl flex flex-col items-center justify-center gap-4 hover:bg-brand/5 hover:border-brand/40 transition-all group spotlight-card">
+                    <div class="w-14 h-14 rounded-full bg-brand/10 flex items-center justify-center text-brand group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-envelope-simple text-3xl"></i>
+                    </div>
+                    <span class="text-xs text-zinc-500 font-mono uppercase tracking-widest group-hover:text-white transition-colors">Email</span>
+                </a>
+                <!-- Discord -->
+                <a href="#" class="aspect-[4/3] glass-card rounded-2xl flex flex-col items-center justify-center gap-4 hover:bg-[#5865F2]/5 hover:border-[#5865F2]/40 transition-all group spotlight-card">
+                    <div class="w-14 h-14 rounded-full bg-[#5865F2]/10 flex items-center justify-center text-[#5865F2] group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-discord-logo text-3xl"></i>
+                    </div>
+                    <span class="text-xs text-zinc-500 font-mono uppercase tracking-widest group-hover:text-white transition-colors">Discord</span>
+                </a>
             </div>
+
+            <button onclick="window.app.router('home')" class="text-zinc-600 hover:text-white transition-colors text-sm font-mono uppercase tracking-widest">
+                [ CANCELAR TRANSMISIÓN ]
+            </button>
         </section>
 
-        <!-- ==================== CONTACT ==================== -->
-        <section id="view-contact" class="hidden w-full max-w-2xl py-20 px-4 animate-fade-in-up">
-            <h1 class="text-4xl font-bold text-white mb-8 text-center">Contacto</h1>
-            <div class="glass-panel p-10 rounded-2xl mb-8 flex flex-col items-center text-center">
-                <p class="text-zinc-400 mb-10 max-w-md text-lg">
-                    ¿Tienes alguna pregunta, idea o propuesta? Contáctame directamente a través de mis redes sociales o envíame un mensaje por WhatsApp.
-                </p>
-                
-                <!-- REDES SOCIALES -->
-                <div class="flex flex-wrap justify-center gap-6">
-                     <!-- WhatsApp (New) -->
-                     <a href="https://wa.me/" target="_blank" class="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-green-500 hover:border-green-500/50 hover:bg-green-500/10 transition-all group shadow-lg hover:shadow-green-500/20" title="WhatsApp">
-                        <i class="ph-fill ph-whatsapp-logo text-3xl group-hover:scale-110 transition-transform"></i>
-                    </a>
+        <!-- ================= VIEW: INFO ================= -->
+        <section id="view-info" class="view-section view-hidden w-full max-w-4xl">
+             <button onclick="window.app.router('home')" class="mb-10 flex items-center gap-3 text-zinc-500 hover:text-white transition-colors group px-4 py-2 rounded-full border border-transparent hover:border-zinc-800 hover:bg-zinc-900/50 w-fit">
+                <i class="ph-bold ph-arrow-left group-hover:-translate-x-1 transition-transform"></i> 
+                <span class="font-mono text-xs uppercase tracking-widest">Retornar</span>
+            </button>
 
-                     <!-- Twitter / X -->
-                    <a href="#" target="_blank" class="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/50 hover:bg-white/10 transition-all group shadow-lg hover:shadow-white/10" title="Twitter / X">
-                        <i class="ph-fill ph-x-logo text-3xl group-hover:scale-110 transition-transform"></i>
-                    </a>
-
-                    <!-- Instagram -->
-                    <a href="#" target="_blank" class="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-pink-500 hover:border-pink-500/50 hover:bg-pink-500/10 transition-all group shadow-lg hover:shadow-pink-500/20" title="Instagram">
-                        <i class="ph-fill ph-instagram-logo text-3xl group-hover:scale-110 transition-transform"></i>
-                    </a>
-
-                    <!-- Discord -->
-                    <a href="#" target="_blank" class="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-indigo-400 hover:border-indigo-400/50 hover:bg-indigo-400/10 transition-all group shadow-lg hover:shadow-indigo-500/20" title="Discord">
-                        <i class="ph-fill ph-discord-logo text-3xl group-hover:scale-110 transition-transform"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="text-center">
-                <button onclick="window.app.returnHome()" class="text-zinc-400 hover:text-white underline">Volver al Inicio</button>
-            </div>
-        </section>
-
-        <!-- ==================== INFO VIEW ==================== -->
-        <section id="view-info" class="hidden w-full max-w-3xl py-20 px-4 animate-fade-in-up">
-            <div class="flex items-center gap-4 mb-8">
-                <button onclick="window.app.returnHome()" class="w-10 h-10 rounded-full border border-zinc-800 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
-                    <i class="ph-bold ph-arrow-left text-lg"></i>
-                </button>
-                <div>
-                    <h2 class="text-2xl font-bold text-white">Estado del Hub</h2>
-                    <p class="text-zinc-500 text-sm">Información técnica.</p>
+            <div class="glass-card p-1 rounded-3xl mb-8 overflow-hidden">
+                <div class="bg-black/60 rounded-[22px] p-10 md:p-14 text-center border border-white/5 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-brand/5 animate-pulse-slow"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="w-24 h-24 mx-auto bg-zinc-950 rounded-full flex items-center justify-center mb-6 border border-zinc-800 shadow-2xl shadow-brand/20">
+                            <i class="ph-duotone ph-cpu text-5xl text-brand"></i>
+                        </div>
+                        <h1 class="text-3xl font-bold text-white mb-2">System Status</h1>
+                        <p class="text-zinc-500 text-sm font-mono tracking-wider">CORE OPERATIONAL // VER 3.1.0</p>
+                    </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Main Status -->
-                <div class="glass-panel p-8 rounded-2xl md:col-span-2 flex flex-col items-center justify-center text-center">
-                    <div class="w-24 h-24 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-4 shadow-2xl shadow-brand/10">
-                        <i class="ph-duotone ph-cpu text-5xl text-brand animate-pulse-glow"></i>
+                <div class="glass-card p-8 rounded-2xl">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i class="ph-fill ph-stack text-zinc-400"></i>
+                        <h3 class="text-zinc-400 text-xs font-bold uppercase tracking-widest">Tech Stack</h3>
                     </div>
-                    <h3 class="text-3xl font-bold text-white mb-2">GOD'S PLAN</h3>
-                    <div class="flex items-center gap-2 text-zinc-500 text-sm font-mono">
-                        <span>v3.0.0</span>
-                        <span class="w-1 h-1 rounded-full bg-zinc-700"></span>
-                        <span>Open Access</span>
-                    </div>
-                </div>
-
-                <!-- Technical Details -->
-                <div class="glass-panel p-6 rounded-2xl">
-                    <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <i class="ph-fill ph-code text-zinc-400"></i> Stack
-                    </h4>
-                    <ul class="space-y-3 text-sm text-zinc-400 font-mono">
-                        <li class="flex justify-between"><span>Core:</span> <span class="text-white">Vanilla JS</span></li>
-                        <li class="flex justify-between"><span>Styling:</span> <span class="text-white">TailwindCSS</span></li>
-                        <li class="flex justify-between"><span>Hosting:</span> <span class="text-white">Firebase Static</span></li>
-                        <li class="flex justify-between"><span>Auth:</span> <span class="text-red-500">Disabled</span></li>
+                    <ul class="space-y-4 text-sm font-mono">
+                        <li class="flex justify-between items-center pb-2 border-b border-white/5">
+                            <span class="text-zinc-600">Frontend Core</span> 
+                            <span class="text-white bg-white/5 px-2 py-1 rounded">Vanilla JS</span>
+                        </li>
+                        <li class="flex justify-between items-center pb-2 border-b border-white/5">
+                            <span class="text-zinc-600">Styling Engine</span> 
+                            <span class="text-brand bg-brand/10 px-2 py-1 rounded border border-brand/20">Tailwind CSS</span>
+                        </li>
+                        <li class="flex justify-between items-center">
+                            <span class="text-zinc-600">Iconography</span> 
+                            <span class="text-white">Phosphor Icons</span>
+                        </li>
                     </ul>
                 </div>
-                
-                <div class="glass-panel p-6 rounded-2xl">
-                     <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <i class="ph-fill ph-globe text-zinc-400"></i> Estado
-                    </h4>
-                     <div class="flex items-center gap-2 text-green-500 font-bold mt-2">
-                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                        OPERATIVO
-                     </div>
-                     <p class="text-xs text-zinc-600 mt-2">Todos los sistemas funcionando.</p>
+                <div class="glass-card p-8 rounded-2xl">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i class="ph-fill ph-globe text-zinc-400"></i>
+                        <h3 class="text-zinc-400 text-xs font-bold uppercase tracking-widest">Environment</h3>
+                    </div>
+                    <ul class="space-y-4 text-sm font-mono">
+                        <li class="flex justify-between items-center pb-2 border-b border-white/5">
+                            <span class="text-zinc-600">Hosting</span> 
+                            <span class="text-white">Github Pages / Vercel</span>
+                        </li>
+                        <li class="flex justify-between items-center pb-2 border-b border-white/5">
+                            <span class="text-zinc-600">Latency</span> 
+                            <span class="text-green-500">24ms</span>
+                        </li>
+                        <li class="flex justify-between items-center">
+                            <span class="text-zinc-600">Encryption</span> 
+                            <span class="text-white">TLS 1.3</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </section>
 
     </main>
 
-    <!-- LOGICA SIMPLE SIN FIREBASE -->
+    <!-- APP LOGIC -->
     <script>
-        class UIManager {
+        // --- 1. CONFIG & DATA ---
+        const CONTENT_DB = {
+            privacy: {
+                title: "Política de Privacidad",
+                body: `
+                    <h2>1. Privacidad Primero</h2>
+                    <p>Este hub ha sido diseñado con la privacidad como pilar fundamental. No utilizamos rastreadores invasivos ni almacenamos datos personales en servidores externos.</p>
+                    <h2>2. Datos Técnicos</h2>
+                    <p>Recopilamos datos técnicos mínimos (User Agent, resolución) estrictamente para asegurar la correcta renderización de la interfaz "Glassmorphism" en su dispositivo.</p>
+                    <h2>3. Cookies</h2>
+                    <p>Usamos LocalStorage para recordar sus preferencias de sesión. No vendemos sus datos a terceros.</p>
+                `
+            },
+            terms: {
+                title: "Términos de Servicio",
+                body: `
+                    <h2>1. Licencia</h2>
+                    <p>El código de este portafolio es de fuente abierta para fines educativos, pero los activos de marca "God's Plan" y el diseño visual están protegidos.</p>
+                    <h2>2. Uso de Herramientas</h2>
+                    <p>Las herramientas financieras se proporcionan "tal cual". El usuario asume toda la responsabilidad por las decisiones tomadas basándose en los cálculos mostrados.</p>
+                `
+            }
+        };
+
+        // --- 2. PARTICLE SYSTEM (Canvas) ---
+        class Starfield {
             constructor() {
-                this.views = {
-                    home: document.getElementById('view-home'),
-                    privacy: document.getElementById('view-privacy'),
-                    terms: document.getElementById('view-terms'),
-                    contact: document.getElementById('view-contact'),
-                    info: document.getElementById('view-info')
-                };
+                this.canvas = document.getElementById('bg-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.stars = [];
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+                this.mouse = { x: this.width/2, y: this.height/2 };
                 
-                this.initClock();
-                this.addCardEffects();
+                this.init();
+                window.addEventListener('resize', () => this.resize());
+                window.addEventListener('mousemove', (e) => {
+                    this.mouse.x = e.clientX;
+                    this.mouse.y = e.clientY;
+                });
             }
 
-            // Cambiar de vista (SPA feel)
-            toggleView(viewName) {
-                // Ocultar todas
-                Object.values(this.views).forEach(el => {
-                    if (el) el.classList.add('hidden');
-                });
-                
-                // Mostrar solicitada
-                if (this.views[viewName]) {
-                    this.views[viewName].classList.remove('hidden');
-                    window.scrollTo(0,0);
+            init() {
+                this.resize();
+                this.createStars();
+                this.animate();
+            }
+
+            resize() {
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+                this.canvas.width = this.width;
+                this.canvas.height = this.height;
+            }
+
+            createStars() {
+                const count = Math.floor((this.width * this.height) / 10000); // Responsive count
+                for (let i = 0; i < count; i++) {
+                    this.stars.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        size: Math.random() * 2,
+                        speedX: (Math.random() - 0.5) * 0.2,
+                        speedY: (Math.random() - 0.5) * 0.2,
+                        opacity: Math.random()
+                    });
                 }
             }
-            
-            returnHome() {
-                this.toggleView('home');
-            }
 
-            // Reloj en Navbar
-            initClock() {
-                const update = () => {
-                    const now = new Date();
-                    const timeEl = document.getElementById('nav-time');
-                    const dateEl = document.getElementById('nav-date');
-                    
-                    if(timeEl) timeEl.textContent = now.toLocaleTimeString('es-ES', { hour12: false });
-                    if(dateEl) dateEl.textContent = now.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
-                };
-                setInterval(update, 1000);
-                update();
-            }
+            animate() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                
+                this.stars.forEach(star => {
+                    // Move
+                    star.x += star.speedX;
+                    star.y += star.speedY;
 
-            // Efecto 3D en Tarjetas
-            addCardEffects() {
-                const apply = () => {
-                    document.querySelectorAll('.module-card, .glass-panel').forEach(card => {
-                        card.onmousemove = e => {
-                            const rect = card.getBoundingClientRect();
-                            const x = e.clientX - rect.left;
-                            const y = e.clientY - rect.top;
-                            card.style.setProperty('--mouse-x', `${x}px`);
-                            card.style.setProperty('--mouse-y', `${y}px`);
-                        }
-                    });
-                };
-                // Pequeño delay para asegurar que el DOM está listo
-                setTimeout(apply, 100); 
+                    // Wrap around
+                    if (star.x < 0) star.x = this.width;
+                    if (star.x > this.width) star.x = 0;
+                    if (star.y < 0) star.y = this.height;
+                    if (star.y > this.height) star.y = 0;
+
+                    // Mouse interaction
+                    const dx = this.mouse.x - star.x;
+                    const dy = this.mouse.y - star.y;
+                    const distance = Math.sqrt(dx*dx + dy*dy);
+                    let size = star.size;
+
+                    // Draw connections near mouse
+                    if (distance < 150) {
+                        this.ctx.beginPath();
+                        this.ctx.strokeStyle = `rgba(255, 42, 42, ${0.15 * (1 - distance/150)})`;
+                        this.ctx.lineWidth = 0.5;
+                        this.ctx.moveTo(star.x, star.y);
+                        this.ctx.lineTo(this.mouse.x, this.mouse.y);
+                        this.ctx.stroke();
+                        size = star.size * 1.5; // Enlarge near mouse
+                    }
+
+                    // Draw Star
+                    this.ctx.beginPath();
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                    this.ctx.arc(star.x, star.y, size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+
+                requestAnimationFrame(() => this.animate());
             }
         }
 
-        // Inicializar
+        // --- 3. HACKER TEXT EFFECT ---
+        class HackerText {
+            constructor() {
+                this.letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                this.targets = document.querySelectorAll('.hover-scramble');
+                this.init();
+            }
+
+            init() {
+                this.targets.forEach(target => {
+                    // Trigger on load
+                    this.scramble(target);
+                    // Trigger on hover
+                    target.addEventListener('mouseenter', () => this.scramble(target));
+                });
+            }
+
+            scramble(element) {
+                let iteration = 0;
+                const originalText = element.dataset.text || element.innerText;
+                clearInterval(element.interval);
+
+                element.interval = setInterval(() => {
+                    element.innerText = originalText
+                        .split("")
+                        .map((letter, index) => {
+                            if (index < iteration) return originalText[index];
+                            return this.letters[Math.floor(Math.random() * 26)];
+                        })
+                        .join("");
+
+                    if (iteration >= originalText.length) {
+                        clearInterval(element.interval);
+                    }
+
+                    // Increased speed: was 1/3, now 1/2 or 1 for faster resolve
+                    iteration += 1 / 2; 
+                }, 20); // Faster Interval (was 30)
+            }
+        }
+
+        // --- 4. APP CORE ---
+        class App {
+            constructor() {
+                this.views = {
+                    home: document.getElementById('view-home'),
+                    contact: document.getElementById('view-contact'),
+                    info: document.getElementById('view-info'),
+                    legal: document.getElementById('view-legal')
+                };
+                
+                this.init();
+            }
+
+            init() {
+                this.startClock();
+                this.initInteractions();
+                new Starfield(); // Init particles
+                new HackerText(); // Init text effects
+                console.log("GOD'S PLAN v3.1 // ANIMATIONS LOADED");
+            }
+
+            router(route, param = null) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                // Transition Logic
+                const currentView = document.querySelector('.view-section:not(.view-hidden)');
+                const nextViewName = ['privacy', 'terms'].includes(route) ? 'legal' : route;
+                const nextView = this.views[nextViewName];
+
+                if (currentView === nextView) return;
+
+                // 1. Fade Out Current
+                if (currentView) {
+                    currentView.style.opacity = '0';
+                    currentView.style.transform = 'scale(0.95)';
+                    currentView.style.filter = 'blur(10px)';
+                    
+                    setTimeout(() => {
+                        currentView.classList.add('view-hidden');
+                        
+                        // 2. Prepare Next
+                        if (['privacy', 'terms'].includes(route)) this.loadLegal(route);
+                        
+                        nextView.classList.remove('view-hidden');
+                        
+                        // Small delay to allow display:block to render before opacity transition
+                        requestAnimationFrame(() => {
+                            nextView.style.opacity = '1';
+                            nextView.style.transform = 'scale(1)';
+                            nextView.style.filter = 'blur(0)';
+                        });
+                        
+                    }, 400); // Wait for CSS transition
+                } else {
+                    // First load (no current view)
+                     nextView.classList.remove('view-hidden');
+                }
+            }
+
+            loadLegal(type) {
+                const container = document.getElementById('legal-content');
+                const data = CONTENT_DB[type];
+                if(data) {
+                    container.innerHTML = `
+                        <h1 class="text-3xl font-bold text-white mb-8">${data.title}</h1>
+                        <div class="space-y-6 text-lg text-zinc-400 leading-relaxed">${data.body}</div>
+                    `;
+                }
+            }
+
+            startClock() {
+                const timeEl = document.getElementById('sys-time');
+                const dateEl = document.getElementById('sys-date');
+                const tick = () => {
+                    const now = new Date();
+                    if(timeEl) timeEl.innerText = now.toLocaleTimeString('es-ES', {hour12: false});
+                    if(dateEl) dateEl.innerText = now.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'}).toUpperCase();
+                };
+                setInterval(tick, 1000);
+                tick();
+            }
+
+            initInteractions() {
+                const cards = document.querySelectorAll('.spotlight-card');
+                
+                document.addEventListener('mousemove', (e) => {
+                    cards.forEach(card => {
+                        const rect = card.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        
+                        // Spotlight
+                        card.style.setProperty('--mouse-x', `${x}px`);
+                        card.style.setProperty('--mouse-y', `${y}px`);
+
+                        // 3D Tilt Calculation
+                        // Only apply tilt if mouse is somewhat close to avoid performance hit on whole page
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+                        const distX = e.clientX - centerX;
+                        const distY = e.clientY - centerY;
+                        const distance = Math.sqrt(distX*distX + distY*distY);
+
+                        if(distance < 600) {
+                             const rotateX = ((e.clientY - centerY) / (window.innerHeight / 2)) * -10; // Max 10deg
+                             const rotateY = ((e.clientX - centerX) / (window.innerWidth / 2)) * 10;
+                             
+                             card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                        } else {
+                             card.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`;
+                        }
+                    });
+                });
+                
+                // Reset on mouse leave
+                document.addEventListener('mouseleave', () => {
+                    cards.forEach(card => {
+                        card.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`;
+                    });
+                });
+            }
+        }
+
         window.onload = () => {
-            const ui = new UIManager();
-            window.app = ui; // Exponer para usar en onclick HTML
+            window.app = new App();
         };
     </script>
 </body>
