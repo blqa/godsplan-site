@@ -45,19 +45,7 @@
                         }
                     },
                     animation: {
-                        'float': 'float 6s ease-in-out infinite',
                         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        },
-                        fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        }
                     }
                 }
             }
@@ -85,7 +73,7 @@
             top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: -1;
-            pointer-events: none; /* Dejar pasar clicks */
+            pointer-events: none;
         }
 
         /* GLASS & CARDS */
@@ -95,23 +83,23 @@
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-            transform-style: preserve-3d;
-            will-change: transform;
         }
 
-        /* TILT & SPOTLIGHT */
-        .card-container {
-            perspective: 1000px;
-        }
-        
+        /* SPOTLIGHT & HOVER EFFECTS */
         .spotlight-card {
             position: relative;
             overflow: hidden;
-            transition: transform 0.1s ease-out, box-shadow 0.3s ease; 
-            /* Transform es muy rápido para el tilt instantáneo */
+            /* Transición suave para el movimiento vertical (lift) */
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .spotlight-card:hover {
+            transform: translateY(-5px); /* Elevación simple y elegante */
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.7);
         }
         
-        /* Brillo Spotlight */
+        /* Brillo Spotlight (Sigue al mouse pero solo luz, no movimiento) */
         .spotlight-card::before {
             content: '';
             position: absolute;
@@ -143,29 +131,17 @@
         .spotlight-card:hover::before, 
         .spotlight-card:hover::after { opacity: 1; }
 
-        /* VIEW TRANSITIONS */
+        /* VIEW TRANSITIONS - SIMPLIFICADO (Instantáneo) */
         .view-section {
-            transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
-            opacity: 1;
-            filter: blur(0);
-            transform: scale(1);
+            display: block;
         }
         
         .view-hidden {
-            display: none;
-            opacity: 0;
-            filter: blur(10px);
-            transform: scale(0.98);
+            display: none !important;
         }
 
         /* UTILS */
         .text-glow { text-shadow: 0 0 30px rgba(255, 42, 42, 0.6); }
-        .stagger-1 { animation-delay: 100ms; }
-        .stagger-2 { animation-delay: 200ms; }
-        .stagger-3 { animation-delay: 300ms; }
-        .stagger-4 { animation-delay: 400ms; }
-        .stagger-5 { animation-delay: 500ms; }
-        .stagger-6 { animation-delay: 600ms; }
 
     </style>
 </head>
@@ -176,7 +152,7 @@
     <div class="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-15 pointer-events-none z-0 mix-blend-overlay"></div>
 
     <!-- NAVBAR -->
-    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4 backdrop-blur-md border-b border-white/5 bg-black/40 transition-all duration-500">
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4 backdrop-blur-md border-b border-white/5 bg-black/40">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             
             <!-- Logo -->
@@ -216,21 +192,20 @@
     </nav>
 
     <!-- MAIN CONTENT AREA -->
-    <!-- FIX: Reducido padding top en mobile de pt-28 a pt-24 para mejorar visibilidad al scrollear al top -->
-    <main class="flex-grow pt-24 md:pt-32 pb-12 px-4 relative z-10 flex flex-col items-center w-full max-w-7xl mx-auto transition-all">
+    <!-- COMPACT LAYOUT: pt-24 es seguro para pasar el navbar sin dejar mucho hueco -->
+    <main class="flex-grow pt-24 md:pt-28 pb-12 px-4 relative z-10 flex flex-col justify-start items-center w-full max-w-7xl mx-auto">
 
         <!-- ================= VIEW: HOME ================= -->
         <section id="view-home" class="view-section w-full flex flex-col items-center">
             
-            <!-- Hero -->
-            <div class="text-center max-w-3xl mx-auto mb-20 animate-fade-in-up">
-                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-brand-accent mb-8 backdrop-blur-sm hover:bg-white/10 transition-colors cursor-default">
+            <!-- Hero (Reduced Margins) -->
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-brand-accent mb-6 backdrop-blur-sm hover:bg-white/10 transition-colors cursor-default">
                     <i class="ph-fill ph-terminal-window"></i>
                     <span class="tracking-wider">DEVELOPER_ENVIRONMENT</span>
                 </div>
                 
-                <!-- TÍTULO CON EFECTO EN TODO EL TEXTO -->
-                <h1 class="text-6xl md:text-8xl font-black tracking-tighter text-white mb-6 leading-[0.9]">
+                <h1 class="text-6xl md:text-8xl font-black tracking-tighter text-white mb-4 leading-[0.9]">
                     <span class="inline-block hover-scramble" data-text="GOD'S">GOD'S</span>
                     <span class="inline-block text-transparent bg-clip-text bg-gradient-to-r from-brand to-red-600 text-glow hover-scramble" data-text="PLAN">PLAN</span>
                 </h1>
@@ -241,117 +216,117 @@
                 </p>
             </div>
 
-            <!-- Projects Grid (Adjusted Spacing since Ad is gone) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-24 card-container perspective-container mt-12">
+            <!-- Projects Grid (Reduced top margin) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-16">
                 
                 <!-- Adherencia -->
-                <a href="https://adherencia.godsplan.site/" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-1">
+                <a href="https://adherencia.godsplan.site/" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
                     <div class="flex justify-between items-start">
                         <div class="w-12 h-12 rounded-xl bg-brand/10 text-brand flex items-center justify-center text-2xl border border-brand/20 group-hover:bg-brand group-hover:text-white transition-all duration-300 shadow-lg shadow-brand/10">
                             <i class="ph-bold ph-briefcase"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="relative z-10">
+                    <div class="relative z-10 mt-4">
                         <h3 class="text-xl font-bold text-white mb-2 group-hover:text-brand transition-colors">Adherencia</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Plataforma integral para la gestión de asistencia, control de horarios y métricas de puntualidad para equipos.</p>
+                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Plataforma integral para la gestión de asistencia, control de horarios y métricas.</p>
                     </div>
                     <i class="ph-fill ph-briefcase absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
 
                 <!-- Finanzas -->
-                <a href="https://finanzas.godsplan.site" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-2">
+                <a href="https://finanzas.godsplan.site" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
                     <div class="flex justify-between items-start">
                         <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-emerald-500/10">
                             <i class="ph-bold ph-currency-dollar"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="relative z-10">
+                    <div class="relative z-10 mt-4">
                         <h3 class="text-xl font-bold text-white mb-2 group-hover:text-emerald-500 transition-colors">Finanzas</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Sistema de contabilidad personal, seguimiento de activos, control de gastos recurrentes y proyecciones de inversión.</p>
+                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Sistema de contabilidad personal, activos, gastos recurrentes y proyecciones.</p>
                     </div>
                     <i class="ph-fill ph-wallet absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
 
-                <!-- Goals (NUEVO) -->
-                <a href="https://godsplan.site/goals" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-2">
+                <!-- Goals -->
+                <a href="https://godsplan.site/goals" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
                     <div class="flex justify-between items-start">
                         <div class="w-12 h-12 rounded-xl bg-yellow-500/10 text-yellow-500 flex items-center justify-center text-2xl border border-yellow-500/20 group-hover:bg-yellow-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-yellow-500/10">
                             <i class="ph-bold ph-trophy"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="relative z-10">
+                    <div class="relative z-10 mt-4">
                         <h3 class="text-xl font-bold text-white mb-2 group-hover:text-yellow-500 transition-colors">Goals</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Gestor avanzado de objetivos financieros a largo plazo, con visualización de progreso y estrategias de ahorro.</p>
+                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Gestor avanzado de objetivos financieros, visualización de progreso y ahorro.</p>
                     </div>
                     <i class="ph-fill ph-trophy absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
 
                 <!-- Coding -->
-                <a href="https://coding.godsplan.site" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-3">
+                <a href="https://coding.godsplan.site" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
                     <div class="flex justify-between items-start">
                         <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-2xl border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-blue-500/10">
                             <i class="ph-bold ph-code"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="relative z-10">
+                    <div class="relative z-10 mt-4">
                         <h3 class="text-xl font-bold text-white mb-2 group-hover:text-blue-500 transition-colors">Coding</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Repositorio de snippets, documentación técnica personal, mejores prácticas y patrones de diseño de software.</p>
+                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Repositorio de snippets, documentación técnica y patrones de diseño.</p>
                     </div>
                     <i class="ph-fill ph-brackets-curly absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
 
                 <!-- Macros -->
-                <a href="https://godsplan.site/macros" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-4">
+                <a href="https://godsplan.site/macros" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
                     <div class="flex justify-between items-start">
                         <div class="w-12 h-12 rounded-xl bg-fuchsia-500/10 text-fuchsia-500 flex items-center justify-center text-2xl border border-fuchsia-500/20 group-hover:bg-fuchsia-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-fuchsia-500/10">
                             <i class="ph-bold ph-robot"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="relative z-10">
+                    <div class="relative z-10 mt-4">
                         <h3 class="text-xl font-bold text-white mb-2 group-hover:text-fuchsia-500 transition-colors">Macros</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Colección de scripts de automatización (Python/Bash) y herramientas para optimizar flujos de trabajo repetitivos.</p>
+                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Scripts de automatización (Python/Bash) para optimizar flujos de trabajo.</p>
                     </div>
                     <i class="ph-fill ph-lightning absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
 
                 <!-- Canvas -->
-                <a href="https://canvas.godsplan.site" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-5">
+                <a href="https://canvas.godsplan.site" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
                     <div class="flex justify-between items-start">
                         <div class="w-12 h-12 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center text-2xl border border-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-orange-500/10">
                             <i class="ph-bold ph-paint-brush-broad"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="relative z-10">
+                    <div class="relative z-10 mt-4">
                         <h3 class="text-xl font-bold text-white mb-2 group-hover:text-orange-500 transition-colors">Canvas</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Laboratorio de experimentación UI/UX, prototipado rápido de interfaces y sandbox para nuevos componentes.</p>
+                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Laboratorio de experimentación UI/UX y prototipado rápido.</p>
                     </div>
                     <i class="ph-fill ph-palette absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
 
                 <!-- Valorant Stats -->
-                <a href="https://godsplan.site/vstats" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[220px] flex flex-col justify-between group animate-fade-in-up stagger-6">
+                <a href="https://godsplan.site/vstats" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
                     <div class="flex justify-between items-start">
                         <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-2xl border border-rose-500/20 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-rose-500/10">
                             <i class="ph-bold ph-crosshair"></i>
                         </div>
                         <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <div class="relative z-10">
+                    <div class="relative z-10 mt-4">
                         <h3 class="text-xl font-bold text-white mb-2 group-hover:text-rose-500 transition-colors">Valorant Stats</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Analítica detallada de rendimiento en partidas, historial de rangos, métricas de agentes y winrates.</p>
+                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Analítica detallada de rendimiento, historial de rangos y métricas.</p>
                     </div>
                     <i class="ph-fill ph-target absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
                 </a>
             </div>
 
             <!-- About / Info Card -->
-            <div class="w-full glass-card rounded-2xl p-10 relative overflow-hidden group border-t border-brand/20 animate-fade-in-up stagger-6 mb-16">
+            <div class="w-full glass-card rounded-2xl p-10 relative overflow-hidden group border-t border-brand/20 mb-12">
                 <!-- Glowing Orb Background -->
                 <div class="absolute -top-32 -right-32 w-96 h-96 bg-brand rounded-full blur-[128px] opacity-10 group-hover:opacity-20 transition-opacity duration-700"></div>
                 
@@ -400,7 +375,7 @@
         </section>
 
         <!-- ================= VIEW: CONTACT ================= -->
-        <section id="view-contact" class="view-section view-hidden w-full max-w-2xl flex-col items-center text-center">
+        <section id="view-contact" class="view-section view-hidden w-full max-w-2xl flex flex-col items-center text-center">
             <div class="mb-12">
                 <h2 class="text-5xl font-black text-white mb-4 tracking-tight">Conectar</h2>
                 <p class="text-zinc-500 text-lg">Inicia el protocolo de comunicación.</p>
@@ -715,39 +690,26 @@
 
                 if (currentView === nextView) return;
 
-                // 1. Fade Out Current
-                if (currentView) {
-                    currentView.style.opacity = '0';
-                    currentView.style.transform = 'scale(0.95)';
-                    currentView.style.filter = 'blur(10px)';
-                    
-                    setTimeout(() => {
-                        currentView.classList.add('view-hidden');
-                        
-                        // 2. Prepare Next Content Logic
-                        if (['privacy', 'terms'].includes(route)) this.loadLegal(route);
-                        
-                        // 3. DISPLAY NEXT (Hidden but taking space)
-                        nextView.classList.remove('view-hidden');
-                        nextView.style.opacity = '0'; // Ensure it starts invisible
-                        
-                        // 4. SCROLL TO TOP NOW (While new content exists but is invisible)
-                        // Using 'instant' keeps user oriented, or 'smooth' if prefer animated
-                        window.scrollTo({ top: 0, behavior: 'instant' }); 
+                // Helper to force scroll top completely bypassing smooth scroll if active
+                const scrollTop = () => {
+                    document.documentElement.style.scrollBehavior = 'auto';
+                    window.scrollTo(0, 0);
+                    document.documentElement.style.scrollBehavior = '';
+                };
 
-                        // 5. Fade In Next
-                        requestAnimationFrame(() => {
-                            nextView.style.opacity = '1';
-                            nextView.style.transform = 'scale(1)';
-                            nextView.style.filter = 'blur(0)';
-                        });
-                        
-                    }, 400); // Wait for CSS transition
-                } else {
-                    // First load (no current view)
-                     window.scrollTo(0, 0);
-                     nextView.classList.remove('view-hidden');
+                // SIN ANIMACIONES - CAMBIO DIRECTO
+                if (currentView) {
+                    currentView.classList.add('view-hidden');
                 }
+                
+                // 2. Prepare Next Content Logic
+                if (['privacy', 'terms'].includes(route)) this.loadLegal(route);
+                
+                // 3. SHOW NEXT
+                nextView.classList.remove('view-hidden');
+                
+                // 4. SCROLL TO TOP
+                scrollTop();
             }
 
             loadLegal(type) {
