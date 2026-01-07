@@ -216,7 +216,8 @@
     </nav>
 
     <!-- MAIN CONTENT AREA -->
-    <main class="flex-grow pt-32 pb-12 px-4 relative z-10 flex flex-col items-center w-full max-w-7xl mx-auto">
+    <!-- FIX: Ajustado pt-28 en mobile y pt-32 en desktop para evitar mucho espacio arriba -->
+    <main class="flex-grow pt-28 md:pt-32 pb-12 px-4 relative z-10 flex flex-col items-center w-full max-w-7xl mx-auto">
 
         <!-- ================= VIEW: HOME ================= -->
         <section id="view-home" class="view-section w-full flex flex-col items-center">
@@ -693,7 +694,8 @@
             }
 
             router(route, param = null) {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                // REMOVED: window.scrollTo({ top: 0, behavior: 'smooth' }); 
+                // Fix: Scroll happens AFTER the fade out to prevent visual jumping
 
                 // Transition Logic
                 const currentView = document.querySelector('.view-section:not(.view-hidden)');
@@ -711,6 +713,9 @@
                     setTimeout(() => {
                         currentView.classList.add('view-hidden');
                         
+                        // FIX: Scroll to top instantly here, while content is hidden
+                        window.scrollTo(0, 0);
+
                         // 2. Prepare Next
                         if (['privacy', 'terms'].includes(route)) this.loadLegal(route);
                         
@@ -726,6 +731,7 @@
                     }, 400); // Wait for CSS transition
                 } else {
                     // First load (no current view)
+                     window.scrollTo(0, 0);
                      nextView.classList.remove('view-hidden');
                 }
             }
