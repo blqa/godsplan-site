@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOD'S PLAN | Protocol V7.2</title>
+    
+    <!-- SEO & Social Sharing -->
+    <meta name="description" content="Advanced Valorant stats tracking protocol. Check ranks, match history, and performance metrics.">
+    <meta property="og:title" content="GOD'S PLAN | Valorant Analytics">
+    <meta property="og:description" content="Check detailed Valorant stats, match history, and performance metrics.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/27/largeicon.png">
+    <meta name="theme-color" content="#ff4655">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tungsten:wght@600;700&family=Kanit:ital,wght@0,300;0,400;0,600;0,800;1,800&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        val: {
+                            red: '#ff4655',
+                            dark: '#0f1923',
+                            gray: '#ece8e1',
+                            win: '#00ffbc', // Viper Green
+                            loss: '#ff4655', // Vandal Red
+                            ui: '#1f2b36',
+                            gold: '#fbbf24',
+                            cyan: '#00f0ff'
+                        }
+                    },
+                    fontFamily: {
+                        tungsten: ['Tungsten', 'sans-serif'],
+                        header: ['Kanit', 'sans-serif'],
+                        body: ['Rajdhani', 'sans-serif'],
+                        mono: ['Share Tech Mono', 'monospace']
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px)"
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-color: #0f1923;
+            --text-color: #ece8e1;
+            --primary: #ff4655;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* === UI ELEMENTS === */
+        
+        .tactical-grid {
+            background-size: 40px 40px;
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+        }
+
+        /* Advanced Glass Card */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(31, 43, 54, 0.6) 0%, rgba(15, 25, 35, 0.8) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: rgba(255, 70, 85, 0.4);
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 0;
+            background: #ff4655;
+            transition: height 0.3s ease;
+        }
+        .glass-card:hover::before {
+            height: 100%;
+        }
+
+        /* Inputs */
+        .input-val {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
+        }
+        .input-val:focus {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: #ff4655;
+            box-shadow: 0 0 15px rgba(255, 70, 85, 0.2);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f1923; }
+        ::-webkit-scrollbar-thumb { background: #ff4655; border-radius: 0px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d13644; }
+
+        /* Valorant Button */
+        .btn-val {
+            background: #ff4655;
+            color: white;
+            font-family: 'Tungsten', sans-serif;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            position: relative;
+            transition: all 0.2s;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .btn-val:hover {
+            background: #0f1923;
+            color: #ff4655;
+            box-shadow: inset 0 0 0 2px #ff4655;
+            transform: translateY(-2px);
+        }
+        .btn-val:active { transform: translateY(0); }
+
+        /* Glitch Text */
+        .glitch { position: relative; color: white; }
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+        }
+        .glitch::before {
+            left: 2px; text-shadow: -1px 0 #ff00c1; clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+        .glitch::after {
+            left: -2px; text-shadow: -1px 0 #00fff9; clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(30px, 9999px, 10px, 0); }
+            5% { clip: rect(80px, 9999px, 90px, 0); }
+            100% { clip: rect(20px, 9999px, 60px, 0); }
+        }
+
+        /* Animations */
+        .animate-enter { animation: fadeUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+
+        /* Loader */
+        .loader-ring {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-left-color: #ff4655;
+            border-radius: 50%;
+            width: 20px; height: 20px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Table Styles */
+        tr:last-child td { border-bottom: none; }
+        
+        /* History Pill */
+        .history-pill {
+            transition: all 0.2s;
+        }
+        .history-pill:hover {
+            background: rgba(255, 70, 85, 0.1);
+            border-color: #ff4655;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative selection:bg-val-red selection:text-white">
+
+    <!-- BACKGROUND -->
+    <div class="fixed inset-0 z-[-1] bg-val-dark">
+        <div class="absolute inset-0 bg-grid-pattern tactical-grid opacity-30 pointer-events-none"></div>
+        <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-val-red opacity-[0.03] blur-[150px] rounded-full pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-val-cyan opacity-[0.03] blur-[150px] rounded-full pointer-events-none"></div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="w-full h-20 border-b border-white/5 bg-val-dark/95 backdrop-blur z-40 flex items-center justify-between px-6 md:px-12 fixed top-0">
+        <div id="navLogo" class="flex items-center gap-3 cursor-pointer group">
+            <i class="fa-solid fa-v text-3xl text-val-red group-hover:rotate-12 transition-transform duration-300"></i>
+            <div class="flex flex-col select-none">
+                <h1 class="font-tungsten text-3xl leading-none tracking-wide text-white group-hover:text-val-red transition-colors">GOD'S PLAN</h1>
+                <span class="text-[10px] font-mono tracking-[0.4em] text-gray-500 group-hover:text-white transition-colors">PROTOCOL V7.2</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button id="settingsBtn" class="w-10 h-10 flex items-center justify-center border border-white/10 hover:border-val-red hover:bg-val-red/10 transition-all rounded-sm group">
+                <i class="fa-solid fa-gear text-white/50 group-hover:text-white group-hover:rotate-90 transition-all"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- === SEARCH SECTION === -->
+    <section id="searchSection" class="flex-grow flex flex-col items-center justify-center relative px-4 pt-20">
+        <div class="text-center mb-12 animate-enter select-none">
+            <div class="inline-block px-3 py-1 border border-val-red/30 bg-val-red/5 rounded mb-4 animate-pulse-slow">
+                <span class="text-val-red font-mono text-xs tracking-widest font-bold">● SYSTEM ONLINE</span>
+            </div>
+            <h2 class="font-tungsten text-8xl md:text-[140px] text-white leading-[0.85] glitch" data-text="BE GODLIKE">BE GODLIKE</h2>
+            <p class="text-gray-500 font-mono tracking-widest text-sm mt-6 opacity-70 uppercase">High Performance Valorant Analytics</p>
+        </div>
+
+        <form id="searchForm" class="w-full max-w-2xl relative animate-enter delay-1 z-10">
+            <div class="flex flex-col md:flex-row bg-val-ui/50 backdrop-blur-md border border-white/10 p-2 shadow-2xl relative group focus-within:border-val-red/50 transition-colors gap-2 md:gap-0">
+                <!-- Decoration Corner -->
+                <div class="absolute -top-1 -left-1 w-2 h-2 border-t-2 border-l-2 border-val-red opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <div class="absolute -bottom-1 -right-1 w-2 h-2 border-b-2 border-r-2 border-val-red opacity-50 group-hover:opacity-100 transition-opacity"></div>
+
+                <select id="regionInput" class="bg-black/20 text-white font-mono text-sm px-4 py-3 md:py-0 outline-none border border-white/10 md:border-none md:border-r md:border-white/10 cursor-pointer hover:text-val-red transition-colors focus:bg-black/40">
+                    <option value="latam" class="bg-val-dark">LATAM</option>
+                    <option value="na" class="bg-val-dark">NA</option>
+                    <option value="eu" class="bg-val-dark">EU</option>
+                    <option value="br" class="bg-val-dark">BR</option>
+                    <option value="ap" class="bg-val-dark">AP</option>
+                    <option value="kr" class="bg-val-dark">KR</option>
+                </select>
+                <input type="text" id="fullIdInput" placeholder="PLAYER#TAG" class="flex-grow bg-transparent text-white text-2xl px-4 py-3 outline-none font-tungsten uppercase placeholder-white/10 tracking-wide" autocomplete="off" required>
+                <button type="submit" class="btn-val px-8 py-3 md:py-0 text-xl flex items-center justify-center min-w-[120px]">
+                    <span id="btnText">SCAN</span>
+                    <div id="btnLoader" class="loader-ring hidden"></div>
+                </button>
+            </div>
+            
+            <!-- RECENT SEARCHES -->
+            <div id="recentSearches" class="w-full flex flex-wrap gap-2 justify-center mt-6 min-h-[40px]">
+                <!-- Injected via JS -->
+            </div>
+        </form>
+
+        <div class="mt-8 flex flex-col items-center gap-3 animate-enter delay-2">
+            <button id="demoBtn" class="text-xs font-mono text-gray-500 hover:text-val-win transition-colors border-b border-dashed border-gray-700 hover:border-val-win pb-1">
+                <i class="fa-solid fa-flask mr-2"></i>LOAD SIMULATION (DEMO)
+            </button>
+        </div>
+    </section>
+
+    <!-- === DASHBOARD === -->
+    <main id="dashboard" class="hidden w-full max-w-[1800px] mx-auto pt-24 px-4 md:px-8 pb-12 transition-opacity duration-700 opacity-0">
+        
+        <!-- HEADER PROFILE -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
+            <!-- Player Card -->
+            <div class="md:col-span-8 glass-card p-0 flex items-center relative overflow-hidden group min-h-[220px]">
+                <div id="headerBg" class="absolute inset-0 bg-cover bg-center opacity-30 transition-transform duration-700 group-hover:scale-105"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-val-dark via-val-dark/90 to-transparent"></div>
+                
+                <div class="relative z-10 flex flex-col md:flex-row items-center md:items-end gap-6 p-8 w-full">
+                    <div class="w-24 h-24 md:w-32 md:h-32 p-1 border border-white/20 rotate-0 md:rotate-3 group-hover:rotate-0 transition-transform duration-300 bg-white/5 shrink-0 shadow-2xl">
+                        <img id="playerCardImg" src="" class="w-full h-full object-cover">
+                    </div>
+                    <div class="text-center md:text-left flex-grow">
+                        <div class="flex flex-col md:flex-row items-center md:items-baseline gap-2">
+                            <h2 id="playerNameDisplay" class="font-tungsten text-6xl md:text-8xl text-white leading-[0.8] tracking-wide shadow-black drop-shadow-lg">PLAYER</h2>
+                            <span id="playerTagDisplay" class="font-mono text-val-red text-xl font-bold bg-val-red/10 px-2 rounded">#TAG</span>
+                        </div>
+                        <div class="flex items-center justify-center md:justify-start gap-3 mt-3">
+                            <span class="px-2 py-0.5 bg-white/5 border border-white/10 text-[10px] font-mono rounded text-gray-300" id="playerLvlDisplay">LVL 0</span>
+                            <span class="px-2 py-0.5 bg-val-win/10 border border-val-win/30 text-[10px] font-mono rounded text-val-win">ONLINE</span>
+                        </div>
+                    </div>
+                    <!-- SHARE BUTTON -->
+                    <button onclick="APP.ui.shareProfile()" class="hidden md:flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors p-2 group">
+                        <i class="fa-solid fa-share-nodes text-xl group-hover:scale-110 transition-transform"></i>
+                        <span class="text-[9px] font-mono tracking-widest">SHARE</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Rank Card -->
+            <div class="md:col-span-4 glass-card p-6 flex flex-col justify-center items-center relative bg-[url('https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/27/largeicon.png')] bg-no-repeat bg-center bg-[length:150%]">
+                <div class="absolute inset-0 bg-val-dark/90 backdrop-blur-sm"></div>
+                <div class="relative z-10 flex flex-col items-center w-full">
+                    <img id="rankImg" src="" class="w-24 h-24 mb-2 drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] animate-pulse-slow">
+                    <h3 id="rankName" class="font-tungsten text-4xl text-white tracking-widest uppercase">RANK</h3>
+                    <div class="w-full max-w-[240px] bg-black/50 border border-white/10 h-2 mt-3 rounded-full overflow-hidden relative">
+                        <div id="rrBar" class="h-full bg-val-win shadow-[0_0_15px_#00ffbc]" style="width: 0%"></div>
+                    </div>
+                    <span id="rankRR" class="font-mono text-xs text-val-win mt-2 tracking-widest">0 RR</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS GRID -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="glass-card p-5 flex flex-col items-center justify-center border-t-2 border-t-val-red hover:-translate-y-1 transition-transform">
+                <span class="text-gray-500 font-mono text-[10px] tracking-widest uppercase mb-1">K/D Ratio</span>
+                <span id="statKD" class="font-tungsten text-6xl text-white drop-shadow-md">0.00</span>
+            </div>
+            <div class="glass-card p-5 flex flex-col items-center justify-center border-t-2 border-t-val-win hover:-translate-y-1 transition-transform">
+                <span class="text-gray-500 font-mono text-[10px] tracking-widest uppercase mb-1">Win Rate</span>
+                <span id="statWin" class="font-tungsten text-6xl text-white drop-shadow-md">0%</span>
+            </div>
+            <div class="glass-card p-5 flex flex-col items-center justify-center border-t-2 border-t-val-gold hover:-translate-y-1 transition-transform">
+                <span class="text-gray-500 font-mono text-[10px] tracking-widest uppercase mb-1">Headshot %</span>
+                <span id="statHS" class="font-tungsten text-6xl text-white drop-shadow-md">0%</span>
+            </div>
+            <div class="glass-card p-5 flex flex-col items-center justify-center border-t-2 border-t-val-cyan hover:-translate-y-1 transition-transform">
+                <span class="text-gray-500 font-mono text-[10px] tracking-widest uppercase mb-1">Avg Damage</span>
+                <span id="statADR" class="font-tungsten text-6xl text-white drop-shadow-md">0</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            
+            <!-- LEFT COLUMN: Charts & Info -->
+            <div class="xl:col-span-2 space-y-6">
+                <!-- Recent Performance Chart -->
+                <div class="glass-card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-header font-bold text-xl text-white border-l-4 border-val-red pl-3 tracking-wide">COMBAT REPORT</h3>
+                        <div class="flex gap-2">
+                             <span class="text-[10px] font-mono bg-white/5 border border-white/10 px-2 py-1 text-gray-400">LAST 20 MATCHES</span>
+                        </div>
+                    </div>
+                    <div class="h-[300px] w-full">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Top Agents -->
+                    <div class="glass-card p-6">
+                        <h3 class="font-header font-bold text-xl text-white border-l-4 border-val-red pl-3 mb-6 tracking-wide">TOP AGENTS</h3>
+                        <div id="agentList" class="space-y-4">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+                    <!-- Map Winrate -->
+                    <div class="glass-card p-6">
+                        <h3 class="font-header font-bold text-xl text-white border-l-4 border-val-cyan pl-3 mb-6 tracking-wide">MAP INTEL</h3>
+                        <div id="mapList" class="space-y-3 overflow-y-auto max-h-[280px] pr-2 custom-scrollbar">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Match History -->
+            <div class="xl:col-span-1">
+                <div class="glass-card p-0 h-[800px] flex flex-col">
+                    <div class="p-4 border-b border-white/5 bg-white/5 backdrop-blur-md flex justify-between items-center rounded-t">
+                        <h3 class="font-header font-bold text-white tracking-wide">MATCH HISTORY</h3>
+                        <select id="actSelector" class="bg-black/40 border border-white/10 text-[10px] text-white font-mono py-1 px-2 outline-none hover:border-val-red transition-colors cursor-pointer">
+                            <option value="all">ALL ACTS</option>
+                            <!-- Populated via JS -->
+                        </select>
+                    </div>
+                    <div id="matchHistoryList" class="overflow-y-auto flex-grow p-3 space-y-2">
+                        <!-- Matches injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- === MATCH DETAILS MODAL === -->
+    <div id="matchModal" class="fixed inset-0 z-[100] bg-black/95 hidden opacity-0 transition-opacity duration-300 overflow-y-auto backdrop-blur-sm">
+        <div class="min-h-screen flex flex-col items-center py-8 px-4">
+            
+            <!-- CLOSE BUTTON -->
+            <button onclick="APP.ui.closeMatchDetails()" class="fixed top-6 right-6 z-50 text-white/50 hover:text-white hover:rotate-90 transition-all text-3xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- MATCH HEADER BANNER -->
+            <div class="w-full max-w-6xl relative mb-6 overflow-hidden border-y border-white/10 group shadow-2xl bg-val-dark">
+                <!-- Dynamic Background Image (Map) -->
+                <div id="modalMapBg" class="absolute inset-0 bg-cover bg-center opacity-40 blur-sm scale-110 group-hover:scale-100 transition-transform duration-[2s]"></div>
+                <!-- Gradient Overlay based on Result -->
+                <div id="modalResultGradient" class="absolute inset-0 bg-gradient-to-r from-val-dark via-val-dark/80 to-transparent"></div>
+                
+                <div class="relative z-10 p-8 md:p-12 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <h1 id="modalResultText" class="font-tungsten text-8xl md:text-[120px] leading-[0.8] tracking-wide drop-shadow-2xl">VICTORY</h1>
+                        <div class="flex items-center gap-4 mt-2">
+                            <span id="modalScore" class="font-tungsten text-6xl text-white">13 - 9</span>
+                            <div class="h-10 w-[1px] bg-white/20"></div>
+                            <div>
+                                <div id="modalMapName" class="font-header font-bold text-2xl text-white uppercase tracking-wider">ASCENT</div>
+                                <div id="modalDate" class="font-mono text-xs text-gray-400">COMPETITIVE • 25m AGO</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hidden md:block text-right">
+                         <div id="modalMyAgent" class="w-24 h-24 rounded-sm border border-white/20 bg-black/40 overflow-hidden shadow-xl">
+                             <img src="" class="w-full h-full object-cover scale-110 translate-y-2">
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABS -->
+            <div class="w-full max-w-6xl flex gap-1 mb-6 border-b border-white/10">
+                <button class="px-8 py-3 font-tungsten text-2xl text-white border-b-2 border-val-red bg-white/5 tracking-wide">SCOREBOARD</button>
+            </div>
+
+            <!-- SCOREBOARD TABLE -->
+            <div class="w-full max-w-6xl glass-card p-0 overflow-hidden mb-8">
+                <!-- Blue Team -->
+                <div class="bg-[#1c3d4d] px-6 py-3 flex justify-between items-center border-l-4 border-val-cyan bg-gradient-to-r from-val-cyan/20 to-transparent">
+                    <span class="font-header font-bold text-white text-sm tracking-widest">DEFENDERS (BLUE)</span>
+                    <span id="scoreBlue" class="font-tungsten text-3xl text-white">0</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead class="text-[10px] font-mono text-gray-400 uppercase bg-black/40">
+                            <tr>
+                                <th class="p-3 pl-6">Agent</th>
+                                <th class="p-3">Player</th>
+                                <th class="p-3 text-center">Rank</th>
+                                <th class="p-3 text-center">ACS</th>
+                                <th class="p-3 text-center">K</th>
+                                <th class="p-3 text-center">D</th>
+                                <th class="p-3 text-center">A</th>
+                                <th class="p-3 text-center">+/-</th>
+                                <th class="p-3 text-center pr-6">HS%</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBlue" class="text-sm text-gray-200"></tbody>
+                    </table>
+                </div>
+
+                <!-- Red Team -->
+                <div class="bg-[#3d1c1c] px-6 py-3 flex justify-between items-center border-l-4 border-val-red mt-1 bg-gradient-to-r from-val-red/20 to-transparent">
+                    <span class="font-header font-bold text-white text-sm tracking-widest">ATTACKERS (RED)</span>
+                    <span id="scoreRed" class="font-tungsten text-3xl text-white">0</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead class="text-[10px] font-mono text-gray-400 uppercase bg-black/40">
+                            <tr>
+                                <th class="p-3 pl-6">Agent</th>
+                                <th class="p-3">Player</th>
+                                <th class="p-3 text-center">Rank</th>
+                                <th class="p-3 text-center">ACS</th>
+                                <th class="p-3 text-center">K</th>
+                                <th class="p-3 text-center">D</th>
+                                <th class="p-3 text-center">A</th>
+                                <th class="p-3 text-center">+/-</th>
+                                <th class="p-3 text-center pr-6">HS%</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableRed" class="text-sm text-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ROUND TIMELINE -->
+            <div class="w-full max-w-6xl glass-card p-8">
+                <h3 class="font-mono text-xs text-gray-500 mb-6 tracking-[0.2em] uppercase border-b border-white/5 pb-2">Round Performance</h3>
+                <div id="roundTimeline" class="flex w-full gap-1 h-24 items-end">
+                    <!-- Injected bars -->
+                </div>
+                <div class="flex justify-between mt-3 font-mono text-[10px] text-gray-500">
+                    <span>ROUND 1</span>
+                    <span>HALF</span>
+                    <span>END</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === NOTIFICATION / ALERT MODAL === -->
+    <div id="notificationModal" class="fixed inset-0 z-[200] bg-black/80 backdrop-blur flex items-center justify-center hidden opacity-0 transition-opacity">
+        <div class="bg-val-dark border border-white/10 max-w-md w-full m-4 shadow-2xl relative">
+            <div class="h-1 w-full bg-val-red absolute top-0 left-0"></div>
+            <div class="p-8">
+                <h2 id="notifTitle" class="font-tungsten text-4xl text-white mb-2">SYSTEM ALERT</h2>
+                <p id="notifMessage" class="font-body text-gray-400 mb-6">Message goes here...</p>
+                <div class="flex justify-end gap-3" id="notifActions">
+                    <button class="px-4 py-2 text-xs font-mono text-gray-400 hover:text-white transition-colors" onclick="APP.ui.closeNotification()">CLOSE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="fixed inset-0 z-[150] bg-black/90 backdrop-blur flex items-center justify-center hidden">
+        <div class="bg-val-dark border border-white/10 p-8 max-w-sm w-full relative m-4 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+            <h2 class="font-tungsten text-3xl text-white mb-1">SYSTEM CONFIG</h2>
+            <div class="h-[1px] w-full bg-white/10 mb-6"></div>
+            
+            <label class="text-[10px] text-val-red font-mono tracking-widest uppercase mb-2 block">HenrikDev API Key (Optional)</label>
+            <input type="text" id="apiKeyInput" placeholder="Enter key..." class="w-full bg-black/30 border border-white/20 p-3 text-white font-mono text-sm mb-6 outline-none focus:border-val-red focus:bg-black/50 transition-all">
+            
+            <div class="flex gap-2 justify-end">
+                <button id="closeSettingsBtn" class="text-xs font-mono text-gray-500 hover:text-white px-4 py-2">CANCEL</button>
+                <button id="saveSettingsBtn" class="bg-val-red text-white font-bold text-xs px-6 py-2 font-mono hover:bg-white hover:text-val-dark transition-colors tracking-widest">SAVE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="mt-auto py-8 border-t border-white/5 bg-val-dark text-center relative z-10">
+        <p class="font-mono text-[10px] text-gray-600 tracking-[0.2em] uppercase">GOD'S PLAN ANALYTICS // NOT AFFILIATED WITH RIOT GAMES</p>
+    </footer>
+
+    <script>
+        /**
+         * GOD'S PLAN - VALORANT TRACKER V7.2
+         * Fixed: Region Detection, Undefined URL params, Promise.all race condition
+         * Fixed: "Cannot read properties of undefined (reading 'toLowerCase')" error in findPlayer and saveToHistory
+         */
+
+        const APP = {
+            config: {
+                apiKey: localStorage.getItem('gp_apikey') || 'HDEV-d37fd5f1-7c52-4fc1-8038-3d687c545b0d',
+                baseUrl: 'https://api.henrikdev.xyz/valorant'
+            },
+            state: {
+                matches: [],
+                filteredMatches: [],
+                user: { name: '', tag: '', region: '', puuid: '' },
+                currentAct: 'all'
+            },
+            
+            // === UTILITIES ===
+            utils: {
+                escapeHtml: (unsafe) => {
+                    if (typeof unsafe !== 'string') return unsafe;
+                    return unsafe
+                        .replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/'/g, "&#039;");
+                },
+                
+                safeDiv: (a, b) => (b === 0 ? a : a / b),
+                
+                formatDate: (timestamp) => {
+                    // Fix: Check if timestamp is in seconds (10 digits) or ms (13 digits)
+                    let ts = timestamp;
+                    if (ts < 10000000000) ts *= 1000; 
+
+                    const diff = Date.now() - ts;
+                    const mins = Math.floor(diff / 60000);
+                    const hours = Math.floor(mins / 60);
+                    const days = Math.floor(hours / 24);
+                    if (days > 365) return 'LONG AGO';
+                    if (days > 0) return `${days} DAYS AGO`;
+                    if (hours > 0) return `${hours} HOURS AGO`;
+                    return `${mins} MINS AGO`;
+                },
+
+                findPlayer: (allPlayers, userState) => {
+                    // Priority 1: Match by PUUID (Most Accurate)
+                    if (userState.puuid) {
+                        const found = allPlayers.find(p => p.puuid === userState.puuid);
+                        if (found) return found;
+                    }
+                    // Priority 2: Match by Name + Tag
+                    // FIX: safely handle undefined/null name or tag with optional chaining and logical OR
+                    const found = allPlayers.find(p => 
+                        (p.name || '').toLowerCase() === (userState.name || '').toLowerCase() && 
+                        (p.tag || '').toLowerCase() === (userState.tag || '').toLowerCase()
+                    );
+                    if (found) return found;
+
+                    // Fallback (Should rarely happen with V3 API)
+                    return allPlayers[0];
+                },
+
+                copyToClipboard: (text) => {
+                    navigator.clipboard.writeText(text).then(() => {
+                        APP.ui.showNotification("SYSTEM LINK", "Profile URL copied to clipboard.", false);
+                    }).catch(err => {
+                        console.error('Failed to copy: ', err);
+                    });
+                }
+            },
+
+            // === API LAYER ===
+            api: {
+                async fetchPlayer(inputRegion, name, tag) {
+                    try {
+                        const headers = APP.config.apiKey ? { "Authorization": APP.config.apiKey } : {};
+                        const query = APP.config.apiKey ? `?api_key=${APP.config.apiKey}` : '';
+                        
+                        // FIX: Fetch ACCOUNT FIRST to get the Real Region and PUUID.
+                        // This prevents 404s when user selects "NA" but player is "LATAM".
+                        const accountUrl = `${APP.config.baseUrl}/v1/account/${encodeURIComponent(name)}/${encodeURIComponent(tag)}${query}`;
+                        
+                        console.log("Fetching Account...", accountUrl);
+                        const accRes = await fetch(accountUrl, { headers });
+                        
+                        if (accRes.status === 404) throw new Error("Player not found (404)");
+                        if (accRes.status === 429) throw new Error("API Limit Reached (429)");
+                        if (!accRes.ok) throw new Error(`Account API Error: ${accRes.status}`);
+
+                        const accData = await accRes.json();
+                        
+                        // Extract REAL region from API response
+                        const realRegion = accData.data.region; 
+                        const puuid = accData.data.puuid;
+                        
+                        console.log(`Player Found. Real Region: ${realRegion}, PUUID: ${puuid}`);
+
+                        // Now Fetch Matches & MMR using the CORRECT region
+                        const matchesUrl = `${APP.config.baseUrl}/v3/matches/${realRegion}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}${query}`;
+                        const mmrUrl = `${APP.config.baseUrl}/v2/mmr/${realRegion}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}${query}`;
+
+                        const [matchRes, mmrRes] = await Promise.all([
+                            fetch(matchesUrl, { headers }), 
+                            fetch(mmrUrl, { headers })
+                        ]);
+
+                        if (matchRes.status === 404) throw new Error("No matches found for this player.");
+                        if (!matchRes.ok) throw new Error(`Matches API Error: ${matchRes.status}`);
+
+                        const matchData = await matchRes.json();
+                        let mmrData = null;
+                        try { mmrData = await mmrRes.json(); } catch(e) {} // Handle MMR failure gracefully
+
+                        // Save successful search to history using REAL region
+                        APP.logic.saveToHistory(realRegion, accData.data.name, accData.data.tag);
+
+                        // Rank Data Logic
+                        const currentData = mmrData?.data?.current_data;
+                        const rankName = currentData?.currenttierpatched || 'Unrated';
+                        const rankImg = currentData?.images?.large || 'https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/largeicon.png';
+                        const rr = currentData?.ranking_in_tier || 0;
+
+                        return {
+                            user: {
+                                name: accData.data.name,
+                                tag: accData.data.tag,
+                                region: realRegion, // Use verified region
+                                puuid: puuid,
+                                card: accData.data.card.wide,
+                                rank: rankName,
+                                rankImg: rankImg,
+                                rr: rr,
+                                level: accData.data.account_level
+                            },
+                            matches: matchData.data
+                        };
+
+                    } catch (e) {
+                        console.error("Fetch Error:", e);
+                        throw e;
+                    }
+                }
+            },
+
+            // === UI LAYER ===
+            ui: {
+                els: {}, 
+                chartInstance: null,
+
+                init() {
+                    ['searchSection', 'dashboard', 'searchForm', 'fullIdInput', 'regionInput', 
+                     'btnText', 'btnLoader', 'matchModal', 'settingsModal', 'notificationModal'].forEach(id => {
+                        this.els[id] = document.getElementById(id);
+                    });
+                    this.renderRecentSearches();
+                    this.checkUrlParams();
+                },
+
+                checkUrlParams() {
+                    const params = new URLSearchParams(window.location.search);
+                    const id = params.get('id');
+                    const region = params.get('r') || 'na'; // Default to NA if missing to prevent "undefined" error
+                    if (id) {
+                        const [name, tag] = id.split('#');
+                        if (name && tag) {
+                            document.getElementById('fullIdInput').value = id;
+                            document.getElementById('regionInput').value = region;
+                            this.performSearch(region, name, tag);
+                        }
+                    }
+                },
+
+                renderRecentSearches() {
+                    const history = JSON.parse(localStorage.getItem('gp_history') || '[]');
+                    const container = document.getElementById('recentSearches');
+                    container.innerHTML = '';
+                    if (history.length > 0) {
+                        container.innerHTML = '<span class="w-full text-center text-[10px] font-mono text-gray-600 mb-1">RECENT TARGETS</span>';
+                        history.forEach(h => {
+                            const btn = document.createElement('button');
+                            btn.className = 'history-pill bg-white/5 border border-white/10 px-3 py-1 text-xs font-mono text-gray-400 rounded-full hover:text-white';
+                            btn.innerHTML = `<span class="uppercase">${h.region}</span> <span class="text-white">${h.name}</span>#${h.tag}`;
+                            btn.onclick = (e) => {
+                                e.preventDefault(); // Prevent form submission
+                                document.getElementById('fullIdInput').value = `${h.name}#${h.tag}`;
+                                document.getElementById('regionInput').value = h.region;
+                                APP.ui.performSearch(h.region, h.name, h.tag);
+                            };
+                            container.appendChild(btn);
+                        });
+                    }
+                },
+
+                async performSearch(region, name, tag) {
+                    if (!name || !tag) {
+                        this.showNotification("ERROR", "Name or Tag is missing.", true);
+                        return;
+                    }
+                    
+                    this.showLoader(true);
+                    try {
+                        const data = await APP.api.fetchPlayer(region, name, tag);
+                        APP.state.user = data.user;
+                        APP.state.matches = data.matches;
+                        APP.state.filteredMatches = data.matches;
+                        
+                        // Populate Acts
+                        const acts = new Set(data.matches.map(m => m.metadata.season_short));
+                        const sel = document.getElementById('actSelector');
+                        sel.innerHTML = '<option value="all">ALL ACTS</option>';
+                        acts.forEach(a => { if(a) sel.innerHTML += `<option value="${a}">${a}</option>` });
+
+                        this.renderDashboard(data.user, data.matches);
+                        this.transitionToDashboard();
+                        
+                        const newUrl = `${window.location.pathname}?r=${data.user.region}&id=${encodeURIComponent(name + '#' + tag)}`;
+                        window.history.pushState({path: newUrl}, '', newUrl);
+                        this.renderRecentSearches();
+
+                    } catch (err) {
+                        let msg = err.message;
+                        if(msg.includes("Limit") || msg.includes("Failed")) {
+                            msg += ". The public API is busy. Would you like to load the simulation?";
+                        }
+                        this.showNotification("CONNECTION FAILED", msg, true, APP.logic.loadDemo.bind(APP.logic));
+                    } finally {
+                        this.showLoader(false);
+                    }
+                },
+
+                shareProfile() {
+                    const url = window.location.href;
+                    APP.utils.copyToClipboard(url);
+                },
+
+                showLoader(loading) {
+                    if (loading) {
+                        this.els.btnText.classList.add('hidden');
+                        this.els.btnLoader.classList.remove('hidden');
+                    } else {
+                        this.els.btnText.classList.remove('hidden');
+                        this.els.btnLoader.classList.add('hidden');
+                    }
+                },
+
+                showNotification(title, message, isError = false, actionCallback = null) {
+                    const modal = this.els.notificationModal;
+                    document.getElementById('notifTitle').innerText = title;
+                    document.getElementById('notifTitle').className = `font-tungsten text-4xl mb-2 ${isError ? 'text-val-red' : 'text-val-win'}`;
+                    document.getElementById('notifMessage').innerText = message;
+                    
+                    const actionContainer = document.getElementById('notifActions');
+                    actionContainer.innerHTML = '';
+                    
+                    if (actionCallback) {
+                        const actionBtn = document.createElement('button');
+                        actionBtn.className = "bg-white text-val-dark font-bold text-xs px-4 py-2 font-mono hover:bg-gray-200 transition-colors";
+                        actionBtn.innerText = "LOAD DEMO MODE";
+                        actionBtn.onclick = () => {
+                            APP.ui.closeNotification();
+                            actionCallback();
+                        };
+                        actionContainer.appendChild(actionBtn);
+                    }
+                    
+                    const closeBtn = document.createElement('button');
+                    closeBtn.className = "px-4 py-2 text-xs font-mono text-gray-400 hover:text-white transition-colors";
+                    closeBtn.innerText = "CLOSE";
+                    closeBtn.onclick = () => APP.ui.closeNotification();
+                    actionContainer.appendChild(closeBtn);
+
+                    modal.classList.remove('hidden');
+                    setTimeout(() => modal.classList.remove('opacity-0'), 10);
+                },
+
+                closeNotification() {
+                    const modal = this.els.notificationModal;
+                    modal.classList.add('opacity-0');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
+                },
+
+                transitionToDashboard() {
+                    this.els.searchSection.classList.add('hidden');
+                    this.els.dashboard.classList.remove('hidden');
+                    setTimeout(() => this.els.dashboard.classList.remove('opacity-0'), 50);
+                    this.els.dashboard.classList.add('opacity-100');
+                    window.scrollTo(0,0);
+                },
+
+                resetApp() {
+                    this.els.dashboard.classList.add('hidden');
+                    this.els.dashboard.classList.remove('opacity-100');
+                    this.els.dashboard.classList.add('opacity-0');
+                    this.els.searchSection.classList.remove('hidden');
+                    window.history.pushState({}, '', window.location.pathname);
+                    window.scrollTo(0,0);
+                },
+
+                renderDashboard(user, matches) {
+                    document.getElementById('playerCardImg').src = user.card;
+                    document.getElementById('headerBg').style.backgroundImage = `url('${user.card}')`;
+                    document.getElementById('playerNameDisplay').textContent = user.name;
+                    document.getElementById('playerTagDisplay').textContent = `#${user.tag}`;
+                    document.getElementById('playerLvlDisplay').textContent = `LVL ${user.level}`;
+                    document.getElementById('rankName').textContent = user.rank;
+                    document.getElementById('rankImg').src = user.rankImg;
+                    document.getElementById('rankRR').textContent = `${user.rr} RR`;
+                    document.getElementById('rrBar').style.width = Math.min(user.rr, 100) + '%';
+                    this.updateStats();
+                },
+
+                updateStats() {
+                    const matches = APP.state.filteredMatches;
+                    const stats = APP.logic.calculateStats(matches, APP.state.user);
+
+                    this.animateValue('statKD', stats.kd);
+                    this.animateValue('statWin', stats.winRate, '%');
+                    this.animateValue('statHS', stats.hs, '%');
+                    this.animateValue('statADR', stats.adr);
+
+                    document.getElementById('statKD').className = `font-tungsten text-6xl drop-shadow-md ${stats.kd >= 1.2 ? 'text-val-win' : stats.kd < 0.9 ? 'text-val-loss' : 'text-white'}`;
+                    document.getElementById('statWin').className = `font-tungsten text-6xl drop-shadow-md ${stats.winRate >= 50 ? 'text-val-win' : 'text-val-loss'}`;
+
+                    this.renderAgentList(stats.agents);
+                    this.renderMapList(stats.maps);
+                    this.renderMatchHistory(matches);
+                    this.renderChart(matches);
+                },
+
+                animateValue(id, value, suffix = '') {
+                    const obj = document.getElementById(id);
+                    obj.textContent = value + suffix; 
+                },
+
+                renderAgentList(agents) {
+                    const list = Object.values(agents).sort((a, b) => b.count - a.count).slice(0, 3);
+                    const container = document.getElementById('agentList');
+                    container.innerHTML = '';
+                    
+                    list.forEach(a => {
+                        const wr = Math.round(APP.utils.safeDiv(a.wins, a.count) * 100);
+                        const kd = APP.utils.safeDiv(a.k, a.d).toFixed(2);
+                        const nameSafe = APP.utils.escapeHtml(a.name);
+                        
+                        container.innerHTML += `
+                            <div class="flex items-center gap-4 border-b border-white/5 pb-3 last:border-0 group">
+                                <div class="relative">
+                                    <img src="${a.img}" class="w-12 h-12 rounded border border-white/10 group-hover:border-val-red transition-colors">
+                                    <div class="absolute -bottom-1 -right-1 bg-black/80 text-[9px] font-mono px-1 rounded text-gray-300 border border-white/10">${a.count}G</div>
+                                </div>
+                                <div class="flex-grow">
+                                    <div class="font-bold text-white leading-none text-lg font-header uppercase">${nameSafe}</div>
+                                    <div class="flex items-center gap-2 mt-1">
+                                         <div class="h-1.5 w-24 bg-white/10 rounded-full overflow-hidden">
+                                            <div class="h-full ${wr >= 50 ? 'bg-val-win' : 'bg-val-loss'}" style="width: ${wr}%"></div>
+                                         </div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                     <div class="text-xl font-tungsten ${wr >= 50 ? 'text-val-win' : 'text-val-loss'}">${wr}%</div>
+                                     <div class="text-[10px] font-mono text-gray-400">K/D ${kd}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                },
+
+                renderMapList(maps) {
+                    const list = Object.values(maps).sort((a, b) => b.count - a.count);
+                    const container = document.getElementById('mapList');
+                    container.innerHTML = '';
+
+                    list.forEach(m => {
+                        const wr = Math.round(APP.utils.safeDiv(m.wins, m.count) * 100);
+                        const color = wr >= 60 ? 'bg-val-win' : wr >= 40 ? 'bg-val-gold' : 'bg-val-loss';
+                        const nameSafe = APP.utils.escapeHtml(m.name);
+
+                        container.innerHTML += `
+                            <div class="flex items-center gap-3 mb-3 text-xs group">
+                                <span class="w-24 font-bold text-white font-header uppercase truncate group-hover:text-val-red transition-colors">${nameSafe}</span>
+                                <div class="flex-grow bg-white/5 h-2 rounded-sm overflow-hidden relative">
+                                    <div class="h-full ${color} shadow-[0_0_10px_currentColor] opacity-80" style="width: ${wr}%"></div>
+                                </div>
+                                <span class="w-8 text-right font-mono text-gray-400 group-hover:text-white">${wr}%</span>
+                            </div>
+                        `;
+                    });
+                },
+
+                renderMatchHistory(matches) {
+                    const container = document.getElementById('matchHistoryList');
+                    container.innerHTML = '';
+                    const userState = APP.state.user;
+
+                    matches.forEach((m, idx) => {
+                        const p = APP.utils.findPlayer(m.players.all_players, userState);
+                        const team = p.team ? p.team.toLowerCase() : 'blue';
+                        const teamData = m.teams?.[team];
+                        const won = teamData ? teamData.has_won : false;
+                        const score = teamData ? `${teamData.rounds_won} : ${teamData.rounds_lost}` : "-";
+                        const kd = APP.utils.safeDiv(p.stats.kills, (p.stats.deaths || 1)).toFixed(2);
+                        const colorClass = won ? 'border-l-val-win' : 'border-l-val-loss';
+                        const scoreColor = won ? 'text-val-win' : 'text-val-loss';
+                        const mapSafe = APP.utils.escapeHtml(m.metadata.map);
+
+                        const div = document.createElement('div');
+                        div.className = `glass-card p-3 flex items-center gap-3 cursor-pointer border-l-4 ${colorClass} hover:bg-white/5 opacity-0 animate-enter`;
+                        div.style.animationDelay = `${idx * 50}ms`;
+                        div.onclick = () => APP.ui.openMatchDetails(m.metadata.matchid);
+                        
+                        div.innerHTML = `
+                            <img src="${p.assets.agent.small}" class="w-10 h-10 rounded bg-black/50">
+                            <div class="flex-grow min-w-0">
+                                <h4 class="font-header font-bold text-white leading-none truncate uppercase text-lg">${mapSafe}</h4>
+                                <div class="flex gap-2 text-[10px] font-mono text-gray-400">
+                                    <span>${m.metadata.season_short || 'Unrated'}</span>
+                                    <span>•</span>
+                                    <span>${APP.utils.formatDate(m.metadata.game_start)}</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-tungsten text-2xl ${scoreColor}">${score}</div>
+                                <div class="text-[10px] font-mono text-gray-300">K/D ${kd}</div>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                },
+
+                renderChart(matches) {
+                    const ctx = document.getElementById('mainChart').getContext('2d');
+                    if (this.chartInstance) this.chartInstance.destroy();
+
+                    // Reverse to show Oldest -> Newest left to right
+                    const recentMatches = [...matches].reverse().slice(-20);
+                    const userState = APP.state.user;
+                    
+                    const kds = recentMatches.map(m => {
+                        const p = APP.utils.findPlayer(m.players.all_players, userState);
+                        return APP.utils.safeDiv(p.stats.kills, (p.stats.deaths || 1)).toFixed(2);
+                    });
+                    
+                    const labels = recentMatches.map(m => m.metadata.map);
+
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                    gradient.addColorStop(0, 'rgba(255, 70, 85, 0.5)');
+                    gradient.addColorStop(1, 'rgba(255, 70, 85, 0)');
+
+                    this.chartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'K/D Ratio',
+                                data: kds,
+                                borderColor: '#ff4655',
+                                backgroundColor: gradient,
+                                borderWidth: 3,
+                                pointBackgroundColor: '#0f1923',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: 'rgba(15, 25, 35, 0.9)',
+                                    titleColor: '#fff',
+                                    titleFont: { family: 'Kanit' },
+                                    bodyColor: '#ff4655',
+                                    bodyFont: { family: 'Share Tech Mono' },
+                                    borderColor: 'rgba(255,255,255,0.1)',
+                                    borderWidth: 1,
+                                    displayColors: false,
+                                    padding: 10
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    grid: { color: 'rgba(255,255,255,0.05)' },
+                                    ticks: { color: '#666', font: { family: 'Share Tech Mono' } },
+                                    beginAtZero: true
+                                },
+                                x: { display: false }
+                            }
+                        }
+                    });
+                },
+
+                openMatchDetails(matchId) {
+                    const match = APP.state.matches.find(m => m.metadata.matchid === matchId);
+                    if (!match) return;
+
+                    const userState = APP.state.user;
+                    const p = APP.utils.findPlayer(match.players.all_players, userState);
+                    const team = p.team ? p.team.toLowerCase() : 'blue';
+                    const teamData = match.teams?.[team];
+                    const won = teamData ? teamData.has_won : false;
+
+                    const resultText = document.getElementById('modalResultText');
+                    resultText.textContent = won ? "VICTORY" : "DEFEAT";
+                    resultText.className = `font-tungsten text-8xl md:text-[120px] leading-[0.8] tracking-wide drop-shadow-2xl ${won ? 'text-val-win' : 'text-val-loss'}`;
+                    
+                    document.getElementById('modalResultGradient').className = `absolute inset-0 bg-gradient-to-r ${won ? 'from-[#00ffbc]/10' : 'from-[#ff4655]/10'} via-val-dark/90 to-val-dark`;
+                    
+                    document.getElementById('modalMapBg').style.backgroundColor = won ? '#1a2e26' : '#2e1a1a';
+                    document.getElementById('modalMapBg').style.backgroundImage = 'none';
+
+                    document.getElementById('modalScore').textContent = teamData ? `${teamData.rounds_won} : ${teamData.rounds_lost}` : "-";
+                    document.getElementById('modalMapName').textContent = match.metadata.map;
+                    document.getElementById('modalDate').textContent = `${(match.metadata.mode || 'Standard').toUpperCase()} • ${APP.utils.formatDate(match.metadata.game_start)}`;
+                    document.getElementById('modalMyAgent').querySelector('img').src = p.assets.agent.small;
+
+                    this.renderScoreboardRows('tableBlue', match.players.all_players.filter(p => p.team.toLowerCase() === 'blue'), match.teams?.blue?.rounds_won || 0);
+                    this.renderScoreboardRows('tableRed', match.players.all_players.filter(p => p.team.toLowerCase() === 'red'), match.teams?.red?.rounds_won || 0);
+
+                    this.renderTimeline(match.rounds, team);
+
+                    const modal = this.els.matchModal;
+                    modal.classList.remove('hidden');
+                    setTimeout(() => modal.classList.remove('opacity-0'), 10);
+                    document.body.style.overflow = 'hidden';
+                },
+
+                renderScoreboardRows(id, players, roundsWon) {
+                    const tbody = document.getElementById(id);
+                    document.getElementById(id.replace('table', 'score')).textContent = roundsWon;
+                    
+                    players.sort((a,b) => b.stats.score - a.stats.score);
+                    
+                    tbody.innerHTML = '';
+                    players.forEach(p => {
+                        const diff = p.stats.kills - p.stats.deaths;
+                        const acs = Math.round(p.stats.score / (p.stats.kills + p.stats.deaths + p.stats.assists || 1) * 2.5); // Approx if total rounds missing
+                        const hs = Math.round(APP.utils.safeDiv(p.stats.headshots, (p.stats.headshots + p.stats.bodyshots + p.stats.legshots)) * 100);
+                        const nameSafe = APP.utils.escapeHtml(p.name);
+                        const tagSafe = APP.utils.escapeHtml(p.tag);
+
+                        tbody.innerHTML += `
+                            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                <td class="p-3 pl-6"><img src="${p.assets.agent.small}" class="w-8 h-8 rounded-sm"></td>
+                                <td class="p-3">
+                                    <div class="font-bold text-white leading-none font-header tracking-wide">${nameSafe}</div>
+                                    <div class="text-[10px] text-gray-500 font-mono">#${tagSafe}</div>
+                                </td>
+                                <td class="p-3 text-center text-xs text-gray-400 font-mono">${p.currenttier_patched || '-'}</td>
+                                <td class="p-3 text-center font-bold text-white font-mono">${Math.round(p.stats.score/20)}</td>
+                                <td class="p-3 text-center text-white font-mono">${p.stats.kills}</td>
+                                <td class="p-3 text-center text-gray-400 font-mono">${p.stats.deaths}</td>
+                                <td class="p-3 text-center text-gray-400 font-mono">${p.stats.assists}</td>
+                                <td class="p-3 text-center font-mono ${diff>0?'text-val-win':diff<0?'text-val-loss':'text-gray-500'}">${diff>0?'+'+diff:diff}</td>
+                                <td class="p-3 text-center text-gray-400 font-mono pr-6">${hs}%</td>
+                            </tr>
+                        `;
+                    });
+                },
+
+                renderTimeline(rounds, myTeam) {
+                    const container = document.getElementById('roundTimeline');
+                    container.innerHTML = '';
+                    if(!rounds || rounds.length === 0) {
+                        container.innerHTML = '<div class="text-gray-500 text-xs w-full text-center py-4 font-mono">NO ROUND DATA AVAILABLE</div>';
+                        return;
+                    }
+
+                    rounds.forEach((r, idx) => {
+                        const winner = r.winning_team.toLowerCase();
+                        const iWon = winner === myTeam;
+                        const color = iWon ? 'bg-val-win shadow-[0_0_8px_#00ffbc] opacity-100' : 'bg-val-loss opacity-50';
+                        const height = iWon ? '100%' : '50%';
+                        const roundNum = idx + 1;
+                        const marginClass = (roundNum === 13) ? 'ml-3 border-l border-white/20 pl-1' : '';
+
+                        const bar = document.createElement('div');
+                        bar.className = `flex-1 flex items-end justify-center group relative cursor-pointer ${marginClass}`;
+                        bar.innerHTML = `
+                            <div class="${color} w-full rounded-sm transition-all duration-300 group-hover:brightness-125 group-hover:h-full" style="height: ${height}"></div>
+                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center bg-val-dark border border-white/20 p-2 rounded z-50 pointer-events-none min-w-[100px] shadow-xl">
+                                <span class="font-tungsten text-xl ${iWon ? 'text-val-win' : 'text-val-loss'}">${iWon ? 'WON' : 'LOST'}</span>
+                                <span class="text-[10px] font-mono text-white">ROUND ${roundNum}</span>
+                                <span class="text-[9px] text-gray-400 uppercase">${r.end_type}</span>
+                            </div>
+                        `;
+                        container.appendChild(bar);
+                    });
+                },
+
+                closeMatchDetails() {
+                    const modal = this.els.matchModal;
+                    modal.classList.add('opacity-0');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }, 300);
+                }
+            },
+
+            // === BUSINESS LOGIC ===
+            logic: {
+                generateDemoData(count) {
+                    const maps = ['Ascent', 'Bind', 'Haven', 'Split', 'Lotus', 'Sunset', 'Breeze'];
+                    const agents = [
+                        {n:'Jett', i:'https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png'},
+                        {n:'Reyna', i:'https://media.valorant-api.com/agents/a3bf58c3-4430-8850-641d-5c8448c967db/displayicon.png'},
+                        {n:'Raze', i:'https://media.valorant-api.com/agents/f94c3b30-42be-e959-889c-5aa313dba261/displayicon.png'},
+                        {n:'Iso', i:'https://media.valorant-api.com/agents/0e38b510-41a8-5780-5e8f-568b2a4f2d6c/displayicon.png'}
+                    ];
+
+                    return Array.from({length: count}, (_, i) => {
+                        const isWin = Math.random() > 0.45;
+                        const myTeam = Math.random() > 0.5 ? 'Blue' : 'Red';
+                        const kills = Math.floor(Math.random() * 30) + 5;
+                        const deaths = Math.floor(Math.random() * 20) + 5;
+                        const agent = agents[Math.floor(Math.random() * agents.length)];
+                        
+                        const roundsWon = isWin ? 13 : Math.floor(Math.random() * 11);
+                        const roundsLost = isWin ? Math.floor(Math.random() * 11) : 13;
+
+                        // Mock Rounds
+                        const totalRounds = roundsWon + roundsLost;
+                        const roundsArr = [];
+                        for(let r=0; r<totalRounds; r++) {
+                            roundsArr.push({
+                                winning_team: Math.random() > 0.5 ? 'Blue' : 'Red',
+                                end_type: Math.random() > 0.5 ? 'Elimination' : 'Bomb Defused'
+                            });
+                        }
+
+                        // My Player Object
+                        const myPlayer = {
+                            name: 'Demon1', tag: 'PRO', team: myTeam, currenttier_patched: 'Radiant',
+                            character: agent.n, assets: { agent: { small: agent.i } },
+                            stats: { kills, deaths, assists: 5, headshots: kills*2, bodyshots: kills*2, legshots: 2, score: kills*200 },
+                            puuid: 'mock-puuid'
+                        };
+
+                        // Bot Players
+                        const allPlayers = [myPlayer];
+                        for(let k=0; k<9; k++) {
+                            const enemyTeam = k < 4 ? myTeam : (myTeam==='Blue'?'Red':'Blue');
+                            allPlayers.push({
+                                name: `Bot_${k}`, tag: 'AI', team: enemyTeam, currenttier_patched: 'Immortal',
+                                character: 'Omen', assets: { agent: { small: 'https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/displayicon.png' } },
+                                stats: { kills: Math.floor(Math.random()*20), deaths: Math.floor(Math.random()*20), assists: 5, headshots: 10, bodyshots: 20, legshots: 5, score: Math.random()*5000 },
+                                puuid: `bot-${k}`
+                            });
+                        }
+
+                        return {
+                            metadata: {
+                                matchid: `MOCK-${i}`, map: maps[Math.floor(Math.random()*maps.length)],
+                                mode: 'Competitive', season_short: i%3==0?'E8:A2':'E8:A1', game_start: Date.now() - (i * 86400000)
+                            },
+                            teams: {
+                                blue: { has_won: myTeam==='Blue'?isWin:!isWin, rounds_won: myTeam==='Blue'?roundsWon:roundsLost, rounds_lost: myTeam==='Blue'?roundsLost:roundsWon },
+                                red: { has_won: myTeam==='Red'?isWin:!isWin, rounds_won: myTeam==='Red'?roundsWon:roundsLost, rounds_lost: myTeam==='Red'?roundsLost:roundsWon }
+                            },
+                            players: { all_players: allPlayers },
+                            rounds: roundsArr
+                        };
+                    });
+                },
+
+                calculateStats(matches, userState) {
+                    const stats = { kills: 0, deaths: 0, wins: 0, totalRounds: 0, dmg: 0, hs: 0, totalShots: 0, agents: {}, maps: {} };
+
+                    matches.forEach(m => {
+                        const p = APP.utils.findPlayer(m.players.all_players, userState);
+                        const team = p.team ? p.team.toLowerCase() : 'blue';
+                        const won = m.teams?.[team]?.has_won || false;
+
+                        stats.kills += p.stats.kills;
+                        stats.deaths += p.stats.deaths;
+                        stats.dmg += (p.damage_made || 0);
+                        stats.totalRounds += (m.rounds ? m.rounds.length : 0);
+                        stats.hs += p.stats.headshots;
+                        stats.totalShots += (p.stats.headshots + p.stats.bodyshots + p.stats.legshots);
+                        if (won) stats.wins++;
+
+                        // Agent
+                        if (!stats.agents[p.character]) stats.agents[p.character] = { name: p.character, img: p.assets.agent.small, count: 0, wins: 0, k:0, d:0 };
+                        stats.agents[p.character].count++;
+                        stats.agents[p.character].k += p.stats.kills;
+                        stats.agents[p.character].d += p.stats.deaths;
+                        if (won) stats.agents[p.character].wins++;
+
+                        // Map
+                        if (!stats.maps[m.metadata.map]) stats.maps[m.metadata.map] = { name: m.metadata.map, count: 0, wins: 0 };
+                        stats.maps[m.metadata.map].count++;
+                        if (won) stats.maps[m.metadata.map].wins++;
+                    });
+
+                    return {
+                        kd: APP.utils.safeDiv(stats.kills, stats.deaths || 1).toFixed(2),
+                        winRate: matches.length ? Math.round(APP.utils.safeDiv(stats.wins, matches.length) * 100) : 0,
+                        hs: stats.totalShots ? Math.round(APP.utils.safeDiv(stats.hs, stats.totalShots) * 100) : 0,
+                        adr: stats.totalRounds ? Math.round(stats.dmg / stats.totalRounds) : 0,
+                        agents: stats.agents,
+                        maps: stats.maps
+                    };
+                },
+
+                loadDemo() {
+                    APP.ui.showLoader(true);
+                    setTimeout(() => {
+                        const user = {
+                            name: 'Demon1', tag: 'PRO', region: 'na', level: 420,
+                            card: 'https://media.valorant-api.com/playercards/33c1f011-4eca-068c-9751-f68c788b2eee/wideart.png',
+                            rank: 'RADIANT', rankImg: 'https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/27/largeicon.png', rr: 950,
+                            puuid: 'mock-puuid'
+                        };
+                        const matches = this.generateDemoData(30);
+                        
+                        APP.state.user = user;
+                        APP.state.matches = matches;
+                        APP.state.filteredMatches = matches;
+                        
+                        const sel = document.getElementById('actSelector');
+                        sel.innerHTML = '<option value="all">ALL ACTS</option><option value="E8:A2">E8:A2</option><option value="E8:A1">E8:A1</option>';
+                        
+                        APP.ui.renderDashboard(user, matches);
+                        APP.ui.transitionToDashboard();
+                        APP.ui.showLoader(false);
+                    }, 1200);
+                },
+
+                saveToHistory(region, name, tag) {
+                    // FIX: Validate inputs before string operations
+                    if(!name || !tag) return;
+                    
+                    let history = JSON.parse(localStorage.getItem('gp_history') || '[]');
+                    
+                    // FIX: Filter out bad/corrupt entries from history first
+                    history = history.filter(h => h.name && h.tag);
+
+                    // FIX: Safe comparison
+                    history = history.filter(h => !((h.name || '').toLowerCase() === String(name).toLowerCase() && (h.tag || '').toLowerCase() === String(tag).toLowerCase()));
+                    
+                    history.unshift({ region, name, tag });
+                    if (history.length > 5) history.pop();
+                    localStorage.setItem('gp_history', JSON.stringify(history));
+                }
+            }
+        };
+
+        // === INITIALIZATION ===
+        window.addEventListener('load', () => {
+            APP.ui.init();
+            document.getElementById('apiKeyInput').value = APP.config.apiKey;
+
+            document.getElementById('searchForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const fullId = document.getElementById('fullIdInput').value.trim();
+                const region = document.getElementById('regionInput').value;
+
+                if (!fullId.includes('#')) {
+                    APP.ui.showNotification("INVALID FORMAT", "Please use Name#Tag format (e.g. Tenz#NA1)", true);
+                    return;
+                }
+
+                const [name, tag] = fullId.split('#');
+                if(!name || !tag) {
+                    APP.ui.showNotification("INVALID FORMAT", "Missing Name or Tag", true);
+                    return;
+                }
+                APP.ui.performSearch(region, name, tag);
+            });
+
+            document.getElementById('navLogo').addEventListener('click', () => APP.ui.resetApp());
+            
+            document.getElementById('demoBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                APP.logic.loadDemo();
+            });
+
+            const settingsModal = document.getElementById('settingsModal');
+            document.getElementById('settingsBtn').addEventListener('click', () => {
+                settingsModal.classList.remove('hidden');
+            });
+            document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+                settingsModal.classList.add('hidden');
+            });
+            document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+                const key = document.getElementById('apiKeyInput').value.trim();
+                localStorage.setItem('gp_apikey', key);
+                APP.config.apiKey = key;
+                settingsModal.classList.add('hidden');
+                APP.ui.showNotification("SETTINGS SAVED", "API Key updated successfully.", false);
+            });
+
+            document.getElementById('actSelector').addEventListener('change', (e) => {
+                const act = e.target.value;
+                APP.state.currentAct = act;
+                if(act === 'all') {
+                    APP.state.filteredMatches = APP.state.matches;
+                } else {
+                    APP.state.filteredMatches = APP.state.matches.filter(m => m.metadata.season_short === act);
+                }
+                APP.ui.updateStats();
+            });
+        });
+
+    </script>
+</body>
+</html>
