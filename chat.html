@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="bg-black">
 
 <head>
     <meta charset="UTF-8">
@@ -52,8 +52,21 @@
     </script>
 
     <style>
+        /* Definimos variables manualmente para asegurar que el CSS puro las reconozca */
+        :root {
+            --bg: #000000;
+            --brand: #dc2626;
+        }
+
         * { -webkit-tap-highlight-color: transparent; outline: none; }
-        body { background-color: var(--bg); overflow: hidden; } /* Prevent body scroll, handle in chat container */
+        
+        html, body {
+            background-color: var(--bg);
+            background-color: black; /* Fallback explícito */
+            color: #e5e5e5;
+            height: 100%;
+            overflow: hidden; /* Prevent body scroll, handle in chat container */
+        }
         
         .aurora-bg {
             position: fixed; inset: 0; z-index: -2;
@@ -112,7 +125,7 @@
     </style>
 </head>
 
-<body class="text-text font-sans h-screen flex flex-col md:items-center md:justify-center">
+<body class="bg-black text-text font-sans h-screen flex flex-col md:items-center md:justify-center">
 
     <div class="aurora-bg"></div>
     <div class="grid-bg"></div>
