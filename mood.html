@@ -1,7 +1,732 @@
 <!DOCTYPE html>
 <html lang="es">
 
+<head><!DOCTYPE html>
+<html lang="es">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gods Plan | Mood Tracker</title>
+    
+    <!-- FAVICON (Genérico) -->
+    <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌑</text></svg>">
+
+    <!-- FUENTE UNIFICADA: PLUS JAKARTA SANS -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- SCRIPT DE ICONOS -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- TAILWIND CSS & CONFIGURACIÓN DE TEMA -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    colors: {
+                        bg: 'var(--bg)',
+                        card: 'var(--card)',
+                        text: 'var(--text)',
+                        'text-mute': 'var(--text-mute)',
+                        brand: 'var(--brand)',
+                        'login-brand': 'var(--login-brand)',
+                        money: 'var(--money)',
+                        alert: 'var(--alert)',
+                        warn: 'var(--warn)',
+                        border: 'var(--border)',
+                        'input-bg': 'var(--input-bg)',
+                        // Mood Colors
+                        'mood-rad': '#10b981', // Emerald (Increíble)
+                        'mood-love': '#ec4899', // Pink (Enamorado)
+                        'mood-prod': '#06b6d4', // Cyan (Productivo)
+                        'mood-good': '#3b82f6', // Blue (Bien)
+                        'mood-chill': '#14b8a6', // Teal (Relajado)
+                        'mood-meh': '#a8a29e', // Gray (Normal)
+                        'mood-tired': '#6366f1', // Indigo (Cansado)
+                        'mood-anxious': '#a855f7', // Purple (Ansioso)
+                        'mood-bad': '#f97316', // Orange (Mal)
+                        'mood-angry': '#b91c1c', // Red Dark (Enojado)
+                        'mood-awful': '#ef4444', // Red (Pésimo)
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.3s ease-out forwards',
+                        'nebula': 'nebula 20s infinite alternate',
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } },
+                        nebula: { '0%': { transform: 'scale(1)', opacity: '0.3' }, '100%': { transform: 'scale(1.2)', opacity: '0.6' } },
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+                        fadeIn: { from: { opacity: 0, transform: 'translateY(-5px)' }, to: { opacity: 1, transform: 'translateY(0)' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg: #000000;
+            --card: #111111;
+            --border: #262626;
+            --input-bg: #0a0a0a;
+            --text: #e5e5e5;
+            --text-mute: #737373;
+            --brand: #dc2626;
+            --login-brand: #E70000;
+            --money: #16a34a;
+            --alert: #b91c1c;
+            --warn: #d97706;
+            --header-bg: rgba(0, 0, 0, 0.9);
+        }
+
+        * { -webkit-tap-highlight-color: transparent; outline: none; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        body { overflow-x: hidden; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .animate-pulse-custom { animation: pulse 2s infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinner { border: 4px solid var(--border); border-top: 4px solid var(--brand); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+
+        .aurora-bg {
+            position: fixed; inset: 0; z-index: -2;
+            background: radial-gradient(circle at 50% 50%, rgba(50, 0, 0, 0.4) 0%, transparent 60%),
+                        radial-gradient(circle at 80% 20%, rgba(231, 0, 0, 0.15) 0%, transparent 40%),
+                        radial-gradient(circle at 20% 80%, rgba(100, 0, 0, 0.2) 0%, transparent 40%);
+            filter: blur(80px);
+            pointer-events: none;
+        }
+
+        .grid-bg {
+            position: fixed; inset: 0; z-index: -1;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .input-gp {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; padding: 14px 16px; border-radius: 16px;
+            font-size: 0.95rem; font-weight: 500;
+        }
+        .input-gp:focus { border-color: var(--login-brand); outline: none; background: rgba(231,0,0,0.05); box-shadow: 0 0 20px rgba(231,0,0,0.2); transform: translateY(-2px); }
+        .input-gp::placeholder { color: rgba(255,255,255,0.3); }
+
+        .glass-panel {
+            background: rgba(15, 15, 15, 0.6); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .auth-switch { position: relative; display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 24px; }
+        .auth-switch button { flex: 1; padding: 8px; font-size: 0.8rem; font-weight: 700; z-index: 1; color: #666; transition: 0.3s; }
+        .auth-switch button.active { color: white; }
+        .auth-switch-glider {
+            position: absolute; top: 4px; left: 4px; height: calc(100% - 8px); width: calc(50% - 4px);
+            background: #222; border-radius: 8px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.1);
+        }
+        .auth-mode-register .auth-switch-glider { transform: translateX(100%); }
+
+        .btn-glow { position: relative; overflow: hidden; background: var(--login-brand); color: white; transition: all 0.3s; }
+        .btn-glow:hover { box-shadow: 0 0 30px rgba(231, 0, 0, 0.4); transform: translateY(-2px); }
+
+        .calendar-day { 
+            aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            border-radius: 12px; border: 1px solid var(--border); background: var(--card); transition: all 0.2s; cursor: pointer;
+            position: relative; overflow: hidden;
+        }
+        .calendar-day:hover { transform: scale(1.05); border-color: var(--brand); z-index: 10; }
+        .calendar-day.today { border-color: var(--brand); box-shadow: inset 0 0 20px rgba(220, 38, 38, 0.1); }
+        .calendar-day.empty { background: transparent; border: none; pointer-events: none; }
+        
+        .mood-btn {
+            transition: all 0.2s; filter: grayscale(1); opacity: 0.6;
+            border: 1px solid transparent; background: rgba(255,255,255,0.02);
+            border-radius: 12px; padding: 8px;
+        }
+        .mood-btn:hover { background: rgba(255,255,255,0.05); opacity: 0.8; }
+        .mood-btn.selected { filter: grayscale(0); opacity: 1; transform: scale(1.05); background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; position: relative; overflow: hidden; }
+        .stat-card::before { content:''; position: absolute; top:0; left:0; width: 100%; height: 2px; background: var(--brand); opacity: 0.5; }
+    </style>
+</head>
+
+<body class="bg-bg text-text font-sans selection:bg-brand selection:text-white min-h-screen">
+
+    <div class="aurora-bg"></div>
+    <div class="grid-bg"></div>
+
+    <!-- LOGIN / REGISTER (IDENTICAL TO TEMPLATE) -->
+    <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-[#030000]">
+        <div class="absolute top-8 left-8 flex items-center gap-3 animate-fade-in opacity-50">
+             <div class="relative w-8 h-8 flex items-center justify-center"><i class="ph-fill ph-smiley text-2xl text-brand"></i></div>
+            <span class="font-bold tracking-widest text-lg">GOD'S PLAN</span>
+        </div>
+        <div class="w-full max-w-md animate-float">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-2">MOOD TRACKER</h1>
+                <p class="text-zinc-500 text-sm font-mono tracking-widest uppercase">Registro Emocional Diario</p>
+            </div>
+            <div class="glass-panel rounded-3xl p-8 relative overflow-hidden">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-brand blur-md opacity-50"></div>
+                <div class="auth-switch" id="auth-switch-container">
+                    <div class="auth-switch-glider"></div>
+                    <button onclick="window.app.toggleAuth('login')" id="tab-login" class="active">INGRESAR</button>
+                    <button onclick="window.app.toggleAuth('register')" id="tab-register">REGISTRARSE</button>
+                </div>
+                <form onsubmit="event.preventDefault(); window.app.handleAuthSubmit();" class="flex flex-col gap-5">
+                    <div id="field-name" class="hidden transition-all duration-300">
+                        <div class="relative group">
+                            <i class="ph-bold ph-user absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                            <input type="text" id="input-name" class="input-gp pl-12" placeholder="Tu Nombre">
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <i class="ph-bold ph-identification-card absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                        <input type="text" id="input-id" class="input-gp pl-12" placeholder="Email" required>
+                    </div>
+                    <div class="relative group">
+                        <i class="ph-bold ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                        <input type="password" id="input-pass" class="input-gp pl-12" placeholder="Contraseña" required>
+                    </div>
+                    <div id="auth-error-msg" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold text-center flex items-center justify-center gap-2">
+                        <i class="ph-fill ph-warning-circle"></i> <span id="auth-error-txt">Error</span>
+                    </div>
+                    <button type="submit" id="btn-submit" class="btn-glow w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm mt-2 flex items-center justify-center gap-2 group cursor-pointer">
+                        <span id="btn-text">INICIAR SESIÓN</span> <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </form>
+                <div class="relative my-6 text-center">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                    <span class="relative bg-[#0a0a0a] px-2 text-[10px] text-zinc-600 font-bold uppercase tracking-widest">O accede con</span>
+                </div>
+                <button onclick="window.app.loginGoogle()" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-3 group cursor-pointer">
+                    <i class="ph-bold ph-google-logo text-xl group-hover:text-brand transition-colors"></i> <span>Google Account</span>
+                </button>
+            </div>
+        </div>
+        <footer class="absolute bottom-4 left-0 w-full text-center pointer-events-none opacity-30">
+            <p class="text-[10px] font-mono tracking-[0.5em] text-white">SYSTEM v2.0 // SECURE</p>
+        </footer>
+    </div>
+
+    <!-- APP PRINCIPAL -->
+    <div id="app-view" class="hidden min-h-screen pb-24 pt-20">
+        <!-- HEADER -->
+        <header class="bg-card border-b border-border fixed top-0 left-0 w-full z-50 flex items-center justify-between px-3 py-2 shadow-sm transition-all h-[60px]">
+            <!-- TITULO / LOGO -->
+            <div class="text-lg font-extrabold flex items-center gap-2 text-text uppercase shrink-0">
+                <i class="ph-fill ph-smiley-sticker text-brand text-2xl"></i> 
+                <span class="hidden md:inline tracking-wide">Control Emocional</span>
+            </div>
+
+            <!-- CONTROLES -->
+            <div class="flex items-center gap-2 justify-end flex-1">
+                <div class="flex items-center gap-1 bg-bg px-2 py-1.5 rounded-full border border-border">
+                    <button class="bg-transparent border-none text-text-mute cursor-pointer text-xl p-1 rounded-full flex items-center justify-center hover:text-text" onclick="window.app.changeMonth(-1)"><i class="ph-bold ph-caret-left"></i></button>
+                    <span class="text-xs font-extrabold uppercase text-text min-w-[80px] text-center whitespace-nowrap" id="monthLabel">--</span>
+                    <button class="bg-transparent border-none text-text-mute cursor-pointer text-xl p-1 rounded-full flex items-center justify-center hover:text-text" onclick="window.app.changeMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
+                    <button class="bg-transparent border-none text-brand cursor-pointer text-xl p-1 rounded-full flex items-center justify-center hover:scale-110 transition-transform ml-1" onclick="window.app.goToday()"><i class="ph-bold ph-calendar-check"></i></button>
+                </div>
+                <button class="bg-transparent border border-border text-text-mute text-lg p-2 rounded-lg flex items-center justify-center hover:bg-bg hover:text-text cursor-pointer shrink-0" onclick="window.app.logout()" title="Salir"><i class="ph-bold ph-sign-out"></i></button>
+            </div>
+        </header>
+
+        <div class="w-full max-w-[600px] mx-auto p-4 overflow-x-hidden animate-fade-in">
+            
+            <!-- ESTADÍSTICAS RÁPIDAS -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="stat-card">
+                    <div class="text-xs text-text-mute font-bold uppercase tracking-wider mb-1">Racha Actual</div>
+                    <div class="text-3xl font-black text-white flex items-center gap-2">
+                        <span id="streakVal">0</span> <i class="ph-fill ph-fire text-brand text-xl"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-xs text-text-mute font-bold uppercase tracking-wider mb-1">Modo Dominante</div>
+                    <div class="text-3xl font-black text-white flex items-center gap-2" id="dominantMoodDisplay">
+                        -
+                    </div>
+                </div>
+            </div>
+
+            <!-- CALENDARIO -->
+            <div class="bg-card border border-border rounded-2xl p-4 shadow-xl">
+                <!-- DÍAS SEMANA -->
+                <div class="grid grid-cols-7 gap-2 mb-2 text-center">
+                    <div class="text-[0.65rem] font-bold text-text-mute uppercase">Dom</div>
+                    <div class="text-[0.65rem] font-bold text-text-mute uppercase">Lun</div>
+                    <div class="text-[0.65rem] font-bold text-text-mute uppercase">Mar</div>
+                    <div class="text-[0.65rem] font-bold text-text-mute uppercase">Mié</div>
+                    <div class="text-[0.65rem] font-bold text-text-mute uppercase">Jue</div>
+                    <div class="text-[0.65rem] font-bold text-text-mute uppercase">Vie</div>
+                    <div class="text-[0.65rem] font-bold text-text-mute uppercase">Sáb</div>
+                </div>
+                <!-- GRID DÍAS -->
+                <div id="calendarGrid" class="grid grid-cols-7 gap-2"></div>
+            </div>
+
+            <!-- LISTA RECIENTE -->
+             <div class="mt-8">
+                <h3 class="text-xs font-bold text-text-mute uppercase tracking-widest mb-4 flex items-center gap-2"><i class="ph-bold ph-clock-counter-clockwise"></i> Recientes</h3>
+                <div id="recentLogs" class="space-y-3"></div>
+             </div>
+        </div>
+    </div>
+
+    <!-- MODAL REGISTRO DE HUMOR -->
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="logModal">
+        <div class="bg-card rounded-2xl w-[90%] max-w-[420px] p-6 border border-border relative overflow-hidden animate-slide-up">
+            <button onclick="window.app.toggleModal('logModal', false)" class="absolute top-4 right-4 text-text-mute hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
+            
+            <div class="text-center mb-6">
+                <span class="text-brand text-xs font-bold uppercase tracking-widest mb-1 block" id="modalDateLabel">--</span>
+                <h2 class="text-2xl font-black text-white">¿Cómo te sientes?</h2>
+            </div>
+
+            <!-- SELECCIÓN EMOJI (GRID AMPLIADO) -->
+            <div class="grid grid-cols-4 gap-2 mb-6" id="moodGridContainer">
+                <!-- Se generan dinámicamente o puedes ponerlos hardcoded, pero aquí están hardcoded para simplicidad visual en el código fuente -->
+                <button class="mood-btn flex flex-col items-center gap-1 group" onclick="window.app.selectMood('rad')">
+                    <div class="text-3xl group-hover:-translate-y-1 transition-transform">🤩</div>
+                    <span class="text-[9px] font-bold text-text-mute group-hover:text-mood-rad uppercase">Increíble</span>
+                </button>
+                <button class="mood-btn flex flex-col items-center gap-1 group" onclick="window.app.selectMood('love')">
+                    <div class="text-3xl group-hover:-translate-y-1 transition-transform">🥰</div>
+                    <span class="text-[9px] font-bold text-text-mute group-hover:text-mood-love uppercase">Amor</span>
+                </button>
+                <button class="mood-btn flex flex-col items-center gap-1 group" onclick="window.app.selectMood('prod')">
+                    <div class="text-3xl group-hover:-translate-y-1 transition-transform">💪</div>
+                    <span class="text-[9px] font-bold text-text-mute group-hover:text-mood-prod uppercase">A tope</span>
+                </button>
+                <button class="mood-btn flex flex-col items-center gap-1 group" onclick="window.app.selectMood('good')">
+                    <div class="text-3xl group-hover:-translate-y-1 transition-transform">🙂</div>
+                    <span class="text-[9px] font-bold text-text-mute group-hover:text-mood-good uppercase">Bien</span>
+                </button>
+                <button class="mood-btn flex flex-col items-center gap-1 group" onclick="window.app.selectMood('chill')">
+                    <div class="text-3xl group-hover:-translate-y-1 transition-transform">😌</div>
+                    <span class="text-[9px] font-bold text-text-mute group-hover:text-mood-chill uppercase">Relax</span>
+                </button>
+                <button class="mood-btn flex flex-col items-center gap-1 group" onclick="window.app.selectMood('meh')">
+                    <div class="text-3xl group-hover:-translate-y-1 transition-transform">😐</div>
+                    <span class="text-[9px] font-bold text-text-mute group-hover:text-mood-meh uppercase">Normal</span>
+                </button>
+                <button class="mood-btn flex flex-col items-center gap-1 group" onclick="window.app.selectMood('tired')">
+                    <div class="text-3xl group-hover:-translate-y-1 transition-transform">🥱</div>
+                    <span class="text-[9px] font-bold text-text-mute group-hover:text-mood-tired uppercase">Cansado</span>
+                </button>
+                <button class="mood-btn flex flex-col items-center gap-1 group" onclick="window.app.selectMood('anxious')">
+                    <div class="text-3xl group-hover:-translate-y-1 transition-transform">😰</div>
+                    <span class="text-[9px] font-bold text-text-mute group-hover:text-mood-anxious uppercase">Ansioso</span>
+                </button>
+                <button class="mood-btn flex flex-col items-center gap-1 group" onclick="window.app.selectMood('bad')">
+                    <div class="text-3xl group-hover:-translate-y-1 transition-transform">😕</div>
+                    <span class="text-[9px] font-bold text-text-mute group-hover:text-mood-bad uppercase">Mal</span>
+                </button>
+                <button class="mood-btn flex flex-col items-center gap-1 group" onclick="window.app.selectMood('angry')">
+                    <div class="text-3xl group-hover:-translate-y-1 transition-transform">😡</div>
+                    <span class="text-[9px] font-bold text-text-mute group-hover:text-mood-angry uppercase">Enojado</span>
+                </button>
+                 <button class="mood-btn flex flex-col items-center gap-1 group col-span-2" onclick="window.app.selectMood('awful')">
+                    <div class="text-3xl group-hover:-translate-y-1 transition-transform">😖</div>
+                    <span class="text-[9px] font-bold text-text-mute group-hover:text-mood-awful uppercase">Pésimo</span>
+                </button>
+            </div>
+
+            <!-- NOTAS -->
+            <div class="mb-6">
+                <label class="block text-text-mute text-xs font-extrabold mb-2 uppercase">Nota del día (Opcional)</label>
+                <textarea id="moodNote" rows="3" class="bg-input-bg border border-border w-full p-3 rounded-xl font-medium text-text placeholder-zinc-700 resize-none focus:border-brand transition-colors" placeholder="¿Qué pasó hoy?"></textarea>
+            </div>
+
+            <button class="w-full bg-brand text-white p-4 rounded-xl font-black uppercase tracking-widest hover:bg-red-600 transition-colors shadow-lg shadow-brand/20 flex items-center justify-center gap-2" onclick="window.app.saveLog()">
+                <i class="ph-bold ph-floppy-disk"></i> Guardar Registro
+            </button>
+        </div>
+    </div>
+
+    <!-- BOTÓN SCROLL TO TOP -->
+    <button id="scrollTopBtn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="fixed bottom-6 left-6 w-11 h-11 rounded-full bg-brand text-white shadow-lg shadow-brand/20 border border-white/10 z-50 flex items-center justify-center translate-y-20 opacity-0 transition-all duration-300 hover:scale-110 cursor-pointer">
+        <i class="ph-bold ph-arrow-up text-xl"></i>
+    </button>
+
+    <!-- UTILS MODALS -->
+    <div class="modal fixed inset-0 w-screen h-screen bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[1000]" id="msgModal">
+        <div class="bg-card rounded-2xl w-[90%] max-w-[380px] p-5 border border-border text-center">
+            <i id="msgIcon" class="text-[2.5rem] mb-2.5 block"></i>
+            <p id="msgText" class="font-bold mb-5 text-text"></p>
+            <button class="w-full p-3 rounded-lg font-extrabold cursor-pointer border-none bg-brand text-white hover:bg-blue-600 transition-colors" onclick="window.app.toggleModal('msgModal', false)">OK</button>
+        </div>
+    </div>
+
+    <!-- LÓGICA (SINGLE MODULE) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // 1. Configuración Firebase (Original proporcionada)
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-cUzYmh5G9y_W2RXbO1Uma4DlKKmnnss",
+            authDomain: "godsplan-adherencia.firebaseapp.com",
+            projectId: "godsplan-adherencia",
+            storageBucket: "godsplan-adherencia.firebasestorage.app",
+            messagingSenderId: "660801277434",
+            appId: "1:660801277434:web:3a37ece56538dc2b22a843"
+        };
+
+        // 2. Inicialización
+        let auth, db;
+        try {
+            const fbApp = initializeApp(firebaseConfig);
+            auth = getAuth(fbApp);
+            db = getFirestore(fbApp);
+        } catch (e) { console.error("Firebase Init Error:", e); }
+
+        let unsubscribeListener = null;
+
+        // 3. Helpers
+        const getElement = (id) => document.getElementById(id);
+        const setText = (id, text) => { const el = getElement(id); if (el) el.textContent = text; };
+        
+        // DEFINICIÓN AMPLIADA DE EMOCIONES
+        const moods = {
+            'rad': { emoji: '🤩', color: 'text-mood-rad', val: 5 },
+            'love': { emoji: '🥰', color: 'text-mood-love', val: 5 },
+            'pro 'chill': { emoji: '😌', color: 'text-mood-chill', val: 3.5 },
+            'meh': { emoji: '😐', color: 'text-mood-meh', val: 3 },
+            'tired': { emoji: '🥱', color: 'text-mood-tired', val: 2.5 },
+            'anxious': { emoji: '😰', color: 'text-mood-anxious', val: 2 },
+            'bad': { emoji: '😕', color: 'text-mood-bad', val: 2 },
+            'angry': { emoji: '😡', color: 'text-mood-angry', val: 1.5 },
+            'awful': { emoji: '😖', color: 'text-mood-awful', val: 1 }
+        };
+
+        // 4. Lógica App
+        window.app = {
+            data: { logs: {} }, // Estructura: logs: { "YYYY-MM-DD": { mood: 'rad', note: '...' } }
+            userId: null, 
+            date: new Date(),
+            selectedDateStr: null,
+            tempMood: null,
+
+            init() {
+                // Scroll Listener
+                window.addEventListener('scroll', () => {
+                    const btn = getElement('scrollTopBtn');
+                    if (btn) {
+                        if (window.scrollY > 100) btn.classList.remove('translate-y-20', 'opacity-0');
+                        else btn.classList.add('translate-y-20', 'opacity-0');
+                    }
+                });
+                
+                if (!auth) return;
+
+                onAuthStateChanged(auth, async u => {
+                    if (u) { 
+                        this.userId = u.uid; 
+                        getElement('login-view')?.classList.add('hidden');
+                        getElement('app-view')?.classList.remove('hidden');
+                        this.listenToChanges(); 
+                    } else {
+                        if (unsubscribeListener) unsubscribeListener();
+                        this.userId = null;
+                        getElement('app-view')?.classList.add('hidden');
+                        getElement('login-view')?.classList.remove('hidden');
+                        this.data = { logs: {} };
+                    }
+                });
+            },
+
+            // --- FIREBASE SYNC ---
+            listenToChanges() {
+                if (!this.userId) return;
+                unsubscribeListener = onSnapshot(doc(db, "users", this.userId, "mood_tracker", "sync_state"), (docSnap) => {
+                    if (docSnap.exists()) {
+                        this.data = docSnap.data();
+                        // Asegurar estructura
+                        if (!this.data.logs) this.data.logs = {};
+                    }
+                    this.render();
+                });
+            },
+
+            async save() {
+                if (!this.userId) return;
+                await setDoc(doc(db, "users", this.userId, "mood_tracker", "sync_state"), this.data, { merge: true });
+            },
+
+            // --- AUTH ---
+            toggleAuth(mode) {
+                const isReg = (mode === 'register');
+                getElement('auth-switch-container')?.classList.toggle('auth-mode-register', isReg);
+                getElement('tab-login')?.classList.toggle('active', !isReg);
+                getElement('tab-register')?.classList.toggle('active', isReg);
+                getElement('auth-error-msg')?.classList.add('hidden');
+                setText('btn-text', isReg ? "CREAR CUENTA" : "INICIAR SESIÓN");
+                const nameField = getElement('field-name');
+                if(nameField) isReg ? nameField.classList.remove('hidden') : nameField.classList.add('hidden');
+                this.isRegistering = isReg;
+            },
+
+            async handleAuthSubmit() {
+                const btn = getElement('btn-submit');
+                const id = getElement('input-id')?.value.trim();
+                const pass = getElement('input-pass')?.value;
+                const name = getElement('input-name')?.value.trim();
+                const errMsg = getElement('auth-error-msg');
+
+                if (!id || !pass) return this.showAuthError("Completa todos los campos");
+                if (this.isRegistering && !name) return this.showAuthError("El nombre es obligatorio");
+                
+                // Si no es email valido, añadir dummy domain (Legacy support from original code)
+                const finalId = id.includes('@') ? id : `${id}@godsplan.site`;
+
+                if(btn) { btn.disabled = true; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> PROCESANDO...'; }
+                if(errMsg) errMsg.classList.add('hidden');
+
+                try {
+                    if (this.isRegistering) {
+                        const cred = await createUserWithEmailAndPassword(auth, finalId, pass);
+                        await updateProfile(cred.user, { displayName: name });
+                    } else {
+                        await signInWithEmailAndPassword(auth, finalId, pass);
+                    }
+                } catch (error) {
+                    this.showAuthError(error.message);
+                    if(btn) { 
+                        btn.disabled = false; 
+                        btn.innerHTML = `<span>${this.isRegistering ? 'CREAR CUENTA' : 'INICIAR SESIÓN'}</span> <i class="ph-bold ph-arrow-right"></i>`; 
+                    }
+                }
+            },
+            
+            async loginGoogle() {
+                try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
+                catch (error) { console.error(error); this.showAuthError("Error con Google."); }
+            },
+
+            showAuthError(msg) {
+                setText('auth-error-txt', msg);
+                getElement('auth-error-msg')?.classList.remove('hidden');
+                const btn = getElement('btn-submit');
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<span>${this.isRegistering ? 'CREAR CUENTA' : 'INICIAR SESIÓN'}</span> <i class="ph-bold ph-arrow-right"></i>`;
+                }
+            },
+            
+            logout() { signOut(auth).then(() => location.reload()); },
+
+            // --- CALENDAR LOGIC ---
+            changeMonth(n) { this.date.setMonth(this.date.getMonth() + n); this.render(); },
+            goToday() { this.date = new Date(); this.render(); },
+
+            render() {
+                const year = this.date.getFullYear();
+                const month = this.date.getMonth();
+                
+                // Header Label
+                const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                setText('monthLabel', `${monthNames[month]} ${year}`);
+
+                // Calendar Grid
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                const startingDay = firstDay.getDay(); // 0 = Sun
+
+                const grid = getElement('calendarGrid');
+                grid.innerHTML = '';
+
+                // Empty slots
+                for (let i = 0; i < startingDay; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'calendar-day empty';
+                    grid.appendChild(div);
+                }
+
+                const todayStr = new Date().toISOString().split('T')[0];
+
+                // Days
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                    const log = this.data.logs[dateStr];
+                    
+                    const cell = document.createElement('div');
+                    const isToday = (dateStr === todayStr);
+                    cell.className = `calendar-day ${isToday ? 'today' : ''}`;
+                    cell.onclick = () => this.openDayModal(dateStr);
+
+                    if (log) {
+                        const mInfo = moods[log.mood];
+                        // Fondo sutil del color del mood. Si el mood ya no existe (por ser viejo), usa fallback
+                        const bgColor = mInfo ? mInfo.color.replace('text-', '') : 'white';
+                        cell.style.background = mInfo ? `linear-gradient(to bottom right, var(--card), ${bgColor}10)` : 'var(--card)';
+                        cell.style.borderColor = mInfo ? bgColor : 'var(--border)';
+                        
+                        cell.innerHTML = `
+                            <div class="text-2xl animate-float">${mInfo ? mInfo.emoji : '❓'}</div>
+                            <div class="text-[0.6rem] font-bold text-text-mute mt-1">${i}</div>
+                        `;
+                    } else {
+                        cell.innerHTML = `<span class="text-sm font-bold text-text-mute">${i}</span>`;
+                    }
+
+                    grid.appendChild(cell);
+                }
+
+                this.renderStats();
+                this.renderRecent();
+            },
+
+            renderStats() {
+                // Racha
+                let streak = 0;
+                const keys = Object.keys(this.data.logs).sort().reverse();
+                if (keys.length > 0) {
+                    // Simple logic: check if most recent is today or yesterday
+                    const today = new Date().toISOString().split('T')[0];
+                    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                    
+                    let checkDate = (this.data.logs[today]) ? today : yesterday;
+                    if (this.data.logs[checkDate]) {
+                        streak = 0;
+                        // Count backwards
+                        let curr = new Date(checkDate);
+                        while (true) {
+                            const str = curr.toISOString().split('T')[0];
+                            if (this.data.logs[str]) {
+                                streak++;
+                                curr.setDate(curr.getDate() - 1);
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                }
+                setText('streakVal', streak);
+
+                // Dominant Mood (Current Month)
+                const monthKeys = Object.keys(this.data.logs).filter(k => k.startsWith(`${this.date.getFullYear()}-${String(this.date.getMonth()+1).padStart(2,'0')}`));
+                if (monthKeys.length === 0) {
+                    setText('dominantMoodDisplay', '-');
+                } else {
+                    const counts = {};
+                    monthKeys.forEach(k => {
+                        const m = this.data.logs[k].mood;
+                        counts[m] = (counts[m] || 0) + 1;
+                    });
+                    const dominant = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+                    const mInfo = moods[dominant];
+                    if(mInfo) {
+                        getElement('dominantMoodDisplay').innerHTML = `${mInfo.emoji} <span class="text-xs font-bold ${mInfo.color} uppercase ml-2">${dominant}</span>`;
+                    }
+                }
+            },
+
+            renderRecent() {
+                const list = getElement('recentLogs');
+                list.innerHTML = '';
+                const keys = Object.keys(this.data.logs).sort().reverse().slice(0, 5); // Last 5
+                
+                keys.forEach(k => {
+                    const l = this.data.logs[k];
+                    const mInfo = moods[l.mood];
+                    if(!mInfo) return;
+
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center gap-3 p-3 rounded-xl bg-card border border-border';
+                    item.innerHTML = `
+                        <div class="text-2xl">${mInfo.emoji}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center mb-0.5">
+                                <span class="text-xs font-black uppercase ${mInfo.color}">${l.mood}</span>
+                                <span class="text-[0.65rem] font-mono text-zinc-500">${k}</span>
+                            </div>
+                            <p class="text-xs text-text truncate opacity-80">${l.note || 'Sin notas...'}</p>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            },
+
+            // --- MODAL LOGIC ---
+            openDayModal(dateStr) {
+                this.selectedDateStr = dateStr;
+                setText('modalDateLabel', dateStr);
+                this.tempMood = null;
+                
+                // Clear UI
+                document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+                getElement('moodNote').value = '';
+
+                // Load existing
+                const existing = this.data.logs[dateStr];
+                if (existing) {
+                    this.selectMood(existing.mood);
+                    getElement('moodNote').value = existing.note || '';
+                }
+
+                this.toggleModal('logModal', true);
+            },
+
+            selectMood(moodKey) {
+                this.tempMood = moodKey;
+                document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+                // Find button by onclick attr hack or index (simplified here just by visually toggling all matching)
+                const btns = document.querySelectorAll('.mood-btn');
+                btns.forEach(btn => {
+                    if (btn.getAttribute('onclick').includes(moodKey)) {
+                        btn.classList.add('selected');
+                    }
+                });
+            },
+
+            saveLog() {
+                if (!this.tempMood) return this.showMessage("Selecciona un emoji.");
+                
+                const note = getElement('moodNote').value.trim();
+                
+                this.data.logs[this.selectedDateStr] = {
+                    mood: this.tempMood,
+                    note: note,
+                    timestamp: Date.now()
+                };
+
+                this.save();
+                this.toggleModal('logModal', false);
+            },
+
+            // --- UTILS ---
+            toggleModal(id, show) {
+                const m = getElement(id);
+                if(m) {
+                    if(show) { m.classList.remove('hidden'); m.classList.add('flex'); }
+                    else { m.classList.remove('flex'); m.classList.add('hidden'); }
+                }
+            },
+            
+            showMessage(m) { setText('msgText', m); const i = getElement('msgIcon'); if(i) i.className = 'ph-fill ph-warning-circle text-alert'; this.toggleModal('msgModal', true); },
+        };
+
+        // Start
+        document.addEventListener('DOMContentLoaded', () => window.app.init());
+    </script>
+</body>
+</html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gods Plan | Mood Tracker</title>
