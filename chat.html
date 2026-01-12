@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gods Plan | Chat</title>
+    <title>Gods Plan | Chat General</title>
     
     <!-- FAVICON -->
     <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
@@ -112,13 +112,13 @@
     </style>
 </head>
 
-<body class="text-text font-sans h-screen flex flex-col">
+<body class="text-text font-sans h-screen flex flex-col md:items-center md:justify-center">
 
     <div class="aurora-bg"></div>
     <div class="grid-bg"></div>
 
     <!-- LOGIN SCREEN -->
-    <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black">
+    <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black md:bg-black/80 md:backdrop-blur-sm">
         <div class="w-full max-w-sm animate-fade-in">
             <div class="text-center mb-8">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 mb-4 border border-white/10">
@@ -159,8 +159,8 @@
         </div>
     </div>
 
-    <!-- CHAT INTERFACE -->
-    <div id="chat-view" class="hidden flex-col h-full max-w-md mx-auto w-full bg-black md:border-x md:border-border relative shadow-2xl">
+    <!-- CHAT INTERFACE (Adaptado para PC y Móvil) -->
+    <div id="chat-view" class="hidden flex-col w-full h-full bg-black relative shadow-2xl md:max-w-6xl md:h-[90vh] md:rounded-2xl md:border md:border-border md:overflow-hidden">
         
         <!-- HEADER -->
         <header class="h-[60px] glass-panel border-b border-border flex items-center justify-between px-4 shrink-0 z-20">
@@ -176,13 +176,19 @@
                     </div>
                 </div>
             </div>
-            <button onclick="window.app.logout()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-text-mute hover:text-white transition-colors">
-                <i class="ph-bold ph-sign-out text-lg"></i>
-            </button>
+            <div class="flex items-center gap-2">
+                 <div class="hidden md:flex flex-col items-end mr-2">
+                    <span class="text-[10px] text-text-mute uppercase font-bold tracking-widest">Conectado como</span>
+                    <span id="user-display-name" class="text-xs font-bold text-white">--</span>
+                </div>
+                <button onclick="window.app.logout()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-text-mute hover:text-white transition-colors" title="Cerrar Sesión">
+                    <i class="ph-bold ph-sign-out text-lg"></i>
+                </button>
+            </div>
         </header>
 
         <!-- MESSAGES AREA -->
-        <div id="messages-list" class="flex-1 overflow-y-auto p-4 space-y-3 chat-scroll relative">
+        <div id="messages-list" class="flex-1 overflow-y-auto p-4 space-y-3 chat-scroll relative bg-black/50">
             <!-- Loading State -->
             <div id="chat-loader" class="absolute inset-0 flex items-center justify-center bg-black z-10">
                 <div class="animate-spin w-6 h-6 border-2 border-brand border-t-transparent rounded-full"></div>
@@ -191,10 +197,10 @@
         </div>
 
         <!-- INPUT AREA -->
-        <div class="p-3 pb-5 glass-panel border-t border-border shrink-0">
-            <form onsubmit="event.preventDefault(); window.app.sendMessage();" class="flex items-end gap-2 relative">
+        <div class="p-3 pb-5 md:p-4 glass-panel border-t border-border shrink-0">
+            <form onsubmit="event.preventDefault(); window.app.sendMessage();" class="flex items-end gap-2 relative max-w-4xl mx-auto w-full">
                 <input type="text" id="msg-input" autocomplete="off" 
-                    class="w-full bg-[#0a0a0a] border border-[#333] text-white rounded-2xl py-3 pl-4 pr-12 focus:border-brand focus:outline-none transition-colors placeholder-zinc-600"
+                    class="w-full bg-[#0a0a0a] border border-[#333] text-white rounded-2xl py-3 pl-4 pr-12 focus:border-brand focus:outline-none transition-colors placeholder-zinc-600 shadow-inner"
                     placeholder="Escribe un mensaje...">
                 
                 <button type="submit" class="absolute right-1.5 bottom-1.5 w-9 h-9 bg-brand text-white rounded-xl flex items-center justify-center hover:bg-red-600 hover:scale-105 transition-all shadow-lg shadow-brand/20">
@@ -207,10 +213,10 @@
     <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIG (Same as Mood Tracker)
+        // CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyC-cUzYmh5G9y_W2RXbO1Uma4DlKKmnnss",
             authDomain: "godsplan-adherencia.firebaseapp.com",
@@ -232,15 +238,32 @@
             user: null,
             isRegistering: false,
             unsubscribe: null,
-            appId: 'godsplan-chat', // ID único para la colección pública
+            // CRÍTICO: Usar el ID dinámico de la app o fallback
+            appId: typeof __app_id !== 'undefined' ? __app_id : 'godsplan-chat', 
 
             init() {
+                // CRÍTICO: Autenticación inicial con el token del entorno para evitar errores de permisos
+                const initAuth = async () => {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        try {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } catch (e) {
+                            console.error("Error autenticación inicial:", e);
+                        }
+                    }
+                };
+                initAuth();
+
                 onAuthStateChanged(auth, (u) => {
                     if (u) {
                         this.user = u;
                         document.getElementById('login-view').classList.add('hidden');
                         document.getElementById('chat-view').classList.remove('hidden');
                         document.getElementById('chat-view').classList.add('flex');
+                        
+                        const dn = document.getElementById('user-display-name');
+                        if(dn) dn.textContent = u.displayName || u.email.split('@')[0];
+
                         this.loadMessages();
                     } else {
                         this.user = null;
@@ -303,7 +326,7 @@
                 const list = document.getElementById('messages-list');
                 const loader = document.getElementById('chat-loader');
                 
-                // Using artifacts public path for shared data
+                // CRÍTICO: Usar this.appId dinámico para cumplir con las reglas de seguridad
                 const q = query(
                     collection(db, 'artifacts', this.appId, 'public', 'data', 'messages'),
                     orderBy('timestamp', 'asc'),
@@ -312,9 +335,6 @@
 
                 this.unsubscribe = onSnapshot(q, (snapshot) => {
                     loader.classList.add('hidden');
-                    // Limpiar lista no es eficiente pero es simple. 
-                    // En producción usaríamos actualización incremental, 
-                    // pero aquí está bien para ~100 msgs.
                     list.innerHTML = ''; 
                     
                     snapshot.forEach(doc => {
@@ -322,6 +342,9 @@
                     });
                     
                     this.scrollToBottom();
+                }, (error) => {
+                    console.error("Firestore Error:", error);
+                    // Si falla por permisos incluso después de auth, podría ser un problema de caché o reglas.
                 });
             },
 
@@ -353,6 +376,7 @@
                 this.scrollToBottom();
 
                 try {
+                    // CRÍTICO: Usar this.appId dinámico
                     await addDoc(collection(db, 'artifacts', this.appId, 'public', 'data', 'messages'), {
                         text: text,
                         uid: this.user.uid,
