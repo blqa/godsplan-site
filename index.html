@@ -89,17 +89,16 @@
         .spotlight-card {
             position: relative;
             overflow: hidden;
-            /* Transición suave para el movimiento vertical (lift) */
             transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .spotlight-card:hover {
-            transform: translateY(-5px); /* Elevación simple y elegante */
+            transform: translateY(-5px);
             border-color: rgba(255, 255, 255, 0.15);
             box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.7);
         }
         
-        /* Brillo Spotlight (Sigue al mouse pero solo luz, no movimiento) */
+        /* Brillo Spotlight */
         .spotlight-card::before {
             content: '';
             position: absolute;
@@ -131,18 +130,12 @@
         .spotlight-card:hover::before, 
         .spotlight-card:hover::after { opacity: 1; }
 
-        /* VIEW TRANSITIONS - SIMPLIFICADO (Instantáneo) */
-        .view-section {
-            display: block;
-        }
-        
-        .view-hidden {
-            display: none !important;
-        }
+        /* VIEW TRANSITIONS */
+        .view-section { display: block; }
+        .view-hidden { display: none !important; }
 
         /* UTILS */
         .text-glow { text-shadow: 0 0 30px rgba(255, 42, 42, 0.6); }
-
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative selection:bg-brand selection:text-white">
@@ -162,7 +155,7 @@
                 </div>
                 <div class="flex flex-col">
                     <span class="font-bold tracking-tight text-white leading-none hover-scramble" data-text="GOD'S PLAN">GOD'S PLAN</span>
-                    <span class="text-[9px] text-zinc-500 font-mono tracking-widest uppercase">Nexus Hub v3.1</span>
+                    <span class="text-[9px] text-zinc-500 font-mono tracking-widest uppercase">Nexus Hub v4.1</span>
                 </div>
             </div>
 
@@ -192,13 +185,12 @@
     </nav>
 
     <!-- MAIN CONTENT AREA -->
-    <!-- COMPACT LAYOUT: pt-24 es seguro para pasar el navbar sin dejar mucho hueco -->
     <main class="flex-grow pt-24 md:pt-28 pb-12 px-4 relative z-10 flex flex-col justify-start items-center w-full max-w-7xl mx-auto">
 
         <!-- ================= VIEW: HOME ================= -->
         <section id="view-home" class="view-section w-full flex flex-col items-center">
             
-            <!-- Hero (Reduced Margins) -->
+            <!-- Hero -->
             <div class="text-center max-w-3xl mx-auto mb-10">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-brand-accent mb-6 backdrop-blur-sm hover:bg-white/10 transition-colors cursor-default">
                     <i class="ph-fill ph-terminal-window"></i>
@@ -216,117 +208,264 @@
                 </p>
             </div>
 
-            <!-- Projects Grid (Reduced top margin) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-16">
-                
-                <!-- Adherencia -->
-                <a href="https://adherencia.godsplan.site/" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
-                    <div class="flex justify-between items-start">
-                        <div class="w-12 h-12 rounded-xl bg-brand/10 text-brand flex items-center justify-center text-2xl border border-brand/20 group-hover:bg-brand group-hover:text-white transition-all duration-300 shadow-lg shadow-brand/10">
-                            <i class="ph-bold ph-briefcase"></i>
+            <!-- CORE SYSTEMS GRID -->
+            <div class="w-full mb-6">
+                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 pl-1">Core Systems</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    
+                    <!-- Adherencia -->
+                    <a href="https://adherencia.godsplan.site/" target="_blank" class="spotlight-card glass-card rounded-xl p-5 flex flex-col justify-between min-h-[140px] group">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 rounded-lg bg-brand/10 text-brand flex items-center justify-center text-xl border border-brand/20 group-hover:bg-brand group-hover:text-white transition-all">
+                                <i class="ph-bold ph-briefcase"></i>
+                            </div>
+                            <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
                         </div>
-                        <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <div class="relative z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-brand transition-colors">Adherencia</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Plataforma integral para la gestión de asistencia, control de horarios y métricas.</p>
-                    </div>
-                    <i class="ph-fill ph-briefcase absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
-                </a>
+                        <div class="relative z-10 mt-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-brand transition-colors">Adherencia</h3>
+                            <p class="text-xs text-zinc-500">Gestión de asistencia</p>
+                        </div>
+                    </a>
 
-                <!-- Finanzas -->
-                <a href="https://finanzas.godsplan.site" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
-                    <div class="flex justify-between items-start">
-                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-emerald-500/10">
-                            <i class="ph-bold ph-currency-dollar"></i>
+                    <!-- Finanzas -->
+                    <a href="https://finanzas.godsplan.site/" target="_blank" class="spotlight-card glass-card rounded-xl p-5 flex flex-col justify-between min-h-[140px] group">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xl border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                                <i class="ph-bold ph-currency-dollar"></i>
+                            </div>
+                            <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
                         </div>
-                        <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <div class="relative z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-emerald-500 transition-colors">Finanzas</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Sistema de contabilidad personal, activos, gastos recurrentes y proyecciones.</p>
-                    </div>
-                    <i class="ph-fill ph-wallet absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
-                </a>
+                        <div class="relative z-10 mt-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-emerald-500 transition-colors">Finanzas</h3>
+                            <p class="text-xs text-zinc-500">Contabilidad personal</p>
+                        </div>
+                    </a>
 
-                <!-- Goals -->
-                <a href="https://godsplan.site/goals" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
-                    <div class="flex justify-between items-start">
-                        <div class="w-12 h-12 rounded-xl bg-yellow-500/10 text-yellow-500 flex items-center justify-center text-2xl border border-yellow-500/20 group-hover:bg-yellow-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-yellow-500/10">
-                            <i class="ph-bold ph-trophy"></i>
+                    <!-- Goals -->
+                    <a href="https://godsplan.site/goals" target="_blank" class="spotlight-card glass-card rounded-xl p-5 flex flex-col justify-between min-h-[140px] group">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 rounded-lg bg-yellow-500/10 text-yellow-500 flex items-center justify-center text-xl border border-yellow-500/20 group-hover:bg-yellow-500 group-hover:text-white transition-all">
+                                <i class="ph-bold ph-trophy"></i>
+                            </div>
+                            <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
                         </div>
-                        <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <div class="relative z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-yellow-500 transition-colors">Goals</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Gestor avanzado de objetivos financieros, visualización de progreso y ahorro.</p>
-                    </div>
-                    <i class="ph-fill ph-trophy absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
-                </a>
+                        <div class="relative z-10 mt-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-yellow-500 transition-colors">Goals</h3>
+                            <p class="text-xs text-zinc-500">Objetivos y ahorro</p>
+                        </div>
+                    </a>
 
-                <!-- Coding -->
-                <a href="https://coding.godsplan.site" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
-                    <div class="flex justify-between items-start">
-                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-2xl border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-blue-500/10">
-                            <i class="ph-bold ph-code"></i>
+                    <!-- Mood -->
+                    <a href="https://godsplan.site/mood" target="_blank" class="spotlight-card glass-card rounded-xl p-5 flex flex-col justify-between min-h-[140px] group">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 rounded-lg bg-pink-500/10 text-pink-500 flex items-center justify-center text-xl border border-pink-500/20 group-hover:bg-pink-500 group-hover:text-white transition-all">
+                                <i class="ph-bold ph-smiley"></i>
+                            </div>
+                            <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
                         </div>
-                        <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <div class="relative z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-blue-500 transition-colors">Coding</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Repositorio de snippets, documentación técnica y patrones de diseño.</p>
-                    </div>
-                    <i class="ph-fill ph-brackets-curly absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
-                </a>
+                        <div class="relative z-10 mt-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-pink-500 transition-colors">Mood</h3>
+                            <p class="text-xs text-zinc-500">Tracker emocional</p>
+                        </div>
+                    </a>
 
-                <!-- Macros -->
-                <a href="https://godsplan.site/macros" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
-                    <div class="flex justify-between items-start">
-                        <div class="w-12 h-12 rounded-xl bg-fuchsia-500/10 text-fuchsia-500 flex items-center justify-center text-2xl border border-fuchsia-500/20 group-hover:bg-fuchsia-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-fuchsia-500/10">
-                            <i class="ph-bold ph-robot"></i>
+                    <!-- Rutina -->
+                    <a href="https://godsplan.site/rutina" target="_blank" class="spotlight-card glass-card rounded-xl p-5 flex flex-col justify-between min-h-[140px] group">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 rounded-lg bg-cyan-500/10 text-cyan-500 flex items-center justify-center text-xl border border-cyan-500/20 group-hover:bg-cyan-500 group-hover:text-white transition-all">
+                                <i class="ph-bold ph-list-checks"></i>
+                            </div>
+                            <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
                         </div>
-                        <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <div class="relative z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-fuchsia-500 transition-colors">Macros</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Scripts de automatización (Python/Bash) para optimizar flujos de trabajo.</p>
-                    </div>
-                    <i class="ph-fill ph-lightning absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
-                </a>
+                        <div class="relative z-10 mt-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-cyan-500 transition-colors">Rutina</h3>
+                            <p class="text-xs text-zinc-500">Gestión de hábitos</p>
+                        </div>
+                    </a>
 
-                <!-- Canvas -->
-                <a href="https://canvas.godsplan.site" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
-                    <div class="flex justify-between items-start">
-                        <div class="w-12 h-12 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center text-2xl border border-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-orange-500/10">
-                            <i class="ph-bold ph-paint-brush-broad"></i>
+                    <!-- Chat -->
+                    <a href="https://godsplan.site/chat.html" target="_blank" class="spotlight-card glass-card rounded-xl p-5 flex flex-col justify-between min-h-[140px] group">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-xl border border-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                                <i class="ph-bold ph-chat-circle-text"></i>
+                            </div>
+                            <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
                         </div>
-                        <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <div class="relative z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-orange-500 transition-colors">Canvas</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Laboratorio de experimentación UI/UX y prototipado rápido.</p>
-                    </div>
-                    <i class="ph-fill ph-palette absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
-                </a>
+                        <div class="relative z-10 mt-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-indigo-500 transition-colors">Chat</h3>
+                            <p class="text-xs text-zinc-500">Canal de comunicación</p>
+                        </div>
+                    </a>
 
-                <!-- Valorant Stats -->
-                <a href="https://godsplan.site/vstats" target="_blank" class="spotlight-card glass-card rounded-2xl p-7 min-h-[200px] flex flex-col justify-between group">
-                    <div class="flex justify-between items-start">
-                        <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-2xl border border-rose-500/20 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300 shadow-lg shadow-rose-500/10">
-                            <i class="ph-bold ph-crosshair"></i>
+                    <!-- Canvas -->
+                    <a href="https://canvas.godsplan.site/" target="_blank" class="spotlight-card glass-card rounded-xl p-5 flex flex-col justify-between min-h-[140px] group">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center text-xl border border-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-all">
+                                <i class="ph-bold ph-paint-brush-broad"></i>
+                            </div>
+                            <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
                         </div>
-                        <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white transition-colors"></i>
-                    </div>
-                    <div class="relative z-10 mt-4">
-                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-rose-500 transition-colors">Valorant Stats</h3>
-                        <p class="text-sm text-zinc-500 font-medium leading-relaxed">Analítica detallada de rendimiento, historial de rangos y métricas.</p>
-                    </div>
-                    <i class="ph-fill ph-target absolute -bottom-6 -right-6 text-[10rem] text-white opacity-[0.02] group-hover:opacity-[0.04] transition-opacity rotate-12 pointer-events-none"></i>
-                </a>
+                        <div class="relative z-10 mt-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-orange-500 transition-colors">Canvas</h3>
+                            <p class="text-xs text-zinc-500">Laboratorio UI/UX</p>
+                        </div>
+                    </a>
+
+                    <!-- VStats -->
+                    <a href="https://godsplan.site/vstats" target="_blank" class="spotlight-card glass-card rounded-xl p-5 flex flex-col justify-between min-h-[140px] group">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center text-xl border border-rose-500/20 group-hover:bg-rose-500 group-hover:text-white transition-all">
+                                <i class="ph-bold ph-crosshair"></i>
+                            </div>
+                            <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
+                        </div>
+                        <div class="relative z-10 mt-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-rose-500 transition-colors">VStats</h3>
+                            <p class="text-xs text-zinc-500">Valorant Analytics</p>
+                        </div>
+                    </a>
+
+                     <!-- Coding -->
+                    <a href="https://coding.godsplan.site/" target="_blank" class="spotlight-card glass-card rounded-xl p-5 flex flex-col justify-between min-h-[140px] group">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center text-xl border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                                <i class="ph-bold ph-code"></i>
+                            </div>
+                            <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
+                        </div>
+                        <div class="relative z-10 mt-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-blue-500 transition-colors">Coding</h3>
+                            <p class="text-xs text-zinc-500">Snippets & Docs</p>
+                        </div>
+                    </a>
+
+                    <!-- Macros -->
+                    <a href="https://godsplan.site/macros" target="_blank" class="spotlight-card glass-card rounded-xl p-5 flex flex-col justify-between min-h-[140px] group">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 rounded-lg bg-fuchsia-500/10 text-fuchsia-500 flex items-center justify-center text-xl border border-fuchsia-500/20 group-hover:bg-fuchsia-500 group-hover:text-white transition-all">
+                                <i class="ph-bold ph-robot"></i>
+                            </div>
+                            <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
+                        </div>
+                        <div class="relative z-10 mt-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-fuchsia-500 transition-colors">Macros</h3>
+                            <p class="text-xs text-zinc-500">Automatización</p>
+                        </div>
+                    </a>
+
+                    <!-- Proyectos MAIN -->
+                    <a href="https://godsplan.site/proyectos/index.html" target="_blank" class="spotlight-card glass-card rounded-xl p-5 flex flex-col justify-between min-h-[140px] group border-l-4 border-l-brand">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 rounded-lg bg-brand/10 text-brand flex items-center justify-center text-xl border border-brand/20 group-hover:bg-brand group-hover:text-white transition-all">
+                                <i class="ph-bold ph-rocket-launch"></i>
+                            </div>
+                            <i class="ph-bold ph-arrow-up-right text-zinc-600 group-hover:text-white"></i>
+                        </div>
+                        <div class="relative z-10 mt-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-brand transition-colors">Proyectos</h3>
+                            <p class="text-xs text-zinc-500">Índice Principal</p>
+                        </div>
+                    </a>
+
+                </div>
             </div>
 
-            <!-- About / Info Card -->
-            <div class="w-full glass-card rounded-2xl p-10 relative overflow-hidden group border-t border-brand/20 mb-12">
+            <!-- PROJECT ARCHIVES (Small Grid) -->
+            <div class="w-full mb-12">
+                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 pl-1 mt-8">Project Archives / Arcade</h3>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    <!-- Project Item Template -->
+                    <a href="https://godsplan.site/proyectos/triviapapiux.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-purple-500 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Trivia Papiux</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/aduana.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-blue-500 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Aduana</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/cartel-lord.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-red-500 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Cartel Lord</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/ciudad.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-yellow-500 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Ciudad</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/elimperio.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-amber-600 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">El Imperio</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/elpatron.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-zinc-400 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">El Patrón</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/galaxia.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-indigo-500 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Galaxia</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/generador-brutal.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-green-500 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Gen. Brutal</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/microbus.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-orange-400 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Microbús</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/nadias-farm-3d.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-lime-400 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Nadia's Farm 3D</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/nadias-farm.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-lime-600 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Nadia's Farm</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/neox.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-cyan-400 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Neox</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/nexus-omega.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-teal-400 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Nexus Omega</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/nexus.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-teal-600 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Nexus</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/octoshopper.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-pink-400 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Octoshopper</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/parking.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-gray-400 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Parking</span>
+                    </a>
+
+                    <a href="https://godsplan.site/proyectos/pulpi.html" target="_blank" class="group glass-card p-3 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-3 border-transparent hover:border-brand/30">
+                        <div class="w-2 h-2 rounded-full bg-purple-400 group-hover:animate-pulse"></div>
+                        <span class="text-xs text-zinc-400 group-hover:text-white font-mono truncate">Pulpi</span>
+                    </a>
+
+                </div>
+            </div>
+
+            <!-- About / Info Card (RESTORED) -->
+            <div class="w-full glass-card rounded-2xl p-10 relative overflow-hidden group border-t border-brand/20 mb-12 mt-8">
                 <!-- Glowing Orb Background -->
                 <div class="absolute -top-32 -right-32 w-96 h-96 bg-brand rounded-full blur-[128px] opacity-10 group-hover:opacity-20 transition-opacity duration-700"></div>
                 
@@ -360,6 +499,71 @@
                     <button onclick="window.app.router('contact')" class="hover:text-brand transition-colors">CONTACT</button>
                 </div>
             </footer>
+        </section>
+
+        <!-- ================= VIEW: INFO (RESTORED) ================= -->
+        <section id="view-info" class="view-section view-hidden w-full max-w-4xl">
+             <button onclick="window.app.router('home')" class="mb-10 flex items-center gap-3 text-zinc-500 hover:text-white transition-colors group px-4 py-2 rounded-full border border-transparent hover:border-zinc-800 hover:bg-zinc-900/50 w-fit">
+                <i class="ph-bold ph-arrow-left group-hover:-translate-x-1 transition-transform"></i> 
+                <span class="font-mono text-xs uppercase tracking-widest">Retornar</span>
+            </button>
+
+            <div class="glass-card p-1 rounded-3xl mb-8 overflow-hidden">
+                <div class="bg-black/60 rounded-[22px] p-10 md:p-14 text-center border border-white/5 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-brand/5 animate-pulse-slow"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="w-24 h-24 mx-auto bg-zinc-950 rounded-full flex items-center justify-center mb-6 border border-zinc-800 shadow-2xl shadow-brand/20">
+                            <i class="ph-duotone ph-cpu text-5xl text-brand"></i>
+                        </div>
+                        <h1 class="text-3xl font-bold text-white mb-2">System Status</h1>
+                        <p class="text-zinc-500 text-sm font-mono tracking-wider">CORE OPERATIONAL // VER 4.1.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card p-8 rounded-2xl">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i class="ph-fill ph-stack text-zinc-400"></i>
+                        <h3 class="text-zinc-400 text-xs font-bold uppercase tracking-widest">Tech Stack</h3>
+                    </div>
+                    <ul class="space-y-4 text-sm font-mono">
+                        <li class="flex justify-between items-center pb-2 border-b border-white/5">
+                            <span class="text-zinc-600">Frontend Core</span> 
+                            <span class="text-white bg-white/5 px-2 py-1 rounded">Vanilla JS</span>
+                        </li>
+                        <li class="flex justify-between items-center pb-2 border-b border-white/5">
+                            <span class="text-zinc-600">Styling Engine</span> 
+                            <span class="text-brand bg-brand/10 px-2 py-1 rounded border border-brand/20">Tailwind CSS</span>
+                        </li>
+                        <li class="flex justify-between items-center">
+                            <span class="text-zinc-600">Iconography</span> 
+                            <span class="text-white">Phosphor Icons</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="glass-card p-8 rounded-2xl">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i class="ph-fill ph-globe text-zinc-400"></i>
+                        <h3 class="text-zinc-400 text-xs font-bold uppercase tracking-widest">Environment</h3>
+                    </div>
+                    <ul class="space-y-4 text-sm font-mono">
+                        <li class="flex justify-between items-center pb-2 border-b border-white/5">
+                            <span class="text-zinc-600">Hosting</span> 
+                            <span class="text-white">Github Pages / Vercel</span>
+                        </li>
+                        <li class="flex justify-between items-center pb-2 border-b border-white/5">
+                            <span class="text-zinc-600">Latency</span> 
+                            <span class="text-green-500">24ms</span>
+                        </li>
+                        <li class="flex justify-between items-center">
+                            <span class="text-zinc-600">Encryption</span> 
+                            <span class="text-white">TLS 1.3</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </section>
 
         <!-- ================= VIEW: TEXT/LEGAL ================= -->
@@ -415,71 +619,6 @@
             <button onclick="window.app.router('home')" class="text-zinc-600 hover:text-white transition-colors text-sm font-mono uppercase tracking-widest">
                 [ VOLVER ]
             </button>
-        </section>
-
-        <!-- ================= VIEW: INFO ================= -->
-        <section id="view-info" class="view-section view-hidden w-full max-w-4xl">
-             <button onclick="window.app.router('home')" class="mb-10 flex items-center gap-3 text-zinc-500 hover:text-white transition-colors group px-4 py-2 rounded-full border border-transparent hover:border-zinc-800 hover:bg-zinc-900/50 w-fit">
-                <i class="ph-bold ph-arrow-left group-hover:-translate-x-1 transition-transform"></i> 
-                <span class="font-mono text-xs uppercase tracking-widest">Retornar</span>
-            </button>
-
-            <div class="glass-card p-1 rounded-3xl mb-8 overflow-hidden">
-                <div class="bg-black/60 rounded-[22px] p-10 md:p-14 text-center border border-white/5 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-brand/5 animate-pulse-slow"></div>
-                    
-                    <div class="relative z-10">
-                        <div class="w-24 h-24 mx-auto bg-zinc-950 rounded-full flex items-center justify-center mb-6 border border-zinc-800 shadow-2xl shadow-brand/20">
-                            <i class="ph-duotone ph-cpu text-5xl text-brand"></i>
-                        </div>
-                        <h1 class="text-3xl font-bold text-white mb-2">System Status</h1>
-                        <p class="text-zinc-500 text-sm font-mono tracking-wider">CORE OPERATIONAL // VER 3.1.0</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="glass-card p-8 rounded-2xl">
-                    <div class="flex items-center gap-3 mb-6">
-                        <i class="ph-fill ph-stack text-zinc-400"></i>
-                        <h3 class="text-zinc-400 text-xs font-bold uppercase tracking-widest">Tech Stack</h3>
-                    </div>
-                    <ul class="space-y-4 text-sm font-mono">
-                        <li class="flex justify-between items-center pb-2 border-b border-white/5">
-                            <span class="text-zinc-600">Frontend Core</span> 
-                            <span class="text-white bg-white/5 px-2 py-1 rounded">Vanilla JS</span>
-                        </li>
-                        <li class="flex justify-between items-center pb-2 border-b border-white/5">
-                            <span class="text-zinc-600">Styling Engine</span> 
-                            <span class="text-brand bg-brand/10 px-2 py-1 rounded border border-brand/20">Tailwind CSS</span>
-                        </li>
-                        <li class="flex justify-between items-center">
-                            <span class="text-zinc-600">Iconography</span> 
-                            <span class="text-white">Phosphor Icons</span>
-                        </li>
-                    </ul>
-                </div>
-                <div class="glass-card p-8 rounded-2xl">
-                    <div class="flex items-center gap-3 mb-6">
-                        <i class="ph-fill ph-globe text-zinc-400"></i>
-                        <h3 class="text-zinc-400 text-xs font-bold uppercase tracking-widest">Environment</h3>
-                    </div>
-                    <ul class="space-y-4 text-sm font-mono">
-                        <li class="flex justify-between items-center pb-2 border-b border-white/5">
-                            <span class="text-zinc-600">Hosting</span> 
-                            <span class="text-white">Github Pages / Vercel</span>
-                        </li>
-                        <li class="flex justify-between items-center pb-2 border-b border-white/5">
-                            <span class="text-zinc-600">Latency</span> 
-                            <span class="text-green-500">24ms</span>
-                        </li>
-                        <li class="flex justify-between items-center">
-                            <span class="text-zinc-600">Encryption</span> 
-                            <span class="text-white">TLS 1.3</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
         </section>
 
     </main>
@@ -667,7 +806,7 @@
                 this.views = {
                     home: document.getElementById('view-home'),
                     contact: document.getElementById('view-contact'),
-                    info: document.getElementById('view-info'),
+                    info: document.getElementById('view-info'), // RESTORED
                     legal: document.getElementById('view-legal')
                 };
                 
@@ -679,7 +818,7 @@
                 this.initInteractions();
                 new Starfield(); // Init particles
                 new HackerText(); // Init text effects
-                console.log("GOD'S PLAN v3.1 // ANIMATIONS LOADED");
+                console.log("GOD'S PLAN v4.1 // ANIMATIONS LOADED");
             }
 
             router(route, param = null) {
@@ -744,35 +883,13 @@
                         const x = e.clientX - rect.left;
                         const y = e.clientY - rect.top;
                         
-                        // Spotlight
+                        // Spotlight Only - No Tilt
                         card.style.setProperty('--mouse-x', `${x}px`);
                         card.style.setProperty('--mouse-y', `${y}px`);
-
-                        // 3D Tilt Calculation
-                        // Only apply tilt if mouse is somewhat close to avoid performance hit on whole page
-                        const centerX = rect.left + rect.width / 2;
-                        const centerY = rect.top + rect.height / 2;
-                        const distX = e.clientX - centerX;
-                        const distY = e.clientY - centerY;
-                        const distance = Math.sqrt(distX*distX + distY*distY);
-
-                        if(distance < 600) {
-                             const rotateX = ((e.clientY - centerY) / (window.innerHeight / 2)) * -10; // Max 10deg
-                             const rotateY = ((e.clientX - centerX) / (window.innerWidth / 2)) * 10;
-                             
-                             card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-                        } else {
-                             card.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`;
-                        }
                     });
                 });
                 
-                // Reset on mouse leave
-                document.addEventListener('mouseleave', () => {
-                    cards.forEach(card => {
-                        card.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`;
-                    });
-                });
+                // No reset needed since there is no transform to reset
             }
         }
 
@@ -782,4 +899,3 @@
     </script>
 </body>
 </html>
-
