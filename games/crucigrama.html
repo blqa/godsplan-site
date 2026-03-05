@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CRUCIGRAMA - GOD'S PLAN</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Estilos -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --primary: #DC2626;
+            --bg-color: #050000;
+            --brand: #DC2626; 
+            --glass-bg: rgba(20, 20, 22, 0.95);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: white;
+            overflow: hidden; /* Prevent scroll on mobile */
+            user-select: none;
+            touch-action: manipulation;
+            height: 100vh; /* Fixed height */
+            width: 100vw;
+        }
+        
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- Estilos del Login --- */
+        .input-gp {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+        .input-gp:focus {
+            border-color: var(--brand);
+            background: rgba(220, 38, 38, 0.05);
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.1);
+        }
+        
+        .btn-glow {
+            background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
+        }
+        .btn-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.5);
+        }
+        .btn-glow:active { transform: scale(0.98); }
+
+        /* Auth Switch */
+        .auth-switch {
+            display: flex;
+            background: rgba(0,0,0,0.3);
+            border-radius: 99px;
+            padding: 4px;
+            position: relative;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .auth-switch button {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            z-index: 2;
+            color: #71717a;
+            transition: color 0.3s;
+        }
+        .auth-switch button.active { color: white; }
+        .auth-switch-glider {
+            position: absolute;
+            top: 4px; left: 4px; bottom: 4px;
+            width: calc(50% - 4px);
+            background: rgba(255,255,255,0.1);
+            border-radius: 99px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+        }
+        .auth-mode-register .auth-switch-glider { transform: translateX(100%); }
+
+        /* Animations */
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* --- Crossword Styles --- */
+        .cw-cell {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            border-radius: 4px;
+        }
+        /* Black cell (invisible islands) */
+        .cw-cell-black {
+            background-color: transparent; 
+            border: none;
+        }
+        /* Active Cell Pulse */
+        @keyframes cellPulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+        .cw-cell-focus {
+            animation: cellPulse 2s infinite;
+            z-index: 20;
+        }
+        
+        /* Letters Pop */
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+
+        /* Shake Error */
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-4px) rotate(-1deg); } 40% { transform: translateX(4px) rotate(1deg); } 60% { transform: translateX(-2px); } 80% { transform: translateX(2px); } }
+        .shake { animation: shake 0.3s ease-in-out; }
+
+        .bg-grid-pattern {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        }
+
+        /* Keyboard Styles */
+        .kb-key {
+            touch-action: manipulation;
+            transition: all 0.1s;
+        }
+        .kb-key:active { transform: translateY(2px); }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden text-sm">
+
+    <!-- FIREBASE MODULE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // CONFIGURACIÓN ORIGINAL DEL USUARIO
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
+            authDomain: "godsplan-blqa.firebaseapp.com",
+            projectId: "godsplan-blqa",
+            storageBucket: "godsplan-blqa.firebasestorage.app",
+            messagingSenderId: "1008783768310",
+            appId: "1:1008783768310:web:c09fe541a2f4d23e5b8ad7",
+            measurementId: "G-924H3FVC6Z"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-crossword'; 
+
+        const getElement = (id) => document.getElementById(id);
+        const setText = (id, txt) => { const el = getElement(id); if(el) el.innerText = txt; }
+        
+        const getUserDocRef = (uid) => doc(db, 'artifacts', appId, 'users', uid, 'data', 'profile');
+
+        window.app = {
+            isRegistering: false,
+
+            toggleAuth: (mode) => {
+                window.app.isRegistering = (mode === 'register');
+                getElement('auth-switch-container')?.classList.toggle('auth-mode-register', window.app.isRegistering);
+                getElement('tab-login')?.classList.toggle('active', !window.app.isRegistering);
+                getElement('tab-register')?.classList.toggle('active', window.app.isRegistering);
+                getElement('auth-error-msg')?.classList.add('hidden');
+                setText('btn-text', window.app.isRegistering ? "REGISTRAR ID" : "INICIAR CON ID");
+                const nameField = getElement('field-name');
+                if(nameField) window.app.isRegistering ? nameField.classList.remove('hidden') : nameField.classList.add('hidden');
+            },
+
+            handleAuthSubmit: async () => {
+                const rawId = getElement('input-id').value.trim();
+                const pass = getElement('input-pass').value;
+                const name = getElement('input-name').value;
+                const btnText = getElement('btn-text');
+                
+                if(!rawId || !pass) return window.app.showError("Completa todos los campos");
+                
+                const email = rawId.includes('@') ? rawId : `${rawId}@godsplan.site`;
+                
+                try {
+                    btnText.innerText = "PROCESANDO...";
+                    if (window.app.isRegistering) {
+                        const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+                        if(name) await updateProfile(userCred.user, { displayName: name });
+                        
+                        await setDoc(getUserDocRef(userCred.user.uid), {
+                            name: name || "Agente",
+                            userId: rawId,
+                            email: email,
+                            joined: new Date(),
+                            achievements: [],
+                            stats: { wins: 0, mistakes: 0 }
+                        });
+                    } else {
+                        await signInWithEmailAndPassword(auth, email, pass);
+                    }
+                } catch (error) {
+                    let msg = "Error de autenticación: " + error.code;
+                    if(error.code === 'auth/invalid-credential') msg = "ID o contraseña incorrectos";
+                    else if(error.code === 'auth/email-already-in-use') msg = "Este ID ya está registrado";
+                    window.app.showError(msg);
+                    setText('btn-text', window.app.isRegistering ? "REGISTRAR ID" : "INICIAR CON ID");
+                }
+            },
+
+            loginGoogle: async () => {
+                try {
+                    const provider = new GoogleAuthProvider();
+                    const res = await signInWithPopup(auth, provider);
+                    const userDocRef = getUserDocRef(res.user.uid);
+                    const userDoc = await getDoc(userDocRef);
+                    if(!userDoc.exists()) {
+                         await setDoc(userDocRef, {
+                            name: res.user.displayName,
+                            email: res.user.email,
+                            joined: new Date(),
+                            achievements: [],
+                            stats: { wins: 0, mistakes: 0 }
+                        });
+                    }
+                } catch (error) {
+                    window.app.showError("Error con Google: " + error.message);
+                }
+            },
+
+            logout: () => {
+                signOut(auth);
+                window.currentUserData = null;
+            },
+
+            showError: (msg) => {
+                setText('auth-error-txt', msg);
+                getElement('auth-error-msg').classList.remove('hidden');
+            }
+        };
+
+        window.db = db;
+        window.auth = auth;
+        window.doc = doc;
+        window.getDoc = getDoc;
+        window.updateDoc = updateDoc;
+        window.arrayUnion = arrayUnion;
+        window.getUserDocRef = getUserDocRef;
+        window.currentUserData = null;
+
+        onAuthStateChanged(auth, async (u) => {
+            if (u) {
+                getElement('login-view')?.classList.add('hidden');
+                const appView = getElement('app-view');
+                if(appView) {
+                    appView.classList.remove('hidden');
+                    appView.classList.add('animate-fade-in');
+                }
+                
+                try {
+                    const snap = await getDoc(getUserDocRef(u.uid));
+                    if(snap.exists()) {
+                        window.currentUserData = snap.data();
+                        window.dispatchEvent(new CustomEvent('userDataLoaded', { detail: window.currentUserData }));
+                    }
+                } catch(e) { console.error("Error loading user data", e); }
+
+            } else {
+                getElement('login-view')?.classList.remove('hidden');
+                const appView = getElement('app-view');
+                if(appView) {
+                    appView.classList.add('hidden');
+                    appView.classList.remove('animate-fade-in');
+                }
+                window.currentUserData = null;
+            }
+        });
+    </script>
+
+    <!-- LOGIN / REGISTER VIEW -->
+    <div id="login-view" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#030000]">
+        <div class="absolute top-8 left-8 flex items-center gap-3 animate-fade-in opacity-50">
+             <div class="relative w-8 h-8 flex items-center justify-center rounded-full bg-zinc-900 border border-zinc-800"><i class="ph-duotone ph-planet text-xl text-brand"></i></div>
+            <span class="font-bold tracking-widest text-lg">GOD'S PLAN</span>
+        </div>
+        <div class="w-full max-w-md animate-float">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-2 text-white italic">CRUCIGRAMA</h1>
+                <p class="text-zinc-500 text-sm font-mono tracking-widest uppercase">Protocolo de Palabras</p>
+            </div>
+            <div class="glass-panel rounded-3xl p-8 relative overflow-hidden">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-brand blur-md opacity-50"></div>
+                <div class="auth-switch" id="auth-switch-container">
+                    <div class="auth-switch-glider"></div>
+                    <button onclick="window.app.toggleAuth('login')" id="tab-login" class="active">INGRESAR</button>
+                    <button onclick="window.app.toggleAuth('register')" id="tab-register">REGISTRARSE</button>
+                </div>
+                <form onsubmit="event.preventDefault(); window.app.handleAuthSubmit();" class="flex flex-col gap-4">
+                    <div id="field-name" class="hidden transition-all duration-300">
+                        <div class="relative group">
+                            <i class="ph-bold ph-user absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                            <input type="text" id="input-name" class="input-gp pl-12" placeholder="Tu Nombre">
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <i class="ph-bold ph-identification-card absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                        <input type="text" id="input-id" class="input-gp pl-12" placeholder="ID de Agente (Email)" required>
+                    </div>
+                    <div class="relative group">
+                        <i class="ph-bold ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                        <input type="password" id="input-pass" class="input-gp pl-12" placeholder="Contraseña Maestra" required>
+                    </div>
+                    <div id="auth-error-msg" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold text-center flex items-center justify-center gap-2">
+                        <i class="ph-fill ph-warning-circle"></i> <span id="auth-error-txt">Error</span>
+                    </div>
+                    <button type="submit" id="btn-submit" class="btn-glow w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm mt-2 flex items-center justify-center gap-2 group cursor-pointer">
+                        <span id="btn-text">INICIAR CON ID</span> <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </form>
+                <div class="relative my-6 text-center">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                    <span class="relative bg-[#141416] px-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">O accede con</span>
+                </div>
+                <button onclick="window.app.loginGoogle()" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-3 group cursor-pointer">
+                    <i class="ph-bold ph-google-logo text-xl group-hover:text-brand transition-colors"></i> <span>Google Account</span>
+                </button>
+            </div>
+        </div>
+        <footer class="absolute bottom-4 left-0 w-full text-center pointer-events-none opacity-30">
+            <p class="text-[10px] font-mono tracking-[0.5em] text-white">SYSTEM v7.1 // INTRANET ACCESS</p>
+        </footer>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-4 py-3 backdrop-blur-md border-b border-white/5 bg-black/60">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="#" class="flex items-center gap-3 cursor-pointer group no-underline">
+                <div class="relative w-8 h-8 flex items-center justify-center overflow-hidden rounded-full bg-zinc-900 border border-zinc-800 group-hover:border-red-500/50 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.2)]">
+                    <i class="ph-duotone ph-planet text-red-500 text-xl relative z-10 group-hover:rotate-180 transition-transform duration-700 ease-in-out"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold tracking-tight text-white leading-none text-sm group-hover:text-red-500 transition-colors">GOD'S PLAN</span>
+                    <span class="text-[8px] text-zinc-500 font-mono tracking-widest uppercase">Crossword v2.3</span>
+                </div>
+            </a>
+            <div class="flex items-center gap-3 sm:gap-4">
+                <div class="hidden md:flex flex-col items-end text-right border-r border-white/10 pr-4">
+                    <span id="sys-time" class="font-mono text-[10px] text-zinc-300 font-bold">00:00:00</span>
+                    <span id="sys-date" class="text-[9px] text-zinc-600 uppercase tracking-widest">SYNCED</span>
+                </div>
+                <div class="flex items-center gap-2 px-2 py-0.5 rounded-full bg-emerald-950/30 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                    <span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span></span>
+                    <span class="hidden sm:block text-[9px] font-bold text-emerald-500 tracking-wider">ONLINE</span>
+                </div>
+                <button onclick="window.app.logout()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-900 hover:bg-red-900/30 text-zinc-400 hover:text-red-500 transition-all border border-white/10 group" title="Cerrar Sesión">
+                    <i class="ph-bold ph-sign-out group-hover:translate-x-0.5 transition-transform text-base"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Backgrounds -->
+    <div class="bg-grid-pattern z-0 pointer-events-none opacity-40"></div>
+    <div class="fixed top-[-20%] left-[-10%] w-[60%] h-[60%] bg-red-900/10 rounded-full blur-[120px] animate-pulse pointer-events-none z-0"></div>
+    
+    <!-- APP CONTAINER -->
+    <div id="app-view" class="relative z-10 flex flex-col items-center pt-16 w-full h-full hidden">
+        <div id="root" class="w-full h-full flex flex-col items-center"></div>
+    </div>
+
+    <script>
+        // System Clock
+        function updateSystemClock() {
+            const now = new Date();
+            const timeElement = document.getElementById('sys-time');
+            const dateElement = document.getElementById('sys-date');
+            if(timeElement) timeElement.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+            if(dateElement) dateElement.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+        }
+        setInterval(updateSystemClock, 1000);
+        updateSystemClock();
+
+        // Audio System
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const SoundFX = {
+            playTone: (freq, type, duration, vol = 0.1) => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            },
+            click: () => SoundFX.playTone(800, 'sine', 0.1, 0.05),
+            softClick: () => SoundFX.playTone(400, 'sine', 0.05, 0.03),
+            type: () => SoundFX.playTone(600, 'triangle', 0.05, 0.05),
+            erase: () => SoundFX.playTone(200, 'sawtooth', 0.15, 0.05),
+            achieve: () => {
+                SoundFX.playTone(400, 'sine', 0.1, 0.1);
+                setTimeout(() => SoundFX.playTone(600, 'sine', 0.1, 0.1), 100);
+                setTimeout(() => SoundFX.playTone(1000, 'sine', 0.3, 0.1), 200);
+            },
+            error: () => {
+                SoundFX.playTone(150, 'sawtooth', 0.3, 0.1);
+                setTimeout(() => SoundFX.playTone(100, 'sawtooth', 0.3, 0.1), 100);
+            },
+            win: () => {
+                const now = audioCtx.currentTime;
+                [261.6, 329.6, 392.0, 523.2].forEach((freq, i) => {
+                    setTimeout(() => SoundFX.playTone(freq, 'square', 0.4, 0.1), i * 100);
+                });
+            }
+        };
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // --- MASSIVE WORD BANK (BANCO DE PALABRAS EXPANDIDO) ---
+        const WORD_BANK = [
+            // Originales
+            { word: 'GATO', clue: 'Animal doméstico' },
+            { word: 'PERRO', clue: 'Mejor amigo del hombre' },
+            { word: 'SOL', clue: 'Astro rey' },
+            { word: 'LUNA', clue: 'Satélite de la Tierra' },
+            { word: 'MAR', clue: 'Masa de agua salada' },
+            { word: 'RIO', clue: 'Caudal de agua' },
+            { word: 'ORO', clue: 'Metal precioso amarillo' },
+            { word: 'PLATA', clue: 'Metal precioso gris' },
+            { word: 'ROJO', clue: 'Color de la sangre' },
+            { word: 'AZUL', clue: 'Color del cielo' },
+            { word: 'VERDE', clue: 'Color de la esperanza' },
+            { word: 'PAN', clue: 'Alimento de harina' },
+            { word: 'VINO', clue: 'Bebida de uva' },
+            { word: 'AGUA', clue: 'Líquido vital' },
+            { word: 'FUEGO', clue: 'Elemento que quema' },
+            { word: 'AIRE', clue: 'Lo que respiramos' },
+            
+            // Naturaleza & Geografía
+            { word: 'MONTE', clue: 'Elevación natural del terreno' },
+            { word: 'VALLE', clue: 'Terreno entre montañas' },
+            { word: 'ISLA', clue: 'Tierra rodeada de agua' },
+            { word: 'LAGO', clue: 'Masa de agua dulce' },
+            { word: 'BOSQUE', clue: 'Lugar poblado de árboles' },
+            { word: 'SELVA', clue: 'Bosque tropical denso' },
+            { word: 'DESIERTO', clue: 'Lugar con poca lluvia' },
+            { word: 'PLAYA', clue: 'Orilla del mar con arena' },
+            { word: 'OLAS', clue: 'Ondas en el mar' },
+            { word: 'NUBE', clue: 'Masa de vapor en el cielo' },
+            { word: 'LLUVIA', clue: 'Agua que cae del cielo' },
+            { word: 'NIEVE', clue: 'Agua helada blanca' },
+            { word: 'VIENTO', clue: 'Corriente de aire' },
+            { word: 'TRUENO', clue: 'Ruido de la tormenta' },
+            { word: 'RAYO', clue: 'Chispa eléctrica del cielo' },
+            { word: 'PIEDRA', clue: 'Materia mineral dura' },
+            { word: 'TIERRA', clue: 'Planeta o suelo' },
+            
+            // Animales
+            { word: 'LOBO', clue: 'Cánido salvaje' },
+            { word: 'ZORRO', clue: 'Animal astuto' },
+            { word: 'OSO', clue: 'Gran mamífero plantígrado' },
+            { word: 'TIGRE', clue: 'Felino rayado' },
+            { word: 'LEON', clue: 'Rey de la selva' },
+            { word: 'JIRAFA', clue: 'Animal de cuello largo' },
+            { word: 'ELEFANTE', clue: 'Animal con trompa' },
+            { word: 'MONO', clue: 'Primate saltarín' },
+            { word: 'RATA', clue: 'Roedor urbano' },
+            { word: 'RATON', clue: 'Roedor pequeño' },
+            { word: 'AGUILA', clue: 'Ave rapaz' },
+            { word: 'PALOMA', clue: 'Símbolo de la paz' },
+            { word: 'PATO', clue: 'Ave nadadora' },
+            { word: 'GALLO', clue: 'Canta al amanecer' },
+            { word: 'VACA', clue: 'Nos da leche' },
+            { word: 'TORO', clue: 'Macho de la vaca' },
+            { word: 'CABALLO', clue: 'Equino para montar' },
+            { word: 'CERDO', clue: 'Animal de granja rosado' },
+            { word: 'OVEJA', clue: 'Nos da lana' },
+            { word: 'PEZ', clue: 'Nada en el agua' },
+            { word: 'TIBURON', clue: 'Depredador marino' },
+            { word: 'BALLENA', clue: 'Mamífero marino gigante' },
+            { word: 'DELFIN', clue: 'Cetáceo inteligente' },
+            { word: 'SERPIENTE', clue: 'Reptil sin patas' },
+            { word: 'RANA', clue: 'Anfibio saltarín' },
+            
+            // Cuerpo Humano
+            { word: 'CABEZA', clue: 'Parte superior del cuerpo' },
+            { word: 'PELO', clue: 'Cubre la cabeza' },
+            { word: 'OJOS', clue: 'Para ver' },
+            { word: 'NARIZ', clue: 'Para oler' },
+            { word: 'BOCA', clue: 'Para comer y hablar' },
+            { word: 'DIENTE', clue: 'Para masticar' },
+            { word: 'LENGUA', clue: 'Órgano del gusto' },
+            { word: 'OREJA', clue: 'Órgano auditivo externo' },
+            { word: 'CUELLO', clue: 'Une la cabeza al tronco' },
+            { word: 'BRAZO', clue: 'Extremidad superior' },
+            { word: 'MANO', clue: 'Tiene cinco dedos' },
+            { word: 'DEDO', clue: 'Parte de la mano' },
+            { word: 'UÑA', clue: 'Protege la punta del dedo' },
+            { word: 'PIERNA', clue: 'Extremidad inferior' },
+            { word: 'PIE', clue: 'Base para caminar' },
+            { word: 'RODILLA', clue: 'Articulación central de la pierna' },
+            { word: 'HUESO', clue: 'Forma el esqueleto' },
+            { word: 'SANGRE', clue: 'Líquido rojo vital' },
+            { word: 'CORAZON', clue: 'Bombea sangre' },
+            { word: 'CEREBRO', clue: 'Órgano del pensamiento' },
+            { word: 'PIEL', clue: 'Cubre todo el cuerpo' },
+            
+            // Casa y Objetos
+            { word: 'CASA', clue: 'Hogar' },
+            { word: 'PUERTA', clue: 'Entrada a una habitación' },
+            { word: 'VENTANA', clue: 'Abertura para luz y aire' },
+            { word: 'PARED', clue: 'Muro vertical' },
+            { word: 'SUELO', clue: 'Lo que pisamos' },
+            { word: 'TECHO', clue: 'Cubierta superior' },
+            { word: 'MESA', clue: 'Mueble para apoyar cosas' },
+            { word: 'SILLA', clue: 'Asiento con respaldo' },
+            { word: 'CAMA', clue: 'Para dormir' },
+            { word: 'SOFA', clue: 'Asiento cómodo para varios' },
+            { word: 'LAMPARA', clue: 'Da luz artificial' },
+            { word: 'ESPEJO', clue: 'Refleja la imagen' },
+            { word: 'RELOJ', clue: 'Marca el tiempo' },
+            { word: 'LLAVE', clue: 'Abre cerraduras' },
+            { word: 'VASO', clue: 'Recipiente para beber' },
+            { word: 'PLATO', clue: 'Vajilla para comer' },
+            { word: 'CUCHARA', clue: 'Para comer sopa' },
+            { word: 'TENEDOR', clue: 'Para pinchar comida' },
+            { word: 'CUCHILLO', clue: 'Para cortar comida' },
+            { word: 'SARTEN', clue: 'Para freír' },
+            { word: 'OLLA', clue: 'Para cocer' },
+            { word: 'ESCOBA', clue: 'Para barrer' },
+            { word: 'JABON', clue: 'Para lavar' },
+            
+            // Ropa
+            { word: 'ROPA', clue: 'Vestimenta' },
+            { word: 'CAMISA', clue: 'Prenda superior con botones' },
+            { word: 'PANTALON', clue: 'Prenda para las piernas' },
+            { word: 'FALDA', clue: 'Prenda femenina inferior' },
+            { word: 'VESTIDO', clue: 'Prenda completa femenina' },
+            { word: 'ZAPATO', clue: 'Calzado' },
+            { word: 'CALCETIN', clue: 'Prenda para el pie' },
+            { word: 'GORRA', clue: 'Cubre la cabeza con visera' },
+            { word: 'ABRIGO', clue: 'Prenda para el frío' },
+            { word: 'BUFANDA', clue: 'Abriga el cuello' },
+            { word: 'GUANTE', clue: 'Cubre la mano' },
+            
+            // Comida
+            { word: 'COMIDA', clue: 'Alimento' },
+            { word: 'FRUTA', clue: 'Alimento vegetal dulce' },
+            { word: 'MANZANA', clue: 'Fruta de Blancanieves' },
+            { word: 'PERA', clue: 'Fruta verde o amarilla' },
+            { word: 'PLATANO', clue: 'Fruta amarilla alargada' },
+            { word: 'UVA', clue: 'Fruta del vino' },
+            { word: 'NARANJA', clue: 'Cítrico de color naranja' },
+            { word: 'LIMON', clue: 'Cítrico ácido amarillo' },
+            { word: 'TOMATE', clue: 'Fruto rojo de ensalada' },
+            { word: 'LECHUGA', clue: 'Hojas verdes de ensalada' },
+            { word: 'ARROZ', clue: 'Cereal blanco pequeño' },
+            { word: 'PASTA', clue: 'Alimento italiano' },
+            { word: 'CARNE', clue: 'Alimento animal' },
+            { word: 'POLLO', clue: 'Carne de ave' },
+            { word: 'PESCADO', clue: 'Carne de mar' },
+            { word: 'HUEVO', clue: 'Puesto por la gallina' },
+            { word: 'QUESO', clue: 'Lácteo sólido' },
+            { word: 'LECHE', clue: 'Líquido blanco nutritivo' },
+            { word: 'AGUA', clue: 'Para la sed' },
+            { word: 'JUGO', clue: 'Líquido de fruta' },
+            { word: 'CAFE', clue: 'Bebida oscura estimulante' },
+            { word: 'AZUCAR', clue: 'Endulzante blanco' },
+            { word: 'SAL', clue: 'Condimento salado' },
+            { word: 'PIMIENTA', clue: 'Condimento picante' },
+            
+            // Verbos / Acciones
+            { word: 'CORRER', clue: 'Andar muy rápido' },
+            { word: 'SALTAR', clue: 'Elevarse del suelo' },
+            { word: 'COMER', clue: 'Ingerir alimentos' },
+            { word: 'BEBER', clue: 'Ingerir líquidos' },
+            { word: 'DORMIR', clue: 'Descansar inconsciente' },
+            { word: 'SOÑAR', clue: 'Imaginar durmiendo' },
+            { word: 'HABLAR', clue: 'Comunicarse con voz' },
+            { word: 'LEER', clue: 'Interpretar letras' },
+            { word: 'ESCRIBIR', clue: 'Trazar letras' },
+            { word: 'ANDAR', clue: 'Caminar' },
+            { word: 'MIRAR', clue: 'Usar la vista' },
+            { word: 'OIR', clue: 'Usar el oído' },
+            { word: 'TOCAR', clue: 'Usar el tacto' },
+            { word: 'AMAR', clue: 'Querer mucho' },
+            { word: 'REIR', clue: 'Mostrar alegría' },
+            { word: 'LLORAR', clue: 'Derramar lágrimas' },
+            { word: 'CANTAR', clue: 'Hacer música con la voz' },
+            { word: 'BAILAR', clue: 'Moverse con ritmo' },
+            
+            // Abstracto y Tiempo
+            { word: 'TIEMPO', clue: 'Duración de las cosas' },
+            { word: 'HORA', clue: 'Sesenta minutos' },
+            { word: 'MINUTO', clue: 'Sesenta segundos' },
+            { word: 'DIA', clue: 'Jornada de 24 horas' },
+            { word: 'NOCHE', clue: 'Cuando no hay sol' },
+            { word: 'SEMANA', clue: 'Siete días' },
+            { word: 'MES', clue: 'Doce al año' },
+            { word: 'AÑO', clue: '365 días' },
+            { word: 'SIGLO', clue: 'Cien años' },
+            { word: 'AYER', clue: 'El día anterior' },
+            { word: 'HOY', clue: 'El día presente' },
+            { word: 'MAÑANA', clue: 'El día siguiente' },
+            { word: 'VIDA', clue: 'Existencia' },
+            { word: 'AMOR', clue: 'Afecto profundo' },
+            { word: 'ODIO', clue: 'Aversión profunda' },
+            { word: 'MIEDO', clue: 'Temor' },
+            { word: 'ALEGRIA', clue: 'Felicidad' },
+            { word: 'TRISTEZA', clue: 'Pena' },
+            { word: 'VERDAD', clue: 'Lo cierto' },
+            { word: 'MENTIRA', clue: 'Lo falso' },
+            { word: 'BIEN', clue: 'Lo correcto' },
+            { word: 'MAL', clue: 'Lo incorrecto' },
+            
+            // Profesiones
+            { word: 'MEDICO', clue: 'Cura enfermos' },
+            { word: 'DOCTOR', clue: 'Sinónimo de médico' },
+            { word: 'ENFERMERO', clue: 'Ayuda al médico' },
+            { word: 'MAESTRO', clue: 'Enseña en la escuela' },
+            { word: 'POLICIA', clue: 'Mantiene el orden' },
+            { word: 'BOMBERO', clue: 'Apaga fuegos' },
+            { word: 'COCINERO', clue: 'Prepara comida' },
+            { word: 'ACTOR', clue: 'Interpreta papeles' },
+            { word: 'CANTANTE', clue: 'Se dedica a cantar' },
+            { word: 'PINTOR', clue: 'Pinta cuadros o paredes' },
+            
+            // Transporte
+            { word: 'COCHE', clue: 'Automóvil' },
+            { word: 'MOTO', clue: 'Vehículo de dos ruedas' },
+            { word: 'AUTOBUS', clue: 'Transporte público grande' },
+            { word: 'TREN', clue: 'Va por vías' },
+            { word: 'AVION', clue: 'Vuela por el aire' },
+            { word: 'BARCO', clue: 'Navega por el mar' },
+            { word: 'BICI', clue: 'Vehículo a pedales' },
+            
+            // Colores y Formas
+            { word: 'ROJO', clue: 'Color del tomate' },
+            { word: 'AZUL', clue: 'Color del mar' },
+            { word: 'VERDE', clue: 'Color de la hierba' },
+            { word: 'AMARILLO', clue: 'Color del limón' },
+            { word: 'BLANCO', clue: 'Color de la leche' },
+            { word: 'NEGRO', clue: 'Color del carbón' },
+            { word: 'GRIS', clue: 'Mezcla de blanco y negro' },
+            { word: 'ROSA', clue: 'Color de la pantera' },
+            { word: 'MORADO', clue: 'Color de la uva' },
+            { word: 'CIRCULO', clue: 'Forma redonda' },
+            { word: 'CUADRADO', clue: 'Cuatro lados iguales' },
+            
+            // Tecnología
+            { word: 'RADIO', clue: 'Emite sonido' },
+            { word: 'TELE', clue: 'Caja tonta' },
+            { word: 'MOVIL', clue: 'Teléfono portátil' },
+            { word: 'ROBOT', clue: 'Máquina automática' },
+            { word: 'RED', clue: 'Internet' },
+            { word: 'DATOS', clue: 'Información digital' }
+        ];
+
+        const ACHIEVEMENTS = [
+            { id: 'first_word', title: 'Primera Palabra', desc: 'Completa una palabra correctamente', icon: 'ph-text-t' },
+            { id: 'cw_novice', title: 'Crucigramista', desc: 'Completa un crucigrama fácil', icon: 'ph-pencil' },
+            { id: 'perfect_run', title: 'Pluma de Oro', desc: 'Completa sin errores', icon: 'ph-crown' },
+            { id: 'speed_solver', title: 'Velocista', desc: 'Completa en < 2 minutos', icon: 'ph-lightning' },
+            { id: 'daily_master', title: 'Genio Diario', desc: 'Completa el Desafío Diario', icon: 'ph-calendar-star' }
+        ];
+
+        // --- GENERATOR LOGIC ---
+        const createGrid = (size) => Array.from({ length: size }, () => Array(size).fill(null));
+
+        const canPlaceWord = (grid, word, r, c, direction) => {
+            const size = grid.length;
+            if (direction === 'across') {
+                if (c + word.length > size) return false;
+                if (c > 0 && grid[r][c - 1] !== null) return false;
+                if (c + word.length < size && grid[r][c + word.length] !== null) return false;
+                
+                for (let i = 0; i < word.length; i++) {
+                    const cell = grid[r][c + i];
+                    if (cell !== null && cell !== word[i]) return false;
+                    if (cell === null) {
+                        if (r > 0 && grid[r - 1][c + i] !== null) return false;
+                        if (r < size - 1 && grid[r + 1][c + i] !== null) return false;
+                    }
+                }
+            } else {
+                if (r + word.length > size) return false;
+                if (r > 0 && grid[r - 1][c] !== null) return false;
+                if (r + word.length < size && grid[r + word.length][c] !== null) return false;
+
+                for (let i = 0; i < word.length; i++) {
+                    const cell = grid[r + i][c];
+                    if (cell !== null && cell !== word[i]) return false;
+                    if (cell === null) {
+                        if (c > 0 && grid[r + i][c - 1] !== null) return false;
+                        if (c < size - 1 && grid[r + i][c + 1] !== null) return false;
+                    }
+                }
+            }
+            return true;
+        };
+
+        const placeWord = (grid, word, r, c, direction) => {
+            for (let i = 0; i < word.length; i++) {
+                if (direction === 'across') grid[r][c + i] = word[i];
+                else grid[r + i][c] = word[i];
+            }
+        };
+
+        const generateRandomPuzzle = (size, attempts = 50) => {
+            let bestGrid = null;
+            let bestWordCount = 0;
+            let bestClues = null;
+
+            // Filter words that fit the grid size
+            const validWords = WORD_BANK.filter(w => w.word.length <= size);
+
+            for (let attempt = 0; attempt < attempts; attempt++) {
+                const grid = createGrid(size);
+                const placedWords = [];
+                // Sort by length (desc) + random factor to prioritize placing long words first as skeleton
+                const bank = [...validWords].sort(() => 0.5 - Math.random()).sort((a,b) => b.word.length - a.word.length + (Math.random() * 4 - 2)); 
+
+                if (bank.length === 0) break;
+
+                const firstWord = bank.shift();
+                const center = Math.floor(size / 2);
+                const startR = center - Math.floor(firstWord.word.length / 2);
+                const dir = Math.random() > 0.5 ? 'across' : 'down';
+                
+                let fr = dir === 'across' ? center : startR;
+                let fc = dir === 'across' ? startR : center;
+                
+                // Safe Clamp
+                if (dir === 'across') {
+                    if (fc < 0) fc = 0;
+                    if (fc + firstWord.word.length > size) fc = size - firstWord.word.length;
+                    if (fr < 0) fr = 0; if (fr >= size) fr = size - 1;
+                } else {
+                    if (fr < 0) fr = 0;
+                    if (fr + firstWord.word.length > size) fr = size - firstWord.word.length;
+                    if (fc < 0) fc = 0; if (fc >= size) fc = size - 1;
+                }
+                
+                placeWord(grid, firstWord.word, fr, fc, dir);
+                placedWords.push({ word: firstWord.word, r: fr, c: fc, dir, clue: firstWord.clue });
+
+                let failures = 0;
+                // Try to place as many words as possible
+                while (bank.length > 0 && failures < 50) {
+                    const w = bank.shift(); // Take next word
+                    let placed = false;
+                    
+                    // Shuffle current placed words to try connecting anywhere
+                    const targets = [...placedWords].sort(() => 0.5 - Math.random());
+                    
+                    for (let target of targets) {
+                        if (placed) break;
+                        for (let i = 0; i < w.word.length; i++) {
+                            if (placed) break;
+                            const char = w.word[i];
+                            for (let j = 0; j < target.word.length; j++) {
+                                if (target.word[j] === char) {
+                                    const intersectR = target.dir === 'across' ? target.r : target.r + j;
+                                    const intersectC = target.dir === 'across' ? target.c + j : target.c;
+                                    const newDir = target.dir === 'across' ? 'down' : 'across';
+                                    const newR = newDir === 'down' ? intersectR - i : intersectR;
+                                    const newC = newDir === 'across' ? intersectC - i : intersectC;
+
+                                    if (newR >= 0 && newC >= 0 && canPlaceWord(grid, w.word, newR, newC, newDir)) {
+                                        placeWord(grid, w.word, newR, newC, newDir);
+                                        placedWords.push({ word: w.word, r: newR, c: newC, dir: newDir, clue: w.clue });
+                                        placed = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if(!placed) {
+                         failures++;
+                         // Optional: Put back at end of array to retry? No, just skip to avoid infinite loops easily
+                    }
+                }
+
+                if (placedWords.length > bestWordCount) {
+                    bestGrid = grid;
+                    bestWordCount = placedWords.length;
+                    
+                    const tempClues = { across: {}, down: {} };
+                    placedWords.forEach(w => {
+                        tempClues[w.dir][`${w.r},${w.c}`] = w.clue;
+                    });
+                    
+                    const numberMap = {};
+                    let currentNum = 1;
+                    // Standard numbering logic (scanning row by row)
+                    for(let r=0; r<size; r++) {
+                        for(let c=0; c<size; c++) {
+                            let startsAcross = placedWords.some(w => w.r === r && w.c === c && w.dir === 'across');
+                            let startsDown = placedWords.some(w => w.r === r && w.c === c && w.dir === 'down');
+                            if (startsAcross || startsDown) {
+                                numberMap[`${r},${c}`] = currentNum;
+                                if(startsAcross) tempClues.across[`${r},${c}`] = `${currentNum}. ${tempClues.across[`${r},${c}`]}`;
+                                if(startsDown) tempClues.down[`${r},${c}`] = `${currentNum}. ${tempClues.down[`${r},${c}`]}`;
+                                currentNum++;
+                            }
+                        }
+                    }
+                    bestClues = { data: tempClues, numbers: numberMap, wordCount: bestWordCount };
+                }
+            }
+
+            const finalGrid = bestGrid.map(row => row.map(cell => cell === null ? '.' : cell));
+            return { grid: finalGrid, clues: bestClues.data, numbers: bestClues.numbers, wordCount: bestClues.wordCount };
+        };
+
+        // --- APP ---
+        function CrosswordApp() {
+            // Game State
+            const [puzzle, setPuzzle] = useState(null);
+            const [userGrid, setUserGrid] = useState([]);
+            const [numbers, setNumbers] = useState({});
+            const [focus, setFocus] = useState({ r: 0, c: 0 });
+            const [direction, setDirection] = useState('across'); 
+            const [gameState, setGameState] = useState('menu');
+            const [time, setTime] = useState(0);
+            const [mistakes, setMistakes] = useState(0);
+            const [shake, setShake] = useState(false);
+            
+            // UI State
+            const [settings, setSettings] = useState({ sound: true, autoSkip: true });
+            const [showAchievements, setShowAchievements] = useState(false);
+            const [newUnlock, setNewUnlock] = useState(null);
+            const [userName, setUserName] = useState("Guest");
+            const [unlocked, setUnlocked] = useState(new Set());
+            const [dailyCompleted, setDailyCompleted] = useState(false);
+            const [difficulty, setDifficulty] = useState('easy');
+            const [isDaily, setIsDaily] = useState(false);
+            const [loading, setLoading] = useState(false);
+
+            // Sync User
+            useEffect(() => {
+                const handleData = (e) => {
+                    const data = e.detail;
+                    if(data) {
+                        if(data.achievements) setUnlocked(new Set(data.achievements));
+                        if(data.name) setUserName(data.name);
+                    }
+                };
+                window.addEventListener('userDataLoaded', handleData);
+                if(window.currentUserData) {
+                    if(window.currentUserData.achievements) setUnlocked(new Set(window.currentUserData.achievements));
+                    if(window.currentUserData.name) setUserName(window.currentUserData.name);
+                }
+                const today = new Date().toDateString();
+                const lastDaily = localStorage.getItem('gods_plan_cw_daily');
+                if(lastDaily === today) setDailyCompleted(true);
+                return () => window.removeEventListener('userDataLoaded', handleData);
+            }, []);
+
+            // Timer
+            useEffect(() => {
+                let interval;
+                if (gameState === 'playing') interval = setInterval(() => setTime(t => t + 1), 1000);
+                return () => clearInterval(interval);
+            }, [gameState]);
+
+            // Load Puzzle with Retry Logic
+            const loadLevel = async (diff, daily = false) => {
+                if(settings.sound) SoundFX.click();
+                setLoading(true);
+                
+                // Allow UI to update before heavy calc
+                await new Promise(r => setTimeout(r, 50));
+
+                setDifficulty(diff);
+                setIsDaily(daily);
+                
+                const size = diff === 'easy' ? 9 : (diff === 'medium' ? 11 : 13);
+                const minWords = diff === 'easy' ? 5 : (diff === 'medium' ? 8 : 12);
+                
+                // Try multiple generations to find a good density
+                let bestGen = null;
+                for(let i=0; i<5; i++) {
+                     const genData = generateRandomPuzzle(size, 20); // 20 internal attempts per cycle
+                     if (!bestGen || genData.wordCount > bestGen.wordCount) {
+                         bestGen = genData;
+                     }
+                     if (bestGen.wordCount >= minWords) break; // Good enough
+                }
+
+                const grid = bestGen.grid.map(row => row.map(cell => cell === '.' ? '.' : ''));
+                
+                setPuzzle({ grid: bestGen.grid, clues: bestGen.clues });
+                setNumbers(bestGen.numbers);
+                setUserGrid(grid);
+                setDirection('across');
+                setMistakes(0);
+                setTime(0);
+                setLoading(false);
+                setGameState('playing');
+                
+                // Find first valid cell
+                for(let r=0; r<grid.length; r++) {
+                    for(let c=0; c<grid[0].length; c++) {
+                        if(bestGen.grid[r][c] !== '.') {
+                            setFocus({r, c});
+                            return;
+                        }
+                    }
+                }
+            };
+
+            const handleCellClick = (r, c) => {
+                if(puzzle.grid[r][c] === '.') return;
+                
+                if (focus.r === r && focus.c === c) {
+                    setDirection(prev => prev === 'across' ? 'down' : 'across');
+                } else {
+                    setFocus({ r, c });
+                }
+                if(settings.sound) SoundFX.softClick();
+            };
+
+            const getNextValidCell = (r, c, dir, grid) => {
+                let nr = r, nc = c;
+                let loops = 0;
+                while(loops < grid.length * grid[0].length) {
+                    if (dir === 'across') nc++; else nr++;
+                    
+                    if (nr >= grid.length || nc >= grid[0].length || nr < 0 || nc < 0 || puzzle.grid[nr][nc] === '.') {
+                        return null; 
+                    }
+                    
+                    // If autoskip is on, skip filled cells unless it's the only one left
+                    if(settings.autoSkip && grid[nr][nc] !== '') {
+                        loops++;
+                        continue;
+                    }
+
+                    return { r: nr, c: nc };
+                }
+                return null;
+            };
+
+            const getPrevValidCell = (r, c, dir, grid) => {
+                let nr = r, nc = c;
+                if (dir === 'across') nc--; else nr--;
+                
+                if (nr < 0 || nc < 0 || puzzle.grid[nr][nc] === '.') return null;
+                
+                return { r: nr, c: nc };
+            };
+
+            const handleInput = (char) => {
+                if(gameState !== 'playing') return;
+                
+                const val = char.toUpperCase();
+                const newGrid = [...userGrid];
+                newGrid[focus.r] = [...newGrid[focus.r]];
+                newGrid[focus.r][focus.c] = val;
+                setUserGrid(newGrid);
+                
+                if(settings.sound) SoundFX.type();
+
+                // Auto advance
+                const next = getNextValidCell(focus.r, focus.c, direction, newGrid);
+                if(next) setFocus(next);
+                
+                checkWin(newGrid);
+            };
+
+            const handleBackspace = () => {
+                const newGrid = [...userGrid];
+                if (newGrid[focus.r][focus.c] === '') {
+                     const prev = getPrevValidCell(focus.r, focus.c, direction, newGrid);
+                     if(prev) {
+                         setFocus(prev);
+                         newGrid[prev.r][prev.c] = '';
+                     }
+                } else {
+                    newGrid[focus.r][focus.c] = '';
+                }
+                setUserGrid(newGrid);
+                if(settings.sound) SoundFX.erase();
+            };
+
+            const checkWin = (currentGrid) => {
+                let complete = true;
+                let correct = true;
+                
+                for(let r=0; r<puzzle.grid.length; r++) {
+                    for(let c=0; c<puzzle.grid[0].length; c++) {
+                        if(puzzle.grid[r][c] !== '.') {
+                            if(currentGrid[r][c] === '') complete = false;
+                            else if(currentGrid[r][c] !== puzzle.grid[r][c]) correct = false;
+                        }
+                    }
+                }
+
+                if(complete && correct) {
+                    setGameState('won');
+                    if(settings.sound) SoundFX.win();
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#EF4444', '#FFFFFF', '#000000'] });
+                    unlockAchievement('cw_novice');
+                    if(mistakes === 0) unlockAchievement('perfect_run');
+                    if(isDaily) {
+                        unlockAchievement('daily_master');
+                        localStorage.setItem('gods_plan_cw_daily', new Date().toDateString());
+                        setDailyCompleted(true);
+                    }
+                    saveAchievementToCloud('cw_novice');
+                } else if (complete && !correct) {
+                    if(settings.sound) SoundFX.error();
+                    setShake(true);
+                    setTimeout(() => setShake(false), 400);
+                }
+            };
+
+            const unlockAchievement = (id) => {
+                if(!unlocked.has(id)) {
+                    const newSet = new Set(unlocked);
+                    newSet.add(id);
+                    setUnlocked(newSet);
+                    const ach = ACHIEVEMENTS.find(a => a.id === id);
+                    setNewUnlock(ach);
+                    if(settings.sound) SoundFX.achieve();
+                    setTimeout(() => setNewUnlock(null), 4000);
+                    saveAchievementToCloud(id);
+                }
+            };
+
+            const saveAchievementToCloud = async (achID) => {
+                const user = window.auth.currentUser;
+                if(user) {
+                    try {
+                        const userRef = window.getUserDocRef(user.uid);
+                        await window.updateDoc(userRef, { achievements: window.arrayUnion(achID) });
+                    } catch(e) {}
+                }
+            };
+
+            // Keyboard Handler
+            useEffect(() => {
+                const handleKey = (e) => {
+                    if(gameState !== 'playing') return;
+                    
+                    if(e.key === 'Backspace') handleBackspace();
+                    else if(e.key.length === 1 && e.key.match(/[a-zA-Z]/)) handleInput(e.key);
+                    else if(e.key === 'ArrowUp') { e.preventDefault(); if(focus.r > 0 && puzzle.grid[focus.r-1][focus.c] !== '.') setFocus(p => ({...p, r: p.r-1})); }
+                    else if(e.key === 'ArrowDown') { e.preventDefault(); if(focus.r < puzzle.grid.length-1 && puzzle.grid[focus.r+1][focus.c] !== '.') setFocus(p => ({...p, r: p.r+1})); }
+                    else if(e.key === 'ArrowLeft') { e.preventDefault(); if(focus.c > 0 && puzzle.grid[focus.r][focus.c-1] !== '.') setFocus(p => ({...p, c: p.c-1})); }
+                    else if(e.key === 'ArrowRight') { e.preventDefault(); if(focus.c < puzzle.grid[0].length-1 && puzzle.grid[focus.r][focus.c+1] !== '.') setFocus(p => ({...p, c: p.c+1})); }
+                    else if(e.key === ' ') { e.preventDefault(); setDirection(prev => prev === 'across' ? 'down' : 'across'); } 
+                };
+                window.addEventListener('keydown', handleKey);
+                return () => window.removeEventListener('keydown', handleKey);
+            }, [focus, userGrid, gameState, direction]);
+
+            const getCurrentWordBounds = () => {
+                if(!puzzle) return { start: -1, end: -1 };
+                let start = direction === 'across' ? focus.c : focus.r;
+                let end = start;
+                
+                if(direction === 'across') {
+                    while(start > 0 && puzzle.grid[focus.r][start-1] !== '.') start--;
+                } else {
+                    while(start > 0 && puzzle.grid[start-1][focus.c] !== '.') start--;
+                }
+
+                const max = direction === 'across' ? puzzle.grid[0].length : puzzle.grid.length;
+                if(direction === 'across') {
+                    while(end < max - 1 && puzzle.grid[focus.r][end+1] !== '.') end++;
+                } else {
+                    while(end < max - 1 && puzzle.grid[end+1][focus.c] !== '.') end++;
+                }
+
+                return { start, end };
+            }
+
+            const getActiveClue = () => {
+                if(!puzzle) return "";
+                const bounds = getCurrentWordBounds();
+                if(bounds.start === -1) return "";
+                const key = direction === 'across' ? `${focus.r},${bounds.start}` : `${bounds.start},${focus.c}`;
+                return puzzle.clues[direction][key] || "Selecciona una palabra";
+            };
+
+            const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+
+            return (
+                <div className={`w-full max-w-md flex flex-col items-center h-full transition-opacity duration-500 ${gameState === 'menu' ? 'opacity-100' : 'opacity-100'} ${shake ? 'shake' : ''}`}>
+                    
+                    {/* GAME HEADER */}
+                    {(gameState === 'playing' || gameState === 'paused') && (
+                        <div className="w-full px-4 flex items-center justify-between mb-2 mt-2 shrink-0">
+                            <button onClick={() => setGameState('paused')} className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center hover:bg-zinc-800 text-white"><i className="ph-bold ph-list text-xl"></i></button>
+                            <div className="flex flex-col items-center">
+                                <span className="font-black text-xl italic tracking-tighter text-white">CRUCIGRAMA</span>
+                                <span className="text-[10px] uppercase tracking-widest text-red-500 font-bold">{isDaily ? 'DAILY' : difficulty}</span>
+                            </div>
+                            <div className="text-sm font-mono font-bold bg-zinc-900 px-3 py-1.5 rounded border border-zinc-800 text-white">{formatTime(time)}</div>
+                        </div>
+                    )}
+
+                    {/* MENUS */}
+                    {gameState === 'menu' && (
+                        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 glass-panel rounded-2xl p-6 flex flex-col items-center justify-center animate-pop border border-white/10 shadow-2xl w-[90%] max-w-[360px] bg-black/90">
+                            <div className="w-full text-center mb-6 border-b border-white/5 pb-4"><p className="text-zinc-400 text-xs font-mono uppercase tracking-widest">Agente: {userName}</p></div>
+                            
+                            {loading && <div className="absolute inset-0 z-50 bg-black/80 flex items-center justify-center flex-col gap-3">
+                                <i className="ph-bold ph-spinner animate-spin text-3xl text-brand"></i>
+                                <span className="text-xs font-bold uppercase tracking-widest animate-pulse">Generando Nivel...</span>
+                            </div>}
+
+                            <div className="w-full mb-6 relative group overflow-hidden rounded-xl border border-yellow-500/30">
+                                <div className="absolute inset-0 bg-yellow-900/10 group-hover:bg-yellow-900/20 transition-colors"></div>
+                                <div className="relative p-4 flex items-center justify-between">
+                                    <div className="flex flex-col"><span className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest mb-1">Reto Diario</span><span className="text-white font-bold text-lg">{new Date().toLocaleDateString('es-ES', {weekday:'short', day:'numeric'})}</span></div>
+                                    <button onClick={() => loadLevel('medium', true)} disabled={dailyCompleted} className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${dailyCompleted ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-yellow-500 text-black border-yellow-400 hover:scale-105'}`}><i className={`ph-fill ${dailyCompleted ? 'ph-check' : 'ph-play'} text-xl`}></i></button>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 w-full mb-4">
+                                <button onClick={() => loadLevel('easy')} className="bg-zinc-800 hover:bg-emerald-900/40 border border-white/5 py-4 rounded-lg text-xs font-bold uppercase transition-all flex flex-col items-center gap-1"><i className="ph-bold ph-smiley text-emerald-500 text-lg"></i><span>Fácil</span></button>
+                                <button onClick={() => loadLevel('medium')} className="bg-zinc-800 hover:bg-yellow-900/40 border border-white/5 py-4 rounded-lg text-xs font-bold uppercase transition-all flex flex-col items-center gap-1"><i className="ph-bold ph-brain text-yellow-500 text-lg"></i><span>Medio</span></button>
+                            </div>
+                            <button onClick={() => setShowAchievements(true)} className="text-xs text-zinc-500 hover:text-white flex items-center gap-2"><i className="ph-fill ph-trophy"></i> Ver Logros</button>
+                        </div>
+                    )}
+
+                    {/* PAUSE MENU */}
+                    {gameState === 'paused' && (
+                        <div className="fixed inset-0 z-40 bg-black/80 backdrop-blur-md flex items-center justify-center animate-pop">
+                            <div className="glass-panel p-8 rounded-2xl flex flex-col items-center w-[80%] max-w-sm">
+                                <h2 className="text-3xl font-black text-white mb-6">PAUSA</h2>
+                                <button onClick={() => setGameState('playing')} className="w-full bg-white text-black py-3 rounded-xl font-bold uppercase mb-3">Reanudar</button>
+                                <button onClick={() => { if(confirm('¿Salir?')) setGameState('menu'); }} className="w-full bg-red-900/30 text-red-500 py-3 rounded-xl font-bold uppercase border border-red-500/30">Salir al Menú</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* WIN SCREEN */}
+                    {gameState === 'won' && (
+                        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-lg flex items-center justify-center animate-pop">
+                            <div className="p-8 text-center">
+                                <i className="ph-fill ph-crown text-yellow-500 text-6xl mb-4 animate-bounce"></i>
+                                <h2 className="text-4xl font-black text-white mb-2">¡VICTORIA!</h2>
+                                <p className="text-zinc-400 font-mono mb-6">Tiempo: {formatTime(time)}</p>
+                                <button onClick={() => setGameState('menu')} className="px-8 py-3 bg-white text-black font-bold rounded-full uppercase">Continuar</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* GAME UI */}
+                    {(gameState === 'playing' || gameState === 'paused') && puzzle && (
+                        <>
+                            {/* CLUE BOX */}
+                            <div className="w-full bg-zinc-900/80 border-y border-white/10 px-4 py-3 mb-2 flex items-center justify-between min-h-[60px] shrink-0">
+                                <div className="flex items-center gap-3 w-full">
+                                    <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider shrink-0 transition-colors ${direction === 'across' ? 'bg-blue-900 text-blue-300' : 'bg-purple-900 text-purple-300'}`}>
+                                        {direction === 'across' ? 'HORIZ' : 'VERT'}
+                                    </div>
+                                    <span className="text-sm font-medium text-white leading-tight truncate">{getActiveClue()}</span>
+                                </div>
+                            </div>
+
+                            {/* GRID CONTAINER - RESTORED TO PREVENT BREAKING */}
+                            <div className="flex-1 w-full flex items-center justify-center p-2 overflow-hidden">
+                                <div className="relative w-full max-w-[400px] aspect-square p-1 bg-zinc-900 rounded-lg shadow-2xl border border-white/10">
+                                    <div className="grid w-full h-full" 
+                                         style={{ 
+                                            gridTemplateColumns: `repeat(${puzzle.grid[0].length}, 1fr)`, 
+                                            gridTemplateRows: `repeat(${puzzle.grid.length}, 1fr)`,
+                                            gap: '2px'
+                                         }}>
+                                        {puzzle.grid.map((row, r) => (
+                                            row.map((cellChar, c) => {
+                                                const isBlock = cellChar === '.';
+                                                const isFocus = focus.r === r && focus.c === c;
+                                                
+                                                // Improved Highlight Logic
+                                                let isHighlight = false;
+                                                const bounds = getCurrentWordBounds();
+                                                
+                                                if (!isBlock) {
+                                                    if (direction === 'across' && r === focus.r && c >= bounds.start && c <= bounds.end) {
+                                                        isHighlight = true;
+                                                    } else if (direction === 'down' && c === focus.c && r >= bounds.start && r <= bounds.end) {
+                                                        isHighlight = true;
+                                                    }
+                                                }
+
+                                                return (
+                                                    <div 
+                                                        key={`${r}-${c}`}
+                                                        onClick={() => handleCellClick(r, c)}
+                                                        className={`cw-cell flex items-center justify-center text-lg sm:text-xl font-bold uppercase select-none relative
+                                                            ${isBlock ? 'cw-cell-black' : 'bg-zinc-800 text-white cursor-pointer cw-cell-active'}
+                                                            ${isFocus ? '!bg-red-600 !text-white cw-cell-focus !border-red-500' : ''}
+                                                            ${!isFocus && isHighlight ? '!bg-white/15' : ''}
+                                                            ${shake && !isBlock && userGrid[r][c] !== puzzle.grid[r][c] && userGrid[r][c] !== '' ? 'bg-red-900/50' : ''}
+                                                        `}
+                                                    >
+                                                        {!isBlock && (
+                                                            <>
+                                                                <span className="relative z-10">{userGrid[r][c]}</span>
+                                                                {numbers[`${r},${c}`] && (
+                                                                    <span className="absolute top-0.5 left-0.5 text-[7px] text-zinc-500 leading-none">{numbers[`${r},${c}`]}</span>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                )
+                                            })
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* VIRTUAL KEYBOARD */}
+                            <div className="w-full pt-2 pb-6 px-1 shrink-0 bg-black/80 backdrop-blur-lg border-t border-white/5">
+                                <div className="flex justify-center mb-2">
+                                    <button onClick={() => setDirection(d => d==='across'?'down':'across')} className="w-full max-w-xs h-8 px-4 rounded bg-zinc-800 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2">
+                                        <i className={`ph-bold ${direction === 'across' ? 'ph-arrow-right' : 'ph-arrow-down'} text-red-500 text-sm`}></i>
+                                        Cambiar Sentido
+                                    </button>
+                                </div>
+                                {['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map((row, i) => (
+                                    <div key={i} className="flex justify-center gap-1 mb-1">
+                                        {row.split('').map(char => (
+                                            <button 
+                                                key={char} 
+                                                onClick={() => handleInput(char)}
+                                                className="kb-key h-10 flex-1 max-w-[32px] sm:max-w-[40px] rounded bg-zinc-800 text-white font-bold text-sm hover:bg-zinc-700 active:bg-zinc-600 transition-colors shadow-sm border border-white/5"
+                                            >
+                                                {char}
+                                            </button>
+                                        ))}
+                                        {i === 2 && (
+                                            <button onClick={handleBackspace} className="kb-key h-10 w-12 rounded bg-zinc-900 text-red-400 flex items-center justify-center border border-red-900/30 ml-1">
+                                                <i className="ph-bold ph-backspace"></i>
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+
+                    {/* ACHIEVEMENTS MODAL */}
+                    {showAchievements && (
+                        <div className="fixed z-[60] inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center" onClick={() => setShowAchievements(false)}>
+                            <div className="glass-panel p-0 rounded-2xl w-[90%] max-w-[400px]" onClick={e => e.stopPropagation()}>
+                                <div className="p-6 border-b border-white/10 bg-black/40"><h3 className="text-white font-bold uppercase"><i className="ph-fill ph-trophy text-yellow-500"></i> Trofeos</h3></div>
+                                <div className="p-4 space-y-2 max-h-[60vh] overflow-y-auto">
+                                    {ACHIEVEMENTS.map(ach => (
+                                        <div key={ach.id} className={`p-3 rounded-lg border flex gap-3 items-center ${unlocked.has(ach.id) ? 'bg-zinc-900 border-yellow-500/30' : 'bg-black/20 border-white/5 opacity-50'}`}>
+                                            <i className={`ph-fill ${ach.icon} text-2xl ${unlocked.has(ach.id) ? 'text-yellow-500' : 'text-zinc-600'}`}></i>
+                                            <div><div className="text-sm font-bold text-white">{ach.title}</div><div className="text-[10px] text-zinc-500">{ach.desc}</div></div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button onClick={() => setShowAchievements(false)} className="w-full p-4 text-xs font-bold uppercase text-zinc-500 hover:text-white">Cerrar</button>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* TOAST */}
+                    {newUnlock && (
+                        <div className="fixed bottom-40 left-1/2 -translate-x-1/2 z-[100] animate-pop w-[90%] max-w-[350px]">
+                            <div className="glass-panel bg-black/90 p-4 rounded-xl border border-yellow-500/30 flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full bg-yellow-900/30 flex items-center justify-center text-yellow-400"><i className={`ph-fill ${newUnlock.icon} text-xl`}></i></div>
+                                <div><span className="text-[10px] font-bold text-yellow-500 uppercase">¡Logro Desbloqueado!</span><div className="text-white font-bold text-sm">{newUnlock.title}</div></div>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CrosswordApp />);
+    </script>
+</body>
+</html>
