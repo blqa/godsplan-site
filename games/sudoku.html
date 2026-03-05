@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SUDOKU - GOD'S PLAN</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Estilos -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --primary: #DC2626;
+            --bg-color: #050000;
+            --brand: #DC2626; /* Red for God's Plan */
+        }
+
+        .text-brand { color: var(--brand); }
+        .bg-brand { background-color: var(--brand); }
+        .border-brand { border-color: var(--brand); }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: white;
+            overflow-y: auto;
+            overflow-x: hidden;
+            user-select: none;
+            touch-action: manipulation;
+            min-height: 100vh;
+        }
+        
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        .glass-panel {
+            background: rgba(20, 20, 22, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- Estilos del Login (Adaptados) --- */
+        .input-gp {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+        .input-gp:focus {
+            border-color: var(--brand);
+            background: rgba(220, 38, 38, 0.05);
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.1);
+        }
+        
+        .btn-glow {
+            background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
+        }
+        .btn-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.5);
+        }
+        .btn-glow:active { transform: scale(0.98); }
+
+        .auth-switch {
+            display: flex;
+            background: rgba(0,0,0,0.3);
+            border-radius: 99px;
+            padding: 4px;
+            position: relative;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .auth-switch button {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            z-index: 2;
+            color: #71717a;
+            transition: color 0.3s;
+        }
+        .auth-switch button.active { color: white; }
+        .auth-switch-glider {
+            position: absolute;
+            top: 4px; left: 4px; bottom: 4px;
+            width: calc(50% - 4px);
+            background: rgba(255,255,255,0.1);
+            border-radius: 99px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+        }
+        .auth-mode-register .auth-switch-glider { transform: translateX(100%); }
+
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* --- Sudoku Styles --- */
+        .sudoku-cell {
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            transition: background-color 0.1s ease;
+        }
+        .sudoku-cell:nth-child(3n) { border-right: 2px solid rgba(220, 38, 38, 0.6); }
+        .sudoku-cell:nth-child(9n) { border-right: none; }
+        .sudoku-row:nth-child(3n) .sudoku-cell { border-bottom: 2px solid rgba(220, 38, 38, 0.6); }
+        .sudoku-row:last-child .sudoku-cell { border-bottom: none; }
+
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-4px) rotate(-1deg); } 40% { transform: translateX(4px) rotate(1deg); } 60% { transform: translateX(-2px); } 80% { transform: translateX(2px); } }
+        .shake { animation: shake 0.3s ease-in-out; }
+
+        @keyframes scan-flash { 0% { background-color: rgba(16, 185, 129, 0.0); } 50% { background-color: rgba(16, 185, 129, 0.2); } 100% { background-color: rgba(16, 185, 129, 0.0); } }
+        .completed-group-anim { animation: scan-flash 0.5s ease-out; }
+
+        @keyframes slide-in-bottom { 0% { transform: translateY(100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        .toast-enter { animation: slide-in-bottom 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+
+        .bg-grid-pattern {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen overflow-hidden">
+
+    <!-- FIREBASE MODULE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0lX3XmVPQHNNxpsZS82YzDMzM6MLhq3g",
+            authDomain: "godsplan-blqa.firebaseapp.com",
+            projectId: "godsplan-blqa",
+            storageBucket: "godsplan-blqa.firebasestorage.app",
+            messagingSenderId: "1008783768310",
+            appId: "1:1008783768310:web:c09fe541a2f4d23e5b8ad7",
+            measurementId: "G-924H3FVC6Z"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gods-plan-sudoku';
+
+        // --- AUTH LOGIC ---
+        const getElement = (id) => document.getElementById(id);
+        const setText = (id, txt) => { const el = getElement(id); if(el) el.innerText = txt; }
+        
+        // Helper for User Doc Reference
+        const getUserDocRef = (uid) => doc(db, 'artifacts', appId, 'users', uid, 'data', 'profile');
+
+        window.app = {
+            isRegistering: false,
+
+            toggleAuth: (mode) => {
+                window.app.isRegistering = (mode === 'register');
+                getElement('auth-switch-container')?.classList.toggle('auth-mode-register', window.app.isRegistering);
+                getElement('tab-login')?.classList.toggle('active', !window.app.isRegistering);
+                getElement('tab-register')?.classList.toggle('active', window.app.isRegistering);
+                getElement('auth-error-msg')?.classList.add('hidden');
+                setText('btn-text', window.app.isRegistering ? "REGISTRAR ID" : "INICIAR CON ID");
+                const nameField = getElement('field-name');
+                if(nameField) window.app.isRegistering ? nameField.classList.remove('hidden') : nameField.classList.add('hidden');
+            },
+
+            handleAuthSubmit: async () => {
+                const rawId = getElement('input-id').value.trim();
+                const pass = getElement('input-pass').value;
+                const name = getElement('input-name').value;
+                const btnText = getElement('btn-text');
+                
+                if(!rawId || !pass) return window.app.showError("Completa todos los campos");
+                
+                const email = rawId.includes('@') ? rawId : `${rawId}@godsplan.site`;
+                
+                try {
+                    btnText.innerText = "PROCESANDO...";
+                    if (window.app.isRegistering) {
+                        const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+                        if(name) await updateProfile(userCred.user, { displayName: name });
+                        
+                        await setDoc(getUserDocRef(userCred.user.uid), {
+                            name: name || "Agente",
+                            userId: rawId,
+                            email: email,
+                            joined: new Date(),
+                            achievements: [],
+                            stats: { wins: 0, mistakes: 0 }
+                        });
+                    } else {
+                        await signInWithEmailAndPassword(auth, email, pass);
+                    }
+                } catch (error) {
+                    let msg = "Error de autenticación: " + error.code;
+                    if(error.code === 'auth/invalid-credential') msg = "ID o contraseña incorrectos";
+                    if(error.code === 'auth/email-already-in-use') msg = "Este ID ya está en uso";
+                    if(error.code === 'auth/weak-password') msg = "La contraseña es muy débil";
+                    window.app.showError(msg);
+                    setText('btn-text', window.app.isRegistering ? "REGISTRAR ID" : "INICIAR CON ID");
+                }
+            },
+
+            loginGoogle: async () => {
+                try {
+                    const provider = new GoogleAuthProvider();
+                    const res = await signInWithPopup(auth, provider);
+                    const userDocRef = getUserDocRef(res.user.uid);
+                    const userDoc = await getDoc(userDocRef);
+                    if(!userDoc.exists()) {
+                         await setDoc(userDocRef, {
+                            name: res.user.displayName,
+                            email: res.user.email,
+                            joined: new Date(),
+                            achievements: [],
+                            stats: { wins: 0, mistakes: 0 }
+                        });
+                    }
+                } catch (error) {
+                    window.app.showError("Error con Google: " + error.message);
+                }
+            },
+
+            logout: () => {
+                signOut(auth);
+                window.currentUserData = null;
+            },
+
+            showError: (msg) => {
+                setText('auth-error-txt', msg);
+                getElement('auth-error-msg').classList.remove('hidden');
+            }
+        };
+
+        window.db = db;
+        window.auth = auth;
+        window.doc = doc;
+        window.getDoc = getDoc;
+        window.updateDoc = updateDoc;
+        window.arrayUnion = arrayUnion;
+        window.getUserDocRef = getUserDocRef;
+        window.currentUserData = null;
+
+        onAuthStateChanged(auth, async (u) => {
+            if (u) {
+                getElement('login-view')?.classList.add('hidden');
+                const appView = getElement('app-view');
+                if(appView) {
+                    appView.classList.remove('hidden');
+                    appView.classList.add('animate-fade-in');
+                }
+                
+                try {
+                    const snap = await getDoc(getUserDocRef(u.uid));
+                    if(snap.exists()) {
+                        window.currentUserData = snap.data();
+                        window.dispatchEvent(new CustomEvent('userDataLoaded', { detail: window.currentUserData }));
+                    }
+                } catch(e) { console.error("Error loading user data", e); }
+
+            } else {
+                getElement('login-view')?.classList.remove('hidden');
+                const appView = getElement('app-view');
+                if(appView) {
+                    appView.classList.add('hidden');
+                    appView.classList.remove('animate-fade-in');
+                }
+                window.currentUserData = null;
+            }
+        });
+    </script>
+
+    <!-- LOGIN / REGISTER VIEW -->
+    <div id="login-view" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#030000]">
+        <div class="absolute top-8 left-8 flex items-center gap-3 animate-fade-in opacity-50">
+             <div class="relative w-8 h-8 flex items-center justify-center rounded-full bg-zinc-900 border border-zinc-800"><i class="ph-duotone ph-planet text-xl text-brand"></i></div>
+            <span class="font-bold tracking-widest text-lg">GOD'S PLAN</span>
+        </div>
+        <div class="w-full max-w-md animate-float">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-2 text-white italic">GOD'S PLAN</h1>
+                <p class="text-zinc-500 text-sm font-mono tracking-widest uppercase">Portal de Acceso Centralizado</p>
+            </div>
+            <div class="glass-panel rounded-3xl p-8 relative overflow-hidden">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-brand blur-md opacity-50"></div>
+                <div class="auth-switch" id="auth-switch-container">
+                    <div class="auth-switch-glider"></div>
+                    <button onclick="window.app.toggleAuth('login')" id="tab-login" class="active">INGRESAR</button>
+                    <button onclick="window.app.toggleAuth('register')" id="tab-register">REGISTRARSE</button>
+                </div>
+                <form onsubmit="event.preventDefault(); window.app.handleAuthSubmit();" class="flex flex-col gap-4">
+                    <div id="field-name" class="hidden transition-all duration-300">
+                        <div class="relative group">
+                            <i class="ph-bold ph-user absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                            <input type="text" id="input-name" class="input-gp pl-12" placeholder="Tu Nombre">
+                        </div>
+                    </div>
+                    <!-- MODIFICADO: Input tipo TEXT y placeholder de ID -->
+                    <div class="relative group">
+                        <i class="ph-bold ph-identification-card absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                        <input type="text" id="input-id" class="input-gp pl-12" placeholder="ID de Operador" required>
+                    </div>
+                    <div class="relative group">
+                        <i class="ph-bold ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-brand transition-colors"></i>
+                        <input type="password" id="input-pass" class="input-gp pl-12" placeholder="Contraseña Maestra" required>
+                    </div>
+                    <div id="auth-error-msg" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold text-center flex items-center justify-center gap-2">
+                        <i class="ph-fill ph-warning-circle"></i> <span id="auth-error-txt">Error</span>
+                    </div>
+                    <button type="submit" id="btn-submit" class="btn-glow w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm mt-2 flex items-center justify-center gap-2 group cursor-pointer">
+                        <span id="btn-text">INICIAR CON ID</span> <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </form>
+                <div class="relative my-6 text-center">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                    <span class="relative bg-[#141416] px-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">O accede con</span>
+                </div>
+                <button onclick="window.app.loginGoogle()" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-3 group cursor-pointer">
+                    <i class="ph-bold ph-google-logo text-xl group-hover:text-brand transition-colors"></i> <span>Google Account</span>
+                </button>
+            </div>
+        </div>
+        <footer class="absolute bottom-4 left-0 w-full text-center pointer-events-none opacity-30">
+            <p class="text-[10px] font-mono tracking-[0.5em] text-white">SYSTEM v6.3 // INTRANET ACCESS</p>
+        </footer>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-3 backdrop-blur-md border-b border-white/5 bg-black/40">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="#" class="flex items-center gap-3 cursor-pointer group no-underline">
+                <div class="relative w-8 h-8 flex items-center justify-center overflow-hidden rounded-full bg-zinc-900 border border-zinc-800 group-hover:border-red-500/50 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.2)]">
+                    <i class="ph-duotone ph-planet text-red-500 text-xl relative z-10 group-hover:rotate-180 transition-transform duration-700 ease-in-out"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold tracking-tight text-white leading-none text-sm group-hover:text-red-500 transition-colors">GOD'S PLAN</span>
+                    <span class="text-[8px] text-zinc-500 font-mono tracking-widest uppercase">Pro v6.3</span>
+                </div>
+            </a>
+            <div class="flex items-center gap-3 sm:gap-4">
+                <div class="hidden md:flex flex-col items-end text-right border-r border-white/10 pr-4">
+                    <span id="sys-time" class="font-mono text-[10px] text-zinc-300 font-bold">00:00:00</span>
+                    <span id="sys-date" class="text-[9px] text-zinc-600 uppercase tracking-widest">SYNCED</span>
+                </div>
+                <div class="flex items-center gap-2 px-2 py-0.5 rounded-full bg-emerald-950/30 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                    <span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span></span>
+                    <span class="hidden sm:block text-[9px] font-bold text-emerald-500 tracking-wider">ONLINE</span>
+                </div>
+                <button onclick="window.app.logout()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-900 hover:bg-red-900/30 text-zinc-400 hover:text-red-500 transition-all border border-white/10 group" title="Cerrar Sesión">
+                    <i class="ph-bold ph-sign-out group-hover:translate-x-0.5 transition-transform text-base"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Backgrounds -->
+    <div class="bg-grid-pattern z-0 pointer-events-none opacity-60"></div>
+    <div class="fixed top-[-20%] left-[-10%] w-[60%] h-[60%] bg-red-900/10 rounded-full blur-[120px] animate-pulse pointer-events-none z-0"></div>
+    
+    <!-- APP CONTAINER (React mounts here, initially hidden) -->
+    <div id="app-view" class="relative z-10 flex-1 flex flex-col items-center pt-24 pb-12 px-4 w-full min-h-screen hidden">
+        <div id="root" class="w-full flex flex-col items-center"></div>
+    </div>
+
+    <script>
+        // System Clock
+        function updateSystemClock() {
+            const now = new Date();
+            const timeElement = document.getElementById('sys-time');
+            const dateElement = document.getElementById('sys-date');
+            if(timeElement) timeElement.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+            if(dateElement) dateElement.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+        }
+        setInterval(updateSystemClock, 1000);
+        updateSystemClock();
+
+        // Audio System
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const SoundFX = {
+            playTone: (freq, type, duration, vol = 0.1) => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            },
+            click: () => SoundFX.playTone(800, 'sine', 0.1, 0.05),
+            softClick: () => SoundFX.playTone(400, 'sine', 0.05, 0.03),
+            write: () => SoundFX.playTone(600, 'triangle', 0.1, 0.05),
+            erase: () => SoundFX.playTone(200, 'sawtooth', 0.15, 0.05),
+            achieve: () => {
+                SoundFX.playTone(400, 'sine', 0.1, 0.1);
+                setTimeout(() => SoundFX.playTone(600, 'sine', 0.1, 0.1), 100);
+                setTimeout(() => SoundFX.playTone(1000, 'sine', 0.3, 0.1), 200);
+            },
+            error: () => {
+                SoundFX.playTone(150, 'sawtooth', 0.3, 0.1);
+                setTimeout(() => SoundFX.playTone(100, 'sawtooth', 0.3, 0.1), 100);
+            },
+            win: () => {
+                const now = audioCtx.currentTime;
+                [261.6, 329.6, 392.0, 523.2].forEach((freq, i) => {
+                    setTimeout(() => SoundFX.playTone(freq, 'square', 0.4, 0.1), i * 100);
+                });
+            }
+        };
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // --- Utils: Seeded Random ---
+        function mulberry32(a) {
+            return function() {
+              var t = a += 0x6D2B79F5;
+              t = Math.imul(t ^ t >>> 15, t | 1);
+              t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+              return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            }
+        }
+
+        const ACHIEVEMENTS = [
+            { id: 'first_win', title: 'Novato', desc: 'Completa tu primera partida', icon: 'ph-star' },
+            { id: 'clean_sheet', title: 'Impecable', desc: 'Gana sin cometer errores', icon: 'ph-check-circle' },
+            { id: 'speedster', title: 'Velocista', desc: 'Gana en menos de 3 minutos', icon: 'ph-lightning' },
+            { id: 'sniper', title: 'Elite', desc: 'Completa modo Difícil o Demente', icon: 'ph-crosshair' },
+            { id: 'daily_hero', title: 'Héroe Diario', desc: 'Completa el Desafío Diario', icon: 'ph-calendar-star' }
+        ];
+
+        // --- Logic ---
+        const BLANK = 0;
+        const isValid = (board, row, col, num) => {
+            for (let i = 0; i < 9; i++) {
+                if (board[row][i] === num && i !== col) return false;
+                if (board[i][col] === num && i !== row) return false;
+                const boxRow = 3 * Math.floor(row / 3) + Math.floor(i / 3);
+                const boxCol = 3 * Math.floor(col / 3) + i % 3;
+                if (board[boxRow][boxCol] === num && (boxRow !== row || boxCol !== col)) return false;
+            }
+            return true;
+        };
+
+        // Basic solver for filling the board
+        const solveSudoku = (board) => {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (board[row][col] === BLANK) {
+                        for (let num = 1; num <= 9; num++) {
+                            if (isValid(board, row, col, num)) {
+                                board[row][col] = num;
+                                if (solveSudoku(board)) return true;
+                                board[row][col] = BLANK;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        };
+
+        // --- NUEVA FUNCIÓN CRÍTICA: Contador de Soluciones ---
+        // Esto verifica si el tablero tiene más de una solución
+        const countSolutions = (board) => {
+            let count = 0;
+            const solve = (bd) => {
+                let row = -1;
+                let col = -1;
+                let isEmpty = false;
+                
+                // Buscar celda vacía
+                for(let i=0; i<9; i++){
+                    for(let j=0; j<9; j++){
+                        if(bd[i][j] === 0){
+                            row = i; col = j;
+                            isEmpty = true;
+                            break;
+                        }
+                    }
+                    if(isEmpty) break;
+                }
+
+                if (!isEmpty) {
+                    count++;
+                    return;
+                }
+
+                for (let num = 1; num <= 9; num++) {
+                    if (isValid(bd, row, col, num)) {
+                        bd[row][col] = num;
+                        solve(bd);
+                        bd[row][col] = 0;
+                        if (count > 1) return; // Si ya encontramos 2 soluciones, paramos (no es único)
+                    }
+                }
+            }
+            solve(board.map(r => [...r])); // Usamos una copia para no romper el original
+            return count;
+        };
+
+        const generateSudoku = (difficulty, rng = Math.random) => {
+            const board = Array.from({ length: 9 }, () => Array(9).fill(BLANK));
+            
+            // 1. Llenar diagonales primero (cajas independientes)
+            const fillBox = (board, rowStart, colStart, rng) => {
+                let num;
+                const isSafeInBox = (board, r, c, n) => {
+                    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (board[r + i][c + j] === n) return false;
+                    return true;
+                };
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        do { num = Math.floor(rng() * 9) + 1; } while (!isSafeInBox(board, rowStart, colStart, num));
+                        board[rowStart + i][colStart + j] = num;
+                    }
+                }
+            };
+            for (let i = 0; i < 9; i = i + 3) fillBox(board, i, i, rng);
+            
+            // 2. Resolver para llenar el resto
+            solveSudoku(board);
+            const solution = board.map(row => [...row]);
+
+            // 3. Definir cuántos borrar (Dificultad)
+            let attempts = 30; // Easy
+            if (difficulty === 'medium') attempts = 40;
+            if (difficulty === 'hard') attempts = 50;
+            if (difficulty === 'insane') attempts = 58;
+
+            // 4. Crear lista de celdas y mezclarlas
+            let cells = [];
+            for(let r=0; r<9; r++) for(let c=0; c<9; c++) cells.push([r,c]);
+            
+            // Fisher-Yates shuffle
+            for (let i = cells.length - 1; i > 0; i--) {
+                const j = Math.floor(rng() * (i + 1));
+                [cells[i], cells[j]] = [cells[j], cells[i]];
+            }
+
+            // 5. Borrar números asegurando unicidad
+            for (let [r, c] of cells) {
+                if (attempts <= 0) break;
+
+                let backup = board[r][c];
+                board[r][c] = BLANK; // Intentar borrar
+
+                // CHECK CRÍTICO: ¿Sigue siendo único?
+                // Copiamos el tablero para que el validador no lo modifique
+                const solutionsCount = countSolutions(board);
+
+                if (solutionsCount !== 1) {
+                    board[r][c] = backup; // No es único, devolver el número
+                } else {
+                    attempts--; // Éxito, número borrado
+                }
+            }
+            
+            return { initial: board, solution };
+        };
+
+        const getCompletedGroups = (grid, solution) => {
+            const rows = new Set(), cols = new Set(), boxes = new Set();
+            if(grid.length === 0 || solution.length === 0) return { rows, cols, boxes };
+            for(let r=0; r<9; r++) {
+                let ok = true; for(let c=0; c<9; c++) if(grid[r][c] !== solution[r][c]) ok = false;
+                if(ok) rows.add(r);
+            }
+            for(let c=0; c<9; c++) {
+                let ok = true; for(let r=0; r<9; r++) if(grid[r][c] !== solution[r][c]) ok = false;
+                if(ok) cols.add(c);
+            }
+            for(let b=0; b<9; b++) {
+                let ok = true;
+                const startR = Math.floor(b/3)*3, startC = (b%3)*3;
+                for(let i=0; i<3; i++) for(let j=0; j<3; j++) if(grid[startR+i][startC+j] !== solution[startR+i][startC+j]) ok = false;
+                if(ok) boxes.add(b);
+            }
+            return { rows, cols, boxes };
+        };
+
+        // --- APP ---
+        function SudokuApp() {
+            const [grid, setGrid] = useState([]);
+            const [initialGrid, setInitialGrid] = useState([]);
+            const [solution, setSolution] = useState([]);
+            const [notes, setNotes] = useState(Array.from({length: 9}, () => Array.from({length: 9}, () => new Set())));
+            const [selected, setSelected] = useState(null);
+            const [difficulty, setDifficulty] = useState('easy');
+            const [mistakes, setMistakes] = useState(0);
+            const [time, setTime] = useState(0);
+            const [isNoteMode, setIsNoteMode] = useState(false);
+            const [history, setHistory] = useState([]);
+            const [gameState, setGameState] = useState('menu'); 
+            const [shake, setShake] = useState(false);
+            const [settings, setSettings] = useState({ sound: true, autoClean: true });
+            const [showSettings, setShowSettings] = useState(false);
+            const [completed, setCompleted] = useState({ rows: new Set(), cols: new Set(), boxes: new Set() });
+            
+            // Progression
+            const [unlocked, setUnlocked] = useState(new Set());
+            const [showAchievements, setShowAchievements] = useState(false);
+            const [newUnlock, setNewUnlock] = useState(null);
+            const [isDaily, setIsDaily] = useState(false);
+            const [dailyCompleted, setDailyCompleted] = useState(false);
+            const [userName, setUserName] = useState("Guest");
+
+            // Sync with Firestore
+            useEffect(() => {
+                const handleData = (e) => {
+                    const data = e.detail;
+                    if(data) {
+                        if(data.achievements) setUnlocked(new Set(data.achievements));
+                        if(data.name) setUserName(data.name);
+                    }
+                };
+                window.addEventListener('userDataLoaded', handleData);
+                
+                // Check if already loaded
+                if(window.currentUserData) {
+                    if(window.currentUserData.achievements) setUnlocked(new Set(window.currentUserData.achievements));
+                    if(window.currentUserData.name) setUserName(window.currentUserData.name);
+                }
+
+                // Check local daily
+                const today = new Date().toDateString();
+                const lastDaily = localStorage.getItem('gods_plan_last_daily');
+                if(lastDaily === today) setDailyCompleted(true);
+
+                return () => window.removeEventListener('userDataLoaded', handleData);
+            }, []);
+
+            const saveAchievementToCloud = async (achID) => {
+                const user = window.auth.currentUser;
+                if(user) {
+                    try {
+                        const userRef = window.getUserDocRef(user.uid);
+                        await window.updateDoc(userRef, {
+                            achievements: window.arrayUnion(achID)
+                        });
+                    } catch(e) { console.error("Error saving achievement", e); }
+                }
+            };
+
+            const unlockAchievement = (id) => {
+                if(!unlocked.has(id)) {
+                    const newSet = new Set(unlocked);
+                    newSet.add(id);
+                    setUnlocked(newSet);
+                    
+                    // Show toast
+                    const achData = ACHIEVEMENTS.find(a => a.id === id);
+                    setNewUnlock(achData);
+                    if(settings.sound) SoundFX.achieve();
+                    setTimeout(() => setNewUnlock(null), 4000);
+                    
+                    // Save
+                    saveAchievementToCloud(id);
+                }
+            }
+
+            useEffect(() => {
+                let interval;
+                if (gameState === 'playing') interval = setInterval(() => setTime(t => t + 1), 1000);
+                return () => clearInterval(interval);
+            }, [gameState]);
+
+            useEffect(() => {
+                if(gameState === 'playing' && grid.length > 0 && solution.length > 0) {
+                    const newCompleted = getCompletedGroups(grid, solution);
+                    setCompleted(newCompleted);
+                }
+            }, [grid, solution, gameState]);
+
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (gameState !== 'playing') return;
+                    if (e.key === 'p' || e.key === 'P') togglePause();
+                    if (selected) {
+                        const { row, col } = selected;
+                        let newRow = row, newCol = col;
+                        if (e.key === 'ArrowUp' || e.key === 'w') newRow = (row - 1 + 9) % 9;
+                        if (e.key === 'ArrowDown' || e.key === 's') newRow = (row + 1) % 9;
+                        if (e.key === 'ArrowLeft' || e.key === 'a') newCol = (col - 1 + 9) % 9;
+                        if (e.key === 'ArrowRight' || e.key === 'd') newCol = (col + 1) % 9;
+                        if (newRow !== row || newCol !== col) {
+                            e.preventDefault();
+                            if(settings.sound) SoundFX.softClick();
+                            setSelected({ row: newRow, col: newCol });
+                        }
+                    }
+                    if (e.key >= '1' && e.key <= '9') handleNumberInput(parseInt(e.key));
+                    if (e.key === 'Backspace' || e.key === 'Delete') handleErase();
+                    if (e.key === 'n' || e.key === 'N') { setIsNoteMode(p => !p); if(settings.sound) SoundFX.softClick(); }
+                    if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) handleUndo();
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [selected, gameState, isNoteMode, grid, notes, settings]);
+
+            const startNewGame = (diff, daily = false) => {
+                if(settings.sound) SoundFX.click();
+                setIsDaily(daily);
+                setDifficulty(diff);
+                let rng = Math.random;
+                if(daily) {
+                    const str = new Date().toDateString();
+                    let hash = 0;
+                    for (let i = 0; i < str.length; i++) { hash = ((hash << 5) - hash) + str.charCodeAt(i); hash |= 0; }
+                    rng = mulberry32(hash);
+                }
+                const { initial, solution: sol } = generateSudoku(diff, rng);
+                setInitialGrid(initial.map(row => [...row]));
+                setGrid(initial.map(row => [...row]));
+                setSolution(sol);
+                setNotes(Array.from({length: 9}, () => Array.from({length: 9}, () => new Set())));
+                setMistakes(0);
+                setTime(0);
+                setHistory([]);
+                setCompleted({ rows: new Set(), cols: new Set(), boxes: new Set() });
+                setGameState('playing');
+                setSelected({row: 4, col: 4});
+            };
+
+            const resetGame = () => {
+                if(confirm("¿Reiniciar la partida actual?")) {
+                    if(settings.sound) SoundFX.click();
+                    setGrid(initialGrid.map(row => [...row]));
+                    setNotes(Array.from({length: 9}, () => Array.from({length: 9}, () => new Set())));
+                    setMistakes(0);
+                    setTime(0);
+                    setHistory([]);
+                    setGameState('playing'); // Close pause menu if open
+                }
+            }
+
+            const togglePause = () => {
+                if(settings.sound) SoundFX.click();
+                setGameState(prev => prev === 'playing' ? 'paused' : 'playing');
+            }
+
+            const quitToMenu = () => {
+                if(confirm("¿Salir al Menú Principal? Se perderá el progreso actual.")) {
+                    if(settings.sound) SoundFX.click();
+                    setGameState('menu');
+                }
+            }
+
+            const saveState = () => {
+                setHistory(prev => [...prev.slice(-15), {
+                    grid: grid.map(r => [...r]),
+                    notes: notes.map(r => r.map(c => new Set(c))),
+                }]);
+            };
+
+            const handleUndo = () => {
+                if (history.length === 0 || gameState !== 'playing') return;
+                if(settings.sound) SoundFX.softClick();
+                const lastState = history[history.length - 1];
+                setGrid(lastState.grid);
+                setNotes(lastState.notes);
+                setHistory(prev => prev.slice(0, -1));
+            };
+
+            const handleNumberInput = (num) => {
+                if (!selected || gameState !== 'playing') return;
+                const { row, col } = selected;
+                if (initialGrid[row][col] !== BLANK) return;
+
+                if (isNoteMode) {
+                    if(settings.sound) SoundFX.softClick();
+                    const newNotes = notes.map(r => r.map(c => new Set(c)));
+                    const cellNotes = newNotes[row][col];
+                    if (cellNotes.has(num)) cellNotes.delete(num); else cellNotes.add(num);
+                    saveState();
+                    setNotes(newNotes);
+                } else {
+                    if (grid[row][col] === num) return;
+                    saveState();
+                    const newGrid = grid.map(r => [...r]);
+                    newGrid[row][col] = num;
+                    setGrid(newGrid);
+
+                    if (num !== solution[row][col]) {
+                        if(settings.sound) SoundFX.error();
+                        setMistakes(m => {
+                            const nm = m + 1;
+                            setShake(true); setTimeout(() => setShake(false), 400);
+                            if (nm >= 3 && !isDaily) setGameState('gameover');
+                            if (nm >= 3 && isDaily) setGameState('gameover');
+                            return nm;
+                        });
+                    } else {
+                        if(settings.sound) SoundFX.write();
+                        let newNotes = notes;
+                        if(settings.autoClean) {
+                            newNotes = notes.map(r => r.map(c => new Set(c)));
+                            newNotes[row][col].clear();
+                            for(let i=0; i<9; i++) { newNotes[row][i].delete(num); newNotes[i][col].delete(num); }
+                            const boxRow = 3 * Math.floor(row/3);
+                            const boxCol = 3 * Math.floor(col/3);
+                            for(let i=0; i<3; i++) for(let j=0; j<3; j++) newNotes[boxRow+i][boxCol+j].delete(num);
+                            setNotes(newNotes);
+                        }
+                        // Check win
+                        let won = true;
+                        for(let r=0; r<9; r++) for(let c=0; c<9; c++) if(newGrid[r][c] !== solution[r][c]) won = false;
+                        if(won) {
+                            setGameState('won');
+                            if(settings.sound) SoundFX.win();
+                            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#EF4444', '#FFFFFF', '#000000'] });
+                            
+                            unlockAchievement('first_win');
+                            if(mistakes === 0) unlockAchievement('clean_sheet');
+                            if(time < 180) unlockAchievement('speedster');
+                            if(difficulty === 'hard' || difficulty === 'insane') unlockAchievement('sniper');
+                            if(isDaily) {
+                                unlockAchievement('daily_hero');
+                                localStorage.setItem('gods_plan_last_daily', new Date().toDateString());
+                                setDailyCompleted(true);
+                            }
+                        }
+                    }
+                }
+            };
+
+            const handleErase = () => {
+                if (!selected || gameState !== 'playing') return;
+                const { row, col } = selected;
+                if (initialGrid[row][col] !== BLANK) return;
+                saveState();
+                if(settings.sound) SoundFX.erase();
+                const newGrid = grid.map(r => [...r]);
+                newGrid[row][col] = BLANK;
+                setGrid(newGrid);
+            };
+
+            const handleHint = () => {
+                if (!selected || gameState !== 'playing') return;
+                const { row, col } = selected;
+                if (grid[row][col] !== BLANK) return;
+                if(settings.sound) SoundFX.win();
+                saveState();
+                const newGrid = grid.map(r => [...r]);
+                newGrid[row][col] = solution[row][col];
+                setGrid(newGrid);
+            };
+
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            };
+
+            const getCellClass = (row, col) => {
+                const val = grid[row][col];
+                const isInit = initialGrid[row][col] !== BLANK;
+                const isSel = selected?.row === row && selected?.col === col;
+                const isErr = val !== BLANK && val !== solution[row][col];
+                const selVal = selected ? grid[selected.row][selected.col] : null;
+                const isSameNum = val !== BLANK && selVal === val; 
+                const isRelated = selected && (selected.row === row || selected.col === col || 
+                                (Math.floor(selected.row/3) === Math.floor(row/3) && Math.floor(selected.col/3) === Math.floor(col/3)));
+                const boxIndex = Math.floor(row / 3) * 3 + Math.floor(col / 3);
+                const isGroupComplete = completed.rows.has(row) || completed.cols.has(col) || completed.boxes.has(boxIndex);
+
+                let classes = "sudoku-cell w-full h-full flex items-center justify-center relative text-lg sm:text-2xl font-bold select-none ";
+                if (isGroupComplete && !isErr) classes += "completed-group-anim ";
+                if (isSel) classes += isNoteMode ? "bg-zinc-700 ring-2 ring-emerald-500 z-20 cursor-pointer " : "bg-red-600/60 text-white ring-2 ring-red-500 shadow-[0_0_15px_rgba(220,38,38,0.5)] z-20 cursor-pointer ";
+                else if (isErr) classes += "bg-red-900/50 text-red-200 animate-pulse cursor-pointer ";
+                else if (isSameNum) classes += "bg-red-500/30 text-white font-black shadow-[inset_0_0_10px_rgba(220,38,38,0.3)] cursor-pointer ";
+                else if (isRelated) classes += "bg-white/5 cursor-pointer "; 
+                else classes += "bg-transparent cursor-pointer ";
+                if (isInit) classes += "text-zinc-500 ";
+                else if (!isErr && !isSel && !isSameNum) classes += "text-red-400 ";
+                return classes;
+            };
+
+            return (
+                <div className={`w-full max-w-md flex flex-col items-center px-4 ${shake ? 'shake' : ''} transition-opacity duration-500 ${gameState === 'menu' ? 'opacity-100' : 'opacity-100'}`}>
+                    
+                    {/* IN-GAME HEADER (Only when playing/paused) */}
+                    {(gameState === 'playing' || gameState === 'paused') && (
+                        <div className="w-full flex items-center justify-between mb-4 mt-2">
+                            <button onClick={togglePause} className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center hover:bg-zinc-800 text-white transition-colors">
+                                <i className="ph-bold ph-list text-xl"></i>
+                            </button>
+                            
+                            <div className="flex flex-col items-center">
+                                <span className="font-black text-xl italic tracking-tighter text-white">SUDOKU</span>
+                                <span className="text-[10px] uppercase tracking-widest text-red-500 font-bold">{isDaily ? 'DAILY CHALLENGE' : difficulty}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <div className="flex flex-col items-end mr-2">
+                                    <div className="flex gap-1 mb-1">
+                                        {[0,1,2].map(i => <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < mistakes ? 'bg-red-500 shadow-[0_0_4px_red]' : 'bg-zinc-800'}`}></div>)}
+                                    </div>
+                                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Mistakes</span>
+                                </div>
+                                <div className="text-sm font-mono font-bold bg-zinc-900 px-3 py-1.5 rounded border border-zinc-800 min-w-[60px] text-center text-white">
+                                    {formatTime(time)}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ACHIEVEMENT TOAST */}
+                    {newUnlock && (
+                        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] toast-enter w-[90%] max-w-[350px]">
+                            <div className="glass-panel bg-black/90 p-4 rounded-xl border border-yellow-500/30 flex items-center gap-4 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
+                                <div className="w-10 h-10 rounded-full bg-yellow-900/30 flex items-center justify-center text-yellow-400"><i className={`ph-fill ${newUnlock.icon} text-xl`}></i></div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest">Achievement Unlocked</span>
+                                    <span className="text-white font-bold">{newUnlock.title}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ACHIEVEMENTS MODAL (Global) */}
+                    {showAchievements && (
+                        <div className="fixed z-[60] inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center" onClick={() => setShowAchievements(false)}>
+                            <div className="glass-panel p-0 rounded-2xl w-[90%] max-w-[400px] overflow-hidden flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
+                                <div className="p-6 border-b border-white/10 bg-black/40">
+                                    <h3 className="text-white text-xl font-black uppercase tracking-wider flex items-center gap-2"><i className="ph-fill ph-trophy text-yellow-500"></i> Trophies</h3>
+                                    <p className="text-zinc-500 text-xs mt-1">Unlocked: {unlocked.size} / {ACHIEVEMENTS.length}</p>
+                                </div>
+                                <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                                    {ACHIEVEMENTS.map(ach => {
+                                        const isUnlocked = unlocked.has(ach.id);
+                                        return (
+                                            <div key={ach.id} className={`p-4 rounded-xl border transition-all flex items-center gap-4 ${isUnlocked ? 'bg-zinc-900/80 border-yellow-500/20' : 'bg-black/40 border-white/5 opacity-50 grayscale'}`}>
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${isUnlocked ? 'bg-yellow-500/20 text-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-zinc-800 text-zinc-600'}`}><i className={`ph-fill ${ach.icon}`}></i></div>
+                                                <div className="flex flex-col">
+                                                    <span className={`font-bold text-sm ${isUnlocked ? 'text-white' : 'text-zinc-500'}`}>{ach.title}</span>
+                                                    <span className="text-[10px] text-zinc-500">{ach.desc}</span>
+                                                </div>
+                                                {isUnlocked && <i className="ph-bold ph-check text-emerald-500 ml-auto"></i>}
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                                <div className="p-4 border-t border-white/10 bg-black/40">
+                                     <button onClick={() => setShowAchievements(false)} className="w-full bg-zinc-800 hover:bg-zinc-700 py-3 rounded text-xs uppercase font-bold text-white transition-colors">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* SETTINGS OVERLAY */}
+                    {showSettings && (
+                        <div className="fixed z-[60] inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center" onClick={() => setShowSettings(false)}>
+                            <div className="glass-panel p-6 rounded-xl w-[80%] max-w-[300px]" onClick={e => e.stopPropagation()}>
+                                <h3 className="text-white font-bold mb-4 uppercase tracking-wider flex items-center gap-2">
+                                    <i className="ph-fill ph-faders text-red-500"></i> Settings
+                                </h3>
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-zinc-400 text-sm">Sound FX</span>
+                                        <button onClick={() => setSettings(s => ({...s, sound: !s.sound}))} className={`w-10 h-5 rounded-full relative transition-colors ${settings.sound ? 'bg-emerald-600' : 'bg-zinc-700'}`}>
+                                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.sound ? 'left-6' : 'left-1'}`}></div>
+                                        </button>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-zinc-400 text-sm">Auto-Clean Notes</span>
+                                        <button onClick={() => setSettings(s => ({...s, autoClean: !s.autoClean}))} className={`w-10 h-5 rounded-full relative transition-colors ${settings.autoClean ? 'bg-emerald-600' : 'bg-zinc-700'}`}>
+                                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.autoClean ? 'left-6' : 'left-1'}`}></div>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button onClick={() => setShowSettings(false)} className="w-full mt-6 bg-zinc-800 hover:bg-zinc-700 py-2 rounded text-xs uppercase font-bold text-white transition-colors">Close</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MAIN MENU */}
+                    {gameState === 'menu' && (
+                        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 glass-panel rounded-2xl p-6 flex flex-col items-center justify-center animate-pop border border-white/10 shadow-2xl w-[90%] max-w-[360px] bg-black/90">
+                            
+                            <div className="w-full text-center mb-6 border-b border-white/5 pb-4">
+                                <p className="text-zinc-400 text-xs font-mono uppercase tracking-widest">Bienvenido, {userName}</p>
+                            </div>
+
+                            <div className="w-full mb-6 relative group overflow-hidden rounded-xl border border-yellow-500/30">
+                                <div className="absolute inset-0 bg-yellow-900/10 group-hover:bg-yellow-900/20 transition-colors"></div>
+                                <div className="relative p-4 flex items-center justify-between">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest mb-1">Daily Challenge</span>
+                                        <span className="text-white font-bold text-lg">{new Date().toLocaleDateString('en-US', {weekday:'short', day:'numeric'})}</span>
+                                    </div>
+                                    <button onClick={() => startNewGame('medium', true)} disabled={dailyCompleted} className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${dailyCompleted ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-yellow-500 text-black border-yellow-400 hover:scale-105 shadow-[0_0_15px_rgba(234,179,8,0.4)]'}`}><i className={`ph-fill ${dailyCompleted ? 'ph-check' : 'ph-play'} text-xl`}></i></button>
+                                </div>
+                                {dailyCompleted && <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[1px] text-emerald-500 font-bold tracking-widest uppercase text-sm">Completed</div>}
+                            </div>
+                            <div className="w-full flex items-center justify-between mb-4 px-1">
+                                <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest">New Session</span>
+                                <button onClick={() => setShowAchievements(true)} className="flex items-center gap-1 text-[10px] text-zinc-400 hover:text-white transition-colors"><i className="ph-fill ph-trophy text-yellow-600"></i> View Trophies</button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 w-full">
+                                <button onClick={() => startNewGame('easy')} className="bg-zinc-800 hover:bg-emerald-900/40 hover:border-emerald-500/50 border border-white/5 py-4 rounded-lg text-xs font-bold uppercase tracking-widest transition-all flex flex-col items-center gap-1 group"><i className="ph-bold ph-smiley text-emerald-500 text-lg mb-1 group-hover:scale-110 transition-transform"></i><span>Easy</span></button>
+                                <button onClick={() => startNewGame('medium')} className="bg-zinc-800 hover:bg-yellow-900/40 hover:border-yellow-500/50 border border-white/5 py-4 rounded-lg text-xs font-bold uppercase tracking-widest transition-all flex flex-col items-center gap-1 group"><i className="ph-bold ph-brain text-yellow-500 text-lg mb-1 group-hover:scale-110 transition-transform"></i><span>Medium</span></button>
+                                <button onClick={() => startNewGame('hard')} className="bg-zinc-800 hover:bg-red-900/40 hover:border-red-500/50 border border-white/5 py-4 rounded-lg text-xs font-bold uppercase tracking-widest transition-all flex flex-col items-center gap-1 group"><i className="ph-bold ph-fire text-red-500 text-lg mb-1 group-hover:scale-110 transition-transform"></i><span>Hard</span></button>
+                                <button onClick={() => startNewGame('insane')} className="bg-zinc-800 hover:bg-purple-900/40 hover:border-purple-500/50 border border-white/5 py-4 rounded-lg text-xs font-bold uppercase tracking-widest transition-all flex flex-col items-center gap-1 group"><i className="ph-bold ph-skull text-purple-500 text-lg mb-1 group-hover:scale-110 transition-transform"></i><span>Insane</span></button>
+                            </div>
+                            {grid.length > 0 && <button onClick={() => setGameState('playing')} className="mt-6 w-full py-3 border-t border-white/10 text-zinc-400 hover:text-white text-xs tracking-wider uppercase font-bold transition-colors">Resume Current Game</button>}
+                        </div>
+                    )}
+
+                    {/* PAUSE MENU / SETTINGS COMBINED */}
+                    {gameState === 'paused' && (
+                        <div className="fixed inset-0 z-40 bg-black/80 backdrop-blur-md flex items-center justify-center animate-pop">
+                            <div className="glass-panel p-8 rounded-2xl flex flex-col items-center w-[90%] max-w-sm">
+                                <h2 className="text-4xl font-black text-white mb-8 tracking-widest italic">PAUSED</h2>
+                                
+                                {/* Settings Controls */}
+                                <div className="w-full flex flex-col gap-3 mb-8">
+                                    <div className="flex justify-between items-center bg-zinc-900/50 p-3 rounded-lg border border-white/5">
+                                        <span className="text-zinc-400 text-xs font-bold uppercase">Sound FX</span>
+                                        <button onClick={() => setSettings(s => ({...s, sound: !s.sound}))} className={`w-10 h-5 rounded-full relative transition-colors ${settings.sound ? 'bg-emerald-600' : 'bg-zinc-700'}`}>
+                                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.sound ? 'left-6' : 'left-1'}`}></div>
+                                        </button>
+                                    </div>
+                                    <div className="flex justify-between items-center bg-zinc-900/50 p-3 rounded-lg border border-white/5">
+                                        <span className="text-zinc-400 text-xs font-bold uppercase">Auto-Clean</span>
+                                        <button onClick={() => setSettings(s => ({...s, autoClean: !s.autoClean}))} className={`w-10 h-5 rounded-full relative transition-colors ${settings.autoClean ? 'bg-emerald-600' : 'bg-zinc-700'}`}>
+                                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.autoClean ? 'left-6' : 'left-1'}`}></div>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="w-full flex flex-col gap-3">
+                                    <button onClick={togglePause} className="w-full bg-white hover:bg-zinc-200 text-black py-4 rounded-xl font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all hover:scale-105 mb-2">
+                                        Resume Game
+                                    </button>
+                                    <button onClick={resetGame} className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border border-white/5">
+                                        Restart Level
+                                    </button>
+                                    <button onClick={quitToMenu} className="w-full bg-red-900/20 hover:bg-red-900/40 text-red-500 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border border-red-500/20 mt-2">
+                                        Quit to Main Menu
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {gameState === 'won' && (
+                        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-lg flex items-center justify-center animate-pop">
+                            <div className="p-8 flex flex-col items-center text-center">
+                                <i className="ph-fill ph-trophy text-yellow-500 text-7xl mb-6 drop-shadow-[0_0_35px_rgba(234,179,8,0.6)] animate-bounce"></i>
+                                <h2 className="text-5xl font-black text-white mb-2 italic tracking-tighter">VICTORY</h2>
+                                <div className="h-1 w-20 bg-gradient-to-r from-transparent via-yellow-500 to-transparent mb-6"></div>
+                                <p className="text-zinc-300 mb-8 font-mono text-sm">Protocol Completed<br/>Time: <span className="text-white font-bold">{formatTime(time)}</span></p>
+                                <button onClick={() => setGameState('menu')} className="px-10 py-3 bg-zinc-800 hover:bg-white hover:text-black border border-white/20 rounded-full text-xs font-bold uppercase tracking-widest transition-all">Continue</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {gameState === 'gameover' && (
+                        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center animate-pop">
+                             <div className="p-8 flex flex-col items-center text-center border border-red-900/50 rounded-2xl bg-red-950/10">
+                                <i className="ph-duotone ph-warning text-red-500 text-7xl mb-4 animate-pulse"></i>
+                                <h2 className="text-4xl font-black text-white mb-2 italic tracking-tighter">FAILURE</h2>
+                                <p className="text-red-300/70 mb-8 font-mono text-xs max-w-[200px]">Error threshold exceeded. System lockout initiated.</p>
+                                <button onClick={() => setGameState('menu')} className="w-full bg-red-600 hover:bg-red-500 py-3 rounded text-xs font-bold uppercase tracking-widest transition-all text-white shadow-[0_0_20px_rgba(220,38,38,0.3)]">Reboot System</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* BOARD & CONTROLS (Only visible when playing) */}
+                    {(gameState === 'playing' || gameState === 'paused') && (
+                        <>
+                            {/* BOARD */}
+                            <div className={`w-full max-w-[380px] relative transition-all duration-300 ${isNoteMode ? 'p-[2px] rounded-lg bg-gradient-to-br from-emerald-500/50 to-transparent' : 'p-[2px] rounded-lg bg-gradient-to-br from-white/10 to-transparent'}`}>
+                                <div className="bg-black rounded-md overflow-hidden shadow-2xl relative w-full aspect-square border border-white/10">
+                                    <div className="flex flex-col h-full w-full">
+                                        {grid.length > 0 ? grid.map((rowArr, rIndex) => (
+                                            <div key={rIndex} className="flex sudoku-row flex-1">
+                                                {rowArr.map((cellVal, cIndex) => (
+                                                    <div key={`${rIndex}-${cIndex}`} onClick={() => { if(settings.sound) SoundFX.softClick(); setSelected({row: rIndex, col: cIndex}); }} className={`flex-1 ${getCellClass(rIndex, cIndex)}`}>
+                                                        {cellVal !== BLANK ? cellVal : (
+                                                            <div className="grid grid-cols-3 w-full h-full p-[1px] pointer-events-none">
+                                                                {[1,2,3,4,5,6,7,8,9].map(n => (<div key={n} className="flex items-center justify-center text-[7px] sm:text-[8px] leading-none text-zinc-500">{notes[rIndex][cIndex].has(n) ? n : ''}</div>))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )) : <div className="h-full w-full flex items-center justify-center text-zinc-600 font-mono text-xs animate-pulse">Initializing Matrix...</div>}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* CONTROLS */}
+                            <div className="w-full mt-4 flex flex-col gap-3 max-w-[380px]">
+                                <div className="flex justify-between gap-2 px-1">
+                                    <button onClick={handleUndo} className="flex-1 h-12 rounded bg-zinc-900 border border-white/5 flex flex-col items-center justify-center gap-1 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all active:scale-95 group"><i className="ph-bold ph-arrow-u-up-left text-lg group-hover:-translate-y-0.5 transition-transform"></i><span className="text-[9px] uppercase font-bold tracking-wider">Undo</span></button>
+                                    <button onClick={handleErase} className="flex-1 h-12 rounded bg-zinc-900 border border-white/5 flex flex-col items-center justify-center gap-1 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all active:scale-95 group"><i className="ph-bold ph-eraser text-lg group-hover:-translate-y-0.5 transition-transform"></i><span className="text-[9px] uppercase font-bold tracking-wider">Erase</span></button>
+                                    <button onClick={() => { setIsNoteMode(!isNoteMode); if(settings.sound) SoundFX.click(); }} className={`flex-1 h-12 rounded border flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${isNoteMode ? 'bg-emerald-900/30 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-white/5 text-zinc-400 hover:text-white hover:bg-zinc-800'}`}><div className="relative"><i className={`ph-bold ph-pencil-simple text-lg ${isNoteMode ? 'animate-bounce' : ''}`}></i><span className="absolute -top-1 -right-2 text-[8px] bg-zinc-950 px-1 rounded border border-white/10">{isNoteMode ? 'ON' : 'OFF'}</span></div><span className="text-[9px] uppercase font-bold tracking-wider">Notes</span></button>
+                                     <button onClick={handleHint} className="flex-1 h-12 rounded bg-zinc-900 border border-white/5 flex flex-col items-center justify-center gap-1 text-zinc-400 hover:text-yellow-200 hover:bg-yellow-900/20 hover:border-yellow-500/30 transition-all active:scale-95 group"><i className="ph-bold ph-lightbulb text-lg group-hover:-translate-y-0.5 transition-transform"></i><span className="text-[9px] uppercase font-bold tracking-wider">Hint</span></button>
+                                </div>
+                                <div className="grid grid-cols-9 gap-1 sm:gap-2 mt-1">
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
+                                        let count = 0; grid.forEach(r=>r.forEach(c=>{if(c===num)count++}));
+                                        const isDone = count >= 9;
+                                        return (<button key={num} onClick={() => handleNumberInput(num)} disabled={isDone} className={`h-11 sm:h-14 rounded border flex flex-col items-center justify-center transition-all active:scale-90 relative overflow-hidden ${isDone ? 'bg-zinc-900/30 border-transparent text-zinc-700 opacity-50 cursor-not-allowed' : 'bg-zinc-800 hover:bg-red-600 hover:border-red-400 border-white/5 text-zinc-200 hover:text-white hover:shadow-[0_0_15px_rgba(220,38,38,0.5)]'}`}><span className="text-xl font-bold z-10">{num}</span></button>);
+                                    })}
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<SudokuApp />);
+    </script>
+</body>
+</html>
