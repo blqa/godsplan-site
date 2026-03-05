@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Arrow Zen</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --primary: #DC2626; /* Red 600 */
+            --primary-dark: #991b1b; /* Red 800 */
+            --bg-color: #050000; /* Dark Black */
+            --surface: #121212; /* Dark Panel */
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa; /* Zinc 400 */
+            --danger: #ef4444; 
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            touch-action: none;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .glass-btn:active {
+            transform: scale(0.92);
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(220, 38, 38, 0.1);
+        }
+        .glass-btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .game-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 16px;
+        }
+
+        .game-board {
+            display: grid;
+            gap: 8px;
+            width: 100%;
+            max-width: 380px; 
+            aspect-ratio: 1;
+            background: #18181b; /* Zinc 900 */
+            padding: 12px;
+            border-radius: 24px;
+            position: relative;
+            grid-auto-rows: minmax(0, 1fr);
+            grid-auto-columns: minmax(0, 1fr);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.1);
+        }
+        
+        .game-board.locked { pointer-events: none; }
+
+        .grid-cell {
+            background-color: #27272a; /* Zinc 800 */
+            border-radius: 12px;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Ajustes para tableros grandes */
+        .game-board.dense { gap: 6px; padding: 10px; }
+        .game-board.dense .grid-cell { border-radius: 8px; }
+        
+        .game-board.super-dense { 
+            gap: 3px; 
+            padding: 8px; 
+            background: #27272a; 
+        }
+        .game-board.super-dense .grid-cell { 
+            border-radius: 4px; 
+            background-color: #3f3f46; 
+        }
+
+        .arrow-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .arrow-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            overflow: visible;
+            pointer-events: auto;
+            cursor: pointer;
+            filter: drop-shadow(0 0 5px rgba(220, 38, 38, 0.4));
+        }
+
+        /* --- ESTILOS DE FLECHA --- */
+        .arrow-line {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 16px; /* Unidad PX explícita */
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        
+        /* CORRECCIÓN: Unidad px añadida aquí para evitar flechas invisibles */
+        .game-board.super-dense .arrow-line { stroke-width: 14px; }
+
+        .arrow-head {
+            fill: var(--primary);
+            stroke: none;
+        }
+
+        /* Estados */
+        .is-blocking .arrow-line { stroke: #ffffff !important; opacity: 0.5; }
+        .is-blocking .arrow-head { fill: #ffffff !important; opacity: 0.5; }
+
+        /* Exit State */
+        .snake-out {
+            pointer-events: none !important;
+            z-index: 50; 
+        }
+
+        /* Bump Animation */
+        .blocked-bump {
+            animation: bump 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes bump {
+            0% { transform: translate(0, 0); }
+            30% { transform: translate(var(--bump-x), var(--bump-y)); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* --- OVERLAYS --- */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal-card {
+            background: #18181b; width: 85%; max-width: 320px;
+            padding: 32px; border-radius: 32px; text-align: center;
+            transform: translateY(20px) scale(0.95);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 40px rgba(220, 38, 38, 0.2), 0 0 0 1px rgba(255,255,255,0.1);
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0) scale(1); }
+
+        .star-icon { color: #DC2626; transform: scale(0); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); filter: drop-shadow(0 0 10px rgba(220,38,38,0.5)); }
+        .star-icon.pop { transform: scale(1); }
+
+        #confetti-canvas { position: absolute; pointer-events: none; top: 0; left: 0; width: 100%; height: 100%; z-index: 40; }
+        
+        .loader {
+            width: 40px; height: 40px;
+            border: 4px solid #3f3f46; border-top-color: var(--primary);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="pt-20">
+
+    <!-- --- NAVBAR --- -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-3 backdrop-blur-md border-b border-white/5 bg-black/40">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            
+            <!-- Logo -->
+            <a href="index.html" class="flex items-center gap-3 cursor-pointer group no-underline">
+                <div class="relative w-8 h-8 flex items-center justify-center overflow-hidden rounded-full bg-zinc-900 border border-zinc-800 group-hover:border-red-500/50 transition-colors">
+                    <i class="ph-duotone ph-planet text-red-500 text-xl relative z-10 group-hover:rotate-180 transition-transform duration-700 ease-in-out"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold tracking-tight text-white leading-none text-sm group-hover:text-red-500 transition-colors">GOD'S PLAN</span>
+                    <span class="text-[8px] text-zinc-500 font-mono tracking-widest uppercase">Nexus Hub v4.1</span>
+                </div>
+            </a>
+
+            <!-- Right Controls -->
+            <div class="flex items-center gap-4">
+                <!-- Clock -->
+                <div class="hidden md:flex flex-col items-end text-right border-r border-white/10 pr-4">
+                    <span id="sys-time" class="font-mono text-[10px] text-zinc-300 font-bold">00:00:00</span>
+                    <span id="sys-date" class="text-[9px] text-zinc-600 uppercase tracking-widest">LOADING...</span>
+                </div>
+
+                <!-- Status -->
+                <div class="flex items-center gap-2 px-2 py-0.5 rounded-full bg-emerald-950/30 border border-emerald-500/20">
+                    <span class="relative flex h-1.5 w-1.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    </span>
+                    <span class="hidden sm:block text-[9px] font-bold text-emerald-500 tracking-wider">ONLINE</span>
+                </div>
+
+                <!-- Contact -->
+                <a href="index.html" class="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all border border-white/10 group">
+                    <i class="ph-bold ph-house group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform text-base"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Game Header (Level & Controls) -->
+    <header class="px-6 py-4 flex justify-between items-center w-full max-w-md mx-auto z-20">
+        <div>
+            <h1 class="text-3xl font-black text-white italic tracking-tighter leading-none drop-shadow-[0_0_15px_rgba(220,38,38,0.6)]">ARROW <span class="text-red-600">ZEN</span></h1>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest font-mono">NIVEL</span>
+                <span id="level-display" class="text-xl font-black text-white leading-none">1</span>
+            </div>
+        </div>
+        
+        <div class="flex gap-3">
+            <button onclick="Game.toggleSound()" id="sound-btn" class="glass-btn w-12 h-12 rounded-2xl flex items-center justify-center hover:text-white" title="Sonido">
+                <svg id="icon-sound-on" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                <svg id="icon-sound-off" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+            </button>
+            <button onclick="Game.restartLevel()" class="glass-btn w-12 h-12 rounded-2xl flex items-center justify-center hover:text-white" title="Reiniciar Nivel">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12"/><path d="M3 3v9h9"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="game-wrapper">
+        <canvas id="confetti-canvas"></canvas>
+        
+        <div id="game-board" class="game-board">
+            <div id="grid-bg-layer" class="absolute inset-0 p-3 grid gap-2 z-0 pointer-events-none"></div>
+            <div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/90 rounded-3xl backdrop-blur transition-opacity duration-300">
+                <div class="loader mb-4"></div>
+                <div class="text-sm font-bold text-zinc-500 tracking-widest uppercase font-mono">Diseñando Puzzle</div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="pb-safe-bottom px-6 py-4 w-full max-w-md mx-auto z-10 flex justify-between items-end">
+        <div>
+            <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mb-1">OBJETIVO</p>
+            <p id="hint-text" class="text-zinc-400 font-bold text-xs uppercase tracking-wide font-mono">Despeja el tablero</p>
+        </div>
+        <button onclick="Game.resetProgress()" class="group flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-red-900/20 border border-white/5 hover:border-red-500/30 transition-all">
+            <i class="ph-bold ph-trash text-zinc-500 group-hover:text-red-500 text-xs"></i>
+            <span class="text-[10px] font-bold text-zinc-500 group-hover:text-red-400 uppercase tracking-wider">Reset</span>
+        </button>
+    </footer>
+
+    <div id="win-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="flex justify-center gap-2 mb-6">
+                <svg class="star-icon w-10 h-10" id="star-1" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <svg class="star-icon w-12 h-12 -mt-2" id="star-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <svg class="star-icon w-10 h-10" id="star-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <h2 class="text-2xl font-black text-white mb-2 tracking-tighter">¡EXCELENTE!</h2>
+            <p class="text-zinc-500 mb-8 font-medium text-sm font-mono uppercase tracking-widest">Nivel completado</p>
+            
+            <button id="next-lvl-btn" onclick="Game.nextLevel()" class="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-bold text-lg shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all active:scale-95">
+                SIGUIENTE NIVEL
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Reloj de la Navbar
+        function updateSystemClock() {
+            const now = new Date();
+            const timeElement = document.getElementById('sys-time');
+            const dateElement = document.getElementById('sys-date');
+            
+            if(timeElement) {
+                timeElement.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+            }
+            if(dateElement) {
+                dateElement.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+            }
+        }
+        setInterval(updateSystemClock, 1000);
+        updateSystemClock();
+
+        const AudioSys = {
+            ctx: null,
+            enabled: true,
+            init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+            playTone(freq, type, duration, vol = 0.1) {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            },
+            pop() { this.init(); if(this.enabled) this.playTone(600, 'sine', 0.1, 0.1); },
+            whoosh() { this.init(); this.playTone(300, 'sine', 0.3, 0.05); },
+            error() { this.init(); this.playTone(150, 'triangle', 0.15, 0.15); },
+            win() {
+                this.init();
+                setTimeout(() => this.playTone(523.25, 'sine', 0.2, 0.1), 0);
+                setTimeout(() => this.playTone(659.25, 'sine', 0.2, 0.1), 150);
+                setTimeout(() => this.playTone(783.99, 'sine', 0.4, 0.1), 300);
+            }
+        };
+
+        const UP=1, RIGHT=2, DOWN=3, LEFT=4;
+        
+        const Game = {
+            gridSize: 5,
+            level: 1,
+            arrows: [],
+            savedArrows: [],
+            isLevelComplete: false,
+            isProcessingLevel: false,
+
+            init() {
+                const savedLvl = localStorage.getItem('arrow-puzzle-level');
+                if(savedLvl) this.level = parseInt(savedLvl);
+                document.getElementById('level-display').innerText = this.level;
+                this.calcGridSize();
+                this.setupGridDOM();
+                this.generateLevel();
+            },
+
+            calcGridSize() {
+                if(this.level < 4) this.gridSize = 4;
+                else if(this.level < 9) this.gridSize = 5;
+                else if(this.level < 15) this.gridSize = 6;
+                else if(this.level < 25) this.gridSize = 7;
+                else if(this.level < 40) this.gridSize = 8;
+                else this.gridSize = 9;
+            },
+
+            setupGridDOM() {
+                const bgLayer = document.getElementById('grid-bg-layer');
+                const board = document.getElementById('game-board');
+                
+                board.classList.remove('dense', 'super-dense');
+                if(this.gridSize >= 8) board.classList.add('super-dense');
+                else if(this.gridSize >= 6) board.classList.add('dense');
+                
+                const template = `repeat(${this.gridSize}, minmax(0, 1fr))`;
+                bgLayer.style.gridTemplateColumns = template;
+                bgLayer.style.gridTemplateRows = template;
+                board.style.gridTemplateColumns = template;
+                board.style.gridTemplateRows = template;
+
+                bgLayer.innerHTML = '';
+                for(let i=0; i<this.gridSize*this.gridSize; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'grid-cell';
+                    bgLayer.appendChild(div);
+                }
+            },
+
+            toggleSound() {
+                AudioSys.enabled = !AudioSys.enabled;
+                document.getElementById('icon-sound-on').classList.toggle('hidden');
+                document.getElementById('icon-sound-off').classList.toggle('hidden');
+                AudioSys.init();
+            },
+
+            resetProgress() {
+                if(confirm('¿Reiniciar todo el progreso al Nivel 1?')) {
+                    this.level = 1;
+                    localStorage.setItem('arrow-puzzle-level', 1);
+                    document.getElementById('level-display').innerText = 1;
+                    this.calcGridSize();
+                    this.setupGridDOM();
+                    this.generateLevel();
+                }
+            },
+
+            async generateLevel() {
+                this.isLevelComplete = false;
+                const overlay = document.getElementById('loading-overlay');
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+                document.getElementById('game-board').classList.remove('locked');
+
+                await new Promise(r => setTimeout(r, 400));
+                
+                const newArrows = await LevelGenerator.create(this.gridSize, this.level);
+                this.arrows = newArrows;
+                this.savedArrows = JSON.parse(JSON.stringify(newArrows));
+                
+                this.render();
+                
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+                
+                const hint = document.getElementById('hint-text');
+                if (this.gridSize >= 8) hint.innerText = "¡Nivel Maestro! Concentración total.";
+                else if (this.gridSize >= 6) hint.innerText = "¡Tablero denso! Planifica bien.";
+                else hint.innerText = "Despeja el tablero.";
+
+                this.isProcessingLevel = false;
+                const nextBtn = document.getElementById('next-lvl-btn');
+                if(nextBtn) nextBtn.disabled = false;
+            },
+
+            restartLevel() {
+                if(this.isProcessingLevel) return;
+                AudioSys.whoosh();
+                this.arrows = JSON.parse(JSON.stringify(this.savedArrows));
+                this.render();
+            },
+
+            render() {
+                const board = document.getElementById('game-board');
+                const existingArrows = board.querySelectorAll('.arrow-container');
+                existingArrows.forEach(el => el.remove());
+
+                this.arrows.forEach(arrow => {
+                    const el = document.createElement('div');
+                    el.className = 'arrow-container';
+                    el.id = `arrow-${arrow.id}`;
+                    
+                    el.style.gridRowStart = arrow.bbox.r + 1;
+                    el.style.gridRowEnd = `span ${arrow.bbox.h}`;
+                    el.style.gridColumnStart = arrow.bbox.c + 1;
+                    el.style.gridColumnEnd = `span ${arrow.bbox.w}`;
+                    
+                    const isSmall = (arrow.occupiedIndices.length === 1);
+                    el.style.zIndex = isSmall ? 20 : 10; 
+
+                    const svgContent = Renderer.drawArrow(arrow, this.gridSize);
+                    el.innerHTML = svgContent;
+
+                    const svg = el.querySelector('svg');
+                    svg.onclick = (e) => {
+                        e.stopPropagation();
+                        this.handleArrowClick(arrow, el);
+                    };
+
+                    board.appendChild(el);
+                });
+            },
+
+            handleArrowClick(arrow, element) {
+                if (!this.arrows.find(a => a.id === arrow.id)) return;
+                if (this.isLevelComplete || this.isProcessingLevel) return;
+
+                const { blockers, freeSteps } = Logic.checkPath(arrow, this.arrows, this.gridSize);
+
+                if (blockers.length === 0) {
+                    AudioSys.pop();
+                    if(navigator.vibrate) navigator.vibrate(10);
+                    
+                    this.arrows = this.arrows.filter(a => a.id !== arrow.id);
+                    
+                    const flyDist = 1200; 
+                    let dx = 0, dy = 0;
+                    if (arrow.dir === UP) dy = -flyDist;
+                    else if (arrow.dir === DOWN) dy = flyDist;
+                    else if (arrow.dir === LEFT) dx = -flyDist;
+                    else if (arrow.dir === RIGHT) dx = flyDist;
+
+                    const pathEl = element.querySelector('.arrow-line');
+                    const headGroup = element.querySelector('.arrow-head-group');
+                    const originalD = pathEl.getAttribute('d');
+                    
+                    // 1. Extend path
+                    pathEl.setAttribute('d', `${originalD} l ${dx} ${dy}`);
+                    const bodyLen = (arrow.occupiedIndices.length) * 100;
+                    pathEl.style.strokeDasharray = `${bodyLen} 10000`;
+                    pathEl.style.strokeDashoffset = '0';
+                    void pathEl.offsetWidth; // Force Reflow
+
+                    // 2. JS Animation (Manual Frame Loop) to guarantee sync
+                    const duration = 500;
+                    const startTime = performance.now();
+                    
+                    const headIndex = arrow.occupiedIndices[arrow.occupiedIndices.length - 1];
+                    const headR = Math.floor(headIndex / Game.gridSize);
+                    const headC = headIndex % Game.gridSize;
+                    const startX = (headC - arrow.bbox.c) * 100 + 50;
+                    const startY = (headR - arrow.bbox.r) * 100 + 50;
+                    
+                    let rot = 0;
+                    if(arrow.dir === UP) rot = -90;
+                    else if(arrow.dir === DOWN) rot = 90;
+                    else if(arrow.dir === LEFT) rot = 180;
+
+                    const ease = t => 1 - Math.pow(1 - t, 3); // Ease Out Cubic
+
+                    function animate(time) {
+                        let elapsed = time - startTime;
+                        let progress = Math.min(elapsed / duration, 1);
+                        let eased = ease(progress);
+
+                        // Animate Body Slide
+                        const currentDash = -flyDist * eased;
+                        pathEl.style.strokeDashoffset = currentDash;
+
+                        // Animate Head Translate
+                        const currentX = startX + (dx * eased);
+                        const currentY = startY + (dy * eased);
+                        headGroup.setAttribute('transform', `translate(${currentX}, ${currentY}) rotate(${rot})`);
+
+                        if (progress < 1) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            element.remove();
+                            Game.checkWin();
+                        }
+                    }
+                    
+                    element.classList.add('snake-out');
+                    requestAnimationFrame(animate);
+                    
+                    const rect = element.getBoundingClientRect();
+                    let px = rect.left + rect.width/2;
+                    let py = rect.top + rect.height/2;
+                    if(arrow.dir === UP) py = rect.top;
+                    else if(arrow.dir === DOWN) py = rect.bottom;
+                    else if(arrow.dir === LEFT) px = rect.left;
+                    else if(arrow.dir === RIGHT) px = rect.right;
+                    Effects.burst(px, py, arrow.dir);
+
+                } else {
+                    AudioSys.error();
+                    if(navigator.vibrate) navigator.vibrate(40);
+                    
+                    let bx = 0, by = 0;
+                    const amount = (freeSteps > 0) ? 20 : 6; 
+                    if (arrow.dir === UP) by = -amount;
+                    else if (arrow.dir === DOWN) by = amount;
+                    else if (arrow.dir === LEFT) bx = -amount;
+                    else if (arrow.dir === RIGHT) bx = amount;
+
+                    element.style.setProperty('--bump-x', `${bx}px`);
+                    element.style.setProperty('--bump-y', `${by}px`);
+
+                    element.classList.remove('blocked-bump');
+                    void element.offsetWidth;
+                    element.classList.add('blocked-bump');
+
+                    blockers.forEach(blockerId => {
+                        const blockerEl = document.getElementById(`arrow-${blockerId}`);
+                        if(blockerEl) {
+                            blockerEl.classList.remove('is-blocking'); 
+                            void blockerEl.offsetWidth;
+                            blockerEl.classList.add('is-blocking');
+                            setTimeout(() => blockerEl.classList.remove('is-blocking'), 400);
+                        }
+                    });
+                }
+            },
+
+            checkWin() {
+                if (this.isProcessingLevel) return; 
+
+                if (this.arrows.length === 0 && !this.isLevelComplete) {
+                    this.isLevelComplete = true;
+                    document.getElementById('game-board').classList.add('locked');
+                    
+                    AudioSys.win();
+                    if(navigator.vibrate) navigator.vibrate([10, 30, 10]);
+                    
+                    const modal = document.getElementById('win-modal');
+                    modal.classList.add('active');
+                    
+                    setTimeout(() => document.getElementById('star-1').classList.add('pop'), 100);
+                    setTimeout(() => document.getElementById('star-2').classList.add('pop'), 300);
+                    setTimeout(() => document.getElementById('star-3').classList.add('pop'), 500);
+                }
+            },
+
+            nextLevel() {
+                if (this.isProcessingLevel) return;
+                this.isProcessingLevel = true;
+                
+                const btn = document.getElementById('next-lvl-btn');
+                if(btn) btn.disabled = true;
+
+                document.getElementById('win-modal').classList.remove('active');
+                document.querySelectorAll('.star-icon').forEach(s => s.classList.remove('pop'));
+                
+                this.level++;
+                localStorage.setItem('arrow-puzzle-level', this.level);
+                document.getElementById('level-display').innerText = this.level;
+                
+                const prevSize = this.gridSize;
+                this.calcGridSize();
+                if(this.gridSize !== prevSize) {
+                    this.setupGridDOM();
+                }
+
+                this.generateLevel();
+            }
+        };
+
+        const Renderer = {
+            drawArrow(arrow, gridSize) {
+                const minR = arrow.bbox.r;
+                const minC = arrow.bbox.c;
+                const indices = [...arrow.occupiedIndices]; 
+                
+                const points = indices.map(idx => ({
+                    x: ((idx % gridSize) - minC) * 100 + 50,
+                    y: (Math.floor(idx / gridSize) - minR) * 100 + 50
+                }));
+
+                let d = `M ${points[0].x} ${points[0].y}`;
+                for(let i=1; i<points.length; i++) {
+                    d += ` L ${points[i].x} ${points[i].y}`;
+                }
+
+                const head = points[points.length-1];
+                let rotation = 0;
+                if(arrow.dir === UP) rotation = -90;
+                else if(arrow.dir === DOWN) rotation = 90;
+                else if(arrow.dir === LEFT) rotation = 180;
+                
+                const vbW = arrow.bbox.w * 100;
+                const vbH = arrow.bbox.h * 100;
+
+                // Explicit fill="none" helps prevent rendering glitches in Safari/WebKit
+                return `
+                <svg class="arrow-svg" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet">
+                    <path d="${d}" fill="none" class="arrow-line" />
+                    <g class="arrow-head-group" transform="translate(${head.x}, ${head.y}) rotate(${rotation})">
+                        <path d="M -10 -14 L 16 0 L -10 14 Z" class="arrow-head" />
+                    </g>
+                </svg>
+                `;
+            }
+        };
+
+        const Logic = {
+            checkPath(arrow, allArrows, gridSize) {
+                const occupiedSet = new Map();
+                allArrows.forEach(a => {
+                    if (a.id !== arrow.id) {
+                        a.occupiedIndices.forEach(idx => occupiedSet.set(idx, a.id));
+                    }
+                });
+
+                const blockers = new Set();
+                let minDistanceToBlocker = 999;
+
+                const headIndex = arrow.occupiedIndices[arrow.occupiedIndices.length - 1];
+                let r = Math.floor(headIndex / gridSize);
+                let c = headIndex % gridSize;
+                let steps = 0;
+
+                if (arrow.dir === UP) r--;
+                else if (arrow.dir === DOWN) r++;
+                else if (arrow.dir === LEFT) c--;
+                else if (arrow.dir === RIGHT) c++;
+                steps++;
+
+                while (r >= 0 && r < gridSize && c >= 0 && c < gridSize) {
+                    const idx = r * gridSize + c;
+                    if (occupiedSet.has(idx)) {
+                        blockers.add(occupiedSet.get(idx));
+                        if (steps < minDistanceToBlocker) minDistanceToBlocker = steps;
+                    }
+                    if (arrow.dir === UP) r--;
+                    else if (arrow.dir === DOWN) r++;
+                    else if (arrow.dir === LEFT) c--;
+                    else if (arrow.dir === RIGHT) c++;
+                    steps++;
+                }
+
+                return { 
+                    blockers: Array.from(blockers), 
+                    freeSteps: blockers.size > 0 ? Math.max(0, minDistanceToBlocker - 1) : 999 
+                };
+            },
+
+            isSolvable(testArrows, gridSize) {
+                let simArrows = JSON.parse(JSON.stringify(testArrows));
+                let changed = true;
+                while (changed && simArrows.length > 0) {
+                    changed = false;
+                    const indexToRemove = simArrows.findIndex(a => this.checkPath(a, simArrows, gridSize).blockers.length === 0);
+                    if (indexToRemove !== -1) {
+                        simArrows.splice(indexToRemove, 1);
+                        changed = true;
+                    }
+                }
+                return simArrows.length === 0;
+            }
+        };
+
+        const LevelGenerator = {
+            async create(gridSize, level) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        let density = 0.65;
+                        if(gridSize >= 6) density = 0.60;
+                        if(gridSize >= 7) density = 0.55;
+                        if(gridSize >= 8) density = 0.50;
+
+                        const maxLen = level < 3 ? 2 : (level < 6 ? 4 : 5);
+                        const allowTurns = level >= 2;
+                        
+                        let valid = false;
+                        let resultArrows = [];
+                        let attempts = 0;
+                        const maxAttempts = gridSize > 5 ? 4000 : 2000;
+
+                        while (!valid && attempts < maxAttempts) {
+                            resultArrows = [];
+                            let occupied = new Set();
+                            let idCounter = 1;
+                            
+                            let indices = Array.from({length: gridSize*gridSize}, (_, i) => i);
+                            indices.sort(() => Math.random() - 0.5);
+
+                            for (let i of indices) {
+                                if (occupied.has(i)) continue;
+                                if (Math.random() > density) continue;
+
+                                const dir = Math.floor(Math.random() * 4) + 1;
+                                let body = [i];
+                                let head = {r: Math.floor(i/gridSize), c: i%gridSize};
+                                let backDir = dir === UP ? DOWN : (dir === DOWN ? UP : (dir === LEFT ? RIGHT : LEFT));
+                                
+                                const len = Math.floor(Math.random() * maxLen) + 1;
+                                let cr = head.r, cc = head.c;
+                                let curBackDir = backDir;
+
+                                for (let l=0; l<len; l++) {
+                                    if(allowTurns && l > 0 && Math.random() > 0.6) {
+                                        if(curBackDir === UP || curBackDir === DOWN) curBackDir = Math.random()>0.5 ? LEFT : RIGHT;
+                                        else curBackDir = Math.random()>0.5 ? UP : DOWN;
+                                    }
+                                    let nr = cr, nc = cc;
+                                    if(curBackDir === UP) nr--;
+                                    else if(curBackDir === DOWN) nr++;
+                                    else if(curBackDir === LEFT) nc--;
+                                    else if(curBackDir === RIGHT) nc++;
+
+                                    if(nr>=0 && nr<gridSize && nc>=0 && nc<gridSize) {
+                                        const nidx = nr*gridSize+nc;
+                                        if(!occupied.has(nidx) && !body.includes(nidx)) {
+                                            body.push(nidx);
+                                            cr=nr; cc=nc;
+                                        } else break;
+                                    } else break;
+                                }
+
+                                if(body.every(x => !occupied.has(x))) {
+                                    body.forEach(x => occupied.add(x));
+                                    const rs = body.map(x=>Math.floor(x/gridSize));
+                                    const cs = body.map(x=>x%gridSize);
+                                    resultArrows.push({
+                                        id: idCounter++,
+                                        dir: dir,
+                                        occupiedIndices: body.reverse(),
+                                        bbox: {
+                                            r: Math.min(...rs), c: Math.min(...cs),
+                                            w: Math.max(...cs)-Math.min(...cs)+1,
+                                            h: Math.max(...rs)-Math.min(...rs)+1
+                                        }
+                                    });
+                                }
+                            }
+                            const minArrows = Math.floor(gridSize * 1.5);
+                            if (resultArrows.length >= minArrows && Logic.isSolvable(resultArrows, gridSize)) {
+                                valid = true;
+                            }
+                            attempts++;
+                        }
+                        if (!valid) {
+                             resultArrows = [
+                                {id:1, dir:UP, occupiedIndices:[17,12], bbox:{r:2,c:2,w:1,h:2}}, 
+                                {id:2, dir:LEFT, occupiedIndices:[11], bbox:{r:2,c:1,w:1,h:1}},
+                                {id:3, dir:RIGHT, occupiedIndices:[13], bbox:{r:2,c:3,w:1,h:1}}
+                            ];
+                        }
+                        resolve(resultArrows);
+                    }, 0);
+                });
+            }
+        };
+
+        const Effects = {
+            canvas: document.getElementById('confetti-canvas'),
+            ctx: document.getElementById('confetti-canvas').getContext('2d'),
+            particles: [],
+            init() {
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                this.loop();
+            },
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            },
+            burst(x, y, dir) {
+                const count = 20;
+                const colors = ['#DC2626', '#ef4444', '#b91c1c', '#7f1d1d'];
+                let baseVx = 0, baseVy = 0;
+                if(dir === UP) baseVy = -5;
+                if(dir === DOWN) baseVy = 5;
+                if(dir === LEFT) baseVx = -5;
+                if(dir === RIGHT) baseVx = 5;
+
+                for(let i=0; i<count; i++) {
+                    this.particles.push({
+                        x: x, y: y,
+                        vx: (Math.random() - 0.5) * 10 + baseVx,
+                        vy: (Math.random() - 0.5) * 10 + baseVy,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        size: Math.random() * 6 + 4,
+                        life: 1.0,
+                        decay: Math.random() * 0.03 + 0.01
+                    });
+                }
+            },
+            loop() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                for(let i=this.particles.length-1; i>=0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.vx *= 0.95; p.life -= p.decay;
+                    this.ctx.globalAlpha = p.life;
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.beginPath();
+                    this.ctx.roundRect(p.x, p.y, p.size, p.size, 2);
+                    this.ctx.fill();
+                    if(p.life <= 0) this.particles.splice(i, 1);
+                }
+                requestAnimationFrame(() => this.loop());
+            }
+        };
+
+        Effects.init();
+        Game.init();
+
+    </script>
+</body>
+</html>
