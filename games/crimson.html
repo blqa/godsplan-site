@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crimson Puzzle - God's Plan</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Estilos personalizados -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --primary: #DC2626;
+            --bg-color: #050000;
+            --surface: #18181b;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: white;
+            overflow: hidden; /* Evitar scroll en mobile */
+            touch-action: none;
+        }
+        
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .inner-shadow {
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px) rotate(-3deg); }
+            75% { transform: translateX(4px) rotate(3deg); }
+        }
+        
+        /* Grid de fondo sutil */
+        .bg-grid-pattern {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="pt-20 flex flex-col h-screen">
+
+    <!-- --- NAVBAR GLOBAL --- -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-3 backdrop-blur-md border-b border-white/5 bg-black/40">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            
+            <!-- Logo -->
+            <a href="index.html" class="flex items-center gap-3 cursor-pointer group no-underline">
+                <div class="relative w-8 h-8 flex items-center justify-center overflow-hidden rounded-full bg-zinc-900 border border-zinc-800 group-hover:border-red-500/50 transition-colors">
+                    <i class="ph-duotone ph-planet text-red-500 text-xl relative z-10 group-hover:rotate-180 transition-transform duration-700 ease-in-out"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold tracking-tight text-white leading-none text-sm group-hover:text-red-500 transition-colors">GOD'S PLAN</span>
+                    <span class="text-[8px] text-zinc-500 font-mono tracking-widest uppercase">Nexus Hub v4.1</span>
+                </div>
+            </a>
+
+            <!-- Right Controls -->
+            <div class="flex items-center gap-4">
+                <!-- Clock -->
+                <div class="hidden md:flex flex-col items-end text-right border-r border-white/10 pr-4">
+                    <span id="sys-time" class="font-mono text-[10px] text-zinc-300 font-bold">00:00:00</span>
+                    <span id="sys-date" class="text-[9px] text-zinc-600 uppercase tracking-widest">LOADING...</span>
+                </div>
+
+                <!-- Status -->
+                <div class="flex items-center gap-2 px-2 py-0.5 rounded-full bg-emerald-950/30 border border-emerald-500/20">
+                    <span class="relative flex h-1.5 w-1.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    </span>
+                    <span class="hidden sm:block text-[9px] font-bold text-emerald-500 tracking-wider">ONLINE</span>
+                </div>
+
+                <!-- Contact -->
+                <a href="index.html" class="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all border border-white/10 group">
+                    <i class="ph-bold ph-house group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform text-base"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Fondo ambiental -->
+    <div class="absolute inset-0 z-0 pointer-events-none">
+        <div class="bg-grid-pattern absolute inset-0"></div>
+        <div class="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-red-900/10 rounded-full blur-[120px] animate-pulse"></div>
+    </div>
+
+    <!-- Contenedor React -->
+    <div id="root" class="relative z-10 flex-1 flex flex-col"></div>
+
+    <script>
+        // Reloj de la Navbar (Vanilla JS para rendimiento)
+        function updateSystemClock() {
+            const now = new Date();
+            const timeElement = document.getElementById('sys-time');
+            const dateElement = document.getElementById('sys-date');
+            if(timeElement) timeElement.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+            if(dateElement) dateElement.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+        }
+        setInterval(updateSystemClock, 1000);
+        updateSystemClock();
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useRef } = React;
+
+        // --- Lógica del Puzzle ---
+        const getSolvedState = (size) => {
+            const state = Array.from({ length: size * size }, (_, i) => i + 1);
+            state[state.length - 1] = 0; 
+            return state;
+        };
+
+        const isSolved = (board) => {
+            if (board.length === 0) return false;
+            const size = Math.sqrt(board.length);
+            const solved = getSolvedState(size);
+            return board.every((val, index) => val === solved[index]);
+        };
+
+        const shuffleBoard = (size) => {
+            let board = getSolvedState(size);
+            let emptyIndex = board.length - 1;
+            let previousIndex = -1;
+            const shuffleMoves = size * size * 15; 
+
+            for (let i = 0; i < shuffleMoves; i++) {
+                const moves = [];
+                const row = Math.floor(emptyIndex / size);
+                const col = emptyIndex % size;
+
+                if (row > 0) moves.push(emptyIndex - size); 
+                if (row < size - 1) moves.push(emptyIndex + size); 
+                if (col > 0) moves.push(emptyIndex - 1); 
+                if (col < size - 1) moves.push(emptyIndex + 1); 
+
+                const validMoves = moves.filter(idx => idx !== previousIndex);
+                
+                if (validMoves.length > 0) {
+                    const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                    [board[emptyIndex], board[randomMove]] = [board[randomMove], board[emptyIndex]];
+                    previousIndex = emptyIndex;
+                    emptyIndex = randomMove;
+                }
+            }
+            return board;
+        };
+
+        function CrimsonApp() {
+            const [size, setSize] = useState(4);
+            const [board, setBoard] = useState([]);
+            const [moves, setMoves] = useState(0);
+            const [bestScore, setBestScore] = useState(0);
+            const [time, setTime] = useState(0);
+            const [gameState, setGameState] = useState('start'); 
+            const [emptyIndex, setEmptyIndex] = useState(-1);
+            const [history, setHistory] = useState([]); 
+            const [isBlindMode, setIsBlindMode] = useState(false); 
+            const [shakingTile, setShakingTile] = useState(null);
+            
+            const touchStart = useRef({ x: 0, y: 0 });
+
+            useEffect(() => {
+                const savedBest = localStorage.getItem(`crimson_best_${size}`);
+                setBestScore(savedBest ? parseInt(savedBest) : 0);
+            }, [size]);
+
+            useEffect(() => {
+                startNewGame(size);
+            }, [size]);
+
+            useEffect(() => {
+                if (board.length > 0) {
+                    setEmptyIndex(board.indexOf(0));
+                }
+            }, [board]);
+
+            useEffect(() => {
+                let interval;
+                if (gameState === 'playing') {
+                    interval = setInterval(() => {
+                        setTime(t => t + 1);
+                    }, 1000);
+                }
+                return () => clearInterval(interval);
+            }, [gameState]);
+
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (gameState !== 'playing') return;
+                    
+                    const row = Math.floor(emptyIndex / size);
+                    const col = emptyIndex % size;
+                    let targetIndex = -1;
+
+                    switch (e.key) {
+                        case 'ArrowUp': if (row < size - 1) targetIndex = emptyIndex + size; break;
+                        case 'ArrowDown': if (row > 0) targetIndex = emptyIndex - size; break;
+                        case 'ArrowLeft': if (col < size - 1) targetIndex = emptyIndex + 1; break;
+                        case 'ArrowRight': if (col > 0) targetIndex = emptyIndex - 1; break;
+                        default: return;
+                    }
+
+                    if (targetIndex !== -1) {
+                        e.preventDefault();
+                        moveTile(targetIndex);
+                    }
+                };
+
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [board, emptyIndex, gameState, size]);
+
+            const startNewGame = (currentSize = size) => {
+                const newBoard = shuffleBoard(currentSize);
+                setBoard(newBoard);
+                setMoves(0);
+                setTime(0);
+                setHistory([]);
+                setGameState('playing');
+                setIsBlindMode(false);
+            };
+
+            const resetProgress = () => {
+                if(confirm('¿Restablecer mejor puntuación y reiniciar juego?')) {
+                    localStorage.removeItem(`crimson_best_${size}`);
+                    setBestScore(0);
+                    startNewGame(size);
+                }
+            };
+
+            const undoMove = () => {
+                if (history.length === 0 || gameState === 'won') return;
+                const previousBoard = history[history.length - 1];
+                setBoard(previousBoard);
+                setHistory(prev => prev.slice(0, -1));
+                setMoves(m => Math.max(0, m - 1));
+            };
+
+            const moveTile = (index) => {
+                if (gameState === 'won') return;
+
+                const row = Math.floor(index / size);
+                const col = index % size;
+                const emptyRow = Math.floor(emptyIndex / size);
+                const emptyCol = emptyIndex % size;
+
+                const isAdjacent = (Math.abs(row - emptyRow) + Math.abs(col - emptyCol)) === 1;
+
+                if (isAdjacent) {
+                    setHistory(prev => [...prev, [...board]]);
+                    const newBoard = [...board];
+                    [newBoard[index], newBoard[emptyIndex]] = [newBoard[emptyIndex], newBoard[index]];
+                    setBoard(newBoard);
+                    const newMoves = moves + 1;
+                    setMoves(newMoves);
+
+                    if (isSolved(newBoard)) {
+                        setGameState('won');
+                        if (bestScore === 0 || newMoves < bestScore) {
+                            setBestScore(newMoves);
+                            localStorage.setItem(`crimson_best_${size}`, newMoves);
+                        }
+                    }
+                } else {
+                    setShakingTile(index);
+                    setTimeout(() => setShakingTile(null), 400);
+                }
+            };
+
+            const handleTouchStart = (e) => {
+                touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            };
+
+            const handleTouchEnd = (e) => {
+                if (gameState !== 'playing') return;
+                const touchEnd = { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+                const diffX = touchStart.current.x - touchEnd.x;
+                const diffY = touchStart.current.y - touchEnd.y;
+                const row = Math.floor(emptyIndex / size);
+                const col = emptyIndex % size;
+                let targetIndex = -1;
+
+                if (Math.abs(diffX) < 30 && Math.abs(diffY) < 30) return;
+
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    if (diffX > 0) { if (col < size - 1) targetIndex = emptyIndex + 1; }
+                    else { if (col > 0) targetIndex = emptyIndex - 1; }
+                } else {
+                    if (diffY > 0) { if (row < size - 1) targetIndex = emptyIndex + size; }
+                    else { if (row > 0) targetIndex = emptyIndex - size; }
+                }
+                if (targetIndex !== -1) moveTile(targetIndex);
+            };
+
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            };
+
+            const getGridClass = () => {
+                if (size === 3) return 'grid-cols-3 w-[280px] h-[280px] sm:w-[320px] sm:h-[320px]';
+                if (size === 4) return 'grid-cols-4 w-[280px] h-[280px] sm:w-[350px] sm:h-[350px]';
+                if (size === 5) return 'grid-cols-5 w-[280px] h-[280px] sm:w-[380px] sm:h-[380px]';
+                return 'grid-cols-4';
+            };
+
+            return (
+                <div 
+                    className="flex flex-col items-center w-full max-w-md mx-auto h-full px-4"
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                >
+                    {/* Header */}
+                    <div className="w-full flex justify-between items-end mb-4 mt-2">
+                        <div>
+                            <h1 className="text-3xl md:text-4xl font-black tracking-tighter italic text-white drop-shadow-[0_0_15px_rgba(220,38,38,0.6)] leading-none">
+                                CRIMSON <span className="text-red-600">PUZZLE</span>
+                            </h1>
+                            <p className="text-zinc-500 text-xs font-mono tracking-widest mt-1 uppercase">Visual Logic Protocol</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <div className="glass-panel rounded-lg p-1.5 min-w-[60px] flex flex-col items-center">
+                                <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">Moves</span>
+                                <span className="text-lg font-bold text-white leading-none">{moves}</span>
+                            </div>
+                            <div className="glass-panel rounded-lg p-1.5 min-w-[60px] flex flex-col items-center">
+                                <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">Best</span>
+                                <span className="text-lg font-bold text-red-500 leading-none">{bestScore > 0 ? bestScore : '-'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Action Bar */}
+                    <div className="w-full flex justify-between items-center mb-4 glass-panel p-1.5 rounded-lg">
+                        <div className="flex gap-1">
+                            {[3, 4, 5].map((s) => (
+                            <button 
+                                key={s}
+                                onClick={() => setSize(s)}
+                                className={`h-7 w-8 flex items-center justify-center rounded transition-all duration-300 ${size === s ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : 'text-zinc-500 hover:bg-white/5'}`}
+                            >
+                                <span className="font-bold text-[10px]">{s}x{s}</span>
+                            </button>
+                            ))}
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => setIsBlindMode(!isBlindMode)}
+                                className={`p-1.5 rounded transition-colors ${isBlindMode ? 'text-red-400 bg-red-900/20' : 'text-zinc-500 hover:text-white'}`}
+                                title="Modo Ciego"
+                            >
+                                {isBlindMode ? <i className="ph ph-eye-slash text-base"></i> : <i className="ph ph-eye text-base"></i>} 
+                            </button>
+                            <button 
+                                onClick={() => startNewGame(size)}
+                                className="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-white border border-white/10 px-3 py-1 rounded font-bold text-xs transition-all active:scale-95"
+                            >
+                                <i className="ph-bold ph-arrows-clockwise"></i> NEW
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Board Container */}
+                    <div className="relative p-2 glass-panel rounded-xl shadow-2xl">
+                        
+                        {/* Victory Overlay */}
+                        {gameState === 'won' && (
+                        <div className="absolute inset-0 z-20 bg-black/90 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
+                            <i className="ph-fill ph-trophy text-yellow-500 text-5xl mb-3 drop-shadow-[0_0_25px_rgba(234,179,8,0.6)] animate-bounce"></i>
+                            <h2 className="text-3xl font-black text-white mb-2 italic">YOU WIN!</h2>
+                            <div className="flex gap-6 mb-5 text-xs font-mono text-zinc-400">
+                                <div className="flex flex-col items-center">
+                                    <span className="text-[10px] uppercase text-zinc-600">Time</span>
+                                    <span className="text-lg text-white">{formatTime(time)}</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <span className="text-[10px] uppercase text-zinc-600">Moves</span>
+                                    <span className="text-lg text-white">{moves}</span>
+                                </div>
+                            </div>
+                            <button 
+                            onClick={() => startNewGame(size)}
+                            className="px-6 py-2 bg-white text-black rounded font-black uppercase tracking-widest text-sm hover:bg-gray-200 transition-transform active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                            >
+                                Try Again
+                            </button>
+                        </div>
+                        )}
+
+                        <div className={`grid gap-2 transition-all duration-300 ${getGridClass()}`}>
+                        {board.map((num, index) => {
+                            if (num === 0) return <div key="empty" className="w-full h-full rounded-md bg-black/40 inner-shadow"></div>;
+                            
+                            const isCorrectPos = num === index + 1;
+                            const isShaking = shakingTile === index;
+
+                            return (
+                            <div
+                                key={num}
+                                onClick={() => moveTile(index)}
+                                className={`
+                                w-full h-full rounded-md text-xl sm:text-3xl font-black flex items-center justify-center relative cursor-pointer select-none transition-all duration-150 transform
+                                ${isShaking ? 'animate-[shake_0.4s_ease-in-out]' : ''}
+                                ${isCorrectPos 
+                                    ? 'bg-gradient-to-br from-red-600 to-red-800 shadow-[0_0_15px_rgba(220,38,38,0.3)] text-white border border-red-500/30' 
+                                    : 'bg-zinc-800 text-zinc-300 shadow-lg border border-white/5 hover:bg-zinc-700'}
+                                `}
+                            >
+                                <span className={`z-10 transition-all duration-300 ${isBlindMode ? 'opacity-0 scale-50' : 'opacity-100'}`}>
+                                    {num}
+                                </span>
+                                
+                                {isBlindMode && (
+                                    <div className={`absolute w-1.5 h-1.5 rounded-full ${isCorrectPos ? 'bg-white shadow-[0_0_8px_white]' : 'bg-zinc-600'}`}></div>
+                                )}
+                            </div>
+                            );
+                        })}
+                        </div>
+                    </div>
+                    
+                    {/* Footer */}
+                    <div className="mt-auto w-full pb-6 pt-4 flex justify-between items-end">
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-zinc-500 font-mono text-xs">
+                                <i className="ph-bold ph-clock"></i> <span>{formatTime(time)}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={undoMove} disabled={history.length === 0} className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-zinc-500 hover:text-white disabled:opacity-30 transition-colors">
+                                    <i className="ph-bold ph-arrow-counter-clockwise"></i> UNDO
+                                </button>
+                            </div>
+                        </div>
+
+                        <button onClick={resetProgress} className="group flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-red-900/20 border border-white/5 hover:border-red-500/30 transition-all">
+                            <i className="ph-bold ph-trash text-zinc-500 group-hover:text-red-500 text-xs"></i>
+                            <span className="text-[10px] font-bold text-zinc-500 group-hover:text-red-400 uppercase tracking-wider">Reset Stats</span>
+                        </button>
+                    </div>
+
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CrimsonApp />);
+    </script>
+</body>
+</html>
