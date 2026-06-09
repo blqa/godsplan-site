@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Exclusiva Barbería | Iztapalapa</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts: Cinzel (for elegant titles matching logo) and Inter (for body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#F1C40F',
+                            500: '#D4AF37', // Classic Barber Gold
+                            600: '#AA8C2C',
+                        },
+                        dark: {
+                            900: '#0a0a0a',
+                            800: '#171717',
+                            700: '#262626',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Cinzel', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styles for extra polish */
+        .glass-nav {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        .service-card:hover img {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-dark-900 text-gray-300 font-sans antialiased">
+
+    <!-- WhatsApp Floating Button -->
+    <a href="https://wa.me/525532716716?text=Hola,%20vengo%20de%20su%20página%20web%20y%20me%20gustaría%20agendar%20una%20cita." target="_blank" class="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition duration-300 z-50 flex items-center justify-center animate-bounce">
+        <i class="fab fa-whatsapp text-3xl"></i>
+    </a>
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-40 glass-nav border-b border-gold-500/20 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <div class="text-gold-500 font-serif font-bold text-2xl tracking-widest flex items-center gap-2">
+                        <i class="fas fa-cut text-xl"></i>
+                        <span class="mt-1">LA EXCLUSIVA</span>
+                    </div>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#inicio" class="text-gray-300 hover:text-gold-500 transition font-semibold text-sm uppercase tracking-wider">Inicio</a>
+                    <a href="#servicios" class="text-gray-300 hover:text-gold-500 transition font-semibold text-sm uppercase tracking-wider">Servicios</a>
+                    <a href="#testimonios" class="text-gray-300 hover:text-gold-500 transition font-semibold text-sm uppercase tracking-wider">Reseñas</a>
+                    <a href="#contacto" class="text-gray-300 hover:text-gold-500 transition font-semibold text-sm uppercase tracking-wider">Ubicación</a>
+                    <a href="https://wa.me/525532716716" target="_blank" class="bg-gold-500 text-dark-900 px-6 py-2 rounded font-bold hover:bg-gold-400 transition shadow-[0_0_15px_rgba(212,175,55,0.4)]">
+                        Agendar Cita
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-gold-500 focus:outline-none">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="hidden md:hidden bg-dark-800 border-t border-dark-700">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#inicio" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-gold-500">Inicio</a>
+                <a href="#servicios" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-gold-500">Servicios</a>
+                <a href="#testimonios" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-gold-500">Reseñas</a>
+                <a href="#contacto" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-gold-500">Ubicación</a>
+                <a href="https://wa.me/525532716716" target="_blank" class="block w-full text-center mt-4 bg-gold-500 text-dark-900 px-6 py-3 rounded font-bold hover:bg-gold-400">
+                    Agendar Cita
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="relative h-screen flex items-center justify-center">
+        <!-- Background Image with Overlay -->
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=2074&q=80" alt="Barbería Interior" class="w-full h-full object-cover" />
+            <div class="absolute inset-0 bg-gradient-to-r from-dark-900 via-dark-900/90 to-dark-900/60"></div>
+        </div>
+
+        <div class="relative z-10 text-center px-4 max-w-4xl mx-auto mt-20">
+            <span class="text-gold-500 font-bold tracking-[0.2em] uppercase text-sm mb-4 block">Barber Shop • Since [Año]</span>
+            <h1 class="text-5xl md:text-7xl font-serif font-bold text-white mb-6 leading-tight text-shadow">
+                Tu Estilo, <br><span class="text-gold-500">Nuestra Especialidad</span>
+            </h1>
+            <p class="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+                Cortes de primera, diseños exclusivos y un ambiente inmejorable en el corazón de Iztapalapa. Donde los verdaderos caballeros vienen a cuidarse.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://wa.me/525532716716" target="_blank" class="bg-gold-500 text-dark-900 px-8 py-4 rounded font-bold text-lg hover:bg-gold-400 hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+                    <i class="fab fa-whatsapp mr-2"></i> Reservar Ahora
+                </a>
+                <a href="#servicios" class="border border-gold-500 text-gold-500 px-8 py-4 rounded font-bold text-lg hover:bg-gold-500/10 transition-all duration-300">
+                    Ver Trabajos
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About / Stats Bar -->
+    <section class="bg-dark-800 border-y border-gold-500/10 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div>
+                    <i class="fas fa-star text-gold-500 text-3xl mb-3"></i>
+                    <h3 class="text-white font-bold text-xl">5.0 Estrellas</h3>
+                    <p class="text-sm text-gray-400">En Google Maps</p>
+                </div>
+                <div>
+                    <i class="fas fa-cut text-gold-500 text-3xl mb-3"></i>
+                    <h3 class="text-white font-bold text-xl">Barberos Pro</h3>
+                    <p class="text-sm text-gray-400">Especialistas en diseño</p>
+                </div>
+                <div>
+                    <i class="fas fa-music text-gold-500 text-3xl mb-3"></i>
+                    <h3 class="text-white font-bold text-xl">Buen Ambiente</h3>
+                    <p class="text-sm text-gray-400">La mejor música y trato</p>
+                </div>
+                <div>
+                    <i class="fas fa-spray-can text-gold-500 text-3xl mb-3"></i>
+                    <h3 class="text-white font-bold text-xl">100% Higiene</h3>
+                    <p class="text-sm text-gray-400">Limpieza garantizada</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services / Portfolio Section -->
+    <section id="servicios" class="py-20 bg-dark-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-gold-500 font-bold tracking-widest uppercase text-sm mb-2">Nuestro Trabajo</h2>
+                <h3 class="text-4xl md:text-5xl font-serif font-bold text-white">Servicios Exclusivos</h3>
+                <p class="mt-4 text-gray-400">*(Aquí irían las fotos de Instagram que tienes)*</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Service 1 -->
+                <div class="bg-dark-800 rounded-lg overflow-hidden border border-dark-700 hover:border-gold-500/50 transition-colors duration-300 service-card group cursor-pointer">
+                    <div class="h-64 overflow-hidden relative">
+                        <!-- Placeholder Image (Replace with IG photo) -->
+                        <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Corte Clásico" class="w-full h-full object-cover transition-transform duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-dark-800 to-transparent"></div>
+                    </div>
+                    <div class="p-6 relative z-10 -mt-10">
+                        <div class="bg-dark-900 inline-block px-4 py-1 rounded text-gold-500 font-bold mb-4 border border-gold-500/30">Corte Clásico / Fade</div>
+                        <p class="text-gray-300 text-sm mb-4">Degradados perfectos, cortes clásicos y modernos adaptados a la forma de tu rostro.</p>
+                    </div>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="bg-dark-800 rounded-lg overflow-hidden border border-dark-700 hover:border-gold-500/50 transition-colors duration-300 service-card group cursor-pointer">
+                    <div class="h-64 overflow-hidden relative">
+                        <!-- Placeholder Image (Replace with IG photo) -->
+                        <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Diseños" class="w-full h-full object-cover transition-transform duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-dark-800 to-transparent"></div>
+                    </div>
+                    <div class="p-6 relative z-10 -mt-10">
+                        <div class="bg-dark-900 inline-block px-4 py-1 rounded text-gold-500 font-bold mb-4 border border-gold-500/30">Diseños Especiales</div>
+                        <p class="text-gray-300 text-sm mb-4">Como dicen nuestros clientes: hacemos muy buenos diseños en los cortes de cabello. ¡Pide el tuyo!</p>
+                    </div>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="bg-dark-800 rounded-lg overflow-hidden border border-dark-700 hover:border-gold-500/50 transition-colors duration-300 service-card group cursor-pointer">
+                    <div class="h-64 overflow-hidden relative">
+                        <!-- Placeholder Image (Replace with IG photo) -->
+                        <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Barba" class="w-full h-full object-cover transition-transform duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-dark-800 to-transparent"></div>
+                    </div>
+                    <div class="p-6 relative z-10 -mt-10">
+                        <div class="bg-dark-900 inline-block px-4 py-1 rounded text-gold-500 font-bold mb-4 border border-gold-500/30">Arreglo de Barba</div>
+                        <p class="text-gray-300 text-sm mb-4">Perfilado, recorte y ritual de toalla caliente para mantener tu barba impecable y elegante.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center">
+                <a href="https://instagram.com/" target="_blank" class="inline-flex items-center text-gray-300 hover:text-gold-500 transition">
+                    <i class="fab fa-instagram text-2xl mr-2"></i>
+                    <span>Ver más trabajos en nuestro Instagram</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonios" class="py-20 bg-dark-800 border-y border-gold-500/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-gold-500 font-bold tracking-widest uppercase text-sm mb-2">Lo que dicen en Google Maps</h2>
+                <h3 class="text-4xl md:text-5xl font-serif font-bold text-white">Clientes Satisfechos</h3>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Testimonial 1 -->
+                <div class="bg-dark-900 p-8 rounded-lg border border-dark-700 relative">
+                    <i class="fas fa-quote-left text-gold-500/20 text-6xl absolute top-4 right-4"></i>
+                    <div class="flex text-gold-500 mb-4 text-sm">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 mb-6 relative z-10 italic">"Excelente servicio. Todos son limpios, amables, profesionales y buenísimos en su trabajo. Yo me recorto con Fernando y es el mejor barbero del condado! Siempre da un extra."</p>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-dark-700 rounded-full flex items-center justify-center text-white font-bold">A</div>
+                        <div class="ml-3">
+                            <p class="text-white font-bold">Alan Nava</p>
+                            <p class="text-xs text-gray-500">Hace 2 años</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testimonial 2 -->
+                <div class="bg-dark-900 p-8 rounded-lg border border-dark-700 relative">
+                    <i class="fas fa-quote-left text-gold-500/20 text-6xl absolute top-4 right-4"></i>
+                    <div class="flex text-gold-500 mb-4 text-sm">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 mb-6 relative z-10 italic">"Hacen buenos diseños en los cortes de cabello y la atención es excelente, solo hay que hacer cita con anticipación. Muy recomendado."</p>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-dark-700 rounded-full flex items-center justify-center text-white font-bold">L</div>
+                        <div class="ml-3">
+                            <p class="text-white font-bold">Leonardo Luna C.</p>
+                            <p class="text-xs text-gray-500">Hace 2 años</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testimonial 3 -->
+                <div class="bg-dark-900 p-8 rounded-lg border border-dark-700 relative">
+                    <i class="fas fa-quote-left text-gold-500/20 text-6xl absolute top-4 right-4"></i>
+                    <div class="flex text-gold-500 mb-4 text-sm">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 mb-6 relative z-10 italic">"Buen servicio, buen ambiente, buenas canciones y saben hacer su trabajo. Recomendado 🙌🏻"</p>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-dark-700 rounded-full flex items-center justify-center text-white font-bold">V</div>
+                        <div class="ml-3">
+                            <p class="text-white font-bold">Val</p>
+                            <p class="text-xs text-gray-500">Hace 2 meses</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location and Hours -->
+    <section id="contacto" class="py-20 bg-dark-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                
+                <!-- Info -->
+                <div>
+                    <h2 class="text-gold-500 font-bold tracking-widest uppercase text-sm mb-2">Visítanos</h2>
+                    <h3 class="text-4xl font-serif font-bold text-white mb-8">Ubicación y Horarios</h3>
+                    
+                    <ul class="space-y-6">
+                        <li class="flex items-start">
+                            <div class="bg-dark-800 p-3 rounded text-gold-500 mr-4">
+                                <i class="fas fa-map-marker-alt text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold text-lg">Dirección</h4>
+                                <p class="text-gray-400 mt-1">2da Amp Santiago Acahualtepec<br>Iztapalapa, 09906 CDMX</p>
+                            </div>
+                        </li>
+                        
+                        <li class="flex items-start">
+                            <div class="bg-dark-800 p-3 rounded text-gold-500 mr-4">
+                                <i class="fas fa-clock text-xl"></i>
+                            </div>
+                            <div class="w-full">
+                                <h4 class="text-white font-bold text-lg mb-2">Horario de Atención</h4>
+                                <div class="space-y-1 text-gray-400 w-full max-w-xs">
+                                    <div class="flex justify-between border-b border-dark-700 pb-1"><span>Lunes a Domingo</span> <span>12:00 PM – 10:00 PM</span></div>
+                                </div>
+                                <p class="text-gold-500 text-sm mt-3 italic">* Se recomienda hacer cita con anticipación.</p>
+                            </div>
+                        </li>
+
+                        <li class="flex items-start">
+                            <div class="bg-dark-800 p-3 rounded text-gold-500 mr-4">
+                                <i class="fas fa-phone-alt text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold text-lg">Contacto</h4>
+                                <p class="text-gray-400 mt-1">+52 55 3271 6716</p>
+                                <a href="https://wa.me/525532716716" target="_blank" class="text-gold-500 hover:text-white transition text-sm font-bold mt-2 inline-block">Enviar WhatsApp &rarr;</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Google Maps (Simulated realistic map area) -->
+                <div class="h-96 w-full rounded-lg overflow-hidden border-2 border-dark-700 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15058.46889759868!2d-99.015!3d19.345!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ce01a5b822dce3%3A0x9d5b002cbb3e!2sSantiago%20Acahualtepec%202da%20Ampliaci%C3%B3n%2C%20Iztapalapa%2C%20CDMX!5e0!3m2!1ses!2smx!4v1699999999999!5m2!1ses!2smx" 
+                        width="100%" 
+                        height="100%" 
+                        style="border:0; filter: grayscale(80%) contrast(120%) invert(90%) hue-rotate(180deg);" 
+                        allowfullscreen="" 
+                        loading="lazy" 
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark-900 border-t border-dark-700 pt-12 pb-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <!-- Footer Logo -->
+            <div class="text-gold-500 font-serif font-bold text-2xl tracking-widest mb-6 flex justify-center items-center gap-2">
+                <i class="fas fa-cut text-xl"></i>
+                <span>LA EXCLUSIVA</span>
+            </div>
+            
+            <div class="flex justify-center space-x-6 mb-8">
+                <a href="#" class="text-gray-400 hover:text-gold-500 text-2xl transition"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="text-gray-400 hover:text-gold-500 text-2xl transition"><i class="fab fa-instagram"></i></a>
+                <a href="https://wa.me/525532716716" class="text-gray-400 hover:text-gold-500 text-2xl transition"><i class="fab fa-whatsapp"></i></a>
+            </div>
+            
+            <p class="text-gray-600 text-sm">
+                &copy; 2024 La Exclusiva Barbería. Todos los derechos reservados.
+                <br>
+                <span class="text-xs mt-2 inline-block">Diseño web por [Tu Nombre/Agencia]</span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Simple Script for Mobile Menu -->
+    <script>
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu on click
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                menu.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
