@@ -254,11 +254,6 @@
             transition: opacity 1s;
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
         @keyframes floatOrb {
             0% { transform: translate(0, 0) scale(1); }
             100% { transform: translate(30px, 50px) scale(1.2); }
@@ -461,11 +456,14 @@
         }
         window.addEventListener("scroll", revealElements);
 
-        const fechaFiesta = new Date("Nov 15, 2026 16:00:00").getTime();
+        // AQUÍ ESTÁ LA CORRECCIÓN: Formato ISO compatible con todos los teléfonos (Año-Mes-DíaTHora:Minuto:Segundo)
+        const fechaFiesta = new Date("2026-11-15T16:00:00").getTime();
 
         function setProgress(id, value, max) {
             const circle = document.getElementById(id);
-            const strokeDashoffset = 100 - (value / max) * 100;
+            // Evitar que el anillo se rompa si el valor supera el máximo (ej: faltan 80 días)
+            const safeMax = Math.max(value, max); 
+            const strokeDashoffset = 100 - (value / safeMax) * 100;
             circle.style.strokeDashoffset = strokeDashoffset;
         }
 
