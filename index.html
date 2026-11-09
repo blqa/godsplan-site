@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>God's Plan | Agencia de Proyectos</title>
-    <meta name="description" content="God's Plan es una agencia de proyectos en México: GodsTap (etiquetas NFC), sistemas de gestión, webs para negocios, invitaciones digitales y soporte técnico.">
+    <meta name="description" content="God's Plan es una agencia de proyectos en México: GodsTap (etiquetas NFC), GodsRig (soporte y ensamble de PC), webs para negocios, sistemas a medida e invitaciones digitales.">
     <link rel="canonical" href="https://godsplan.site/">
     <meta name="theme-color" content="#0a0a0a">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%230a0a0a'/%3E%3Cpath%20d='M28%2010h8v16h16v8H36v22h-8V34H12v-8h16z'%20fill='%238a0303'/%3E%3C/svg%3E">
@@ -14,11 +14,11 @@
     <meta property="og:locale" content="es_MX">
     <meta property="og:site_name" content="God's Plan">
     <meta property="og:title" content="God's Plan | Agencia de Proyectos">
-    <meta property="og:description" content="Productos propios y soluciones a medida: NFC, sistemas de gestión, webs, invitaciones digitales y soporte técnico.">
+    <meta property="og:description" content="Productos propios y soluciones a medida: GodsTap, GodsRig, webs para negocios, sistemas a medida e invitaciones digitales.">
     <meta property="og:url" content="https://godsplan.site/">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="God's Plan | Agencia de Proyectos">
-    <meta name="twitter:description" content="Productos propios y soluciones a medida: NFC, sistemas de gestión, webs, invitaciones digitales y soporte técnico.">
+    <meta name="twitter:description" content="Productos propios y soluciones a medida: GodsTap, GodsRig, webs para negocios, sistemas a medida e invitaciones digitales.">
 
     <!-- Datos estructurados -->
     <script type="application/ld+json">
@@ -41,10 +41,13 @@
     }
     </script>
 
+    <!-- Si JavaScript está activo, las secciones aparecen con una animación suave -->
+    <script>document.documentElement.classList.add('js');</script>
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -76,8 +79,12 @@
         .bg-grid {
             background-size: 40px 40px;
             background-image:
-                linear-gradient(to right, rgba(138, 3, 3, 0.05) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(138, 3, 3, 0.05) 1px, transparent 1px);
+                linear-gradient(to right, rgba(138, 3, 3, 0.06) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(138, 3, 3, 0.06) 1px, transparent 1px);
+        }
+        .bg-grid-fade {
+            -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+                    mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
         }
         section[id] { scroll-margin-top: 5rem; }
         details > summary { list-style: none; }
@@ -87,9 +94,33 @@
         ::-webkit-scrollbar-track { background: #000000; }
         ::-webkit-scrollbar-thumb { background: #8a0303; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #ffb3b3; }
+
+        /* Texto con degradado de la marca */
+        .text-brand-gradient {
+            background-image: linear-gradient(90deg, #b00505 0%, #ffb3b3 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+
+        /* Tarjetas de proyecto */
+        .project-card {
+            background: linear-gradient(180deg, rgba(138, 3, 3, 0.10), rgba(0, 0, 0, 0) 38%), #000;
+            transition: border-color .3s ease, transform .3s ease, box-shadow .3s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(138, 3, 3, 0.9);
+            box-shadow: 0 18px 40px rgba(138, 3, 3, 0.18);
+        }
+
+        /* Aparición suave (solo si hay JavaScript) */
+        .js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+        .js .reveal.is-visible { opacity: 1; transform: none; }
+
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
             .animate-pulse, .animate-ping { animation: none; }
+            .js .reveal { opacity: 1; transform: none; transition: none; }
+            .project-card, .project-card:hover { transform: none; transition: none; }
         }
     </style>
 </head>
@@ -98,36 +129,37 @@
     <a href="#contenido" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:bg-bloodRed focus:text-white focus:px-4 focus:py-2 focus:rounded">Saltar al contenido</a>
 
     <!-- ENCABEZADO -->
-    <header class="fixed w-full top-0 z-50 bg-mainBg/80 backdrop-blur-lg border-b border-bloodRed/20">
+    <header class="fixed w-full top-0 z-50 bg-mainBg/80 backdrop-blur-lg border-b border-white/5">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex justify-between items-center">
-            <a href="#" class="font-display text-xl md:text-2xl font-black tracking-widest text-pastelRed uppercase flex items-center gap-2 hover:scale-105 transition-transform duration-300" aria-label="God's Plan, inicio">
-                <i class="fa-solid fa-cross text-lg"></i>
+            <a href="#" class="font-display text-lg md:text-xl font-extrabold tracking-[0.2em] text-pastelRed uppercase flex items-center gap-2.5" aria-label="God's Plan, inicio">
+                <i class="fa-solid fa-cross text-base"></i>
                 <span>God's <span class="text-white">Plan</span></span>
             </a>
 
             <nav class="hidden md:flex items-center gap-8" aria-label="Principal">
-                <a href="#productos" class="text-sm font-bold text-gray-300 hover:text-pastelRed transition-colors uppercase tracking-wide">Productos</a>
-                <a href="#servicios" class="text-sm font-bold text-gray-300 hover:text-pastelRed transition-colors uppercase tracking-wide">Servicios</a>
-                <a href="#metodo" class="text-sm font-bold text-gray-300 hover:text-pastelRed transition-colors uppercase tracking-wide">Método</a>
-                <a href="#nosotros" class="text-sm font-bold text-gray-300 hover:text-pastelRed transition-colors uppercase tracking-wide">Nosotros</a>
-                <a href="#contacto" class="px-4 py-2 bg-bloodRed text-white text-sm font-bold rounded hover:bg-pastelRed hover:text-pureBlack transition-colors duration-300 shadow-[0_0_10px_rgba(138,3,3,0.5)]">Contacto</a>
+                <a href="#proyectos" class="text-sm font-medium text-gray-300 hover:text-pastelRed transition-colors">Proyectos</a>
+                <a href="#servicios" class="text-sm font-medium text-gray-300 hover:text-pastelRed transition-colors">Servicios</a>
+                <a href="#metodo" class="text-sm font-medium text-gray-300 hover:text-pastelRed transition-colors">Método</a>
+                <a href="#nosotros" class="text-sm font-medium text-gray-300 hover:text-pastelRed transition-colors">Nosotros</a>
+                <a href="#preguntas" class="text-sm font-medium text-gray-300 hover:text-pastelRed transition-colors">Preguntas</a>
+                <a href="#contacto" class="px-5 py-2.5 bg-bloodRed text-white text-sm font-semibold rounded-lg hover:bg-pastelRed hover:text-pureBlack transition-colors duration-300">Contacto</a>
             </nav>
 
             <div class="flex items-center gap-3 md:hidden">
-                <a href="#contacto" class="px-3 py-2 bg-bloodRed text-white text-sm font-bold rounded">Contacto</a>
-                <button id="menuBtn" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuMovil" class="w-10 h-10 flex items-center justify-center rounded border border-bloodRed/40 text-pastelRed">
+                <a href="#contacto" class="px-4 py-2 bg-bloodRed text-white text-sm font-semibold rounded-lg">Contacto</a>
+                <button id="menuBtn" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuMovil" class="w-10 h-10 flex items-center justify-center rounded-lg border border-white/10 text-pastelRed">
                     <i class="fa-solid fa-bars"></i>
                 </button>
             </div>
         </div>
 
-        <div id="menuMovil" class="hidden md:hidden border-t border-bloodRed/20 bg-mainBg">
-            <nav class="px-4 py-3 flex flex-col" aria-label="Móvil">
-                <a href="#productos" class="py-3 text-sm font-bold text-gray-300 uppercase tracking-wide border-b border-gray-900">Productos</a>
-                <a href="#servicios" class="py-3 text-sm font-bold text-gray-300 uppercase tracking-wide border-b border-gray-900">Servicios</a>
-                <a href="#metodo" class="py-3 text-sm font-bold text-gray-300 uppercase tracking-wide border-b border-gray-900">Método</a>
-                <a href="#nosotros" class="py-3 text-sm font-bold text-gray-300 uppercase tracking-wide border-b border-gray-900">Nosotros</a>
-                <a href="#laboratorio" class="py-3 text-sm font-bold text-gray-300 uppercase tracking-wide">Laboratorio</a>
+        <div id="menuMovil" class="hidden md:hidden border-t border-white/5 bg-mainBg">
+            <nav class="px-4 py-2 flex flex-col" aria-label="Móvil">
+                <a href="#proyectos" class="py-3.5 text-sm font-medium text-gray-300 border-b border-white/5">Proyectos</a>
+                <a href="#servicios" class="py-3.5 text-sm font-medium text-gray-300 border-b border-white/5">Servicios</a>
+                <a href="#metodo" class="py-3.5 text-sm font-medium text-gray-300 border-b border-white/5">Método</a>
+                <a href="#nosotros" class="py-3.5 text-sm font-medium text-gray-300 border-b border-white/5">Nosotros</a>
+                <a href="#preguntas" class="py-3.5 text-sm font-medium text-gray-300">Preguntas</a>
             </nav>
         </div>
     </header>
@@ -135,248 +167,219 @@
     <main id="contenido" class="flex-grow pt-16 md:pt-20">
 
         <!-- 1. PORTADA -->
-        <section class="relative px-4 sm:px-6 py-20 md:py-32 flex items-center justify-center min-h-[80vh] bg-grid overflow-hidden">
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] md:w-[500px] h-[250px] md:h-[500px] bg-bloodRed/20 rounded-full blur-[80px] pointer-events-none"></div>
+        <section class="relative px-4 sm:px-6 lg:px-8 pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden">
+            <div class="absolute inset-0 bg-grid bg-grid-fade pointer-events-none" aria-hidden="true"></div>
+            <div class="absolute -top-24 left-1/4 w-[320px] md:w-[620px] h-[320px] md:h-[620px] bg-bloodRed/25 rounded-full blur-[110px] pointer-events-none" aria-hidden="true"></div>
 
-            <div class="relative z-10 max-w-4xl mx-auto text-center">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pureBlack border border-bloodRed/30 text-pastelRed text-xs sm:text-sm font-medium mb-6 md:mb-8">
-                    <span class="w-2 h-2 rounded-full bg-bloodRed animate-pulse"></span>
-                    Agencia de proyectos · México
-                </div>
+            <div class="relative z-10 max-w-7xl mx-auto grid lg:grid-cols-[1.15fr,0.85fr] gap-12 lg:gap-16 items-center">
+                <div class="reveal">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-pastelRed text-xs sm:text-sm font-medium mb-6 md:mb-8">
+                        <span class="w-2 h-2 rounded-full bg-bloodRed animate-pulse"></span>
+                        Agencia de proyectos · México
+                    </div>
 
-                <h1 class="font-display text-4xl sm:text-5xl md:text-7xl font-black text-lightText mb-4 uppercase tracking-tighter leading-[1.1]">
-                    Ideas que se
-                    <br class="hidden sm:block">
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-bloodRed to-pastelRed">vuelven productos.</span>
-                </h1>
+                    <h1 class="font-display text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-extrabold text-lightText tracking-tight leading-[1.05] mb-6">
+                        Ideas que se vuelven
+                        <span class="text-brand-gradient">productos.</span>
+                    </h1>
 
-                <p class="text-base sm:text-lg md:text-xl text-gray-300 mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed">
-                    Diseñamos, programamos y operamos nuestros propios productos, y ponemos esa misma experiencia al servicio de tu negocio.
-                </p>
+                    <p class="text-base sm:text-lg md:text-xl text-gray-300 mb-9 max-w-xl leading-relaxed">
+                        Diseñamos, programamos y operamos nuestros propios productos, y ponemos esa misma experiencia al servicio de tu negocio.
+                    </p>
 
-                <div class="flex flex-col sm:flex-row justify-center gap-4 items-center">
-                    <a href="#productos" class="w-full sm:w-auto text-center px-8 py-4 bg-bloodRed text-white font-bold uppercase rounded hover:bg-pastelRed hover:text-pureBlack transition-all duration-300 shadow-[0_0_20px_rgba(138,3,3,0.4)]">
-                        Ver productos
-                    </a>
-                    <a href="#contacto" class="w-full sm:w-auto text-center px-8 py-4 bg-pureBlack border border-bloodRed/50 text-lightText font-bold uppercase rounded hover:border-pastelRed hover:text-pastelRed transition-all duration-300">
-                        Hablemos de tu proyecto
-                    </a>
-                </div>
-            </div>
-        </section>
-
-        <!-- Cifras (se pueden contar en esta misma página) -->
-        <section class="bg-pureBlack border-y border-bloodRed/10" aria-label="God's Plan en cifras">
-            <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                <div><p class="font-display text-3xl md:text-4xl font-black text-pastelRed">10</p><p class="text-gray-400 text-xs md:text-sm mt-1">proyectos propios</p></div>
-                <div><p class="font-display text-3xl md:text-4xl font-black text-pastelRed">4</p><p class="text-gray-400 text-xs md:text-sm mt-1">servicios para clientes</p></div>
-                <div><p class="font-display text-3xl md:text-4xl font-black text-pastelRed">$0</p><p class="text-gray-400 text-xs md:text-sm mt-1">de hosting en tu web</p></div>
-                <div><p class="font-display text-3xl md:text-4xl font-black text-pastelRed">1</p><p class="text-gray-400 text-xs md:text-sm mt-1">trato directo, sin intermediarios</p></div>
-            </div>
-        </section>
-
-        <!-- 2. PRODUCTOS -->
-        <section id="productos" class="py-16 md:py-24 px-4 sm:px-6 bg-mainBg">
-            <div class="max-w-7xl mx-auto">
-                <div class="mb-10 md:mb-14">
-                    <h2 class="font-display text-3xl md:text-5xl font-black text-lightText uppercase mb-2">Nuestros <span class="text-bloodRed">productos</span></h2>
-                    <p class="text-gray-400 max-w-2xl text-sm md:text-base">Cada uno nació de un problema real y hoy funciona en línea. Los construimos nosotros, así que sabemos cómo se mantienen.</p>
-                </div>
-
-                <!-- Destacado: GodsTap -->
-                <div class="relative bg-pureBlack border-2 border-bloodRed rounded-2xl p-6 md:p-10 mb-8 shadow-[0_10px_30px_rgba(138,3,3,0.15)] overflow-hidden">
-                    <div class="absolute -top-10 -right-10 w-48 h-48 bg-bloodRed/20 blur-[60px] pointer-events-none"></div>
-                    <div class="relative grid md:grid-cols-[auto,1fr,auto] gap-6 md:gap-10 items-center">
-                        <div class="w-20 h-20 md:w-24 md:h-24 bg-mainBg border border-bloodRed/40 rounded-2xl flex items-center justify-center text-bloodRed">
-                            <i class="fa-brands fa-nfc-symbol text-5xl md:text-6xl"></i>
-                        </div>
-                        <div>
-                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-mainBg border border-bloodRed text-pastelRed text-xs font-medium mb-3"><i class="fa-solid fa-star text-bloodRed"></i> Producto estrella</div>
-                            <h3 class="font-display text-2xl md:text-3xl font-black uppercase text-lightText">Gods<span class="text-bloodRed">Tap</span></h3>
-                            <p class="text-pastelRed text-xs font-bold tracking-widest uppercase mb-3">GodsTap · by God’s Plan</p>
-                            <p class="text-gray-400 text-sm md:text-base leading-relaxed max-w-2xl">Etiquetas NFC dinámicas para negocios locales. Tu cliente acerca el celular y aparece tu menú, tus redes o tu promoción del día, y tú lo cambias cuando quieras desde tu cuenta, sin comprar otra etiqueta.</p>
-                        </div>
-                        <a href="https://godstap.godsplan.site" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bloodRed text-white font-bold uppercase rounded hover:bg-pastelRed hover:text-pureBlack transition-all duration-300 shadow-[0_0_15px_rgba(138,3,3,0.5)]">
-                            Conocer GodsTap <i class="fa-solid fa-arrow-right"></i>
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        <a href="#proyectos" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bloodRed text-white font-semibold rounded-lg hover:bg-pastelRed hover:text-pureBlack transition-all duration-300 shadow-[0_8px_30px_rgba(138,3,3,0.35)]">
+                            Ver proyectos <i class="fa-solid fa-arrow-right text-sm"></i>
+                        </a>
+                        <a href="#contacto" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 border border-white/15 text-lightText font-semibold rounded-lg hover:border-pastelRed hover:text-pastelRed transition-all duration-300">
+                            Hablemos de tu proyecto
                         </a>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-
-                    <!-- GomiThoNa -->
-                    <article class="bg-pureBlack p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-11 h-11 bg-mainBg rounded flex items-center justify-center text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-store text-lg"></i></div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Negocios</span>
+                <!-- Panel: proyectos en operación -->
+                <aside class="reveal relative" aria-label="Proyectos en operación">
+                    <div class="absolute -inset-px rounded-2xl bg-gradient-to-br from-bloodRed/60 via-transparent to-bloodRed/20 pointer-events-none" aria-hidden="true"></div>
+                    <div class="relative bg-pureBlack/90 backdrop-blur rounded-2xl border border-white/5 p-5 sm:p-6">
+                        <div class="flex items-center justify-between mb-5">
+                            <p class="text-xs font-semibold tracking-[0.18em] uppercase text-gray-400">En operación</p>
+                            <span class="inline-flex items-center gap-2 text-xs text-gray-400"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> En línea</span>
                         </div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-2">GomiThoNa</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">Sistema de gestión para tu negocio: ventas, clientes, productos e inventario en un solo lugar, con exportación a CSV.</p>
-                        <a href="https://wa.me/525510590927?text=Hola%2C%20quiero%20informaci%C3%B3n%20de%20GomiThoNa" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Pedir información <i class="fa-solid fa-arrow-right ml-1"></i></a>
-                    </article>
 
-                    <!-- Capital -->
-                    <article class="bg-pureBlack p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-11 h-11 bg-mainBg rounded flex items-center justify-center text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-chart-line text-lg"></i></div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Finanzas</span>
-                        </div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-2">Capital</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">El “libro mayor” de tu vida financiera: registra movimientos, asígnalos a categorías y llévalos al detalle sin tocar tu capital.</p>
-                        <a href="https://capital.godsplan.site" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Abrir Capital <i class="fa-solid fa-arrow-right ml-1"></i></a>
-                    </article>
+                        <a href="https://godstap.godsplan.site" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-4 p-4 rounded-xl bg-mainBg border border-white/5 hover:border-bloodRed/70 transition-colors mb-3">
+                            <span class="w-12 h-12 shrink-0 rounded-xl bg-bloodRed/15 border border-bloodRed/40 flex items-center justify-center text-pastelRed"><i class="fa-brands fa-nfc-symbol text-2xl"></i></span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block font-display font-bold text-lightText">Gods<span class="text-bloodRed">Tap</span></span>
+                                <span class="block text-sm text-gray-400">Etiquetas NFC dinámicas</span>
+                            </span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-xs text-gray-600 group-hover:text-pastelRed transition-colors"></i>
+                        </a>
 
-                    <!-- Finanzas -->
-                    <article class="bg-pureBlack p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-11 h-11 bg-mainBg rounded flex items-center justify-center text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-wallet text-lg"></i></div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Finanzas</span>
-                        </div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-2">Finanzas</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">Finanzas personales: ingresos, gastos fijos, deudas a plazos, préstamos y un límite diario para saber cuánto puedes gastar hoy.</p>
-                        <a href="https://finanzas.godsplan.site" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Abrir Finanzas <i class="fa-solid fa-arrow-right ml-1"></i></a>
-                    </article>
+                        <a href="https://rig.godsplan.site" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-4 p-4 rounded-xl bg-mainBg border border-white/5 hover:border-bloodRed/70 transition-colors">
+                            <span class="w-12 h-12 shrink-0 rounded-xl bg-bloodRed/15 border border-bloodRed/40 flex items-center justify-center text-pastelRed"><i class="fa-solid fa-microchip text-xl"></i></span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block font-display font-bold text-lightText">Gods<span class="text-bloodRed">Rig</span></span>
+                                <span class="block text-sm text-gray-400">Soporte y ensamble de PC</span>
+                            </span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-xs text-gray-600 group-hover:text-pastelRed transition-colors"></i>
+                        </a>
+                    </div>
+                </aside>
+            </div>
+        </section>
 
-                    <!-- Adherencia -->
-                    <article class="bg-pureBlack p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-11 h-11 bg-mainBg rounded flex items-center justify-center text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-stopwatch text-lg"></i></div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Productividad</span>
-                        </div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-2">Adherencia</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">Control de tiempos operativos: estado actual, duración de cada actividad y tiempos autorizados.</p>
-                        <a href="https://adherencia.godsplan.site" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Abrir Adherencia <i class="fa-solid fa-arrow-right ml-1"></i></a>
-                    </article>
+        <!-- Cifras -->
+        <section class="bg-pureBlack border-y border-white/5" aria-label="God's Plan en cifras">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 py-9 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div><p class="font-display text-3xl md:text-4xl font-extrabold text-pastelRed">2</p><p class="text-gray-400 text-xs md:text-sm mt-1.5">productos en operación</p></div>
+                <div><p class="font-display text-3xl md:text-4xl font-extrabold text-pastelRed">4</p><p class="text-gray-400 text-xs md:text-sm mt-1.5">servicios para clientes</p></div>
+                <div><p class="font-display text-3xl md:text-4xl font-extrabold text-pastelRed">$0</p><p class="text-gray-400 text-xs md:text-sm mt-1.5">de hosting en tu web</p></div>
+                <div><p class="font-display text-3xl md:text-4xl font-extrabold text-pastelRed">1</p><p class="text-gray-400 text-xs md:text-sm mt-1.5">trato directo, sin intermediarios</p></div>
+            </div>
+        </section>
 
-                    <!-- Coding -->
-                    <article class="bg-pureBlack p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-11 h-11 bg-mainBg rounded flex items-center justify-center text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-graduation-cap text-lg"></i></div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Educación</span>
-                        </div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-2">Coding</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">Cursos de programación en el navegador: HTML5, JavaScript, Python y SQL.</p>
-                        <a href="https://coding.godsplan.site" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Ver cursos <i class="fa-solid fa-arrow-right ml-1"></i></a>
-                    </article>
+        <!-- 2. PROYECTOS -->
+        <section id="proyectos" class="py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-mainBg">
+            <div class="max-w-7xl mx-auto">
+                <div class="mb-12 md:mb-16 max-w-2xl reveal">
+                    <p class="text-bloodRed text-xs font-bold tracking-[0.22em] uppercase mb-3">Proyectos</p>
+                    <h2 class="font-display text-3xl md:text-5xl font-extrabold text-lightText tracking-tight mb-4">Lo que construimos y operamos</h2>
+                    <p class="text-gray-400 text-base md:text-lg leading-relaxed">Cada proyecto nació de un problema real y hoy funciona en línea. Los hacemos nosotros, así que sabemos cómo se mantienen.</p>
+                </div>
 
-                    <!-- Velocity -->
-                    <article class="bg-pureBlack p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-11 h-11 bg-mainBg rounded flex items-center justify-center text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-keyboard text-lg"></i></div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Herramienta</span>
-                        </div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-2">Velocity</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">Mide y mejora tu velocidad al escribir, con precisión, consistencia y ranking global.</p>
-                        <a href="https://velocity.godsplan.site" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Probar Velocity <i class="fa-solid fa-arrow-right ml-1"></i></a>
-                    </article>
+                <div class="grid lg:grid-cols-2 gap-6 md:gap-8">
 
-                    <!-- Canvas -->
-                    <article class="bg-pureBlack p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-11 h-11 bg-mainBg rounded flex items-center justify-center text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-code text-lg"></i></div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Herramienta</span>
+                    <!-- GodsTap -->
+                    <article class="project-card reveal flex flex-col rounded-2xl border border-bloodRed/40 overflow-hidden">
+                        <div class="relative h-44 md:h-52 flex items-center justify-center overflow-hidden border-b border-white/5">
+                            <div class="absolute inset-0 bg-grid bg-grid-fade" aria-hidden="true"></div>
+                            <div class="absolute w-56 h-56 bg-bloodRed/30 rounded-full blur-[70px]" aria-hidden="true"></div>
+                            <span class="relative w-24 h-24 rounded-3xl bg-mainBg border border-bloodRed/50 flex items-center justify-center text-pastelRed shadow-[0_0_40px_rgba(138,3,3,0.45)]">
+                                <i class="fa-brands fa-nfc-symbol text-6xl"></i>
+                            </span>
+                            <span class="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pureBlack/80 border border-bloodRed/50 text-pastelRed text-xs font-medium"><i class="fa-solid fa-star text-bloodRed"></i> Producto estrella</span>
                         </div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-2">Canvas</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">Pega tu código HTML y mira la vista previa al instante.</p>
-                        <a href="https://canvas.godsplan.site" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Abrir Canvas <i class="fa-solid fa-arrow-right ml-1"></i></a>
-                    </article>
-
-                    <!-- Games -->
-                    <article class="bg-pureBlack p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-11 h-11 bg-mainBg rounded flex items-center justify-center text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-gamepad text-lg"></i></div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Juegos</span>
+                        <div class="flex flex-col flex-grow p-6 md:p-8">
+                            <p class="text-pastelRed text-[11px] font-bold tracking-[0.2em] uppercase mb-2">GodsTap · by God’s Plan</p>
+                            <h3 class="font-display text-3xl font-extrabold text-lightText mb-3">Gods<span class="text-bloodRed">Tap</span></h3>
+                            <p class="text-gray-400 leading-relaxed mb-6">Etiquetas NFC dinámicas para negocios locales. Tu cliente acerca el celular y aparece tu menú, tus redes o tu promoción del día.</p>
+                            <ul class="space-y-3 text-sm text-gray-300 mb-8 flex-grow">
+                                <li class="flex gap-3"><i class="fa-solid fa-check text-bloodRed mt-1"></i><span>Cambias el contenido cuando quieras desde tu cuenta, sin comprar otra etiqueta.</span></li>
+                                <li class="flex gap-3"><i class="fa-solid fa-check text-bloodRed mt-1"></i><span>Pensado para restaurantes, barberías, tiendas y negocios de barrio.</span></li>
+                                <li class="flex gap-3"><i class="fa-solid fa-check text-bloodRed mt-1"></i><span>Tu cliente no instala nada: acerca el celular y listo.</span></li>
+                            </ul>
+                            <a href="https://godstap.godsplan.site" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-bloodRed text-white font-semibold rounded-lg hover:bg-pastelRed hover:text-pureBlack transition-all duration-300 self-start">
+                                Conocer GodsTap <i class="fa-solid fa-arrow-right text-sm"></i>
+                            </a>
                         </div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-2">Games</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">Nexus Hub: Arrow Zen, Crimson Puzzle, crucigrama y sudoku, directo en el navegador.</p>
-                        <a href="https://games.godsplan.site" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Jugar <i class="fa-solid fa-arrow-right ml-1"></i></a>
                     </article>
 
                     <!-- GodsRig -->
-                    <article class="bg-pureBlack p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col sm:col-span-2 lg:col-span-1">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-11 h-11 bg-mainBg rounded flex items-center justify-center text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-microchip text-lg"></i></div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Soporte técnico</span>
+                    <article class="project-card reveal flex flex-col rounded-2xl border border-white/10 overflow-hidden">
+                        <div class="relative h-44 md:h-52 flex items-center justify-center overflow-hidden border-b border-white/5">
+                            <div class="absolute inset-0 bg-grid bg-grid-fade" aria-hidden="true"></div>
+                            <div class="absolute w-56 h-56 bg-bloodRed/25 rounded-full blur-[70px]" aria-hidden="true"></div>
+                            <span class="relative w-24 h-24 rounded-3xl bg-mainBg border border-bloodRed/50 flex items-center justify-center text-pastelRed shadow-[0_0_40px_rgba(138,3,3,0.4)]">
+                                <i class="fa-solid fa-microchip text-5xl"></i>
+                            </span>
+                            <span class="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pureBlack/80 border border-white/15 text-gray-300 text-xs font-medium"><i class="fa-solid fa-screwdriver-wrench text-bloodRed"></i> Soporte técnico</span>
                         </div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-2">GodsRig</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">Soporte técnico y ensamble de PC: armado a medida, limpieza, optimización y upgrades, con catálogo y precios claros.</p>
-                        <a href="https://rig.godsplan.site" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Ver GodsRig <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                        <div class="flex flex-col flex-grow p-6 md:p-8">
+                            <p class="text-pastelRed text-[11px] font-bold tracking-[0.2em] uppercase mb-2">GodsRig · by God’s Plan</p>
+                            <h3 class="font-display text-3xl font-extrabold text-lightText mb-3">Gods<span class="text-bloodRed">Rig</span></h3>
+                            <p class="text-gray-400 leading-relaxed mb-6">Soporte técnico y ensamble de PC: armado a medida, limpieza, optimización y upgrades, con catálogo y precios claros.</p>
+                            <ul class="space-y-3 text-sm text-gray-300 mb-8 flex-grow">
+                                <li class="flex gap-3"><i class="fa-solid fa-check text-bloodRed mt-1"></i><span>Mantenimiento desde $200 MXN, con precios publicados en el catálogo.</span></li>
+                                <li class="flex gap-3"><i class="fa-solid fa-check text-bloodRed mt-1"></i><span>Instalación de SSD, optimización y upgrades para que tu equipo rinda más.</span></li>
+                                <li class="flex gap-3"><i class="fa-solid fa-check text-bloodRed mt-1"></i><span>Armado de PC a la medida de lo que necesitas.</span></li>
+                            </ul>
+                            <div class="flex flex-col sm:flex-row gap-3 self-start">
+                                <a href="https://rig.godsplan.site" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-bloodRed text-white font-semibold rounded-lg hover:bg-pastelRed hover:text-pureBlack transition-all duration-300">
+                                    Conocer GodsRig <i class="fa-solid fa-arrow-right text-sm"></i>
+                                </a>
+                                <a href="https://rig.godsplan.site/catalogo.html" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-white/15 text-lightText font-semibold rounded-lg hover:border-pastelRed hover:text-pastelRed transition-all duration-300">
+                                    Ver catálogo
+                                </a>
+                            </div>
+                        </div>
                     </article>
                 </div>
             </div>
         </section>
 
         <!-- 3. SERVICIOS -->
-        <section id="servicios" class="py-16 md:py-24 px-4 sm:px-6 bg-pureBlack border-y border-bloodRed/10">
+        <section id="servicios" class="py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-pureBlack border-y border-white/5">
             <div class="max-w-7xl mx-auto">
-                <div class="mb-10 md:mb-14">
-                    <h2 class="font-display text-3xl md:text-5xl font-black text-lightText uppercase mb-2">Servicios <span class="text-bloodRed">a medida</span></h2>
-                    <p class="text-gray-400 max-w-2xl text-sm md:text-base">Si lo que necesitas no está en la lista de productos, lo construimos contigo.</p>
+                <div class="mb-12 md:mb-16 max-w-2xl reveal">
+                    <p class="text-bloodRed text-xs font-bold tracking-[0.22em] uppercase mb-3">Servicios</p>
+                    <h2 class="font-display text-3xl md:text-5xl font-extrabold text-lightText tracking-tight mb-4">Soluciones a la medida de tu negocio</h2>
+                    <p class="text-gray-400 text-base md:text-lg leading-relaxed">Si lo que necesitas no está en la lista, lo construimos contigo.</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                    <div class="bg-mainBg p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col">
-                        <div class="w-12 h-12 bg-pureBlack rounded flex items-center justify-center mb-4 text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-globe text-xl"></i></div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-1">Webs para negocios</h3>
-                        <p class="text-pastelRed font-black text-2xl mb-3">Desde $800 <span class="text-gray-500 text-xs font-medium">MXN</span></p>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">Páginas rápidas y bien diseñadas para que tu negocio se vea profesional. Hosting gratis incluido.</p>
-                        <a href="barberia.html" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Ver ejemplo <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                    <div class="reveal bg-mainBg p-6 rounded-2xl border border-white/10 hover:border-bloodRed/70 transition-colors duration-300 flex flex-col">
+                        <div class="w-12 h-12 bg-bloodRed/15 rounded-xl flex items-center justify-center mb-5 text-pastelRed border border-bloodRed/30"><i class="fa-solid fa-globe text-xl"></i></div>
+                        <h3 class="font-display text-lg font-bold text-lightText mb-1">Webs para negocios</h3>
+                        <p class="text-pastelRed font-extrabold text-2xl mb-3">Desde $800 <span class="text-gray-500 text-xs font-medium">MXN</span></p>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-5 flex-grow">Páginas rápidas y bien diseñadas para que tu negocio se vea profesional. Hosting gratis incluido.</p>
+                        <a href="https://wa.me/525510590927?text=Hola%2C%20quiero%20informaci%C3%B3n%20de%20una%20web%20para%20mi%20negocio" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-semibold hover:text-white transition-colors">Cotizar mi web <i class="fa-solid fa-arrow-right ml-1"></i></a>
                     </div>
 
-                    <div class="bg-mainBg p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col">
-                        <div class="w-12 h-12 bg-pureBlack rounded flex items-center justify-center mb-4 text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-glass-cheers text-xl"></i></div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-1">Invitaciones digitales</h3>
-                        <p class="text-pastelRed font-black text-2xl mb-3">Desde $350 <span class="text-gray-500 text-xs font-medium">MXN</span></p>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">Invitaciones interactivas para cumpleaños, bodas y eventos, que se comparten con un solo enlace.</p>
-                        <a href="testinvite.html" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Ver ejemplo <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                    <div class="reveal bg-mainBg p-6 rounded-2xl border border-white/10 hover:border-bloodRed/70 transition-colors duration-300 flex flex-col">
+                        <div class="w-12 h-12 bg-bloodRed/15 rounded-xl flex items-center justify-center mb-5 text-pastelRed border border-bloodRed/30"><i class="fa-solid fa-glass-cheers text-xl"></i></div>
+                        <h3 class="font-display text-lg font-bold text-lightText mb-1">Invitaciones digitales</h3>
+                        <p class="text-pastelRed font-extrabold text-2xl mb-3">Desde $350 <span class="text-gray-500 text-xs font-medium">MXN</span></p>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-5 flex-grow">Invitaciones interactivas para cumpleaños, bodas y eventos, que se comparten con un solo enlace.</p>
+                        <a href="https://wa.me/525510590927?text=Hola%2C%20quiero%20informaci%C3%B3n%20de%20una%20invitaci%C3%B3n%20digital" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-semibold hover:text-white transition-colors">Pedir mi invitación <i class="fa-solid fa-arrow-right ml-1"></i></a>
                     </div>
 
-                    <div class="bg-mainBg p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col">
-                        <div class="w-12 h-12 bg-pureBlack rounded flex items-center justify-center mb-4 text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-diagram-project text-xl"></i></div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-1">Sistemas a medida</h3>
-                        <p class="text-pastelRed font-black text-2xl mb-3">Cotización</p>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">Control de ventas, clientes y stock, automatización en Excel y Google Sheets, o la herramienta que tu operación necesite, hecha para cómo trabajas.</p>
-                        <a href="#contacto" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Cuéntanos tu caso <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                    <div class="reveal bg-mainBg p-6 rounded-2xl border border-white/10 hover:border-bloodRed/70 transition-colors duration-300 flex flex-col">
+                        <div class="w-12 h-12 bg-bloodRed/15 rounded-xl flex items-center justify-center mb-5 text-pastelRed border border-bloodRed/30"><i class="fa-solid fa-diagram-project text-xl"></i></div>
+                        <h3 class="font-display text-lg font-bold text-lightText mb-1">Sistemas a medida</h3>
+                        <p class="text-pastelRed font-extrabold text-2xl mb-3">Cotización</p>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-5 flex-grow">Control de ventas, clientes y stock, automatización en Excel y Google Sheets, o la herramienta que tu operación necesite, hecha para cómo trabajas.</p>
+                        <a href="https://wa.me/525510590927?text=Hola%2C%20quiero%20cotizar%20un%20sistema%20a%20medida" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-semibold hover:text-white transition-colors">Cuéntanos tu caso <i class="fa-solid fa-arrow-right ml-1"></i></a>
                     </div>
 
-                    <div class="bg-mainBg p-6 rounded-xl border border-bloodRed/20 hover:border-bloodRed transition-colors duration-300 flex flex-col">
-                        <div class="w-12 h-12 bg-pureBlack rounded flex items-center justify-center mb-4 text-pastelRed border border-bloodRed/20"><i class="fa-solid fa-microchip text-xl"></i></div>
-                        <h3 class="font-display text-lg font-bold text-lightText uppercase mb-1">Soporte y ensamble de PC</h3>
-                        <p class="text-pastelRed font-black text-2xl mb-3">Desde $200 <span class="text-gray-500 text-xs font-medium">MXN</span></p>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-grow">Con GodsRig: armado a medida, limpieza, optimización y upgrades para que tu equipo rinda al máximo.</p>
-                        <a href="https://rig.godsplan.site/catalogo.html" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-bold hover:text-white transition-colors">Ver servicios y precios <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                    <div class="reveal bg-mainBg p-6 rounded-2xl border border-white/10 hover:border-bloodRed/70 transition-colors duration-300 flex flex-col">
+                        <div class="w-12 h-12 bg-bloodRed/15 rounded-xl flex items-center justify-center mb-5 text-pastelRed border border-bloodRed/30"><i class="fa-solid fa-microchip text-xl"></i></div>
+                        <h3 class="font-display text-lg font-bold text-lightText mb-1">Soporte y ensamble de PC</h3>
+                        <p class="text-pastelRed font-extrabold text-2xl mb-3">Desde $200 <span class="text-gray-500 text-xs font-medium">MXN</span></p>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-5 flex-grow">Con GodsRig: armado a medida, limpieza, optimización y upgrades para que tu equipo rinda al máximo.</p>
+                        <a href="https://rig.godsplan.site/catalogo.html" target="_blank" rel="noopener noreferrer" class="text-pastelRed text-sm font-semibold hover:text-white transition-colors">Ver servicios y precios <i class="fa-solid fa-arrow-right ml-1"></i></a>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- 4. MÉTODO -->
-        <section id="metodo" class="py-16 md:py-24 px-4 sm:px-6 bg-mainBg">
+        <section id="metodo" class="py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-mainBg">
             <div class="max-w-6xl mx-auto">
-                <div class="mb-10 md:mb-14 text-center">
-                    <h2 class="font-display text-3xl md:text-5xl font-black text-lightText uppercase mb-2">Cómo <span class="text-bloodRed">trabajamos</span></h2>
-                    <p class="text-gray-400 max-w-xl mx-auto text-sm md:text-base">Un proceso corto y claro, de la primera conversación a la entrega.</p>
+                <div class="mb-12 md:mb-16 max-w-2xl reveal">
+                    <p class="text-bloodRed text-xs font-bold tracking-[0.22em] uppercase mb-3">Método</p>
+                    <h2 class="font-display text-3xl md:text-5xl font-extrabold text-lightText tracking-tight mb-4">Cómo trabajamos</h2>
+                    <p class="text-gray-400 text-base md:text-lg leading-relaxed">Un proceso corto y claro, de la primera conversación a la entrega.</p>
                 </div>
 
-                <ol class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <li class="relative bg-pureBlack border border-bloodRed/20 rounded-xl p-6">
-                        <span class="font-display text-4xl font-black text-bloodRed/40">01</span>
-                        <h3 class="font-display font-bold uppercase text-lightText mt-2 mb-2">Escuchamos</h3>
+                <ol class="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+                    <li class="reveal bg-pureBlack border border-white/10 rounded-2xl p-6">
+                        <span class="font-display text-4xl font-extrabold text-bloodRed/50">01</span>
+                        <h3 class="font-display font-bold text-lightText mt-3 mb-2">Escuchamos</h3>
                         <p class="text-gray-400 text-sm leading-relaxed">Nos cuentas qué necesitas y para qué, por WhatsApp o correo.</p>
                     </li>
-                    <li class="relative bg-pureBlack border border-bloodRed/20 rounded-xl p-6">
-                        <span class="font-display text-4xl font-black text-bloodRed/40">02</span>
-                        <h3 class="font-display font-bold uppercase text-lightText mt-2 mb-2">Cotizamos</h3>
+                    <li class="reveal bg-pureBlack border border-white/10 rounded-2xl p-6">
+                        <span class="font-display text-4xl font-extrabold text-bloodRed/50">02</span>
+                        <h3 class="font-display font-bold text-lightText mt-3 mb-2">Cotizamos</h3>
                         <p class="text-gray-400 text-sm leading-relaxed">Te damos una propuesta con alcance y precio antes de empezar.</p>
                     </li>
-                    <li class="relative bg-pureBlack border border-bloodRed/20 rounded-xl p-6">
-                        <span class="font-display text-4xl font-black text-bloodRed/40">03</span>
-                        <h3 class="font-display font-bold uppercase text-lightText mt-2 mb-2">Construimos</h3>
+                    <li class="reveal bg-pureBlack border border-white/10 rounded-2xl p-6">
+                        <span class="font-display text-4xl font-extrabold text-bloodRed/50">03</span>
+                        <h3 class="font-display font-bold text-lightText mt-3 mb-2">Construimos</h3>
                         <p class="text-gray-400 text-sm leading-relaxed">Trabajamos directo contigo y te mostramos avances para ajustar a tiempo.</p>
                     </li>
-                    <li class="relative bg-pureBlack border border-bloodRed/20 rounded-xl p-6">
-                        <span class="font-display text-4xl font-black text-bloodRed/40">04</span>
-                        <h3 class="font-display font-bold uppercase text-lightText mt-2 mb-2">Entregamos</h3>
+                    <li class="reveal bg-pureBlack border border-white/10 rounded-2xl p-6">
+                        <span class="font-display text-4xl font-extrabold text-bloodRed/50">04</span>
+                        <h3 class="font-display font-bold text-lightText mt-3 mb-2">Entregamos</h3>
                         <p class="text-gray-400 text-sm leading-relaxed">Publicamos tu proyecto y te acompañamos con los ajustes que haga falta.</p>
                     </li>
                 </ol>
@@ -384,108 +387,70 @@
         </section>
 
         <!-- 5. NOSOTROS -->
-        <section id="nosotros" class="py-16 md:py-24 px-4 sm:px-6 bg-pureBlack border-y border-bloodRed/10">
-            <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 md:gap-16 items-start">
-                <div>
-                    <h2 class="font-display text-3xl md:text-5xl font-black text-lightText uppercase mb-4">Sobre <span class="text-bloodRed">God's Plan</span></h2>
+        <section id="nosotros" class="py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-pureBlack border-y border-white/5">
+            <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 md:gap-16 items-start">
+                <div class="reveal">
+                    <p class="text-bloodRed text-xs font-bold tracking-[0.22em] uppercase mb-3">Nosotros</p>
+                    <h2 class="font-display text-3xl md:text-5xl font-extrabold text-lightText tracking-tight mb-6">Sobre God's Plan</h2>
                     <p class="text-gray-400 leading-relaxed mb-4">God's Plan es una agencia de proyectos independiente que trabaja desde México. Empezó construyendo herramientas propias y hoy esa experiencia es la base de lo que hacemos para otros negocios.</p>
                     <p class="text-gray-400 leading-relaxed">Preferimos pocos proyectos bien hechos a muchos a medias: cada producto que ves en esta página está en línea y lo mantenemos nosotros.</p>
                 </div>
                 <ul class="space-y-4">
-                    <li class="flex gap-4 bg-mainBg border border-bloodRed/20 rounded-xl p-5">
-                        <i class="fa-solid fa-flask text-bloodRed text-xl mt-1"></i>
-                        <div><h3 class="font-display font-bold uppercase text-lightText text-sm mb-1">Probamos en casa primero</h3><p class="text-gray-400 text-sm">Nuestros productos son el laboratorio donde afinamos lo que luego llevamos a tu proyecto.</p></div>
+                    <li class="reveal flex gap-4 bg-mainBg border border-white/10 rounded-2xl p-5">
+                        <span class="w-11 h-11 shrink-0 rounded-xl bg-bloodRed/15 border border-bloodRed/30 flex items-center justify-center"><i class="fa-solid fa-flask text-pastelRed"></i></span>
+                        <div><h3 class="font-display font-bold text-lightText text-sm mb-1">Probamos en casa primero</h3><p class="text-gray-400 text-sm leading-relaxed">Nuestros productos son el laboratorio donde afinamos lo que luego llevamos a tu proyecto.</p></div>
                     </li>
-                    <li class="flex gap-4 bg-mainBg border border-bloodRed/20 rounded-xl p-5">
-                        <i class="fa-solid fa-handshake text-bloodRed text-xl mt-1"></i>
-                        <div><h3 class="font-display font-bold uppercase text-lightText text-sm mb-1">Trato directo</h3><p class="text-gray-400 text-sm">Hablas con quien construye tu proyecto, sin capas de intermediarios.</p></div>
+                    <li class="reveal flex gap-4 bg-mainBg border border-white/10 rounded-2xl p-5">
+                        <span class="w-11 h-11 shrink-0 rounded-xl bg-bloodRed/15 border border-bloodRed/30 flex items-center justify-center"><i class="fa-solid fa-handshake text-pastelRed"></i></span>
+                        <div><h3 class="font-display font-bold text-lightText text-sm mb-1">Trato directo</h3><p class="text-gray-400 text-sm leading-relaxed">Hablas con quien construye tu proyecto, sin capas de intermediarios.</p></div>
                     </li>
-                    <li class="flex gap-4 bg-mainBg border border-bloodRed/20 rounded-xl p-5">
-                        <i class="fa-solid fa-bolt text-bloodRed text-xl mt-1"></i>
-                        <div><h3 class="font-display font-bold uppercase text-lightText text-sm mb-1">Precios claros</h3><p class="text-gray-400 text-sm">Los precios base están publicados y la cotización llega antes de empezar.</p></div>
+                    <li class="reveal flex gap-4 bg-mainBg border border-white/10 rounded-2xl p-5">
+                        <span class="w-11 h-11 shrink-0 rounded-xl bg-bloodRed/15 border border-bloodRed/30 flex items-center justify-center"><i class="fa-solid fa-bolt text-pastelRed"></i></span>
+                        <div><h3 class="font-display font-bold text-lightText text-sm mb-1">Precios claros</h3><p class="text-gray-400 text-sm leading-relaxed">Los precios base están publicados y la cotización llega antes de empezar.</p></div>
                     </li>
                 </ul>
             </div>
         </section>
 
-        <!-- 6. LABORATORIO -->
-        <section id="laboratorio" class="py-16 md:py-24 px-4 sm:px-6 bg-mainBg">
-            <div class="max-w-7xl mx-auto">
-                <div class="mb-10 md:mb-14">
-                    <h2 class="font-display text-3xl md:text-5xl font-black text-lightText uppercase mb-2">El <span class="text-bloodRed">laboratorio</span></h2>
-                    <p class="text-gray-400 max-w-xl text-sm md:text-base">Simulaciones, juegos y experimentos que construimos por gusto. Aquí probamos ideas antes de convertirlas en proyectos.</p>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <a href="proyectos/cartel-lord.html" class="bg-pureBlack p-5 rounded-lg border border-bloodRed/20 hover:border-bloodRed hover:-translate-y-1 transition-all duration-300">
-                        <p class="text-2xl mb-2" aria-hidden="true">💊</p>
-                        <h3 class="font-display font-bold text-lightText uppercase text-sm mb-1">Cartel Lord</h3>
-                        <p class="text-gray-400 text-xs leading-relaxed">Simulador de gestión criminal con economía y riesgos.</p>
-                    </a>
-                    <a href="proyectos/microbus.html" class="bg-pureBlack p-5 rounded-lg border border-bloodRed/20 hover:border-bloodRed hover:-translate-y-1 transition-all duration-300">
-                        <p class="text-2xl mb-2" aria-hidden="true">🚌</p>
-                        <h3 class="font-display font-bold text-lightText uppercase text-sm mb-1">Microbús Simulator</h3>
-                        <p class="text-gray-400 text-xs leading-relaxed">Conducción en 3D por la CDMX con Three.js.</p>
-                    </a>
-                    <a href="proyectos/pulpi.html" class="bg-pureBlack p-5 rounded-lg border border-bloodRed/20 hover:border-bloodRed hover:-translate-y-1 transition-all duration-300">
-                        <p class="text-2xl mb-2" aria-hidden="true">🐙</p>
-                        <h3 class="font-display font-bold text-lightText uppercase text-sm mb-1">Pulpi 7.0</h3>
-                        <p class="text-gray-400 text-xs leading-relaxed">Arcade submarino con controles táctiles.</p>
-                    </a>
-                    <a href="proyectos/aduana.html" class="bg-pureBlack p-5 rounded-lg border border-bloodRed/20 hover:border-bloodRed hover:-translate-y-1 transition-all duration-300">
-                        <p class="text-2xl mb-2" aria-hidden="true">🛂</p>
-                        <h3 class="font-display font-bold text-lightText uppercase text-sm mb-1">Aduana México</h3>
-                        <p class="text-gray-400 text-xs leading-relaxed">Validación de documentos estilo Papers Please.</p>
-                    </a>
-                </div>
-
-                <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-                    <a href="proyectos/" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-pureBlack border border-pastelRed text-pastelRed font-bold uppercase rounded hover:bg-pastelRed hover:text-pureBlack transition-all duration-300">
-                        Archivo de proyectos <i class="fa-solid fa-arrow-right"></i>
-                    </a>
-                    <a href="games/" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-pureBlack border border-bloodRed/50 text-lightText font-bold uppercase rounded hover:border-pastelRed hover:text-pastelRed transition-all duration-300">
-                        Juegos <i class="fa-solid fa-gamepad"></i>
-                    </a>
-                </div>
-            </div>
-        </section>
-
-        <!-- 7. PREGUNTAS FRECUENTES -->
-        <section id="preguntas" class="py-16 md:py-24 px-4 sm:px-6 bg-pureBlack border-y border-bloodRed/10">
+        <!-- 6. PREGUNTAS FRECUENTES -->
+        <section id="preguntas" class="py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-mainBg">
             <div class="max-w-3xl mx-auto">
-                <h2 class="font-display text-3xl md:text-5xl font-black text-lightText uppercase mb-10 text-center">Preguntas <span class="text-bloodRed">frecuentes</span></h2>
+                <div class="mb-10 md:mb-14 text-center reveal">
+                    <p class="text-bloodRed text-xs font-bold tracking-[0.22em] uppercase mb-3">Preguntas</p>
+                    <h2 class="font-display text-3xl md:text-5xl font-extrabold text-lightText tracking-tight">Preguntas frecuentes</h2>
+                </div>
 
-                <div class="space-y-3">
-                    <details class="group bg-mainBg border border-bloodRed/20 rounded-lg">
-                        <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-bold text-lightText">
+                <div class="space-y-3 reveal">
+                    <details class="group bg-pureBlack border border-white/10 rounded-xl open:border-bloodRed/50 transition-colors">
+                        <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-semibold text-lightText">
                             ¿Cuánto cuesta una página web para mi negocio?
                             <i class="fa-solid fa-plus text-bloodRed faq-icon transition-transform"></i>
                         </summary>
                         <p class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">Las webs para negocios empiezan desde $800 MXN e incluyen el hosting sin costo. El precio final depende de lo que necesites; te enviamos una cotización antes de empezar.</p>
                     </details>
-                    <details class="group bg-mainBg border border-bloodRed/20 rounded-lg">
-                        <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-bold text-lightText">
+                    <details class="group bg-pureBlack border border-white/10 rounded-xl open:border-bloodRed/50 transition-colors">
+                        <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-semibold text-lightText">
                             ¿Qué es GodsTap y para quién es?
                             <i class="fa-solid fa-plus text-bloodRed faq-icon transition-transform"></i>
                         </summary>
                         <p class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">Es una etiqueta NFC para negocios locales. Quien acerca el celular ve tu menú, tus redes o tu promoción, y tú puedes cambiar ese contenido cuando quieras desde tu cuenta. Está pensada para restaurantes, barberías, tiendas y negocios de barrio.</p>
                     </details>
-                    <details class="group bg-mainBg border border-bloodRed/20 rounded-lg">
-                        <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-bold text-lightText">
+                    <details class="group bg-pureBlack border border-white/10 rounded-xl open:border-bloodRed/50 transition-colors">
+                        <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-semibold text-lightText">
                             ¿Pueden hacer un sistema a la medida de mi negocio?
                             <i class="fa-solid fa-plus text-bloodRed faq-icon transition-transform"></i>
                         </summary>
-                        <p class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">Sí. Con GomiThoNa llevamos control de ventas, clientes e inventario, y podemos adaptar o construir la herramienta que tu operación necesite. Cuéntanos tu caso y te cotizamos.</p>
+                        <p class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">Sí. Podemos llevar el control de ventas, clientes e inventario, o construir la herramienta que tu operación necesite. Cuéntanos tu caso y te cotizamos.</p>
                     </details>
-                    <details class="group bg-mainBg border border-bloodRed/20 rounded-lg">
-                        <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-bold text-lightText">
-                            ¿Siguen ofreciendo soporte técnico y armado de PC?
+                    <details class="group bg-pureBlack border border-white/10 rounded-xl open:border-bloodRed/50 transition-colors">
+                        <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-semibold text-lightText">
+                            ¿Ofrecen soporte técnico y armado de PC?
                             <i class="fa-solid fa-plus text-bloodRed faq-icon transition-transform"></i>
                         </summary>
-                        <p class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">Sí. Tienes el catálogo completo con precios en <a href="https://rig.godsplan.site/catalogo.html" class="text-pastelRed underline">GodsRig</a>, nuestro proyecto de soporte y ensamble de PC: mantenimiento desde $200 MXN, instalación de SSD y armado a medida.</p>
+                        <p class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">Sí. Tienes el catálogo completo con precios en <a href="https://rig.godsplan.site/catalogo.html" target="_blank" rel="noopener noreferrer" class="text-pastelRed underline">GodsRig</a>, nuestro proyecto de soporte y ensamble de PC: mantenimiento desde $200 MXN, instalación de SSD y armado a medida.</p>
                     </details>
-                    <details class="group bg-mainBg border border-bloodRed/20 rounded-lg">
-                        <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-bold text-lightText">
+                    <details class="group bg-pureBlack border border-white/10 rounded-xl open:border-bloodRed/50 transition-colors">
+                        <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-semibold text-lightText">
                             ¿Cómo los contacto?
                             <i class="fa-solid fa-plus text-bloodRed faq-icon transition-transform"></i>
                         </summary>
@@ -495,20 +460,22 @@
             </div>
         </section>
 
-        <!-- 8. CONTACTO -->
-        <section id="contacto" class="py-16 md:py-24 px-4 sm:px-6 bg-grid">
-            <div class="max-w-2xl mx-auto bg-mainBg border border-bloodRed/30 p-8 md:p-12 rounded-xl text-center relative overflow-hidden shadow-[0_0_30px_rgba(138,3,3,0.1)]">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-bloodRed/20 blur-[40px]"></div>
+        <!-- 7. CONTACTO -->
+        <section id="contacto" class="relative py-20 md:py-28 px-4 sm:px-6 lg:px-8 overflow-hidden border-t border-white/5">
+            <div class="absolute inset-0 bg-grid bg-grid-fade pointer-events-none" aria-hidden="true"></div>
+            <div class="reveal relative max-w-3xl mx-auto bg-pureBlack border border-bloodRed/40 p-8 md:p-14 rounded-3xl text-center overflow-hidden shadow-[0_0_60px_rgba(138,3,3,0.15)]">
+                <div class="absolute -top-16 -right-16 w-56 h-56 bg-bloodRed/25 blur-[70px] pointer-events-none" aria-hidden="true"></div>
 
-                <h2 class="font-display text-2xl md:text-4xl font-black uppercase mb-4 relative z-10">¿Tienes un proyecto en mente?</h2>
-                <p class="text-gray-400 mb-8 relative z-10 text-sm md:text-base">Cuéntanos tu idea. Te respondemos personalmente y armamos una propuesta a tu medida.</p>
+                <p class="relative text-bloodRed text-xs font-bold tracking-[0.22em] uppercase mb-3">Contacto</p>
+                <h2 class="relative font-display text-3xl md:text-5xl font-extrabold tracking-tight mb-4">¿Tienes un proyecto en mente?</h2>
+                <p class="relative text-gray-400 mb-9 md:text-lg">Cuéntanos tu idea. Te respondemos personalmente y armamos una propuesta a tu medida.</p>
 
-                <div class="relative z-10 flex flex-col sm:flex-row justify-center gap-4">
-                    <a href="https://wa.me/525510590927" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-3 bg-[#25D366] text-white px-8 py-4 rounded font-bold hover:bg-white hover:text-[#25D366] transition-all duration-300 shadow-[0_4px_15px_rgba(37,211,102,0.3)]">
+                <div class="relative flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+                    <a href="https://wa.me/525510590927" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-3 bg-[#25D366] text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-[#25D366] transition-all duration-300 shadow-[0_4px_20px_rgba(37,211,102,0.3)]">
                         <i class="fa-brands fa-whatsapp text-2xl"></i>
                         WhatsApp
                     </a>
-                    <a href="mailto:contacto@godsplan.site" class="inline-flex items-center justify-center gap-3 bg-pureBlack border border-bloodRed/50 text-lightText px-8 py-4 rounded font-bold hover:border-pastelRed hover:text-pastelRed transition-all duration-300">
+                    <a href="mailto:contacto@godsplan.site" class="inline-flex items-center justify-center gap-3 border border-white/15 text-lightText px-8 py-4 rounded-lg font-semibold hover:border-pastelRed hover:text-pastelRed transition-all duration-300">
                         <i class="fa-solid fa-envelope text-xl"></i>
                         contacto@godsplan.site
                     </a>
@@ -518,36 +485,31 @@
     </main>
 
     <!-- PIE DE PÁGINA -->
-    <footer class="bg-pureBlack border-t border-bloodRed/30 pt-12 pb-8 px-4 mt-auto">
-        <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-10 text-sm">
+    <footer class="bg-pureBlack border-t border-white/5 pt-14 pb-8 px-4 sm:px-6 lg:px-8 mt-auto">
+        <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 text-sm">
             <div class="col-span-2 md:col-span-1">
-                <a href="#" class="font-display text-lg font-black tracking-widest text-pastelRed uppercase flex items-center gap-2 mb-3"><i class="fa-solid fa-cross"></i> God's Plan</a>
-                <p class="text-gray-500 text-xs leading-relaxed">Agencia de proyectos. Productos propios y soluciones a medida desde México.</p>
+                <a href="#" class="font-display text-lg font-extrabold tracking-[0.2em] text-pastelRed uppercase flex items-center gap-2.5 mb-4"><i class="fa-solid fa-cross"></i> God's Plan</a>
+                <p class="text-gray-500 text-xs leading-relaxed max-w-[16rem]">Agencia de proyectos. Productos propios y soluciones a medida desde México.</p>
             </div>
             <div>
-                <h3 class="text-gray-300 font-bold uppercase text-xs tracking-widest mb-3">Productos</h3>
-                <ul class="space-y-2 text-gray-500">
-                    <li><a href="https://godstap.godsplan.site" class="hover:text-pastelRed transition-colors">GodsTap</a></li>
-                    <li><a href="https://capital.godsplan.site" class="hover:text-pastelRed transition-colors">Capital</a></li>
-                    <li><a href="https://finanzas.godsplan.site" class="hover:text-pastelRed transition-colors">Finanzas</a></li>
-                    <li><a href="https://coding.godsplan.site" class="hover:text-pastelRed transition-colors">Coding</a></li>
-                    <li><a href="https://games.godsplan.site" class="hover:text-pastelRed transition-colors">Games</a></li>
-                    <li><a href="https://rig.godsplan.site" class="hover:text-pastelRed transition-colors">GodsRig</a></li>
+                <h3 class="text-gray-300 font-bold uppercase text-xs tracking-widest mb-4">Proyectos</h3>
+                <ul class="space-y-2.5 text-gray-500">
+                    <li><a href="https://godstap.godsplan.site" target="_blank" rel="noopener noreferrer" class="hover:text-pastelRed transition-colors">GodsTap</a></li>
+                    <li><a href="https://rig.godsplan.site" target="_blank" rel="noopener noreferrer" class="hover:text-pastelRed transition-colors">GodsRig</a></li>
                 </ul>
             </div>
             <div>
-                <h3 class="text-gray-300 font-bold uppercase text-xs tracking-widest mb-3">Empresa</h3>
-                <ul class="space-y-2 text-gray-500">
+                <h3 class="text-gray-300 font-bold uppercase text-xs tracking-widest mb-4">Empresa</h3>
+                <ul class="space-y-2.5 text-gray-500">
                     <li><a href="#servicios" class="hover:text-pastelRed transition-colors">Servicios</a></li>
                     <li><a href="#metodo" class="hover:text-pastelRed transition-colors">Método</a></li>
                     <li><a href="#nosotros" class="hover:text-pastelRed transition-colors">Nosotros</a></li>
-                    <li><a href="proyectos/" class="hover:text-pastelRed transition-colors">Archivo de proyectos</a></li>
-                    <li><a href="https://rig.godsplan.site/catalogo.html" class="hover:text-pastelRed transition-colors">Soporte y ensamble de PC</a></li>
+                    <li><a href="#preguntas" class="hover:text-pastelRed transition-colors">Preguntas frecuentes</a></li>
                 </ul>
             </div>
             <div>
-                <h3 class="text-gray-300 font-bold uppercase text-xs tracking-widest mb-3">Contacto y legal</h3>
-                <ul class="space-y-2 text-gray-500">
+                <h3 class="text-gray-300 font-bold uppercase text-xs tracking-widest mb-4">Contacto y legal</h3>
+                <ul class="space-y-2.5 text-gray-500">
                     <li><a href="https://wa.me/525510590927" target="_blank" rel="noopener noreferrer" class="hover:text-pastelRed transition-colors">WhatsApp</a></li>
                     <li><a href="mailto:contacto@godsplan.site" class="hover:text-pastelRed transition-colors">contacto@godsplan.site</a></li>
                     <li><a href="privacidad.html" class="hover:text-pastelRed transition-colors">Aviso de privacidad</a></li>
@@ -555,7 +517,7 @@
                 </ul>
             </div>
         </div>
-        <p class="text-center text-gray-600 text-xs border-t border-gray-900 pt-6">&copy; 2026 God's Plan · godsplan.site · Todos los derechos reservados.</p>
+        <p class="text-center text-gray-600 text-xs border-t border-white/5 pt-6">&copy; 2026 God's Plan · godsplan.site · Todos los derechos reservados.</p>
     </footer>
 
     <!-- Botón flotante de WhatsApp -->
@@ -565,6 +527,7 @@
     </a>
 
     <script>
+        // Menú móvil
         (function () {
             var btn = document.getElementById('menuBtn');
             var menu = document.getElementById('menuMovil');
@@ -576,6 +539,24 @@
             }
             btn.addEventListener('click', function () { toggle(menu.classList.contains('hidden')); });
             menu.addEventListener('click', function (e) { if (e.target.tagName === 'A') toggle(false); });
+        })();
+
+        // Aparición suave de las secciones al hacer scroll
+        (function () {
+            var items = document.querySelectorAll('.reveal');
+            if (!('IntersectionObserver' in window)) {
+                items.forEach(function (el) { el.classList.add('is-visible'); });
+                return;
+            }
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        io.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+            items.forEach(function (el) { io.observe(el); });
         })();
     </script>
 </body>
