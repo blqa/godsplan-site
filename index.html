@@ -63,6 +63,7 @@
                         pureBlack: '#000000',
                         bloodRed: '#8a0303',
                         pastelRed: '#ffb3b3',
+                        emberRed: '#e5484d', /* rojo para texto sobre fondo oscuro (contraste AA) */
                         lightText: '#f3f4f6'
                     },
                     fontFamily: {
@@ -76,16 +77,6 @@
 
     <style>
         body { background-color: #0a0a0a; color: #f3f4f6; overflow-x: hidden; }
-        .bg-grid {
-            background-size: 40px 40px;
-            background-image:
-                linear-gradient(to right, rgba(138, 3, 3, 0.06) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(138, 3, 3, 0.06) 1px, transparent 1px);
-        }
-        .bg-grid-fade {
-            -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
-                    mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
-        }
         section[id] { scroll-margin-top: 5rem; }
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
@@ -95,30 +86,28 @@
         ::-webkit-scrollbar-thumb { background: #8a0303; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #ffb3b3; }
 
-        /* Texto con degradado de la marca */
-        .text-brand-gradient {
-            background-image: linear-gradient(90deg, #b00505 0%, #ffb3b3 100%);
-            -webkit-background-clip: text; background-clip: text; color: transparent;
+        /* Foco visible con el color de la marca */
+        a:focus-visible, button:focus-visible, summary:focus-visible {
+            outline: 2px solid #ffb3b3; outline-offset: 3px; border-radius: 8px;
         }
+        .text-balance { text-wrap: balance; }
 
         /* Tarjetas de proyecto */
         .project-card {
-            background: linear-gradient(180deg, rgba(138, 3, 3, 0.10), rgba(0, 0, 0, 0) 38%), #000;
-            transition: border-color .3s ease, transform .3s ease, box-shadow .3s ease;
+            transition: border-color .3s ease, transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s ease;
         }
         .project-card:hover {
             transform: translateY(-4px);
             border-color: rgba(138, 3, 3, 0.9);
-            box-shadow: 0 18px 40px rgba(138, 3, 3, 0.18);
+            box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.8);
         }
 
         /* Aparición suave (solo si hay JavaScript) */
-        .js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+        .js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1); }
         .js .reveal.is-visible { opacity: 1; transform: none; }
 
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
-            .animate-pulse, .animate-ping { animation: none; }
             .js .reveal { opacity: 1; transform: none; transition: none; }
             .project-card, .project-card:hover { transform: none; transition: none; }
         }
@@ -132,7 +121,7 @@
     <header class="fixed w-full top-0 z-50 bg-mainBg/80 backdrop-blur-lg border-b border-white/5">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex justify-between items-center">
             <a href="#" class="font-display text-lg md:text-xl font-extrabold tracking-[0.2em] text-pastelRed uppercase flex items-center gap-2.5" aria-label="God's Plan, inicio">
-                <i class="fa-solid fa-cross text-base"></i>
+                <i class="fa-solid fa-cross text-base" aria-hidden="true"></i>
                 <span>God's <span class="text-white">Plan</span></span>
             </a>
 
@@ -147,7 +136,7 @@
             <div class="flex items-center gap-3 md:hidden">
                 <a href="#contacto" class="px-4 py-2 bg-bloodRed text-white text-sm font-semibold rounded-lg">Contacto</a>
                 <button id="menuBtn" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuMovil" class="w-10 h-10 flex items-center justify-center rounded-lg border border-white/10 text-pastelRed">
-                    <i class="fa-solid fa-bars"></i>
+                    <i class="fa-solid fa-bars" aria-hidden="true"></i>
                 </button>
             </div>
         </div>
@@ -165,136 +154,128 @@
     <main id="contenido" class="flex-grow pt-16 md:pt-20">
 
         <!-- 1. PORTADA -->
-        <section class="relative px-4 sm:px-6 lg:px-8 pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden">
-            <div class="absolute inset-0 bg-grid bg-grid-fade pointer-events-none" aria-hidden="true"></div>
-            <div class="absolute -top-24 left-1/4 w-[320px] md:w-[620px] h-[320px] md:h-[620px] bg-bloodRed/25 rounded-full blur-[110px] pointer-events-none" aria-hidden="true"></div>
-
-            <div class="relative z-10 max-w-7xl mx-auto grid lg:grid-cols-[1.15fr,0.85fr] gap-12 lg:gap-16 items-center">
-                <div class="reveal">
-                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-pastelRed text-xs sm:text-sm font-medium mb-6 md:mb-8">
-                        <span class="w-2 h-2 rounded-full bg-bloodRed animate-pulse"></span>
+        <section class="relative px-4 sm:px-6 lg:px-8 pt-12 pb-20 md:pt-16 md:pb-24 overflow-hidden bg-[radial-gradient(ellipse_at_25%_0%,rgba(138,3,3,0.30),transparent_60%)]">
+            <div class="relative max-w-7xl mx-auto grid lg:grid-cols-[1.15fr_0.85fr] gap-12 lg:gap-16 items-center">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-pastelRed text-xs sm:text-sm font-medium mb-6">
+                        <span class="w-2 h-2 rounded-full bg-emberRed" aria-hidden="true"></span>
                         Agencia de proyectos · México
                     </div>
 
-                    <h1 class="font-display text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-extrabold text-lightText tracking-tight leading-[1.05] mb-6">
+                    <h1 class="font-display text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-extrabold text-lightText tracking-tight leading-[1.05] mb-5 text-balance">
                         Ideas que se vuelven
-                        <span class="text-brand-gradient">productos.</span>
+                        <span class="text-pastelRed">productos.</span>
                     </h1>
 
-                    <p class="text-base sm:text-lg md:text-xl text-gray-300 mb-9 max-w-xl leading-relaxed">
+                    <p class="text-base sm:text-lg md:text-xl text-gray-300 mb-8 max-w-xl leading-relaxed">
                         Diseñamos, programamos y operamos nuestros propios productos. Cada proyecto nace de un problema real y hoy funciona en línea.
                     </p>
 
                     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                        <a href="#proyectos" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bloodRed text-white font-semibold rounded-lg hover:bg-pastelRed hover:text-pureBlack transition-all duration-300 shadow-[0_8px_30px_rgba(138,3,3,0.35)]">
-                            Ver proyectos <i class="fa-solid fa-arrow-right text-sm"></i>
+                        <a href="#proyectos" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-bloodRed text-white font-semibold rounded-lg hover:bg-pastelRed hover:text-pureBlack transition-colors duration-300">
+                            Ver proyectos <i class="fa-solid fa-arrow-right text-sm" aria-hidden="true"></i>
                         </a>
-                        <a href="#contacto" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 border border-white/15 text-lightText font-semibold rounded-lg hover:border-pastelRed hover:text-pastelRed transition-all duration-300">
+                        <a href="#contacto" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 border border-white/15 text-lightText font-semibold rounded-lg hover:border-pastelRed hover:text-pastelRed transition-colors duration-300">
                             Hablemos de tu proyecto
                         </a>
                     </div>
                 </div>
 
-                <!-- Panel: proyectos en operación -->
-                <aside class="reveal relative" aria-label="Proyectos en operación">
-                    <div class="absolute -inset-px rounded-2xl bg-gradient-to-br from-bloodRed/60 via-transparent to-bloodRed/20 pointer-events-none" aria-hidden="true"></div>
-                    <div class="relative bg-pureBlack/90 backdrop-blur rounded-2xl border border-white/5 p-5 sm:p-6">
+                <!-- Panel: proyectos en operación (estado en vivo, reemplaza la barra de cifras) -->
+                <aside class="relative" aria-label="Proyectos en operación">
+                    <div class="relative bg-pureBlack rounded-2xl border border-white/10 p-5 sm:p-6 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.6)]">
                         <div class="flex items-center justify-between mb-5">
                             <p class="text-xs font-semibold tracking-[0.18em] uppercase text-gray-400">En operación</p>
-                            <span class="inline-flex items-center gap-2 text-xs text-gray-400"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> En línea</span>
+                            <span class="inline-flex items-center gap-2 text-xs text-gray-300"><span class="w-2 h-2 rounded-full bg-emerald-400" aria-hidden="true"></span> En línea</span>
                         </div>
 
                         <a href="https://godstap.godsplan.dev" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-4 p-4 rounded-xl bg-mainBg border border-white/5 hover:border-bloodRed/70 transition-colors mb-3">
-                            <span class="w-12 h-12 shrink-0 rounded-xl bg-bloodRed/15 border border-bloodRed/40 flex items-center justify-center text-pastelRed"><i class="fa-brands fa-nfc-symbol text-2xl"></i></span>
+                            <span class="w-12 h-12 shrink-0 rounded-xl bg-bloodRed/15 border border-bloodRed/40 flex items-center justify-center text-pastelRed"><i class="fa-brands fa-nfc-symbol text-2xl" aria-hidden="true"></i></span>
                             <span class="min-w-0 flex-1">
-                                <span class="block font-display font-bold text-lightText">Gods<span class="text-bloodRed">Tap</span></span>
+                                <span class="block font-display font-bold text-lightText">Gods<span class="text-emberRed">Tap</span></span>
                                 <span class="block text-sm text-gray-400">Etiquetas NFC dinámicas</span>
                             </span>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-xs text-gray-600 group-hover:text-pastelRed transition-colors"></i>
+                            <span class="hidden sm:block text-xs text-gray-500 group-hover:text-pastelRed transition-colors">godstap.godsplan.dev</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-xs text-gray-500 group-hover:text-pastelRed transition-colors" aria-hidden="true"></i>
                         </a>
 
                         <a href="https://rig.godsplan.dev" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-4 p-4 rounded-xl bg-mainBg border border-white/5 hover:border-bloodRed/70 transition-colors">
-                            <span class="w-12 h-12 shrink-0 rounded-xl bg-bloodRed/15 border border-bloodRed/40 flex items-center justify-center text-pastelRed"><i class="fa-solid fa-microchip text-xl"></i></span>
+                            <span class="w-12 h-12 shrink-0 rounded-xl bg-bloodRed/15 border border-bloodRed/40 flex items-center justify-center text-pastelRed"><i class="fa-solid fa-microchip text-xl" aria-hidden="true"></i></span>
                             <span class="min-w-0 flex-1">
-                                <span class="block font-display font-bold text-lightText">Gods<span class="text-bloodRed">Rig</span></span>
+                                <span class="block font-display font-bold text-lightText">Gods<span class="text-emberRed">Rig</span></span>
                                 <span class="block text-sm text-gray-400">Soporte y ensamble de PC</span>
                             </span>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-xs text-gray-600 group-hover:text-pastelRed transition-colors"></i>
+                            <span class="hidden sm:block text-xs text-gray-500 group-hover:text-pastelRed transition-colors">rig.godsplan.dev</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-xs text-gray-500 group-hover:text-pastelRed transition-colors" aria-hidden="true"></i>
                         </a>
                     </div>
                 </aside>
             </div>
         </section>
 
-        <!-- Cifras -->
-        <section class="bg-pureBlack border-y border-white/5" aria-label="God's Plan en cifras">
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 py-9 grid grid-cols-3 gap-6 md:gap-8 text-center">
-                <div><p class="font-display text-3xl md:text-4xl font-extrabold text-pastelRed">2</p><p class="text-gray-400 text-xs md:text-sm mt-1.5">productos en operación</p></div>
-                <div><p class="font-display text-3xl md:text-4xl font-extrabold text-pastelRed">MX</p><p class="text-gray-400 text-xs md:text-sm mt-1.5">trabajamos desde México</p></div>
-                <div><p class="font-display text-3xl md:text-4xl font-extrabold text-pastelRed">1</p><p class="text-gray-400 text-xs md:text-sm mt-1.5">trato directo, sin intermediarios</p></div>
-            </div>
-        </section>
-
-        <!-- 2. PROYECTOS -->
-        <section id="proyectos" class="py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-mainBg">
+        <!-- 2. PROYECTOS (bento con vista previa real de cada sitio) -->
+        <section id="proyectos" class="py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-mainBg border-t border-white/5">
             <div class="max-w-7xl mx-auto">
-                <div class="mb-12 md:mb-16 max-w-2xl reveal">
-                    <p class="text-bloodRed text-xs font-bold tracking-[0.22em] uppercase mb-3">Proyectos</p>
-                    <h2 class="font-display text-3xl md:text-5xl font-extrabold text-lightText tracking-tight mb-4">Lo que construimos y operamos</h2>
-                    <p class="text-gray-400 text-base md:text-lg leading-relaxed">Cada proyecto nació de un problema real y hoy funciona en línea. Los hacemos nosotros, así que sabemos cómo se mantienen.</p>
+                <div class="grid md:grid-cols-12 gap-6 md:gap-10 items-end mb-12 md:mb-14">
+                    <h2 class="md:col-span-7 font-display text-3xl md:text-5xl font-extrabold text-lightText tracking-tight text-balance">Lo que construimos y operamos</h2>
+                    <p class="md:col-span-5 text-gray-400 text-base md:text-lg leading-relaxed">Cada proyecto nació de un problema real y hoy funciona en línea. Los hacemos nosotros, así que sabemos cómo se mantienen.</p>
                 </div>
 
-                <div class="grid lg:grid-cols-2 gap-6 md:gap-8">
+                <div class="grid lg:grid-cols-12 gap-6 md:gap-8">
 
                     <!-- GodsTap -->
-                    <article class="project-card reveal flex flex-col rounded-2xl border border-bloodRed/40 overflow-hidden">
-                        <div class="relative h-44 md:h-52 flex items-center justify-center overflow-hidden border-b border-white/5">
-                            <div class="absolute inset-0 bg-grid bg-grid-fade" aria-hidden="true"></div>
-                            <div class="absolute w-56 h-56 bg-bloodRed/30 rounded-full blur-[70px]" aria-hidden="true"></div>
-                            <span class="relative w-24 h-24 rounded-3xl bg-mainBg border border-bloodRed/50 flex items-center justify-center text-pastelRed shadow-[0_0_40px_rgba(138,3,3,0.45)]">
-                                <i class="fa-brands fa-nfc-symbol text-6xl"></i>
-                            </span>
-                            <span class="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pureBlack/80 border border-bloodRed/50 text-pastelRed text-xs font-medium"><i class="fa-solid fa-star text-bloodRed"></i> Producto estrella</span>
-                        </div>
-                        <div class="flex flex-col flex-grow p-6 md:p-8">
-                            <p class="text-pastelRed text-[11px] font-bold tracking-[0.2em] uppercase mb-2">GodsTap · by God’s Plan</p>
-                            <h3 class="font-display text-3xl font-extrabold text-lightText mb-3">Gods<span class="text-bloodRed">Tap</span></h3>
-                            <p class="text-gray-400 leading-relaxed mb-6">Etiquetas NFC dinámicas para negocios locales. Tu cliente acerca el celular y aparece tu menú, tus redes o tu promoción del día.</p>
-                            <ul class="space-y-3 text-sm text-gray-300 mb-8 flex-grow">
-                                <li class="flex gap-3"><i class="fa-solid fa-check text-bloodRed mt-1"></i><span>Cambias el contenido cuando quieras desde tu cuenta, sin comprar otra etiqueta.</span></li>
-                                <li class="flex gap-3"><i class="fa-solid fa-check text-bloodRed mt-1"></i><span>Pensado para restaurantes, barberías, tiendas y negocios de barrio.</span></li>
-                                <li class="flex gap-3"><i class="fa-solid fa-check text-bloodRed mt-1"></i><span>Tu cliente no instala nada: acerca el celular y listo.</span></li>
+                    <article class="project-card reveal lg:col-span-7 flex flex-col rounded-2xl border border-bloodRed/40 overflow-hidden bg-pureBlack">
+                        <a href="https://godstap.godsplan.dev" target="_blank" rel="noopener noreferrer" class="group block" aria-label="Abrir GodsTap en una pestaña nueva">
+                            <div class="overflow-hidden bg-mainBg">
+                                <div class="flex items-center gap-2 px-3 py-2 border-b border-white/10 text-[11px] text-gray-400">
+                                    <i class="fa-solid fa-lock text-[10px]" aria-hidden="true"></i> godstap.godsplan.dev
+                                </div>
+                                <img src="assets/godstap-preview.webp" width="1260" height="543" loading="lazy" decoding="async" alt="Página de GodsTap: un celular muestra la página de un café con su menú, abierta desde una etiqueta NFC" class="block w-full h-auto lg:h-[17.5rem] lg:object-cover lg:object-top group-hover:opacity-90 transition-opacity">
+                            </div>
+                        </a>
+                        <div class="flex flex-col flex-grow p-6 md:p-8 border-t border-white/10">
+                            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                                <h3 class="font-display text-3xl md:text-4xl font-extrabold text-lightText">Gods<span class="text-emberRed">Tap</span> <span class="font-sans text-sm font-medium text-gray-400 tracking-normal">by God’s Plan</span></h3>
+                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-bloodRed/50 text-pastelRed text-xs font-medium"><i class="fa-solid fa-star text-emberRed" aria-hidden="true"></i> Producto estrella</span>
+                            </div>
+                            <p class="text-gray-300 leading-relaxed mb-6 max-w-[60ch]">Etiquetas NFC dinámicas para negocios locales. Tu cliente acerca el celular y aparece tu menú, tus redes o tu promoción del día.</p>
+                            <ul class="grid sm:grid-cols-3 gap-4 text-sm text-gray-300 mb-8 flex-grow">
+                                <li class="flex gap-3 sm:flex-col sm:gap-2 sm:border-t sm:border-white/10 sm:pt-4"><i class="fa-solid fa-check text-emberRed mt-1 sm:mt-0" aria-hidden="true"></i><span>Cambias el contenido cuando quieras desde tu cuenta, sin comprar otra etiqueta.</span></li>
+                                <li class="flex gap-3 sm:flex-col sm:gap-2 sm:border-t sm:border-white/10 sm:pt-4"><i class="fa-solid fa-check text-emberRed mt-1 sm:mt-0" aria-hidden="true"></i><span>Pensado para restaurantes, barberías, tiendas y negocios de barrio.</span></li>
+                                <li class="flex gap-3 sm:flex-col sm:gap-2 sm:border-t sm:border-white/10 sm:pt-4"><i class="fa-solid fa-check text-emberRed mt-1 sm:mt-0" aria-hidden="true"></i><span>Tu cliente no instala nada: acerca el celular y listo.</span></li>
                             </ul>
-                            <a href="https://godstap.godsplan.dev" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-bloodRed text-white font-semibold rounded-lg hover:bg-pastelRed hover:text-pureBlack transition-all duration-300 self-start">
-                                Conocer GodsTap <i class="fa-solid fa-arrow-right text-sm"></i>
+                            <a href="https://godstap.godsplan.dev" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-bloodRed text-white font-semibold rounded-lg hover:bg-pastelRed hover:text-pureBlack transition-colors duration-300 self-start">
+                                Conocer GodsTap <i class="fa-solid fa-arrow-right text-sm" aria-hidden="true"></i>
                             </a>
                         </div>
                     </article>
 
                     <!-- GodsRig -->
-                    <article class="project-card reveal flex flex-col rounded-2xl border border-white/10 overflow-hidden">
-                        <div class="relative h-44 md:h-52 flex items-center justify-center overflow-hidden border-b border-white/5">
-                            <div class="absolute inset-0 bg-grid bg-grid-fade" aria-hidden="true"></div>
-                            <div class="absolute w-56 h-56 bg-bloodRed/25 rounded-full blur-[70px]" aria-hidden="true"></div>
-                            <span class="relative w-24 h-24 rounded-3xl bg-mainBg border border-bloodRed/50 flex items-center justify-center text-pastelRed shadow-[0_0_40px_rgba(138,3,3,0.4)]">
-                                <i class="fa-solid fa-microchip text-5xl"></i>
-                            </span>
-                            <span class="absolute top-4 left-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pureBlack/80 border border-white/15 text-gray-300 text-xs font-medium"><i class="fa-solid fa-screwdriver-wrench text-bloodRed"></i> Soporte técnico</span>
-                        </div>
-                        <div class="flex flex-col flex-grow p-6 md:p-8">
-                            <p class="text-pastelRed text-[11px] font-bold tracking-[0.2em] uppercase mb-2">GodsRig · by God’s Plan</p>
-                            <h3 class="font-display text-3xl font-extrabold text-lightText mb-3">Gods<span class="text-bloodRed">Rig</span></h3>
-                            <p class="text-gray-400 leading-relaxed mb-6">Soporte técnico y ensamble de PC: armado a medida, limpieza, optimización y upgrades, con catálogo y precios claros.</p>
+                    <article class="project-card reveal lg:col-span-5 flex flex-col rounded-2xl border border-white/10 overflow-hidden bg-pureBlack">
+                        <a href="https://rig.godsplan.dev/catalogo.html" target="_blank" rel="noopener noreferrer" class="group block" aria-label="Abrir el catálogo de GodsRig en una pestaña nueva">
+                            <div class="overflow-hidden bg-mainBg">
+                                <div class="flex items-center gap-2 px-3 py-2 border-b border-white/10 text-[11px] text-gray-400">
+                                    <i class="fa-solid fa-lock text-[10px]" aria-hidden="true"></i> rig.godsplan.dev/catalogo
+                                </div>
+                                <img src="assets/godsrig-preview.webp" width="1340" height="543" loading="lazy" decoding="async" alt="Catálogo de GodsRig con servicios de mantenimiento de PC y sus precios" class="block w-full h-auto lg:h-[17.5rem] lg:object-cover lg:object-top group-hover:opacity-90 transition-opacity">
+                            </div>
+                        </a>
+                        <div class="flex flex-col flex-grow p-6 md:p-8 border-t border-white/10">
+                            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                                <h3 class="font-display text-3xl md:text-4xl font-extrabold text-lightText">Gods<span class="text-emberRed">Rig</span> <span class="font-sans text-sm font-medium text-gray-400 tracking-normal">by God’s Plan</span></h3>
+                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/15 text-gray-300 text-xs font-medium"><i class="fa-solid fa-screwdriver-wrench text-emberRed" aria-hidden="true"></i> Soporte técnico</span>
+                            </div>
+                            <p class="text-gray-300 leading-relaxed mb-6">Soporte técnico y ensamble de PC: armado a medida, limpieza, optimización y upgrades, con catálogo y precios claros.</p>
                             <ul class="space-y-3 text-sm text-gray-300 mb-8 flex-grow">
-                                <li class="flex gap-3"><i class="fa-solid fa-check text-bloodRed mt-1"></i><span>Mantenimiento desde $200 MXN, con precios publicados en el catálogo.</span></li>
-                                <li class="flex gap-3"><i class="fa-solid fa-check text-bloodRed mt-1"></i><span>Instalación de SSD, optimización y upgrades para que tu equipo rinda más.</span></li>
-                                <li class="flex gap-3"><i class="fa-solid fa-check text-bloodRed mt-1"></i><span>Armado de PC a la medida de lo que necesitas.</span></li>
+                                <li class="flex gap-3"><i class="fa-solid fa-check text-emberRed mt-1" aria-hidden="true"></i><span>Mantenimiento desde $200 MXN, con precios publicados en el catálogo.</span></li>
+                                <li class="flex gap-3"><i class="fa-solid fa-check text-emberRed mt-1" aria-hidden="true"></i><span>Instalación de SSD, optimización y upgrades para que tu equipo rinda más.</span></li>
+                                <li class="flex gap-3"><i class="fa-solid fa-check text-emberRed mt-1" aria-hidden="true"></i><span>Armado de PC a la medida de lo que necesitas.</span></li>
                             </ul>
                             <div class="flex flex-col sm:flex-row gap-3 self-start">
-                                <a href="https://rig.godsplan.dev" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-bloodRed text-white font-semibold rounded-lg hover:bg-pastelRed hover:text-pureBlack transition-all duration-300">
-                                    Conocer GodsRig <i class="fa-solid fa-arrow-right text-sm"></i>
+                                <a href="https://rig.godsplan.dev" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-bloodRed text-white font-semibold rounded-lg hover:bg-pastelRed hover:text-pureBlack transition-colors duration-300">
+                                    Conocer GodsRig <i class="fa-solid fa-arrow-right text-sm" aria-hidden="true"></i>
                                 </a>
-                                <a href="https://rig.godsplan.dev/catalogo.html" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-white/15 text-lightText font-semibold rounded-lg hover:border-pastelRed hover:text-pastelRed transition-all duration-300">
+                                <a href="https://rig.godsplan.dev/catalogo.html" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-white/15 text-lightText font-semibold rounded-lg hover:border-pastelRed hover:text-pastelRed transition-colors duration-300">
                                     Ver catálogo
                                 </a>
                             </div>
@@ -304,124 +285,114 @@
             </div>
         </section>
 
-        <!-- 4. MÉTODO -->
+        <!-- 3. MÉTODO (título fijo a la izquierda, pasos a la derecha) -->
         <section id="metodo" class="py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-pureBlack border-y border-white/5">
-            <div class="max-w-6xl mx-auto">
-                <div class="mb-12 md:mb-16 max-w-2xl reveal">
-                    <p class="text-bloodRed text-xs font-bold tracking-[0.22em] uppercase mb-3">Método</p>
-                    <h2 class="font-display text-3xl md:text-5xl font-extrabold text-lightText tracking-tight mb-4">Cómo trabajamos</h2>
-                    <p class="text-gray-400 text-base md:text-lg leading-relaxed">Un proceso corto y claro, de la primera conversación a la entrega.</p>
+            <div class="max-w-6xl mx-auto grid md:grid-cols-12 gap-10 md:gap-16">
+                <div class="md:col-span-5">
+                    <div class="md:sticky md:top-28">
+                        <h2 class="font-display text-3xl md:text-5xl font-extrabold text-lightText tracking-tight mb-4">Cómo trabajamos</h2>
+                        <p class="text-gray-400 text-base md:text-lg leading-relaxed max-w-sm">Un proceso corto y claro, de la primera conversación a la entrega.</p>
+                    </div>
                 </div>
 
-                <ol class="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
-                    <li class="reveal bg-mainBg border border-white/10 rounded-2xl p-6">
-                        <span class="font-display text-4xl font-extrabold text-bloodRed/50">01</span>
-                        <h3 class="font-display font-bold text-lightText mt-3 mb-2">Escuchamos</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">Nos cuentas qué necesitas y para qué, por WhatsApp o correo.</p>
+                <ol class="md:col-span-7 border-b border-white/10">
+                    <li class="reveal grid grid-cols-[3.5rem_1fr] sm:grid-cols-[5rem_1fr] gap-x-4 border-t border-white/10 py-7 md:py-8">
+                        <span class="font-display text-lg font-bold text-emberRed tabular-nums pt-0.5">01</span>
+                        <div><h3 class="font-display text-xl md:text-2xl font-bold text-lightText mb-2">Escuchamos</h3><p class="text-gray-400 leading-relaxed">Nos cuentas qué necesitas y para qué, por WhatsApp o correo.</p></div>
                     </li>
-                    <li class="reveal bg-mainBg border border-white/10 rounded-2xl p-6">
-                        <span class="font-display text-4xl font-extrabold text-bloodRed/50">02</span>
-                        <h3 class="font-display font-bold text-lightText mt-3 mb-2">Cotizamos</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">Te damos una propuesta con alcance y precio antes de empezar.</p>
+                    <li class="reveal grid grid-cols-[3.5rem_1fr] sm:grid-cols-[5rem_1fr] gap-x-4 border-t border-white/10 py-7 md:py-8">
+                        <span class="font-display text-lg font-bold text-emberRed tabular-nums pt-0.5">02</span>
+                        <div><h3 class="font-display text-xl md:text-2xl font-bold text-lightText mb-2">Cotizamos</h3><p class="text-gray-400 leading-relaxed">Te damos una propuesta con alcance y precio antes de empezar.</p></div>
                     </li>
-                    <li class="reveal bg-mainBg border border-white/10 rounded-2xl p-6">
-                        <span class="font-display text-4xl font-extrabold text-bloodRed/50">03</span>
-                        <h3 class="font-display font-bold text-lightText mt-3 mb-2">Construimos</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">Trabajamos directo contigo y te mostramos avances para ajustar a tiempo.</p>
+                    <li class="reveal grid grid-cols-[3.5rem_1fr] sm:grid-cols-[5rem_1fr] gap-x-4 border-t border-white/10 py-7 md:py-8">
+                        <span class="font-display text-lg font-bold text-emberRed tabular-nums pt-0.5">03</span>
+                        <div><h3 class="font-display text-xl md:text-2xl font-bold text-lightText mb-2">Construimos</h3><p class="text-gray-400 leading-relaxed">Trabajamos directo contigo y te mostramos avances para ajustar a tiempo.</p></div>
                     </li>
-                    <li class="reveal bg-mainBg border border-white/10 rounded-2xl p-6">
-                        <span class="font-display text-4xl font-extrabold text-bloodRed/50">04</span>
-                        <h3 class="font-display font-bold text-lightText mt-3 mb-2">Entregamos</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">Publicamos tu proyecto y te acompañamos con los ajustes que haga falta.</p>
+                    <li class="reveal grid grid-cols-[3.5rem_1fr] sm:grid-cols-[5rem_1fr] gap-x-4 border-t border-white/10 py-7 md:py-8">
+                        <span class="font-display text-lg font-bold text-emberRed tabular-nums pt-0.5">04</span>
+                        <div><h3 class="font-display text-xl md:text-2xl font-bold text-lightText mb-2">Entregamos</h3><p class="text-gray-400 leading-relaxed">Publicamos tu proyecto y te acompañamos con los ajustes que haga falta.</p></div>
                     </li>
                 </ol>
             </div>
         </section>
 
-        <!-- 5. NOSOTROS -->
-        <section id="nosotros" class="py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-mainBg">
-            <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 md:gap-16 items-start">
-                <div class="reveal">
-                    <p class="text-bloodRed text-xs font-bold tracking-[0.22em] uppercase mb-3">Nosotros</p>
-                    <h2 class="font-display text-3xl md:text-5xl font-extrabold text-lightText tracking-tight mb-6">Sobre God's Plan</h2>
-                    <p class="text-gray-400 leading-relaxed mb-4">God's Plan es una agencia de proyectos independiente que trabaja desde México. Empezó construyendo herramientas propias y hoy opera productos pensados para resolver problemas reales de negocios locales.</p>
-                    <p class="text-gray-400 leading-relaxed">Preferimos pocos proyectos bien hechos a muchos a medias: cada producto que ves en esta página está en línea y lo mantenemos nosotros.</p>
-                </div>
-                <ul class="space-y-4">
-                    <li class="reveal flex gap-4 bg-pureBlack border border-white/10 rounded-2xl p-5">
-                        <span class="w-11 h-11 shrink-0 rounded-xl bg-bloodRed/15 border border-bloodRed/30 flex items-center justify-center"><i class="fa-solid fa-flask text-pastelRed"></i></span>
-                        <div><h3 class="font-display font-bold text-lightText text-sm mb-1">Probamos en casa primero</h3><p class="text-gray-400 text-sm leading-relaxed">Nuestros productos son el laboratorio donde afinamos lo que luego llevamos a tu proyecto.</p></div>
+        <!-- 4. NOSOTROS (manifiesto tipográfico) -->
+        <section id="nosotros" class="py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-mainBg">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="font-display text-xl md:text-2xl font-extrabold text-pastelRed mb-6 md:mb-8">Sobre God's Plan</h2>
+                <p class="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-lightText leading-[1.15] tracking-tight max-w-5xl text-balance mb-10 md:mb-12">
+                    Preferimos pocos proyectos bien hechos a muchos a medias: <span class="text-gray-500">cada producto que ves en esta página está en línea y lo mantenemos nosotros.</span>
+                </p>
+                <p class="text-gray-400 text-base md:text-lg leading-relaxed max-w-2xl mb-16 md:mb-20">God's Plan es una agencia de proyectos independiente que trabaja desde México. Empezó construyendo herramientas propias y hoy opera productos pensados para resolver problemas reales de negocios locales.</p>
+
+                <ul class="grid sm:grid-cols-3 gap-8 sm:gap-10">
+                    <li class="border-t border-bloodRed pt-5">
+                        <h3 class="font-display font-bold text-lightText text-lg mb-2">Probamos en casa primero</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Nuestros productos son el laboratorio donde afinamos lo que luego llevamos a tu proyecto.</p>
                     </li>
-                    <li class="reveal flex gap-4 bg-pureBlack border border-white/10 rounded-2xl p-5">
-                        <span class="w-11 h-11 shrink-0 rounded-xl bg-bloodRed/15 border border-bloodRed/30 flex items-center justify-center"><i class="fa-solid fa-handshake text-pastelRed"></i></span>
-                        <div><h3 class="font-display font-bold text-lightText text-sm mb-1">Trato directo</h3><p class="text-gray-400 text-sm leading-relaxed">Hablas con quien construye tu proyecto, sin capas de intermediarios.</p></div>
+                    <li class="border-t border-bloodRed pt-5">
+                        <h3 class="font-display font-bold text-lightText text-lg mb-2">Trato directo</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Hablas con quien construye tu proyecto, sin capas de intermediarios.</p>
                     </li>
-                    <li class="reveal flex gap-4 bg-pureBlack border border-white/10 rounded-2xl p-5">
-                        <span class="w-11 h-11 shrink-0 rounded-xl bg-bloodRed/15 border border-bloodRed/30 flex items-center justify-center"><i class="fa-solid fa-bolt text-pastelRed"></i></span>
-                        <div><h3 class="font-display font-bold text-lightText text-sm mb-1">Todo en línea</h3><p class="text-gray-400 text-sm leading-relaxed">Cada proyecto está publicado y funcionando, con su propio sitio.</p></div>
+                    <li class="border-t border-bloodRed pt-5">
+                        <h3 class="font-display font-bold text-lightText text-lg mb-2">Todo en línea</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Cada proyecto está publicado y funcionando, con su propio sitio.</p>
                     </li>
                 </ul>
             </div>
         </section>
 
-        <!-- 6. PREGUNTAS FRECUENTES -->
+        <!-- 5. PREGUNTAS FRECUENTES -->
         <section id="preguntas" class="py-20 md:py-28 px-4 sm:px-6 lg:px-8 bg-pureBlack border-y border-white/5">
             <div class="max-w-3xl mx-auto">
-                <div class="mb-10 md:mb-14 text-center reveal">
-                    <p class="text-bloodRed text-xs font-bold tracking-[0.22em] uppercase mb-3">Preguntas</p>
-                    <h2 class="font-display text-3xl md:text-5xl font-extrabold text-lightText tracking-tight">Preguntas frecuentes</h2>
-                </div>
+                <h2 class="font-display text-3xl md:text-5xl font-extrabold text-lightText tracking-tight text-center mb-10 md:mb-14">Preguntas frecuentes</h2>
 
-                <div class="space-y-3 reveal">
+                <div class="space-y-3">
                     <details class="group bg-mainBg border border-white/10 rounded-xl open:border-bloodRed/50 transition-colors">
                         <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-semibold text-lightText">
                             ¿Qué es God's Plan?
-                            <i class="fa-solid fa-plus text-bloodRed faq-icon transition-transform"></i>
+                            <i class="fa-solid fa-plus text-emberRed faq-icon transition-transform" aria-hidden="true"></i>
                         </summary>
                         <p class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">Es una agencia de proyectos independiente que trabaja desde México. Diseñamos, programamos y operamos productos propios, como GodsTap y GodsRig.</p>
                     </details>
                     <details class="group bg-mainBg border border-white/10 rounded-xl open:border-bloodRed/50 transition-colors">
                         <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-semibold text-lightText">
                             ¿Qué es GodsTap y para quién es?
-                            <i class="fa-solid fa-plus text-bloodRed faq-icon transition-transform"></i>
+                            <i class="fa-solid fa-plus text-emberRed faq-icon transition-transform" aria-hidden="true"></i>
                         </summary>
                         <p class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">Es una etiqueta NFC para negocios locales. Quien acerca el celular ve tu menú, tus redes o tu promoción, y tú puedes cambiar ese contenido cuando quieras desde tu cuenta. Está pensada para restaurantes, barberías, tiendas y negocios de barrio.</p>
                     </details>
                     <details class="group bg-mainBg border border-white/10 rounded-xl open:border-bloodRed/50 transition-colors">
                         <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-semibold text-lightText">
                             ¿Dónde pido soporte técnico o armado de PC?
-                            <i class="fa-solid fa-plus text-bloodRed faq-icon transition-transform"></i>
+                            <i class="fa-solid fa-plus text-emberRed faq-icon transition-transform" aria-hidden="true"></i>
                         </summary>
-                        <p class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">En <a href="https://rig.godsplan.dev" target="_blank" rel="noopener noreferrer" class="text-pastelRed underline">GodsRig</a>, nuestro proyecto de soporte y ensamble de PC. Ahí tienes el <a href="https://rig.godsplan.dev/catalogo.html" target="_blank" rel="noopener noreferrer" class="text-pastelRed underline">catálogo con precios</a>: mantenimiento desde $200 MXN, instalación de SSD y armado a medida.</p>
+                        <p class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">En <a href="https://rig.godsplan.dev" target="_blank" rel="noopener noreferrer" class="text-pastelRed underline underline-offset-2">GodsRig</a>, nuestro proyecto de soporte y ensamble de PC. Ahí tienes el <a href="https://rig.godsplan.dev/catalogo.html" target="_blank" rel="noopener noreferrer" class="text-pastelRed underline underline-offset-2">catálogo con precios</a>: mantenimiento desde $200 MXN, instalación de SSD y armado a medida.</p>
                     </details>
                     <details class="group bg-mainBg border border-white/10 rounded-xl open:border-bloodRed/50 transition-colors">
                         <summary class="flex items-center justify-between gap-4 cursor-pointer p-5 font-semibold text-lightText">
                             ¿Cómo los contacto?
-                            <i class="fa-solid fa-plus text-bloodRed faq-icon transition-transform"></i>
+                            <i class="fa-solid fa-plus text-emberRed faq-icon transition-transform" aria-hidden="true"></i>
                         </summary>
-                        <p class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">Por WhatsApp o por correo a <a href="mailto:contacto@godsplan.dev" class="text-pastelRed underline">contacto@godsplan.dev</a>.</p>
+                        <p class="px-5 pb-5 text-gray-400 text-sm leading-relaxed">Por WhatsApp o por correo a <a href="mailto:contacto@godsplan.dev" class="text-pastelRed underline underline-offset-2">contacto@godsplan.dev</a>.</p>
                     </details>
                 </div>
             </div>
         </section>
 
-        <!-- 7. CONTACTO -->
-        <section id="contacto" class="relative py-20 md:py-28 px-4 sm:px-6 lg:px-8 overflow-hidden">
-            <div class="absolute inset-0 bg-grid bg-grid-fade pointer-events-none" aria-hidden="true"></div>
-            <div class="reveal relative max-w-3xl mx-auto bg-pureBlack border border-bloodRed/40 p-8 md:p-14 rounded-3xl text-center overflow-hidden shadow-[0_0_60px_rgba(138,3,3,0.15)]">
-                <div class="absolute -top-16 -right-16 w-56 h-56 bg-bloodRed/25 blur-[70px] pointer-events-none" aria-hidden="true"></div>
+        <!-- 6. CONTACTO -->
+        <section id="contacto" class="relative py-20 md:py-28 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[radial-gradient(ellipse_at_50%_100%,rgba(138,3,3,0.22),transparent_65%)]">
+            <div class="relative max-w-3xl mx-auto bg-pureBlack border border-bloodRed/40 p-8 md:p-14 rounded-3xl text-center">
+                <h2 class="font-display text-3xl md:text-5xl font-extrabold tracking-tight mb-4 text-balance">¿Tienes un proyecto en mente?</h2>
+                <p class="text-gray-400 mb-9 md:text-lg">Cuéntanos tu idea. Te respondemos personalmente y armamos una propuesta a tu medida.</p>
 
-                <p class="relative text-bloodRed text-xs font-bold tracking-[0.22em] uppercase mb-3">Contacto</p>
-                <h2 class="relative font-display text-3xl md:text-5xl font-extrabold tracking-tight mb-4">¿Tienes un proyecto en mente?</h2>
-                <p class="relative text-gray-400 mb-9 md:text-lg">Cuéntanos tu idea. Te respondemos personalmente y armamos una propuesta a tu medida.</p>
-
-                <div class="relative flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
-                    <a href="https://wa.me/525510590927" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-3 bg-[#25D366] text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-[#25D366] transition-all duration-300 shadow-[0_4px_20px_rgba(37,211,102,0.3)]">
-                        <i class="fa-brands fa-whatsapp text-2xl"></i>
+                <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+                    <a href="https://wa.me/525510590927" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-3 bg-[#25D366] text-pureBlack px-8 py-4 rounded-lg font-semibold hover:bg-white transition-colors duration-300">
+                        <i class="fa-brands fa-whatsapp text-2xl" aria-hidden="true"></i>
                         WhatsApp
                     </a>
-                    <a href="mailto:contacto@godsplan.dev" class="inline-flex items-center justify-center gap-3 border border-white/15 text-lightText px-8 py-4 rounded-lg font-semibold hover:border-pastelRed hover:text-pastelRed transition-all duration-300">
-                        <i class="fa-solid fa-envelope text-xl"></i>
+                    <a href="mailto:contacto@godsplan.dev" class="inline-flex items-center justify-center gap-3 border border-white/15 text-lightText px-8 py-4 rounded-lg font-semibold hover:border-pastelRed hover:text-pastelRed transition-colors duration-300">
+                        <i class="fa-solid fa-envelope text-xl" aria-hidden="true"></i>
                         contacto@godsplan.dev
                     </a>
                 </div>
@@ -433,19 +404,19 @@
     <footer class="bg-pureBlack border-t border-white/5 pt-14 pb-8 px-4 sm:px-6 lg:px-8 mt-auto">
         <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 text-sm">
             <div class="col-span-2 md:col-span-1">
-                <a href="#" class="font-display text-lg font-extrabold tracking-[0.2em] text-pastelRed uppercase flex items-center gap-2.5 mb-4"><i class="fa-solid fa-cross"></i> God's Plan</a>
-                <p class="text-gray-500 text-xs leading-relaxed max-w-[16rem]">Agencia de proyectos. Productos propios desde México.</p>
+                <a href="#" class="font-display text-lg font-extrabold tracking-[0.2em] text-pastelRed uppercase flex items-center gap-2.5 mb-4"><i class="fa-solid fa-cross" aria-hidden="true"></i> God's Plan</a>
+                <p class="text-gray-400 text-xs leading-relaxed max-w-[16rem]">Agencia de proyectos. Productos propios desde México.</p>
             </div>
             <div>
                 <h3 class="text-gray-300 font-bold uppercase text-xs tracking-widest mb-4">Proyectos</h3>
-                <ul class="space-y-2.5 text-gray-500">
+                <ul class="space-y-2.5 text-gray-400">
                     <li><a href="https://godstap.godsplan.dev" target="_blank" rel="noopener noreferrer" class="hover:text-pastelRed transition-colors">GodsTap</a></li>
                     <li><a href="https://rig.godsplan.dev" target="_blank" rel="noopener noreferrer" class="hover:text-pastelRed transition-colors">GodsRig</a></li>
                 </ul>
             </div>
             <div>
                 <h3 class="text-gray-300 font-bold uppercase text-xs tracking-widest mb-4">Empresa</h3>
-                <ul class="space-y-2.5 text-gray-500">
+                <ul class="space-y-2.5 text-gray-400">
                     <li><a href="#metodo" class="hover:text-pastelRed transition-colors">Método</a></li>
                     <li><a href="#nosotros" class="hover:text-pastelRed transition-colors">Nosotros</a></li>
                     <li><a href="#preguntas" class="hover:text-pastelRed transition-colors">Preguntas frecuentes</a></li>
@@ -453,7 +424,7 @@
             </div>
             <div>
                 <h3 class="text-gray-300 font-bold uppercase text-xs tracking-widest mb-4">Contacto y legal</h3>
-                <ul class="space-y-2.5 text-gray-500">
+                <ul class="space-y-2.5 text-gray-400">
                     <li><a href="https://wa.me/525510590927" target="_blank" rel="noopener noreferrer" class="hover:text-pastelRed transition-colors">WhatsApp</a></li>
                     <li><a href="mailto:contacto@godsplan.dev" class="hover:text-pastelRed transition-colors">contacto@godsplan.dev</a></li>
                     <li><a href="privacidad.html" class="hover:text-pastelRed transition-colors">Aviso de privacidad</a></li>
@@ -461,13 +432,12 @@
                 </ul>
             </div>
         </div>
-        <p class="text-center text-gray-600 text-xs border-t border-white/5 pt-6">&copy; 2026 God's Plan · godsplan.dev · Todos los derechos reservados.</p>
+        <p class="text-center text-gray-400 text-xs border-t border-white/5 pt-6">&copy; 2026 God's Plan · godsplan.dev · Todos los derechos reservados.</p>
     </footer>
 
     <!-- Botón flotante de WhatsApp -->
-    <a href="https://wa.me/525510590927" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp" class="fixed bottom-6 right-6 md:bottom-8 md:right-8 bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-[0_4px_15px_rgba(37,211,102,0.5)] hover:scale-110 transition-all duration-300 z-50">
-        <i class="fa-brands fa-whatsapp text-3xl"></i>
-        <span class="absolute inset-0 rounded-full bg-[#25D366] opacity-30 animate-ping -z-10"></span>
+    <a href="https://wa.me/525510590927" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp" class="fixed bottom-6 right-6 md:bottom-8 md:right-8 bg-[#25D366] text-pureBlack w-14 h-14 rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.55)] hover:scale-110 transition-transform duration-300 z-50">
+        <i class="fa-brands fa-whatsapp text-3xl" aria-hidden="true"></i>
     </a>
 
     <script>
