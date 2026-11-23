@@ -3,7 +3,7 @@
 Una sola fuente de verdad para **godsplan.dev**, **godstap.godsplan.dev** y **rig.godsplan.dev**.
 Si un sitio necesita algo que no está aquí, se agrega aquí primero y luego se usa.
 
-- Implementación de referencia: [`assets/site.css`](assets/site.css) (tokens + componentes) y [`assets/site.js`](assets/site.js) (interacciones).
+- Implementación de referencia: [`assets/site.css`](assets/site.css) (tokens + componentes de la portada), [`assets/components.css`](assets/components.css) (componentes compartidos que la portada no usa) y [`assets/site.js`](assets/site.js) (interacciones).
 - Fuentes: [`assets/fonts/`](assets/fonts/) (archivos `.woff2` + licencias OFL).
 
 ---
@@ -155,7 +155,8 @@ Reglas:
 - **Retícula de 12 columnas** en escritorio. Las composiciones son asimétricas (7/5, 5/7, 3/9). El 6/6 se usa poco.
 - Hay más espacio **arriba** de un título que abajo. Los grupos van pegados y las secciones bien separadas.
 - **Profundidad**: la dan las capas de fondo (`bg-0` → `bg-3`) y el borde de `1px`. Las sombras son **neutras y con desplazamiento**, nunca de color.
-- Puntos de quiebre: `600px` (móvil), `900px` (menú de escritorio y layouts en columnas), `1024px` (showcase y hero en dos columnas) y `1600px` (WhatsApp flotante).
+- Puntos de quiebre: `640px` (móvil ↔ tableta: aparecen los enlaces del menú y cambian los recortes de las capturas), `760px` (listas de 3 columnas y accesos en dos columnas) y `900px` (layouts en columnas de `components.css`).
+- **Momentos, no secciones:** una página se arma con pocos bloques grandes (en godsplan.dev son tres: portada, productos y manifiesto con contacto), centrados y con mucho aire. Su padding vertical es `clamp(7rem, 4rem + 10vw, 13rem)`. Si un bloque no cabe en una frase de propósito, sobra.
 - Textura: un grano SVG fijo al **3.5 %** de opacidad sobre todo el sitio (`body::before`).
 
 ---
@@ -183,9 +184,11 @@ Medidas: alto mínimo `2.875rem` (46px, área táctil cómoda), padding `.7rem 1
 
 No hay "tarjetas" genéricas. Hay tres piezas con su propio trabajo:
 
-- **Panel** (`.status`): fondo `bg-2`, borde `line`, radio 16px, `shadow-2`. Las filas internas se separan con líneas, no con más cajas. **Nunca hay una tarjeta dentro de otra.**
+- **Acceso a producto** (`.access__item`): fondo `bg-2`, borde `line`, radio 16px. Lleva el logotipo del producto, una línea de descripción y un círculo con flecha que en hover se rellena de `crimson-700`. Se usa en la portada para saltar directo a cada producto, máximo dos o tres juntos.
+- **Panel** (`.status`, en `components.css`): fondo `bg-2`, borde `line`, radio 16px, `shadow-2`. Las filas internas se separan con líneas, no con más cajas. **Nunca hay una tarjeta dentro de otra.**
 - **Marco de captura** (`.frame`): fondo `bg-2`, borde `line`, radio 16px y padding 8px. Lleva una barra con el dominio en mono, la captura con radio 10px y un `↗`. En hover el borde pasa a `line-strong`, la imagen escala a 1.015 y la flecha se mueve en diagonal.
-- **Lista con líneas** (`.specs`, `.pillars`, `.channels`, acordeón): solo líneas de `1px` arriba y abajo. Los números en mono van en `crimson-400`.
+- **Lista con líneas** (`.facts` en la portada; `.specs`, `.pillars`, `.channels` y el acordeón en `components.css`): solo líneas de `1px`. En `.facts` cada punto es un título corto en `text-1` peso 600 más una línea en `text-2`, en tres columnas desde 760px.
+- **Proceso en línea** (`.process`): los pasos en una sola línea mono (`01 Escuchamos — 02 Cotizamos…`), con el número en `crimson-400` y separadores de `1px`. En celular pasan a una cuadrícula de 2×2 sin separadores. Sustituye a las tarjetas de pasos.
 
 ### Chip
 
@@ -206,12 +209,12 @@ Usa `<details>` nativo, así funciona aunque no haya JavaScript. El JS anima la 
 
 ### Encabezado
 
-Es fijo y empieza transparente. Después de 8px de scroll toma fondo `rgba(11,10,10,.9)` con desenfoque y una línea inferior. La sección activa se marca con un subrayado de 1px en `crimson-400`. En móvil lleva el botón de WhatsApp y el menú, que se despliega a pantalla completa con números en mono.
+Es fijo, de 64px de alto, y empieza transparente. Después de 8px de scroll toma fondo `rgba(11,10,10,.86)` con desenfoque y una línea inferior. Lleva pocos enlaces (en godsplan.dev, los dos productos), el ícono de WhatsApp y el botón Contacto. El enlace de la sección visible se marca con un subrayado de 1px en `crimson-400`. Por debajo de 640px solo quedan el logotipo, WhatsApp y Contacto. Si un sitio necesita más de cuatro enlaces, usa el menú móvil de `components.css`.
 
 ### WhatsApp
 
-- **Móvil y tablet (<1600px):** ícono en el encabezado. **Nunca flota sobre el contenido.**
-- **Pantallas ≥1600px:** píldora flotante oscura en el margen derecho, que se oculta en la portada, en Contacto y en el pie.
+- Ícono en el encabezado, en todos los tamaños, más un botón principal en el cierre de contacto.
+- **No hay botón flotante.** Nunca se pone nada encima del contenido.
 - El verde `#25d366` solo se usa en el glifo, nunca como fondo de botón.
 
 ---
@@ -227,7 +230,7 @@ Es fijo y empieza transparente. Después de 8px de scroll toma fondo `rgba(11,10
 }
 ```
 
-- **Un momento con intención por página.** En godsplan.dev es la entrada del hero (desenfoque + subida, escalonada 110ms) y el "revelado" de las capturas (la imagen pasa de escala 1.06 a 1 en 1.6s).
+- **Un momento con intención por página.** En godsplan.dev es la entrada de la portada (desenfoque + subida, escalonada 110ms) y la llegada de cada captura (el marco sube 48px y pasa de escala 0.97 a 1 en 1.1s).
 - Aparición al hacer scroll: opacidad y `translateY(24px)` → 0, escalonado de 90ms con `--d`.
 - **El contenido es visible por defecto.** Las animaciones solo se activan si la clase `motion` está en `<html>`, que se pone cuando hay JS y el usuario no pidió reducir movimiento.
 - `prefers-reduced-motion: reduce` apaga todas las transiciones.
