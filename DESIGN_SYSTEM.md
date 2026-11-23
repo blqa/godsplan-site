@@ -84,47 +84,54 @@ Si un sitio necesita algo que no está aquí, se agrega aquí primero y luego se
 
 ## 3. Tipografía
 
+Es la tipografía original de godsplan.dev (la de `main`): **Montserrat** para títulos e **Inter** para el texto. Ahora se aloja dentro de cada sitio y se usa con la escala de abajo. **Martian Mono** se agregó solo para lo técnico.
+
 | Rol | Fuente | Archivo | Pesos | Uso |
 |---|---|---|---|---|
-| Display | **Bricolage Grotesque** (variable: `wght` 500–800, `wdth` 85–100 %, `opsz` 24–96) | `BricolageGrotesque-var.woff2` | 640–760 | Títulos, logotipos de producto, frases grandes |
-| Texto | **Schibsted Grotesk** (variable: `wght` 400–900) | `SchibstedGrotesk-var.woff2` | 400 texto, 550 botones, 600 énfasis | Párrafos, botones, menús |
+| Display | **Montserrat** (variable: `wght` 500–900) | `Montserrat-var.woff2` | 800 títulos y logotipos, 700 frases grandes | Títulos, nombres de producto, logotipo, manifiesto |
+| Texto | **Inter** (variable: `wght` 300–700, `opsz` 14–32) | `Inter-var.woff2` | 400 texto, 550 botones, 600 énfasis | Párrafos, botones, menús, datos cortos |
 | Mono | **Martian Mono** (variable: `wght` 300–600, `wdth` 75–100 %) | `MartianMono-var.woff2` | 400 | Dominios, números, estados, etiquetas técnicas |
 
 ```css
-@font-face { font-family: "Bricolage Grotesque"; src: url("fonts/BricolageGrotesque-var.woff2") format("woff2"); font-weight: 500 800; font-stretch: 85% 100%; font-display: swap; }
-@font-face { font-family: "Schibsted Grotesk"; src: url("fonts/SchibstedGrotesk-var.woff2") format("woff2"); font-weight: 400 900; font-display: swap; }
+@font-face { font-family: "Montserrat"; src: url("fonts/Montserrat-var.woff2") format("woff2"); font-weight: 500 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("fonts/Inter-var.woff2") format("woff2"); font-weight: 300 700; font-style: normal; font-display: swap; }
 @font-face { font-family: "Martian Mono"; src: url("fonts/MartianMono-var.woff2") format("woff2"); font-weight: 300 600; font-stretch: 75% 100%; font-display: swap; }
 
 :root {
-  --gp-font-display: "Bricolage Grotesque", "Schibsted Grotesk", system-ui, sans-serif;
-  --gp-font-sans: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gp-font-display: "Montserrat", "Inter", system-ui, sans-serif;
+  --gp-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --gp-font-mono: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 ```
 
-Las fuentes se **alojan en cada sitio** (sin Google Fonts). Están recortadas a latín más los signos del español: á é í ó ú ñ ü ¿ ¡ « » “ ” € y flechas. Siempre se precarga la display y la de texto:
+Las fuentes se **alojan en cada sitio** (sin Google Fonts). Salen del repositorio oficial de Google Fonts (`google/fonts`, licencia OFL, incluida en `assets/fonts/`). Son variables y están recortadas a latín más los signos del español: á é í ó ú ñ ü ¿ ¡ « » “ ” € y flechas. Siempre se precarga la display y la de texto:
 
 ```html
-<link rel="preload" href="/assets/fonts/BricolageGrotesque-var.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/fonts/SchibstedGrotesk-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/Montserrat-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/Inter-var.woff2" as="font" type="font/woff2" crossorigin>
 ```
+
+En Next.js (GodsTap) se cargan los mismos archivos con `next/font/local`, con los mismos rangos de peso, y se asignan a las variables `--gp-font-display` y `--gp-font-sans`. No se usa `next/font/google`.
 
 ### Escala
 
-| Token | Tamaño | Peso | `font-stretch` | Tracking | Interlineado |
-|---|---|---|---|---|---|
-| `--gp-text-display` (h1) | `clamp(2.75rem, 1.2rem + 6.4vw, 6rem)`; en el hero, máx. `13svh` | 760 | 94 % | −0.04em | 0.92 |
-| Nombre de producto | `clamp(2.75rem, 1.6rem + 4.4vw, 5rem)` | 760 | 94 % | −0.04em | 0.9 |
-| `--gp-text-h2` | `clamp(2.125rem, 1.3rem + 3.4vw, 4rem)` | 720 | 96 % | −0.035em | 0.98 |
-| `--gp-text-statement` | `clamp(1.625rem, 1.05rem + 2.3vw, 3rem)` | 640 | 96 % | −0.03em | 1.18 |
-| h3 | 1.25–1.625rem | 700 | 100 % | −0.03em | 1.05–1.2 |
-| `--gp-text-lead` | `clamp(1.0625rem, 0.98rem + 0.4vw, 1.3125rem)` | 400 | | 0 | 1.55 |
-| `--gp-text-body` | 1rem (16px) | 400 | | 0 | 1.6 |
-| `--gp-text-small` | 0.875rem | 400 | | 0 | 1.5 |
-| `--gp-text-mono` | 0.75rem | 400 | 87.5 % | 0 | 1.4 |
+| Elemento | Tamaño | Peso | Tracking | Interlineado |
+|---|---|---|---|---|
+| Titular de portada (h1) | `clamp(3rem, 1.1rem + 7.6vw, 6rem)`, máx. 14 caracteres por línea | 800 | −0.03em | 1.05 |
+| Nombre de producto | `clamp(3.5rem, 1.8rem + 7vw, 6rem)` | 800 | −0.03em | 1 |
+| Título de cierre / `--gp-text-h2` | `clamp(2.25rem, 1.2rem + 4.2vw, 4.25rem)` | 800 | −0.025em | 1.05 |
+| Manifiesto / frase grande | `clamp(1.75rem, 1.05rem + 2.6vw, 3.25rem)` | 700 | −0.02em | 1.18 |
+| Logotipo (`God's Plan`) | 1.0625rem | 800 | −0.02em | 1 |
+| Logotipo de producto en accesos | 1.5rem | 800 | −0.025em | 1.1 |
+| h3 / títulos de texto legal | 1.25–1.5rem | 700 | −0.02em | 1.2 |
+| `--gp-text-lead` | `clamp(1.0625rem, 0.98rem + 0.4vw, 1.3125rem)` | 400 | 0 | 1.5–1.55 |
+| `--gp-text-body` | 1rem (16px) | 400 | 0 | 1.6 |
+| `--gp-text-small` | 0.875rem | 400 | 0 | 1.5 |
+| `--gp-text-mono` | 0.75rem, `font-stretch: 87.5%` | 400 | 0 | 1.4 |
 
 Reglas:
-- El display se usa con `font-variation-settings: "opsz" 96` y nunca baja de **−0.04em** de tracking (más apretado y las letras se tocan).
+- Montserrat es ancha: en títulos se usa entre **−0.02em y −0.03em** de tracking, **nunca más apretada** (las letras se encimarían). No lleva `font-stretch` ni ajustes de `opsz`.
+- Montserrat se usa solo de 700 a 900. Los pesos delgados de Montserrat no se usan; para texto ligero está Inter.
 - Los títulos llevan `text-wrap: balance`. Los párrafos miden como máximo **36rem** (unos 70 caracteres).
 - La mono **no va en mayúsculas espaciadas**. Va en minúsculas, como se escribe un dominio: `godstap.godsplan.dev`.
 - Los números de listas y precios usan `font-variant-numeric: tabular-nums`.
@@ -307,7 +314,7 @@ En la franja, el enlace del sitio actual lleva `aria-current="page"` y se ve en 
 
 ### Reglas de la familia
 
-- El nombre del producto siempre va escrito igual: `Gods` en `text-1` + la segunda mitad en `crimson-400` (`GodsTap`, `GodsRig`), en Bricolage 760.
+- El nombre del producto siempre va escrito igual: `Gods` en `text-1` + la segunda mitad en `crimson-400` (`GodsTap`, `GodsRig`), en Montserrat 800.
 - El correo de todos los productos es `contacto@godsplan.dev`. El WhatsApp es `https://wa.me/525510590927`.
 - El favicon es la cruz `M28 10h8v16h16v8H36v22h-8V34H12v-8h16z` en `#ef5058` sobre `#0b0a0a` con radio 14. Cada producto puede usar su propio favicon, pero con estos mismos colores.
 
