@@ -265,6 +265,30 @@ La portada de la agencia usa un registro más expresivo, inspirado en sitios de 
 
 ---
 
+
+### Kit de interfaz y página como historia (nov 2026)
+
+Los tres sitios cargan el mismo kit (`assets/gp-kit.js` + `assets/gp-kit.css`; en GodsTap `public/gp-kit.js` y `app/gp-kit.css`). Cómo se compila y qué trae: `kit/README.md`.
+
+- **Íconos:** Lucide (ISC) en los tres sitios, con su trazo redondeado. La cruz de la marca y el glifo de WhatsApp se quedan como están.
+- **Motion:** aparición al bajar (`data-reveal`, con `--d` como retraso en pasos de 90 ms), barra de progreso de lectura de 2px arriba y la frase que se enciende palabra por palabra.
+- **Embla Carousel:** en celular (≤640px) las cuadrículas de tarjetas se vuelven deslizables, con puntos de 44px para tocar.
+- **Floating UI:** globos de ayuda con `data-tip`, en claro sobre oscuro, con flecha. Se abren con el mouse o con el foco del teclado y se cierran con Esc.
+- **Buscador Ctrl/⌘ + K (estilo cmdk):** botón "Buscar" en la cápsula del encabezado (solo ícono en celular). Agrupa servicios, productos, secciones y acciones; en GodsRig cada servicio trae su precio.
+- **Avisos (estilo Sonner):** abajo a la derecha (abajo y a todo lo ancho en celular), máximo 3, se cierran solos en 4 s. Se usan al copiar el correo.
+- **Bordes animados (Magic UI):** `data-beam` (un rayo recorre el borde) en la tarjeta principal y el panel de contacto; `data-shine` (brillo) en la oferta o el plan destacado. Uno de cada tipo por página como máximo.
+
+**La página cuenta una historia** (patrón "Scroll-Triggered Storytelling" de UI UX Pro Max, con secciones inspiradas en Craft):
+
+1. Portada.
+2. **El problema** (`.gpk-story`): título en dos tonos (`.gpk-two`: la primera línea en blanco y la segunda en gris) y tres tarjetas numeradas unidas por líneas de 1px (`.gpk-pains`); cada una termina con "Lo resolvemos con…".
+3. Lo que ofrecemos (soluciones, servicios o funciones).
+4. **Para quién es** (`.gpk-fit`): dos columnas, "Es para ti si…" en verde (`--gp-ok`) y "Tal vez no es para ti si…" en carmesí. Se dice con honestidad qué no hacemos.
+5. Cómo trabajamos, terminado con una **barra tipo terminal** (`.gpk-term`) que lleva el correo para copiar y el botón de WhatsApp.
+6. Contacto.
+
+**Lista de revisión antes de publicar (UI UX Pro Max):** íconos SVG (nada de emojis), mano en todo lo que se toca, transiciones de 150 a 300 ms al pasar el mouse, contraste de 4.5:1, foco visible con Tab, "reducir movimiento" respetado, sin desborde a 375, 768, 1024 y 1440 px, y nada que se toque menor a 44px en pantallas táctiles. Las pruebas automáticas con Playwright revisan todo esto.
+
 ---
 
 ## 6. Movimiento
