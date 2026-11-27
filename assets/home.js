@@ -70,7 +70,8 @@
             var words = function (line) {
                 return line.split(' ').map(function (w) { return '<span class="wd" style="--i:' + (i++) + '">' + esc(w) + '</span>'; }).join(' ');
             };
-            el.innerHTML = words(t[0]) + '<br> <em>' + words(t[1]) + '</em>';
+            // La segunda línea entra como un solo bloque para que el degradado sea continuo
+            el.innerHTML = words(t[0]) + '<br> <em class="wd" style="--i:' + i + '">' + esc(t[1]) + '</em>';
         }
         if ((el = slot('heroSub'))) el.textContent = pick(TEXTOS.heroSub);
         if ((el = slot('statement'))) el.setAttribute('data-text', pick(TEXTOS.statement));
