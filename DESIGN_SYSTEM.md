@@ -226,7 +226,7 @@ Es fijo, de 64px de alto, y empieza transparente. Después de 8px de scroll toma
 
 ### Portada de godsplan.dev: estilo "estudio" (nov 2026)
 
-La portada de la agencia usa un registro más expresivo, inspirado en sitios de estudios web (cápsula flotante, mosaico de capturas, secciones que alternan oscuro y claro). Vive en `assets/home.css` y `assets/home.js`; privacidad, términos y 404 siguen con `assets/site.css`. GodsTap y GodsRig **no** adoptan estos componentes: siguen con lo de arriba.
+La portada de la agencia usa un registro más expresivo, inspirado en sitios de estudios web (cápsula flotante, la marca al centro con sus servicios alrededor, secciones que alternan oscuro y claro). Vive en `assets/home.css` y `assets/home.js`; privacidad, términos y 404 siguen con `assets/site.css`. GodsTap y GodsRig **no** adoptan estos componentes: siguen con lo de arriba.
 
 **Tokens extra (solo en `home.css`)**
 
