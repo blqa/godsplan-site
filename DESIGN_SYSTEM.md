@@ -224,6 +224,39 @@ Es fijo, de 64px de alto, y empieza transparente. Después de 8px de scroll toma
 - **No hay botón flotante.** Nunca se pone nada encima del contenido.
 - El verde `#25d366` solo se usa en el glifo, nunca como fondo de botón.
 
+### Portada de godsplan.dev: estilo "estudio" (nov 2026)
+
+La portada de la agencia usa un registro más expresivo, inspirado en sitios de estudios web (cápsula flotante, mosaico de capturas, secciones que alternan oscuro y claro). Vive en `assets/home.css` y `assets/home.js`; privacidad, términos y 404 siguen con `assets/site.css`. GodsTap y GodsRig **no** adoptan estos componentes: siguen con lo de arriba.
+
+**Tokens extra (solo en `home.css`)**
+
+| Token | Valor | Uso | Contraste sobre `--gp-paper` |
+|---|---|---|---|
+| `--gp-paper` | `#f5f0ee` | Fondo de la sección clara | — |
+| `--gp-paper-2` | `#ebe4e1` | Pestaña sin elegir | `--gp-ink-1` encima: 14.5:1 |
+| `--gp-ink-1` | `#1a1414` | Títulos sobre papel | 16.1:1 |
+| `--gp-ink-2` | `#5c5150` | Párrafos sobre papel | 6.8:1 |
+| `--gp-crimson-ink` | `#a3080c` | Acento sobre papel | 7.2:1 |
+| `--gp-radius-xl` | `28px` | Paneles grandes y esquinas de sección | — |
+
+**Componentes**
+
+- **Cápsula flotante (`.hdr`)**: encabezado fijo separado del borde, `border-radius: 999px`, vidrio esmerilado (permitido porque es el encabezado). Marca con mosaico carmesí (`.brand__tile`), enlaces centrados y botón claro "Contacto".
+- **Etiqueta entre corchetes (`.tag`)**: mono en mayúsculas, `0.6875rem`, con corchetes de 1px en `--gp-crimson-400` (o `--gp-crimson-ink` sobre papel). Solo una por sección, nunca sobre cada título.
+- **Botón claro (`.btn--light`)**: fondo `--gp-text-1`, texto `--gp-ink-1`. Todos los botones de la portada son cápsula (`999px`).
+- **Mosaico (`.mosaic`)**: tres columnas de capturas **reales** de GodsTap y GodsRig dentro de mosaicos de color (`.tile--amber`, `--teal`, `--gold`, `--crimson`, `--ink`). Las columnas se deslizan despacio (46–62 s) y se pausan al pasar el mouse. Es decorativo (`aria-hidden`): la información está en la sección de productos. Las capturas se toman sin cursor y se guardan en `assets/shots/` como WebP.
+- **Declaración por palabras (`[data-words]`)**: un solo párrafo grande que se enciende palabra por palabra al bajar; las palabras clave quedan en `--gp-crimson-400`. Sin movimiento reducido se muestra completo.
+- **Sección clara (`.light`)**: papel cálido con esquinas superiores de 28px. Se usa una vez, para los productos.
+- **Pestañas (`.tabs`)**: cápsulas; la elegida es `--gp-ink-1` con texto papel. Con teclado se cambian con ←/→. Los enlaces `#godstap` y `#godsrig` abren su pestaña.
+- **Caso (`.case`)**: panel oscuro de 28px con degradado radial desde la esquina inferior derecha (carmesí para GodsTap, café para GodsRig), puntos de verificación redondos (`.pip`) y capturas inclinadas (teléfonos o ventana de navegador).
+- **Panel de método (`.method`)**: panel oscuro redondeado con retícula de puntos de 22px y cuadrícula 2×2 con líneas de 1px. Cada paso lleva un dibujo de línea (1.4px) con un solo punto carmesí.
+- **Panel de contacto (`.cta__panel`)**: carmesí oscuro con franjas horizontales sutiles y un resplandor inferior.
+- **Palabra gigante del pie (`.ftr__word`)**: "God's Plan" en Montserrat 900 con degradado casi transparente; decorativa.
+
+**Excepciones a la sección 7, solo en esta portada**: texto con degradado en una palabra del título principal y del título del método; resplandores radiales dentro de la portada, los casos y el panel de contacto; retícula de puntos solo en el panel de método; una etiqueta entre corchetes por sección.
+
+---
+
 ---
 
 ## 6. Movimiento
@@ -247,11 +280,11 @@ Es fijo, de 64px de alto, y empieza transparente. Después de 8px de scroll toma
 
 ## 7. Prohibido
 
-1. Texto con degradado (`background-clip: text`).
-2. Brillos o halos de color (`box-shadow: 0 0 40px <rojo>`), manchas difuminadas de color de fondo y neón.
-3. Fondos de cuadrícula o de puntos decorativos.
+1. Texto con degradado (`background-clip: text`). *Excepción: portada de godsplan.dev, ver sección 5.*
+2. Brillos o halos de color (`box-shadow: 0 0 40px <rojo>`), manchas difuminadas de color de fondo y neón. *Excepción: resplandores radiales de la portada de godsplan.dev.*
+3. Fondos de cuadrícula o de puntos decorativos. *Excepción: el panel de método de la portada de godsplan.dev.*
 4. Puntos que parpadean o laten (`animate-pulse`, `animate-ping`) para fingir que algo está "vivo".
-5. Etiquetas pequeñas en mayúsculas encima de cada título. El título se sostiene solo.
+5. Etiquetas pequeñas en mayúsculas encima de cada título. El título se sostiene solo. *En la portada de godsplan.dev se permite una etiqueta entre corchetes por sección.*
 6. Barras de métricas de relleno ("2 productos · MX · 1").
 7. Filas de tarjetas iguales con ícono + título + texto como estructura de la página. Tampoco tarjetas dentro de tarjetas.
 8. `#8a0303` como color de texto. `#000` puro como fondo de página.
