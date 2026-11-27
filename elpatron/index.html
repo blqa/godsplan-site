@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#050505">
+    <meta name="description" content="El Patrón: Legado — juego idle de estrategia y negocios. Construye un imperio, enfrenta a tres cárteles rivales y retírate como el Rey de Reyes.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta property="og:title" content="El Patrón: Legado">
+    <meta property="og:description" content="Juego idle de estrategia. Un juego de God's Plan Labs.">
+    <title>El Patrón: Legado</title>
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Jura:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- ============ PANTALLA DE INICIO ============ -->
+    <div id="start-screen" class="overlay start-screen">
+        <div class="start-bg"></div>
+        <div class="start-inner">
+            <div class="start-kicker">GOD'S PLAN LABS PRESENTA</div>
+            <h1 class="start-logo">EL PATRÓN</h1>
+            <div class="start-sub">LEGADO</div>
+            <div id="start-legacy" class="start-legacy"></div>
+            <div class="start-buttons">
+                <button class="big-btn gold hidden" id="btn-continue" onclick="Core.Game.continueGame()">▶ CONTINUAR</button>
+                <button class="big-btn" id="btn-newgame" onclick="Core.Game.newGame()">NUEVA PARTIDA</button>
+                <button class="big-btn ghost" onclick="Core.Guide.open()">CÓMO JUGAR</button>
+                <button class="big-btn ghost" id="start-sound" onclick="Sfx.toggle()">🔊 SONIDO</button>
+            </div>
+            <div class="start-foot">v32.0 · Ficción. Cualquier parecido con la realidad es coincidencia. · <a href="https://godsplan.dev" target="_blank" rel="noopener">godsplan.dev</a></div>
+        </div>
+    </div>
+
+    <!-- ============ INTRO DE HISTORIA ============ -->
+    <div id="intro-screen" class="overlay intro-screen hidden">
+        <div class="intro-box">
+            <div class="intro-chapter" id="intro-chapter">PRÓLOGO</div>
+            <div class="intro-text" id="intro-text"></div>
+            <button class="big-btn gold" id="intro-btn" onclick="Core.Game.endIntro()">COMENZAR</button>
+            <button class="link-btn" onclick="Core.Game.skipIntro()">Saltar ›</button>
+        </div>
+    </div>
+
+    <div class="notification-area" id="notif-area"></div>
+
+    <!-- ============ ALERTA DE ATAQUE EN VIVO ============ -->
+    <div id="attack-alert" class="attack-alert hidden">
+        <div class="aa-head">
+            <span class="aa-icon">⚔️</span>
+            <div>
+                <div class="aa-title" id="aa-title">ATAQUE ENTRANTE</div>
+                <div class="aa-desc" id="aa-desc"></div>
+            </div>
+            <div class="aa-timer" id="aa-timer">20</div>
+        </div>
+        <div class="aa-bar"><div id="aa-bar-fill"></div></div>
+        <div class="aa-stats" id="aa-stats"></div>
+        <div class="aa-actions" id="aa-actions"></div>
+    </div>
+
+    <div id="pause-modal" class="overlay hidden">
+        <div class="modal-content">
+            <h1 class="pause-title">PAUSA</h1>
+            <button class="action-btn" style="font-size:1.1rem; padding:15px 30px;" onclick="Core.Game.togglePause()">REANUDAR OPERACIONES</button>
+            <p style="color:#666; margin-top:20px;">Progreso guardado · Barra espaciadora para pausar</p>
+        </div>
+    </div>
+
+    <div id="event-modal" class="overlay hidden">
+        <div class="modal-content">
+            <div class="modal-title" id="ev-title">ALERTA</div>
+            <div class="modal-desc" id="ev-desc">...</div>
+            <div class="modal-actions" id="ev-actions"></div>
+        </div>
+    </div>
+
+    <div id="guide-modal" class="overlay hidden">
+        <div class="modal-content guide-content">
+            <div class="modal-title" style="margin-bottom:0;">MANUAL DEL PATRÓN</div>
+            <div style="font-size:0.8rem; color:#888; margin-bottom:20px;">Todo lo que necesitas para construir tu legado</div>
+            <div id="guide-content" class="guide-section"></div>
+            <button class="action-btn" onclick="Core.Guide.close()">CERRAR</button>
+        </div>
+    </div>
+
+    <!-- Hoja "Más" para móvil -->
+    <div id="more-sheet" class="more-sheet hidden" onclick="if(event.target===this) UI.toggleMore(false)">
+        <div class="more-panel" id="more-panel"></div>
+    </div>
+
+    <!-- Panel de desarrollador oculto (escribe "patron" en el teclado) -->
+    <div id="dev-panel" class="dev-panel hidden">
+        <b>DEV</b>
+        <button onclick="Core.Dev.money()">+$1M</button>
+        <button onclick="Core.Dev.chems()">+5K L</button>
+        <button onclick="Core.Dev.army()">+100 sicarios</button>
+        <button onclick="Core.Dev.time()">+1h offline</button>
+        <button onclick="Core.Dev.attack()">Ataque</button>
+        <button onclick="document.getElementById('dev-panel').classList.add('hidden')">✕</button>
+    </div>
+
+    <div id="interface">
+        <header>
+            <div class="brand">
+                <span class="brand-name">EL PATRÓN</span>
+                <span class="rank-badge" id="ui-rank-badge">PISTOLERO</span>
+            </div>
+
+            <div class="hud-stats">
+                <div class="hud-item hud-respect" title="Patrimonio neto (define tu rango)">PATRIMONIO <b>$<span id="ui-respect">0</span></b></div>
+                <div class="hud-item hud-weather" id="weather-display">☀️ DESPEJADO</div>
+                <div class="hud-item hud-dirty" title="Dinero sucio">SUCIO <b>$<span id="ui-dirty">0</span></b></div>
+                <div class="hud-item hud-clean" title="Dinero limpio">LIMPIO <b>$<span id="ui-clean">0</span></b> <small>+$<span id="ui-passive">0</span>/s</small></div>
+                <div class="heat-container" title="Nivel de búsqueda. Si llega al máximo, hay redada.">
+                    <div class="heat-label" id="heat-label">BÚSQUEDA</div>
+                    <div class="heat-bar-bg"><div class="heat-bar-fill" id="ui-heat"></div></div>
+                    <button class="mini-btn btn-red hidden" id="btn-panic" onclick="Core.Heat.emergencyEscape()">ESCAPE $50K</button>
+                </div>
+            </div>
+
+            <div class="header-btns">
+                <button class="icon-btn mobile-only" onclick="UI.toggleAside()" title="Bodega">📦</button>
+                <button class="icon-btn" id="btn-sound" onclick="Sfx.toggle()" title="Sonido">🔊</button>
+                <button class="icon-btn" onclick="Core.Game.togglePause()" title="Pausa">⏸</button>
+            </div>
+        </header>
+
+        <nav id="side-nav"></nav>
+
+        <main id="main">
+            <!-- PRODUCCIÓN -->
+            <section id="view-ops" class="view">
+                <div class="section-title">COMPLEJO INDUSTRIAL & PRECURSORES</div>
+                <div class="op-card">
+                    <h3>IMPORTACIÓN DE QUÍMICOS</h3>
+                    <p class="muted">Stock: <b id="val-chems" class="white">0</b> L · Se paga con dinero limpio.</p>
+                    <div class="btn-row">
+                        <button class="action-btn btn-green auto-w" onclick="Core.Ops.buyChems(100)">100L ($3K)</button>
+                        <button class="action-btn btn-green auto-w" onclick="Core.Ops.buyChems(1000)">1K L ($28K)</button>
+                        <button class="action-btn btn-green auto-w" onclick="Core.Ops.buyChems(10000)">10K L ($250K)</button>
+                        <label class="toggle-wrapper push-right"><input type="checkbox" class="toggle-input" id="auto-chem-toggle" onchange="Core.Ops.toggleAutoChem()"> AUTO-IMPORTAR</label>
+                    </div>
+                </div>
+                <div class="grid-cards" id="ops-grid"></div>
+            </section>
+
+            <!-- HISTORIA -->
+            <section id="view-story" class="view hidden">
+                <div class="section-title">LA HISTORIA DEL PATRÓN</div>
+                <div id="story-current"></div>
+                <div class="section-title sub">CAPÍTULOS</div>
+                <div id="story-list" class="story-list"></div>
+            </section>
+
+            <!-- GUERRA -->
+            <section id="view-war" class="view hidden">
+                <div class="section-title">GEOPOLÍTICA Y DEFENSA</div>
+                <div class="grid-cards two">
+                    <div class="op-card">
+                        <h3>EJÉRCITO</h3>
+                        <div class="army-stats">
+                            <div>LIBRES <b id="val-army" class="gold">0</b></div>
+                            <div>ÉLITE <b id="val-elite" class="blue">0</b></div>
+                            <div>ATAQUE <b id="val-attack" class="red">0</b></div>
+                        </div>
+                        <p class="muted">Recluta: $<span id="recruit-cost">1,000</span> sucio c/u</p>
+                        <div class="btn-row">
+                            <button class="action-btn btn-green auto-w" onclick="Core.War.recruit(1)">+1</button>
+                            <button class="action-btn btn-green auto-w" onclick="Core.War.recruit(10)">+10</button>
+                            <button class="action-btn btn-green auto-w" onclick="Core.War.recruit(50)">+50</button>
+                            <button class="action-btn btn-blue auto-w" onclick="Core.War.recruitElite()">ÉLITE ($25K LIMPIO)</button>
+                        </div>
+                    </div>
+                    <div class="op-card" style="border-color:#5b2a86;">
+                        <h3>ARMAS PESADAS <small class="muted">(Pacto Kremlin)</small></h3>
+                        <p class="muted">T-90: +300 defensa en la plaza donde lo despliegues. MLRS: +50 ataque cada uno, se gastan al atacar.</p>
+                        <div class="btn-row">
+                            <button class="action-btn btn-purple" id="btn-deploy-tanks" onclick="Core.War.deployTank()">T-90 (0) · DESPLEGAR</button>
+                            <div class="action-btn btn-purple static" id="mlrs-count">MLRS LISTOS: 0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="war-layout">
+                    <div id="war-container">
+                        <canvas id="war-canvas"></canvas>
+                        <div class="map-legend" id="map-legend"></div>
+                        <div class="map-overlay">
+                            <div class="gold">PLAZAS: <span id="count-territory">1</span>/<span id="count-territory-total">14</span></div>
+                            <div id="active-bonuses" class="tiny muted">Ninguno</div>
+                        </div>
+                    </div>
+
+                    <div class="op-card territory-panel" id="troop-controls">
+                        <div class="muted tiny">Toca una plaza del mapa</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIVALES / DIPLOMACIA -->
+            <section id="view-rivals" class="view hidden">
+                <div class="section-title">CÁRTELES RIVALES</div>
+                <div class="grid-cards" id="rivals-grid"></div>
+                <div class="section-title sub">CONTACTOS & MERCADO NEGRO</div>
+                <div class="grid-cards" id="contacts-grid"></div>
+            </section>
+
+            <!-- LOGÍSTICA -->
+            <section id="view-logistics" class="view hidden">
+                <div class="section-title">MERCADO & ENVÍOS</div>
+                <div class="grid-cards">
+                    <div class="op-card">
+                        <h3>PRECIOS DE CALLE</h3>
+                        <p class="tiny muted">Si vendes mucho de un producto, el mercado se satura y el precio baja por varios minutos.</p>
+                        <div id="market-ticker"></div>
+                    </div>
+                    <div class="op-card">
+                        <h3>ENVÍO MANUAL</h3>
+                        <label class="lbl">PRODUCTO</label>
+                        <select id="sel-prod" onchange="Core.Logistics.calc(true)"></select>
+                        <label class="lbl">VEHÍCULO</label>
+                        <select id="sel-veh" onchange="Core.Logistics.calc(true)"></select>
+                        <label class="lbl">RUTA</label>
+                        <select id="sel-dist" onchange="Core.Logistics.calc()"></select>
+                        <input type="range" id="rng-load" value="0" min="0" max="0" oninput="Core.Logistics.calc()">
+                        <div class="row-between"><span class="tiny muted" id="dispatch-preview">—</span><span>CARGA: <b id="lbl-load">0</b> kg</span></div>
+                        <button class="action-btn btn-green" onclick="Core.Logistics.dispatch()">ENVIAR CARGA</button>
+                    </div>
+                    <div class="op-card auto-panel hidden" id="auto-logistics-panel">
+                        <h3 class="gold">⚡ LOGÍSTICA AUTOMÁTICA</h3>
+                        <p class="tiny muted">Tu Logístico manda la flota disponible por ti.</p>
+                        <label class="toggle-wrapper"><input type="checkbox" class="toggle-input" id="auto-smart-toggle" onchange="Core.Logistics.updateAutoUI()"> MODO INTELIGENTE (elige lo más rentable)</label>
+                        <div id="auto-inputs">
+                            <label class="lbl">PRODUCTO</label><select id="auto-prod"></select>
+                            <label class="lbl">RUTA</label><select id="auto-dist"></select>
+                            <label class="lbl">VEHÍCULO</label><select id="auto-veh"></select>
+                        </div>
+                        <label class="lbl">CARGA MÍNIMA</label>
+                        <input type="number" id="auto-min-load" value="20">
+                        <button class="action-btn" id="btn-auto-toggle" onclick="Core.Logistics.toggleAuto()">ACTIVAR AUTOMATIZACIÓN</button>
+                        <div id="auto-status" class="tiny muted">Estado: inactivo</div>
+                    </div>
+                </div>
+                <div class="section-title sub">TRÁFICO ACTIVO <span class="tiny muted" id="routes-count"></span></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>UNIDAD</th><th>CARGA</th><th>RUTA</th><th>VALOR</th><th>RIESGO</th><th>AVANCE</th></tr></thead>
+                        <tbody id="log-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- FLOTA -->
+            <section id="view-assets" class="view hidden">
+                <div class="section-title">CONCESIONARIO</div>
+                <div id="assets-grid" class="grid-cards"></div>
+                <div class="section-title sub">MI FLOTA <span class="tiny muted">Los vehículos acumulan kilometraje: cada 5,000 km son más rápidos (máx. +25%).</span></div>
+                <div class="op-card hidden" id="auto-repair-panel" style="border-color:var(--success-b);">
+                    <h3 class="green">🔧 TALLER PRIVADO ACTIVO</h3>
+                    <p class="tiny muted">Tu Mecánico repara los vehículos dañados automáticamente.</p>
+                </div>
+                <div class="btn-row" style="margin-bottom:10px;">
+                    <button class="action-btn auto-w" onclick="Core.Assets.repairAll()">🔧 REPARAR TODO</button>
+                    <button class="action-btn btn-blue auto-w" onclick="Core.Assets.insureAll(true)">🛡️ ASEGURAR TODO</button>
+                    <span class="tiny muted" id="insurance-info"></span>
+                </div>
+                <div id="fleet-list" class="grid-cards fleet-grid"></div>
+            </section>
+
+            <!-- FINANZAS -->
+            <section id="view-finance" class="view hidden">
+                <div class="section-title">FINANZAS</div>
+                <div class="grid-cards">
+                    <div class="op-card" style="border-color:var(--success-b);">
+                        <h3>CUENTA OFFSHORE</h3>
+                        <p class="tiny muted">A salvo de redadas. Interés ~1% por minuto. Si tu búsqueda pasa de 75%, pueden congelarte fondos.</p>
+                        <div class="big-num green">$<span id="val-offshore">0</span></div>
+                        <input type="number" id="inp-offshore" placeholder="Monto limpio...">
+                        <div class="btn-row">
+                            <button class="action-btn" onclick="Core.Finance.deposit()">DEPOSITAR</button>
+                            <button class="action-btn" onclick="Core.Finance.withdraw()">RETIRAR</button>
+                            <button class="action-btn btn-green" onclick="Core.Finance.depositAll()">TODO</button>
+                        </div>
+                    </div>
+                    <div class="op-card loan-card" id="loan-card"></div>
+                </div>
+                <div class="section-title sub">WALL STREET <span class="tiny muted">Acciones con beneficios pasivos (dinero limpio)</span></div>
+                <div id="stock-market-grid" class="grid-cards three"></div>
+                <div class="section-title sub">LAVADO MANUAL</div>
+                <div class="grid-cards" id="laundering-grid"></div>
+            </section>
+
+            <!-- FACHADAS -->
+            <section id="view-fronts" class="view hidden">
+                <div class="section-title">NEGOCIOS FACHADA</div>
+                <p class="muted" style="margin-bottom:20px;">Cada negocio lava dinero sucio solito cada 3 segundos. Entre más grande, más lava... y más llama la atención de Hacienda. Si te auditan, lo clausuran un rato.</p>
+                <div class="grid-cards" id="fronts-grid"></div>
+            </section>
+
+            <!-- PERSONAL -->
+            <section id="view-hr" class="view hidden">
+                <div class="section-title">TENIENTES <span class="tiny muted" id="lt-count"></span></div>
+                <div class="op-card">
+                    <h3>RECLUTAR</h3>
+                    <p class="muted">Busca candidatos ($5K limpio). Cada uno tiene un rol, una personalidad y sube de nivel mientras trabaja. Máximo 6 asignados.</p>
+                    <button class="action-btn btn-green auto-w" onclick="Core.HR.search()">🔍 BUSCAR CANDIDATOS</button>
+                    <div id="candidates" class="grid-cards" style="margin-top:15px;"></div>
+                </div>
+                <div id="lieutenants-list" class="grid-cards" style="margin-top:20px;"></div>
+            </section>
+
+            <!-- GABINETE SOMBRA -->
+            <section id="view-shadow" class="view hidden">
+                <div class="section-title">GABINETE DE LA SOMBRA</div>
+                <p class="muted" style="margin-bottom:20px;">Controla el Estado para operar con impunidad. Requiere rango y fondos masivos.</p>
+                <div class="grid-cards" id="shadow-grid"></div>
+            </section>
+
+            <!-- ESTILO DE VIDA -->
+            <section id="view-lifestyle" class="view hidden">
+                <div class="section-title">LUJOS & PROPIEDADES</div>
+                <div class="grid-cards" id="properties-grid"></div>
+                <div class="section-title sub">ARTÍCULOS DE PODER</div>
+                <div class="grid-cards" id="luxury-grid"></div>
+                <div class="section-title sub">CASINO</div>
+                <div class="op-card" id="casino-panel"></div>
+            </section>
+
+            <!-- I+D -->
+            <section id="view-rnd" class="view hidden">
+                <div class="section-title">INVESTIGACIÓN & DESARROLLO <span class="tiny muted" id="tech-count"></span></div>
+                <div id="tech-tree" class="tech-tree"></div>
+            </section>
+
+            <!-- ENCARGOS -->
+            <section id="view-contracts" class="view hidden">
+                <div class="section-title">ENCARGOS DEL BAJO MUNDO</div>
+                <p class="muted" style="margin-bottom:20px;">Clientes especiales pagan por encima del mercado y no saturan el precio de la calle.</p>
+                <div class="grid-cards" id="contracts-grid"></div>
+                <button class="action-btn auto-w" style="margin-top:15px;" onclick="Core.Contracts.reroll()">🔄 BUSCAR NUEVOS CLIENTES ($5K SUCIO)</button>
+            </section>
+
+            <!-- PERIÓDICO -->
+            <section id="view-news" class="view hidden">
+                <div class="newspaper">
+                    <div class="np-head">
+                        <div class="np-date" id="np-date"></div>
+                        <div class="np-title">EL NOTICIERO DEL PACÍFICO</div>
+                        <div class="np-sub">"La verdad, aunque duela" · Edición de hoy</div>
+                    </div>
+                    <div id="news-list" class="np-body"></div>
+                </div>
+            </section>
+
+            <!-- LOGROS -->
+            <section id="view-achievements" class="view hidden">
+                <div class="section-title">LOGROS <span class="tiny muted" id="ach-counter"></span></div>
+                <div id="achievements-list" class="grid-cards ach-grid"></div>
+                <div class="section-title sub">ESTADÍSTICAS</div>
+                <div class="op-card" id="stats-panel"></div>
+            </section>
+
+            <!-- RETIRO -->
+            <section id="view-ending" class="view hidden">
+                <div class="section-title">PLAN DE RETIRO</div>
+                <div class="op-card center" style="padding:40px 20px;">
+                    <h3 class="ending-title">EL REY DE REYES</h3>
+                    <p style="color:#ccc; margin-bottom:30px;">"Llega un momento en que el oro pesa más que la sangre. ¿Estás listo para desaparecer?"</p>
+                    <div class="ending-goals">
+                        <div><div class="muted">CUENTA OFFSHORE</div><div id="end-money" class="big-num">$0 / $1B</div></div>
+                        <div><div class="muted">TERRITORIOS</div><div id="end-land" class="big-num">0 / 14</div></div>
+                        <div><div class="muted">TECNOLOGÍA</div><div id="end-tech" class="big-num">0 / 16</div></div>
+                    </div>
+                    <button class="action-btn btn-green" id="btn-win" style="font-size:1.3rem; padding:18px;" onclick="Core.Legacy.winGame()" disabled>EJECUTAR PLAN DE ESCAPE</button>
+                </div>
+                <div class="section-title sub">👑 LEGADO (PRESTIGIO)</div>
+                <div class="op-card" style="border-color:var(--gold);">
+                    <p class="muted">Al retirarte, tu imperio se reinicia pero tu nombre queda. Cada punto de <b class="gold">LEGADO</b> da <b>+5% producción</b>, <b>+5% precio de venta</b> y <b>+$10K sucios</b> al iniciar. Ganar el juego completo da +25 puntos extra.</p>
+                    <div class="ending-goals">
+                        <div><div class="muted">LEGADO ACTUAL</div><div id="legacy-current" class="big-num gold">0</div></div>
+                        <div><div class="muted">GANARÍAS</div><div id="legacy-gain" class="big-num green">+0</div></div>
+                        <div><div class="muted">RETIROS</div><div id="legacy-runs" class="big-num">0</div></div>
+                    </div>
+                    <button class="action-btn btn-red" onclick="Core.Legacy.earlyRetire()">RETIRO ANTICIPADO (reinicia y cobra Legado)</button>
+                </div>
+            </section>
+        </main>
+
+        <aside id="aside">
+            <div class="data-block">
+                <div class="data-header">BODEGA</div>
+                <div class="data-row"><span>Mota</span><span id="inv-weed">0</span></div>
+                <div class="data-row"><span>Cristal</span><span id="inv-meth">0</span></div>
+                <div class="data-row"><span>Coca</span><span id="inv-coke">0</span></div>
+                <div class="data-row"><span>Heroína</span><span id="inv-heroin">0</span></div>
+                <div class="data-row"><span>Fenta</span><span id="inv-fenta">0</span></div>
+                <div class="data-row"><span>Químicos</span><span id="inv-chems">0</span></div>
+            </div>
+            <div class="data-block">
+                <div class="data-header">LOGÍSTICA</div>
+                <div class="data-row"><span>Disponibles</span><span id="inv-fleet">0</span></div>
+                <div class="data-row"><span>En ruta</span><span id="inv-routes">0</span></div>
+                <div class="data-row"><span>Capacidad</span><span id="inv-cap">0</span></div>
+            </div>
+            <div class="data-block">
+                <div class="data-header">FUERZA</div>
+                <div class="data-row"><span>Sicarios</span><span id="inv-army">0</span></div>
+                <div class="data-row"><span>Élite</span><span id="inv-elite">0</span></div>
+                <div class="data-row"><span>Tenientes</span><span id="inv-lt">0</span></div>
+                <div class="data-row"><span>Plazas</span><span id="inv-land">0</span></div>
+            </div>
+            <div class="data-block story-mini" onclick="UI.nav('story')">
+                <div class="data-header">📖 OBJETIVO</div>
+                <div id="mini-story" class="tiny"></div>
+                <div class="mini-bar"><div id="mini-story-bar"></div></div>
+            </div>
+        </aside>
+
+        <footer>
+            <div class="footer-btns">
+                <button class="footer-btn" onclick="Core.Guide.open()">[?] GUÍA</button>
+                <button class="footer-btn" onclick="Core.SaveIO.exportSave()">EXPORTAR</button>
+                <button class="footer-btn" onclick="Core.SaveIO.importSave()">IMPORTAR</button>
+                <button class="footer-btn danger" onclick="Core.Game.hardReset()">BORRAR</button>
+            </div>
+            <div class="news-ticker" onclick="UI.nav('news')"><div class="ticker-label">ÚLTIMA HORA</div><div class="ticker-track"><div class="ticker-move" id="ticker-move"></div></div></div>
+            <a class="footer-brand" href="https://godsplan.dev" target="_blank" rel="noopener">GOD'S PLAN LABS</a>
+        </footer>
+
+        <nav id="tabbar" class="tabbar"></nav>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/economy.js"></script>
+    <script src="js/logistics.js"></script>
+    <script src="js/war.js"></script>
+    <script src="js/people.js"></script>
+    <script src="js/story.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
