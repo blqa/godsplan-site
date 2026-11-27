@@ -176,34 +176,5 @@
         }).join(' ');
         words = statement.querySelectorAll('.w');
     }
-    function paint() {
-        if (!words.length) return;
-        var r = statement.getBoundingClientRect();
-        var vh = window.innerHeight;
-        var p = (vh * 0.85 - r.top) / (r.height + vh * 0.35);
-        var n = Math.round(Math.max(0, Math.min(1, p)) * words.length);
-        for (var i = 0; i < words.length; i++) words[i].classList.toggle('on', i < n);
-    }
-    if (motion && words.length) {
-        var ticking = false;
-        window.addEventListener('scroll', function () {
-            if (ticking) return;
-            ticking = true;
-            requestAnimationFrame(function () { paint(); ticking = false; });
-        }, { passive: true });
-        paint();
-    }
-
-    // Aparición al hacer scroll
-    var items = document.querySelectorAll('[data-reveal]');
-    if (!motion || !('IntersectionObserver' in window)) {
-        items.forEach(function (el) { el.classList.add('is-in'); });
-    } else {
-        var io = new IntersectionObserver(function (entries) {
-            entries.forEach(function (en) {
-                if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
-            });
-        }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
-        items.forEach(function (el) { io.observe(el); });
-    }
+    // La aparición al bajar, la frase que se enciende y la barra de progreso las hace gp-kit.js (Motion)
 })();
