@@ -84,7 +84,7 @@
     var words = [];
     var statement = document.querySelector('[data-words]');
     if (statement) {
-        var hot = { 'grandes': 1, 'marcas,': 1, 'tu': 1, 'negocio.': 1 };
+        var hot = { 'negocios': 1, 'reales.': 1, 'sin': 1, 'relleno.': 1 };
         statement.innerHTML = statement.textContent.trim().split(/\s+/).map(function (w) {
             return '<span class="w' + (hot[w] ? ' hot' : '') + '">' + w + '</span>';
         }).join(' ');
