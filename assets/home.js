@@ -9,10 +9,20 @@
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    // Mosaico: se duplica cada columna para que el deslizamiento no tenga corte
-    if (motion) {
-        document.querySelectorAll('.mosaic__track').forEach(function (track) {
-            Array.prototype.slice.call(track.children).forEach(function (tile) { track.appendChild(tile.cloneNode(true)); });
+    // Portada: la marca y los servicios siguen un poco al mouse
+    var orbit = document.querySelector('.orbit');
+    if (motion && orbit && window.matchMedia('(pointer: fine)').matches) {
+        var hero = orbit.closest('.hero') || orbit;
+        hero.addEventListener('pointermove', function (e) {
+            var r = orbit.getBoundingClientRect();
+            var x = (e.clientX - (r.left + r.width / 2)) / (window.innerWidth / 2);
+            var y = (e.clientY - (r.top + r.height / 2)) / (window.innerHeight / 2);
+            orbit.style.setProperty('--mx', Math.max(-1, Math.min(1, x)).toFixed(3));
+            orbit.style.setProperty('--my', Math.max(-1, Math.min(1, y)).toFixed(3));
+        });
+        hero.addEventListener('pointerleave', function () {
+            orbit.style.setProperty('--mx', 0);
+            orbit.style.setProperty('--my', 0);
         });
     }
 

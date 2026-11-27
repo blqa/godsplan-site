@@ -244,16 +244,17 @@ La portada de la agencia usa un registro más expresivo, inspirado en sitios de 
 - **Cápsula flotante (`.hdr`)**: encabezado fijo separado del borde, `border-radius: 999px`, vidrio esmerilado (permitido porque es el encabezado). Marca con mosaico carmesí (`.brand__tile`), enlaces centrados y botón claro "Contacto".
 - **Etiqueta entre corchetes (`.tag`)**: mono en mayúsculas, `0.6875rem`, con corchetes de 1px en `--gp-crimson-400` (o `--gp-crimson-ink` sobre papel). Solo una por sección, nunca sobre cada título.
 - **Botón claro (`.btn--light`)**: fondo `--gp-text-1`, texto `--gp-ink-1`. Todos los botones de la portada son cápsula (`999px`).
-- **Mosaico (`.mosaic`)**: tres columnas de capturas **reales** de GodsTap y GodsRig dentro de mosaicos de color (`.tile--amber`, `--teal`, `--gold`, `--crimson`, `--ink`). Las columnas se deslizan despacio (46–62 s) y se pausan al pasar el mouse. Es decorativo (`aria-hidden`): la información está en la sección de productos. Las capturas se toman sin cursor y se guardan en `assets/shots/` como WebP.
+- **Órbita de la marca (`.orbit`)**: en la portada, a la derecha del título. Un cuadro carmesí brillante con la cruz al centro (`.core`), tres anillos finos (uno punteado que gira en 60 s), dos ondas que salen del centro como una señal NFC y los servicios en cápsulas flotantes (`.chip-f`: Etiquetas NFC, Soporte de PC, Páginas web, Sistemas a medida). El cuadro y las cápsulas siguen un poco al mouse (solo con mouse y movimiento permitido). Es decorativa (`aria-hidden`).
+- **Fondo de la portada**: degradado de negro a rojo intenso hacia la derecha (`#2a0708` → `#5a0a0f`) más un resplandor radial carmesí. Sin franjas ni texturas.
 - **Declaración por palabras (`[data-words]`)**: un solo párrafo grande que se enciende palabra por palabra al bajar; las palabras clave quedan en `--gp-crimson-400`. Sin movimiento reducido se muestra completo.
 - **Sección clara (`.light`)**: papel cálido con esquinas superiores de 28px. Se usa una vez, para los productos.
 - **Pestañas (`.tabs`)**: cápsulas; la elegida es `--gp-ink-1` con texto papel. Con teclado se cambian con ←/→. Los enlaces `#godstap` y `#godsrig` abren su pestaña.
 - **Caso (`.case`)**: panel oscuro de 28px con degradado radial desde la esquina inferior derecha (carmesí para GodsTap, café para GodsRig), puntos de verificación redondos (`.pip`) y capturas inclinadas (teléfonos o ventana de navegador).
 - **Panel de método (`.method`)**: panel oscuro redondeado con retícula de puntos de 22px y cuadrícula 2×2 con líneas de 1px. Cada paso lleva un dibujo de línea (1.4px) con un solo punto carmesí.
-- **Panel de contacto (`.cta__panel`)**: carmesí oscuro con franjas horizontales sutiles y un resplandor inferior.
+- **Panel de contacto (`.cta__panel`)**: degradado carmesí oscuro con un resplandor inferior.
 - **Palabra gigante del pie (`.ftr__word`)**: "God's Plan" en Montserrat 900 con degradado casi transparente; decorativa.
 
-**Excepciones a la sección 7, solo en esta portada**: texto con degradado en una palabra del título principal y del título del método; resplandores radiales dentro de la portada, los casos y el panel de contacto; retícula de puntos solo en el panel de método; una etiqueta entre corchetes por sección.
+**Excepciones a la sección 7, solo en esta portada**: texto con degradado en una palabra del título principal y del título del método; resplandores radiales dentro de la portada (incluido el cuadro de la órbita), los casos y el panel de contacto; retícula de puntos solo en el panel de método; una etiqueta entre corchetes por sección.
 
 ---
 
