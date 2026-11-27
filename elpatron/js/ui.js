@@ -57,7 +57,7 @@ const UI = {
             case 'story': Core.Story.render(); break;
             case 'war': Core.War.resize(); Core.War.renderPanel(); break;
             case 'rivals': Core.Rivals.render(); Core.Contacts.render(); break;
-            case 'logistics': Core.Logistics.updateUI(); Core.Market.render(); Core.Logistics.renderLog(); break;
+            case 'logistics': UI.setBadge('logistics', null); Core.Logistics.updateUI(); Core.Market.render(); Core.Logistics.renderLog(); break;
             case 'assets': Core.Assets.renderStore(); break;
             case 'finance': Core.Finance.renderAll(); break;
             case 'fronts': Core.Fronts.render(); break;
@@ -177,6 +177,7 @@ const UI = {
         setText('inv-lt', `${Core.HR.activeCount()}/${State.lieutenants.length}`);
         setText('inv-land', `${Core.War.owned().length}/${Config.territories.length}`);
         setText('val-offshore', fmt(State.money.offshore));
+        if (State.ticks % 10 === 0) Core.Logistics.updateAutoStatus();
         Core.Heat.render();
     }
 };

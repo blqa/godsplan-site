@@ -104,6 +104,27 @@ Core.HR = {
         this.render();
         Core.Logistics.updateUI();
     },
+    // Atajo desde Logística: contrata (o asigna) un Logístico
+    hireOperator() {
+        const idle = State.lieutenants.find(l => l.role === 'Logístico' && !l.active);
+        if (idle) {
+            if (this.activeCount() >= 6) return UI.notify('Ya tienes 6 tenientes asignados. Desasigna uno en TENIENTES.', 'bad');
+            idle.active = true;
+            UI.notify(`${idle.name} vuelve a encargarse de tus envíos.`);
+        } else {
+            if (State.lieutenants.length >= 10) return UI.notify('Máximo 10 tenientes. Despide a alguien primero.', 'bad');
+            if (this.activeCount() >= 6) return UI.notify('Ya tienes 6 tenientes asignados. Desasigna uno en TENIENTES.', 'bad');
+            if (!Core.pay('dirty', 15000)) return;
+            const used = State.lieutenants.map(l => l.name);
+            const name = pick(Config.ltNames.filter(n => !used.includes(n))) || 'El Operador';
+            State.lieutenants.push({ id: State.nextLtId++, name, role: 'Logístico', trait: pick(['Leal', 'Genio', 'Codicioso']), level: 1, xp: 0, loyalty: 100, active: true });
+            UI.notify(`👷 ${name} es tu nuevo operador de logística. Ya puedes usar el auto-envío completo.`);
+            Core.News.add('Nueva empresa de "fletes y mudanzas" abre oficinas en la península');
+        }
+        Sfx.levelup();
+        Core.Logistics.updateUI();
+        if (isVisible('hr')) this.render();
+    },
     toggle(id) {
         const l = State.lieutenants.find(x => x.id === id);
         if (!l) return;

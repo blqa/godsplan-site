@@ -52,12 +52,15 @@ Core.Logistics = {
         selD.innerHTML = routeOpts; autoD.innerHTML = routeOpts;
 
         const keep = (sel, val) => { if (val && [...sel.options].some(o => o.value == val && !o.disabled)) sel.value = val; };
-        [selP, selV, selD, autoP, autoV, autoD].forEach((s, i) => keep(s, prev[i]));
+        [selP, selV, selD].forEach((s, i) => keep(s, prev[i]));
         if (!prev[2]) selD.value = '2';
 
-        $('auto-logistics-panel').classList.toggle('hidden', Core.HR.eff('Logístico') <= 0);
-        $('auto-smart-toggle').checked = !!State.automation.smart;
-        $('auto-inputs').classList.toggle('hidden', !!State.automation.smart);
+        autoV.innerHTML = '<option value="-1">Cualquiera disponible</option>' + autoV.innerHTML;
+        const A = State.automation;
+        autoP.value = A.prod; autoD.value = String(A.dist); autoV.value = String(A.veh);
+        if (!autoV.value) autoV.value = '-1';
+        $('auto-min-load').value = A.min;
+        $('auto-smart-toggle').checked = !!A.smart;
         this.updateAutoStatus();
         this.calc();
     },
@@ -158,6 +161,11 @@ Core.Logistics = {
             }
             State.money.dirty += r.val;
             State.stats.delivered = (State.stats.delivered || 0) + 1;
+            if (State.stats.delivered === this.AUTO_UNLOCK && this.autoTier() === 1) {
+                Sfx.fanfare();
+                UI.notify(`⚡ ¡${this.AUTO_UNLOCK} entregas! Desbloqueaste el AUTO-ENVÍO básico en Logística.`, 'event');
+                UI.setBadge('logistics', '!');
+            }
             this.okBuf.n++; this.okBuf.kg += r.amount; this.okBuf.val += r.val;
             State.stats.dirtyEarned += r.val;
             State.stats.kgSold += r.amount;
@@ -195,57 +203,112 @@ Core.Logistics = {
         return r;
     },
 
-    /* ----- Automatización ----- */
-    toggleAuto() {
+    /* ----- Envío con toda la flota (un clic) ----- */
+    dispatchAll() {
+        if (Core.Game.isFrozen()) return UI.notify('Operaciones congeladas por el Plan de Escape.', 'bad');
+        const k = $('sel-prod').value, d = +$('sel-dist').value;
+        if (!k) return UI.notify('Elige un producto.', 'bad');
+        if (!this.routeOpen(d)) return UI.notify('Esa ruta aún está bloqueada.', 'bad');
+        let n = 0, kg = 0;
+        State.fleet.filter(v => this.usable(v)).sort((a, b) => Config.vehicles[b.type].cap - Config.vehicles[a.type].cap).forEach(v => {
+            const amt = Math.min(Core.Mods.vehicleCap(v.type), State.inv[k]);
+            if (amt > 0 && this.execute(v, k, amt, d)) { n++; kg += amt; }
+        });
+        if (!n) return UI.notify('No hay vehículos libres o no tienes mercancía.', 'bad');
+        Sfx.engine();
+        UI.notify(`🚀 Salieron ${n} vehículos con ${fmt(kg)} kg de ${Config.products[k].name}.`);
+        this.updateUI();
+    },
+
+    /* ----- Auto-envío -----
+       Nivel 1 (básico): se desbloquea con 25 entregas exitosas. 1 vehículo cada 3 s, solo rutas corta/media.
+       Nivel 2 (operador): con un Logístico asignado. Toda la flota libre cada segundo, todas las rutas y modo inteligente. */
+    AUTO_UNLOCK: 25,
+    autoTier() {
+        if (Core.HR.eff('Logístico') > 0) return 2;
+        if ((State.stats.delivered || 0) >= this.AUTO_UNLOCK) return 1;
+        return 0;
+    },
+    readAuto() {
         const A = State.automation;
-        A.active = !A.active;
-        if (A.active) {
-            A.prod = $('auto-prod').value || 'weed';
-            A.dist = +$('auto-dist').value || 1;
-            A.veh = +$('auto-veh').value || 0;
-            A.min = parseInt($('auto-min-load').value) || 1;
-            A.smart = $('auto-smart-toggle').checked;
-            UI.notify('Logístico: automatización iniciada.');
-        }
+        A.prod = $('auto-prod').value || A.prod || 'weed';
+        A.dist = +$('auto-dist').value || 1;
+        A.veh = $('auto-veh').value === '' ? -1 : +$('auto-veh').value;
+        A.min = Math.max(1, parseInt($('auto-min-load').value) || 1);
+        A.smart = $('auto-smart-toggle').checked;
         this.updateAutoStatus();
     },
-    updateAutoUI() {
-        State.automation.smart = $('auto-smart-toggle').checked;
-        $('auto-inputs').classList.toggle('hidden', State.automation.smart);
+    toggleAuto() {
+        const A = State.automation;
+        if (!A.active && this.autoTier() === 0) { Sfx.error(); return UI.notify(`Necesitas ${this.AUTO_UNLOCK} entregas exitosas o contratar un operador de logística.`, 'bad'); }
+        this.readAuto();
+        A.active = !A.active;
+        Sfx.click();
+        UI.notify(A.active ? '⚡ Auto-envío encendido.' : 'Auto-envío apagado.');
+        this.updateAutoStatus();
     },
     updateAutoStatus() {
-        const A = State.automation;
-        setText('btn-auto-toggle', A.active ? 'DESACTIVAR' : 'ACTIVAR AUTOMATIZACIÓN');
+        const A = State.automation, tier = this.autoTier();
+        const chip = $('auto-tier-chip');
+        if (chip) {
+            chip.textContent = ['BLOQUEADO', 'BÁSICO', 'OPERADOR'][tier];
+            chip.className = 'chip ' + ['red', 'blue', 'gold'][tier];
+        }
+        const done = State.stats.delivered || 0;
+        const op = Core.HR.best('Logístico');
+        setHTML('auto-tier-info', [
+            `🔒 Se desbloquea el auto-envío básico con <b>${this.AUTO_UNLOCK} entregas exitosas</b> (llevas ${done}/${this.AUTO_UNLOCK}). O contrata un operador y empieza ya.`,
+            `Básico: manda <b>1 vehículo cada 3 s</b>, solo rutas corta y media. Con un operador manda toda la flota cada segundo, por cualquier ruta y elige lo más rentable.`,
+            `Tu operador <b>${op ? op.name : ''}</b> manda <b>toda la flota libre cada segundo</b>, por cualquier ruta. Entre más nivel, más rápido viajan.`
+        ][tier]);
+        $('auto-controls').classList.toggle('hidden', tier === 0);
+        const smartRow = $('auto-smart-toggle').closest('label');
+        smartRow.classList.toggle('hidden', tier < 2);
+        $('auto-inputs').classList.toggle('hidden', tier === 2 && A.smart);
+        $('btn-hire-operator').classList.toggle('hidden', tier === 2);
+        if (tier === 0 && A.active) A.active = false;
+        setText('btn-auto-toggle', A.active ? '⏸ APAGAR AUTO-ENVÍO' : '▶ ACTIVAR AUTO-ENVÍO');
+        $('btn-auto-toggle').className = 'action-btn ' + (A.active ? 'btn-red' : 'btn-green');
         const st = $('auto-status');
-        if (st) { st.textContent = A.active ? (A.smart ? 'Estado: envío inteligente activo' : 'Estado: buscando envíos...') : 'Estado: inactivo'; st.style.color = A.active ? 'var(--success)' : '#666'; }
+        if (st) {
+            let txt = 'Estado: apagado';
+            if (A.active) txt = `Estado: ENCENDIDO · ${tier === 2 && A.smart ? 'lo más rentable' : Config.products[A.prod].name} por ruta ${Config.routes[tier === 1 ? Math.min(A.dist, 2) : A.dist].name.toLowerCase()}`;
+            st.textContent = txt; st.style.color = A.active ? 'var(--success)' : '#666';
+        }
+        setText('inv-auto', tier === 0 ? '🔒' : (A.active ? '⚡ ON' : 'OFF'));
     },
     autoRun() {
         const A = State.automation;
-        if (!A.active || Core.Game.isFrozen() || State.ticks % 10 !== 0) return;
-        if (Core.HR.eff('Logístico') <= 0) { A.active = false; this.updateAutoStatus(); return; }
-        let free = State.fleet.filter(v => this.usable(v)).sort((a, b) => Config.vehicles[b.type].cap - Config.vehicles[a.type].cap);
-        if (A.smart) {
-            const d = 3;
-            for (const v of free) {
-                const cap = Core.Mods.vehicleCap(v.type);
-                // elige el producto que deja más dinero en este vehículo
-                let best = null, bestVal = 0;
-                Config.productKeys.forEach(k => {
-                    const amt = Math.min(cap, State.inv[k]);
-                    if (amt < A.min) return;
-                    const val = amt * Core.Market.price(k, d);
-                    if (val > bestVal) { bestVal = val; best = { k, amt }; }
+        if (!A.active || Core.Game.isFrozen()) return;
+        const tier = this.autoTier();
+        if (tier === 0) { A.active = false; this.updateAutoStatus(); return; }
+        if (State.ticks % (tier === 2 ? 10 : 30) !== 0) return;
+        const d = tier === 1 ? Math.min(A.dist, 2) : A.dist;
+        if (!this.routeOpen(d)) return;
+        const limit = tier === 1 ? 1 : Infinity;
+        let sent = 0;
+        const free = State.fleet.filter(v => this.usable(v) && (A.veh < 0 || v.type === A.veh))
+            .sort((a, b) => Config.vehicles[b.type].cap - Config.vehicles[a.type].cap);
+        for (const v of free) {
+            if (sent >= limit) break;
+            const cap = Core.Mods.vehicleCap(v.type);
+            const need = Math.min(A.min, cap); // una mula no puede llevar 20 kg: con que vaya llena basta
+            let k = A.prod;
+            if (tier === 2 && A.smart) {
+                let best = 0; k = null;
+                Config.productKeys.forEach(p => {
+                    const amt = Math.min(cap, State.inv[p]);
+                    if (amt < need) return;
+                    const val = amt * Core.Market.price(p, d);
+                    if (val > best) { best = val; k = p; }
                 });
-                if (!best) break;
-                this.execute(v, best.k, best.amt, d);
+                if (!k) break;
             }
-        } else {
-            if (!this.routeOpen(A.dist)) return;
-            free.filter(v => v.type === A.veh).forEach(v => {
-                const amt = Math.min(Core.Mods.vehicleCap(v.type), State.inv[A.prod]);
-                if (amt >= A.min) this.execute(v, A.prod, amt, A.dist);
-            });
+            const amt = Math.min(cap, State.inv[k]);
+            if (amt < need) continue;
+            if (this.execute(v, k, amt, d)) sent++;
         }
+        if (sent && isVisible('logistics')) this.updateUI();
     }
 };
 

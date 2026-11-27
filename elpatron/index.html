@@ -233,21 +233,25 @@
                         <select id="sel-dist" onchange="Core.Logistics.calc()"></select>
                         <input type="range" id="rng-load" value="0" min="0" max="0" oninput="Core.Logistics.calc()">
                         <div class="row-between"><span class="tiny muted" id="dispatch-preview">—</span><span>CARGA: <b id="lbl-load">0</b> kg</span></div>
-                        <button class="action-btn btn-green" onclick="Core.Logistics.dispatch()">ENVIAR CARGA</button>
-                    </div>
-                    <div class="op-card auto-panel hidden" id="auto-logistics-panel">
-                        <h3 class="gold">⚡ LOGÍSTICA AUTOMÁTICA</h3>
-                        <p class="tiny muted">Tu Logístico manda la flota disponible por ti.</p>
-                        <label class="toggle-wrapper"><input type="checkbox" class="toggle-input" id="auto-smart-toggle" onchange="Core.Logistics.updateAutoUI()"> MODO INTELIGENTE (elige lo más rentable)</label>
-                        <div id="auto-inputs">
-                            <label class="lbl">PRODUCTO</label><select id="auto-prod"></select>
-                            <label class="lbl">RUTA</label><select id="auto-dist"></select>
-                            <label class="lbl">VEHÍCULO</label><select id="auto-veh"></select>
+                        <div class="btn-row">
+                            <button class="action-btn btn-green" onclick="Core.Logistics.dispatch()">ENVIAR CARGA</button>
+                            <button class="action-btn btn-gold" onclick="Core.Logistics.dispatchAll()">🚀 TODA LA FLOTA</button>
                         </div>
-                        <label class="lbl">CARGA MÍNIMA</label>
-                        <input type="number" id="auto-min-load" value="20">
-                        <button class="action-btn" id="btn-auto-toggle" onclick="Core.Logistics.toggleAuto()">ACTIVAR AUTOMATIZACIÓN</button>
-                        <div id="auto-status" class="tiny muted">Estado: inactivo</div>
+                    </div>
+                    <div class="op-card auto-panel" id="auto-logistics-panel">
+                        <h3 class="gold">⚡ AUTO-ENVÍO <span class="chip" id="auto-tier-chip">BLOQUEADO</span></h3>
+                        <div id="auto-tier-info" class="tiny muted"></div>
+                        <div id="auto-controls">
+                            <label class="toggle-wrapper"><input type="checkbox" class="toggle-input" id="auto-smart-toggle" onchange="Core.Logistics.readAuto()"> MODO INTELIGENTE (manda lo más rentable)</label>
+                            <div id="auto-inputs"><label class="lbl">PRODUCTO</label><select id="auto-prod" onchange="Core.Logistics.readAuto()"></select></div>
+                            <label class="lbl">RUTA</label><select id="auto-dist" onchange="Core.Logistics.readAuto()"></select>
+                            <label class="lbl">VEHÍCULOS</label><select id="auto-veh" onchange="Core.Logistics.readAuto()"></select>
+                            <label class="lbl">CARGA MÍNIMA (kg)</label>
+                            <input type="number" id="auto-min-load" value="20" onchange="Core.Logistics.readAuto()">
+                            <button class="action-btn btn-green" id="btn-auto-toggle" onclick="Core.Logistics.toggleAuto()">▶ ACTIVAR AUTO-ENVÍO</button>
+                            <div id="auto-status" class="tiny muted">Estado: apagado</div>
+                        </div>
+                        <button class="action-btn btn-gold" id="btn-hire-operator" onclick="Core.HR.hireOperator()">👷 CONTRATAR OPERADOR DE LOGÍSTICA · $15K SUCIO</button>
                     </div>
                 </div>
                 <div class="section-title sub">TRÁFICO ACTIVO <span class="tiny muted" id="routes-count"></span></div>
@@ -410,6 +414,7 @@
                 <div class="data-row"><span>Disponibles</span><span id="inv-fleet">0</span></div>
                 <div class="data-row"><span>En ruta</span><span id="inv-routes">0</span></div>
                 <div class="data-row"><span>Capacidad</span><span id="inv-cap">0</span></div>
+                <div class="data-row" style="cursor:pointer;" onclick="UI.nav('logistics')" title="Configurar auto-envío"><span>Auto-envío</span><span id="inv-auto">🔒</span></div>
             </div>
             <div class="data-block">
                 <div class="data-header">FUERZA</div>
