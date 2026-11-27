@@ -26,6 +26,17 @@
         });
     }
 
+    // Tarjetas de soluciones: la luz sigue al mouse
+    if (window.matchMedia('(pointer: fine)').matches) {
+        document.querySelectorAll('.card__link').forEach(function (card) {
+            card.addEventListener('pointermove', function (e) {
+                var r = card.getBoundingClientRect();
+                card.style.setProperty('--sx', (e.clientX - r.left) + 'px');
+                card.style.setProperty('--sy', (e.clientY - r.top) + 'px');
+            });
+        });
+    }
+
     // Pestañas de productos (GodsTap / GodsRig)
     var tabs = Array.prototype.slice.call(document.querySelectorAll('.tabs__btn'));
     function select(id, focus) {
@@ -73,7 +84,7 @@
     var words = [];
     var statement = document.querySelector('[data-words]');
     if (statement) {
-        var hot = { 'línea': 1, 'mantenemos': 1, 'nosotros.': 1 };
+        var hot = { 'grandes': 1, 'marcas,': 1, 'tu': 1, 'negocio.': 1 };
         statement.innerHTML = statement.textContent.trim().split(/\s+/).map(function (w) {
             return '<span class="w' + (hot[w] ? ' hot' : '') + '">' + w + '</span>';
         }).join(' ');
