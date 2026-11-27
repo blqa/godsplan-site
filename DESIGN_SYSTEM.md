@@ -226,6 +226,8 @@ Es fijo, de 64px de alto, y empieza transparente. Después de 8px de scroll toma
 
 ### Portada de godsplan.dev: estilo "estudio" (nov 2026)
 
+> **Nov 2026:** el mismo estilo ya se usa en los tres sitios. rig.godsplan.dev copia `home.css` como `assets/estudio.css` y agrega `assets/rig.css`; la página principal de GodsTap lo trae en `app/estudio.css`, con todas las reglas dentro de `.estudio` (el panel, el registro y las páginas de los GT no cambian) y siempre en oscuro. Si cambias un componente común, cámbialo en los tres.
+
 La portada de la agencia usa un registro más expresivo, inspirado en sitios de estudios web (cápsula flotante, la marca al centro con sus servicios alrededor, secciones que alternan oscuro y claro). Vive en `assets/home.css` y `assets/home.js`; privacidad, términos y 404 siguen con `assets/site.css`. GodsTap y GodsRig **no** adoptan estos componentes: siguen con lo de arriba.
 
 **Tokens extra (solo en `home.css`)**
