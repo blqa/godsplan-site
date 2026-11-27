@@ -48,7 +48,7 @@ Core.Heat = {
         });
         State.money.dirty = Math.floor(State.money.dirty * (State.contacts.lawyer ? 0.95 : 0.85));
         UI.notify(`¡REDADA! Perdiste ${Math.round((1 - keep) * 100)}% del inventario y parte del dinero sucio.`, 'bad');
-        Core.News.add(`Operativo federal en Culiacán: aseguran bodega con mercancía y efectivo`, 'bad', true);
+        Core.News.add(`Operativo federal en ${Config.territories[Config.baseId].name}: aseguran bodega con mercancía y efectivo`, 'bad', true);
     }
 };
 

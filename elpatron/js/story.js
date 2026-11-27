@@ -100,13 +100,32 @@ Core.Contracts = {
             cleanBonus: Math.random() < 0.25, expires: now() + (4 + Math.random() * 6) * 60000, seen: false
         };
     },
+    // Cuántos clientes especiales te buscan según tu fama
+    max() {
+        const ch = State.story.chapter;
+        if (ch < 3) return 0;                       // nadie te conoce todavía
+        if (State.rank >= 2 || ch >= 7) return 3;
+        if (State.rank >= 1 || ch >= 5) return 2;
+        return 1;
+    },
     refill() {
-        State.contracts = State.contracts.filter(c => c.expires > now());
-        while (State.contracts.length < 3) State.contracts.push(this.make());
+        const max = this.max();
+        State.contracts = State.contracts.filter(c => c.expires > now()).slice(0, max);
+        if (max > 0 && !State.contractsUnlocked) {
+            State.contractsUnlocked = true;
+            UI.notify('📋 Ya se corre tu nombre en la calle: llegaron los primeros encargos.', 'event');
+            Core.News.add('Se habla de un nuevo proveedor "serio y discreto" en la península');
+        }
+        while (State.contracts.length < max) State.contracts.push(this.make());
         if (State.contracts.some(c => !c.seen) && !isVisible('contracts')) UI.setBadge('contracts', '•');
     },
     render() {
         UI.setBadge('contracts', null);
+        if (this.max() === 0) {
+            $('contracts-grid').innerHTML = `<div class="op-card locked"><h3>🔒 NADIE TE CONOCE TODAVÍA</h3>
+                <p class="muted">Los clientes especiales solo le compran a alguien con nombre. Termina el capítulo 3 de la historia ("La Red") para que la gente empiece a buscarte.</p></div>`;
+            return;
+        }
         State.contracts.forEach(c => c.seen = true);
         $('contracts-grid').innerHTML = State.contracts.map(c => {
             const have = State.inv[c.prod] || 0, ok = have >= c.qty;
@@ -137,6 +156,7 @@ Core.Contracts = {
         this.render();
     },
     reroll() {
+        if (this.max() === 0) return UI.notify('Todavía nadie te busca.', 'bad');
         if (!Core.pay('dirty', 5000)) return;
         State.contracts = [];
         this.refill();
@@ -148,7 +168,9 @@ Core.Contracts = {
 Core.Events = {
     check() {
         if (!$('event-modal').classList.contains('hidden') || State.stats.playTime < 90) return;
-        if (Math.random() < 0.018) this.trigger(pick(Config.events));
+        // solo eventos que tienen sentido para tu nivel (nadie le hace fiesta a un desconocido)
+        const pool = Config.events.filter(e => { try { return !e.req || e.req(); } catch (err) { return false; } });
+        if (pool.length && Math.random() < 0.018) this.trigger(pick(pool));
     },
     trigger(ev) {
         Sfx.alert();
@@ -316,11 +338,11 @@ Core.Guide = {
         <h2>2. Dinero sucio y limpio</h2>
         <p>Vender mercancía da dinero <strong>sucio</strong> (producción, tropas, vehículos). Lo conviertes en <strong>limpio</strong> lavándolo a mano o con <strong>negocios fachada</strong>, que lavan solos pero pueden ser clausurados por Hacienda. Con el limpio compras propiedades, tecnología y poder político.</p>
         <h2>3. Producción y mercado</h2>
-        <p>Cada producto se fabrica en laboratorios; casi todos necesitan <strong>químicos</strong>. Si vendes mucho de lo mismo, el mercado se <strong>satura</strong> y el precio baja varios minutos: reparte tus ventas. Los <strong>encargos</strong> pagan mejor y no saturan.</p>
+        <p>Cada producto se fabrica en laboratorios; casi todos necesitan <strong>químicos</strong>. Si vendes mucho de lo mismo, el mercado se <strong>satura</strong> y el precio baja varios minutos: reparte tus ventas. Los <strong>encargos</strong> pagan mejor y no saturan, pero solo llegan cuando ya tienes fama (desde el capítulo 3).</p>
         <h2>4. Logística</h2>
         <p>Cada vehículo tiene nombre, HP y kilometraje (cada 5,000 km es más rápido). Las rutas largas pagan más pero tienen más riesgo de <strong>decomiso</strong>. Un vehículo con <strong>seguro</strong> no se pierde si lo decomisan.</p>
         <h2>5. Guerra y rivales</h2>
-        <p>Hay tres cárteles: <strong>Los Halcones</strong> (sigilosos), <strong>el Golfo Negro</strong> (agresivos) y <strong>la Familia Serrana</strong> (comerciantes). Solo atacas plazas conectadas a las tuyas. Cada cártel tiene una <strong>guarida con su jefe</strong> que solo puedes atacar cuando ya no le quedan otras plazas. Cuando te atacan, tienes unos segundos para <strong>mandar refuerzos, negociar, resistir o abandonar</strong>. Mejora tus plazas con fortalezas, labs y bodegas.</p>
+        <p>Empiezas en <strong>Mérida</strong>, la ciudad más tranquila del país. Hay tres cárteles: <strong>Los Halcones</strong> (sigilosos, en el Golfo y el sureste), <strong>el Golfo Negro</strong> (agresivos, en el norte) y <strong>la Familia Serrana</strong> (la vieja guardia del Pacífico y la capital). Solo atacas plazas conectadas a las tuyas. Cada cártel tiene una <strong>guarida con su jefe</strong> que solo puedes atacar cuando ya no le quedan otras plazas. Cuando te atacan, tienes unos segundos para <strong>mandar refuerzos, negociar, resistir o abandonar</strong>. Mejora tus plazas con fortalezas, labs y bodegas.</p>
         <h2>6. Tenientes</h2>
         <p>Cada teniente tiene rol, personalidad y sube de nivel trabajando. Si su lealtad baja mucho, te traiciona. Págales bonos.</p>
         <h2>7. Heat (búsqueda)</h2>

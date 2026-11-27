@@ -39,7 +39,7 @@ function newState() {
     Config.shadow.forEach(s => shadow[s.id] = false);
     const zeroP = () => ({ weed: 0, meth: 0, coke: 0, heroin: 0, fenta: 0 });
     return {
-        version: 32,
+        version: 33,
         money: { dirty: 1500 + Legacy.points * 10000, clean: 500, offshore: 0 },
         inv: Object.assign(zeroP(), { chems: 0 }),
         ops: Object.assign(zeroP(), { weed: 1, mobile: false }),
@@ -67,7 +67,7 @@ function newState() {
         techs: [],
         achievements: [],
         story: { chapter: 0 },
-        contracts: [],
+        contracts: [], contractsUnlocked: false,
         news: [],
         weatherCurrent: 0,
         automation: { active: false, smart: false, prod: 'weed', veh: 0, dist: 1, min: 20 },
@@ -121,6 +121,16 @@ Core.Save = {
             if (!Array.isArray(merged[k])) merged[k] = newState()[k];
         });
         if (!merged.fleet.length) merged.fleet = newState().fleet;
+        // v33: la base pasó de Culiacán a Mérida y se redistribuyó el mapa
+        if ((data.version || 0) < 33) {
+            const fresh = newState();
+            merged.territories = fresh.territories;
+            merged.rivals = fresh.rivals;
+            merged.incoming = [];
+            merged.contracts = [];
+            merged.story.chapter = Math.min(merged.story.chapter || 0, 3);
+            merged.version = 33;
+        }
         // Rutas cuyo vehículo ya no existe se descartan
         merged.routes = merged.routes.filter(r => merged.fleet.some(v => v.uid === r.vUid));
         State = merged;

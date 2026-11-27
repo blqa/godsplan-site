@@ -404,7 +404,7 @@ Core.Rivals = {
             // ¿Ataca al jugador?
             if (this.inTruce(rid)) return;
             if (State.incoming.length >= 2) return;
-            const targets = State.territories.filter(t => t.owner === 'player' && t.id !== 0 && !State.incoming.some(i => i.target === t.id) &&
+            const targets = State.territories.filter(t => t.owner === 'player' && t.id !== Config.baseId && !State.incoming.some(i => i.target === t.id) &&
                 Core.War.neighbors(t.id).some(n => State.territories[n].owner === rid));
             if (!targets.length) return;
             targets.sort((a, b) => Core.War.defenseOf(a.id) - Core.War.defenseOf(b.id));

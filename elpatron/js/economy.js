@@ -344,7 +344,7 @@ Core.Finance = {
                     const loss = Math.floor(State.money.offshore * 0.2);
                     State.money.offshore -= loss;
                     UI.notify('¡Fondos offshore congelados! Perdiste 20%.', 'bad');
-                    Core.News.add('Congelan cuentas en paraíso fiscal ligadas a empresario sinaloense', 'bad');
+                    Core.News.add('Congelan cuentas en paraíso fiscal ligadas a empresario yucateco', 'bad');
                 } else State.money.offshore += Math.floor(State.money.offshore * 0.0005);
             }
         }

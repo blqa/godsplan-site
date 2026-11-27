@@ -124,10 +124,10 @@ const Config = {
     // ===== Cárteles rivales =====
     rivals: {
         halcones: {
-            id: 'halcones', name: 'Los Halcones', leader: 'La Dama', color: '#b46cff', hq: 3, startPower: 180,
+            id: 'halcones', name: 'Los Halcones', leader: 'La Dama', color: '#b46cff', hq: 7, startPower: 160,
             aggression: 0.8, truceMult: 1.0, bossPower: 900,
             style: 'Sigilosos. Le pasan información a la policía y atacan tus plazas más débiles.',
-            taunts: ['"Te veo, aunque tú no me veas."', '"Un halcón nunca ataca de frente, Patrón."', '"La frontera es mía desde antes que nacieras."']
+            taunts: ['"Te veo, aunque tú no me veas."', '"Un halcón nunca ataca de frente, Patrón."', '"El Golfo de México es mío desde antes que nacieras."']
         },
         golfo: {
             id: 'golfo', name: 'Cártel del Golfo Negro', leader: 'El Verdugo', color: '#ff4d4d', hq: 6, startPower: 300,
@@ -136,32 +136,34 @@ const Config = {
             taunts: ['"Voy a colgar tu nombre en un puente."', '"Aquí no se negocia. Aquí se pelea."', '"Mis hombres no conocen el miedo."']
         },
         serrana: {
-            id: 'serrana', name: 'La Familia Serrana', leader: 'Don Aurelio', color: '#ffae00', hq: 11, startPower: 240,
+            id: 'serrana', name: 'La Familia Serrana', leader: 'Don Aurelio', color: '#ffae00', hq: 11, startPower: 280,
             aggression: 0.6, truceMult: 0.5, bossPower: 4000,
-            style: 'Comerciantes. Inundan el mercado para tirar tus precios y prefieren negociar.',
+            style: 'La vieja guardia de la sierra. Dueños del Pacífico, inundan el mercado para tirar tus precios y prefieren negociar.',
             taunts: ['"Todo tiene un precio, muchacho. Hasta tú."', '"Cuarenta años en la capital. ¿Y tú quién eres?"', '"Los negocios se hacen en la mesa, no en la calle."']
         }
     },
 
     // ===== Mapa (coordenadas en un lienzo virtual de 600x430) =====
+    // Base del jugador: Mérida, la capital con menos presencia criminal del país
+    baseId: 8,
     territories: [
-        { id: 0, name: 'Culiacán', x: 170, y: 195, owner: 'player', power: 50, troops: 0, bonus: { type: 'prod', val: 0.1, text: '+10% Producción' } },
-        { id: 1, name: 'Tijuana', x: 45, y: 45, owner: 'halcones', power: 120, troops: 10, bonus: { type: 'price', val: 0.2, text: '+20% Precio de venta' } },
-        { id: 2, name: 'Hermosillo', x: 115, y: 110, owner: 'halcones', power: 140, troops: 10, bonus: { type: 'speed', val: 0.1, text: '+10% Vel. flota' } },
-        { id: 3, name: 'Juárez', x: 235, y: 50, owner: 'halcones', power: 420, troops: 30, hq: true, bonus: { type: 'cap', val: 500, text: '+500 kg capacidad' } },
-        { id: 4, name: 'Chihuahua', x: 240, y: 125, owner: 'halcones', power: 180, troops: 15, bonus: { type: 'prod', val: 0.15, text: '+15% Producción' } },
+        { id: 0, name: 'Culiacán', x: 170, y: 195, owner: 'serrana', power: 260, troops: 20, bonus: { type: 'defense', val: 0.1, text: '+10% Defensa' } },
+        { id: 1, name: 'Tijuana', x: 45, y: 45, owner: 'serrana', power: 250, troops: 20, bonus: { type: 'price', val: 0.2, text: '+20% Precio de venta' } },
+        { id: 2, name: 'Hermosillo', x: 115, y: 110, owner: 'serrana', power: 200, troops: 15, bonus: { type: 'speed', val: 0.1, text: '+10% Vel. flota' } },
+        { id: 3, name: 'Juárez', x: 235, y: 50, owner: 'golfo', power: 220, troops: 20, bonus: { type: 'cap', val: 500, text: '+500 kg capacidad' } },
+        { id: 4, name: 'Chihuahua', x: 240, y: 125, owner: 'golfo', power: 180, troops: 15, bonus: { type: 'prod', val: 0.15, text: '+15% Producción' } },
         { id: 5, name: 'Nuevo Laredo', x: 390, y: 105, owner: 'golfo', power: 300, troops: 25, bonus: { type: 'price', val: 0.15, text: '+15% Precio de venta' } },
         { id: 6, name: 'Monterrey', x: 375, y: 175, owner: 'golfo', power: 800, troops: 40, hq: true, bonus: { type: 'launder', val: 0.1, text: '-10% comisión de lavado' } },
-        { id: 7, name: 'Veracruz', x: 420, y: 290, owner: 'golfo', power: 260, troops: 20, bonus: { type: 'speed', val: 0.2, text: '+20% Vel. flota (puerto)' } },
-        { id: 8, name: 'Mérida', x: 515, y: 255, owner: 'golfo', power: 220, troops: 15, bonus: { type: 'defense', val: 0.1, text: '+10% Defensa' } },
-        { id: 9, name: 'Cancún', x: 570, y: 215, owner: 'golfo', power: 350, troops: 25, bonus: { type: 'price', val: 0.15, text: '+15% Precio de venta' } },
+        { id: 7, name: 'Veracruz', x: 420, y: 290, owner: 'halcones', power: 420, troops: 30, hq: true, bonus: { type: 'speed', val: 0.2, text: '+20% Vel. flota (puerto)' } },
+        { id: 8, name: 'Mérida', x: 515, y: 255, owner: 'player', power: 50, troops: 0, bonus: { type: 'prod', val: 0.1, text: '+10% Producción' } },
+        { id: 9, name: 'Cancún', x: 570, y: 215, owner: 'halcones', power: 120, troops: 10, bonus: { type: 'price', val: 0.15, text: '+15% Precio de venta' } },
         { id: 10, name: 'Guadalajara', x: 250, y: 280, owner: 'serrana', power: 250, troops: 20, bonus: { type: 'chems', val: 1, text: 'Químicos gratis' } },
         { id: 11, name: 'CDMX', x: 335, y: 305, owner: 'serrana', power: 1200, troops: 60, hq: true, bonus: { type: 'heat', val: 0.1, text: '-10% Heat' } },
         { id: 12, name: 'Acapulco', x: 300, y: 380, owner: 'serrana', power: 280, troops: 20, bonus: { type: 'launder', val: 0.1, text: '-10% comisión de lavado' } },
-        { id: 13, name: 'Oaxaca', x: 400, y: 375, owner: 'serrana', power: 200, troops: 15, bonus: { type: 'prod', val: 0.1, text: '+10% Producción' } }
+        { id: 13, name: 'Oaxaca', x: 400, y: 375, owner: 'halcones', power: 160, troops: 12, bonus: { type: 'prod', val: 0.1, text: '+10% Producción' } }
     ],
     edges: [[0, 2], [0, 4], [0, 10], [1, 2], [1, 3], [2, 3], [2, 4], [3, 4], [3, 5], [4, 6], [5, 6], [6, 10], [6, 7],
-        [10, 11], [10, 12], [11, 12], [11, 7], [11, 13], [12, 13], [7, 13], [7, 8], [8, 9]],
+        [10, 11], [10, 12], [11, 12], [11, 7], [11, 13], [12, 13], [7, 13], [7, 8], [8, 9], [8, 13]],
 
     territoryUpgrades: [
         { id: 'fort', name: 'Fortaleza', icon: '🏰', desc: '+30% defensa por nivel', base: 40000 },
@@ -209,7 +211,7 @@ const Config = {
 Config.story = [
     {
         title: 'Los Primeros Kilos', goal: 'Vende 50 kg de mercancía',
-        text: 'Culiacán, 3:00 a.m.\nTienes una parcela, una mula y mucha hambre.\nNadie en la sierra conoce tu nombre... todavía.\n\nMueve tu primera carga y empieza a escribir tu leyenda.',
+        text: 'Mérida, 3:00 a.m.\nLa ciudad más tranquila del país. Aquí ningún cártel se ha atrevido a echar raíces.\nTienes una parcela, una mula y mucha hambre. Nadie conoce tu nombre... todavía.\n\nMueve tu primera carga y empieza a escribir tu leyenda.',
         progress: () => [State.stats.kgSold, 50], reward: { dirty: 5000 }
     },
     {
@@ -219,13 +221,13 @@ Config.story = [
     },
     {
         title: 'La Red', goal: 'Contrata 2 tenientes',
-        text: 'Un patrón no trabaja solo.\nNecesitas gente de confianza... aunque la confianza, en este negocio, siempre tiene precio.',
+        text: 'Un patrón no trabaja solo.\nNecesitas gente de confianza... aunque la confianza, en este negocio, siempre tiene precio.\n\nCuando tengas una red, la gente empezará a hablar de ti y llegarán los primeros clientes especiales (Encargos).',
         progress: () => [State.lieutenants.length, 2], reward: { dirty: 25000 }
     },
     {
-        title: 'Llegar a la Frontera', goal: 'Conquista Tijuana',
-        text: 'Tijuana es la puerta al norte, y Los Halcones la cuidan como su casa.\nLa Dama no sabe que vas por ella.\n\nArma tu ejército y abre camino desde Hermosillo.',
-        progress: () => [State.territories[1].owner === 'player' ? 1 : 0, 1], reward: { dirty: 100000 }
+        title: 'La Riviera', goal: 'Conquista Cancún',
+        text: 'Cancún: turistas, hoteles y dólares en efectivo.\nLos Halcones la controlan desde su puerto en Veracruz.\nLa Dama no sabe que vas por ella.\n\nArma a tu gente y cruza la península.',
+        progress: () => [State.territories[9].owner === 'player' ? 1 : 0, 1], reward: { dirty: 100000 }
     },
     {
         title: 'Fachadas', goal: 'Ten 2 negocios fachada',
@@ -233,14 +235,14 @@ Config.story = [
         progress: () => [Object.keys(State.fronts).length, 2], reward: { clean: 100000 }
     },
     {
-        title: 'La Guerra de Juárez', goal: 'Derrota a Los Halcones (toma Juárez)', boss: 'halcones',
-        text: 'Juárez es la fortaleza de La Dama.\nPara llegar a ella tendrás que quitarle cada plaza... y luego entrar a su guarida.\n\nSi cae Juárez, caen Los Halcones.',
+        title: 'La Guerra del Puerto', goal: 'Derrota a Los Halcones (toma Veracruz)', boss: 'halcones',
+        text: 'Veracruz es la fortaleza de La Dama.\nPara llegar a ella tendrás que quitarle Cancún y Oaxaca... y luego entrar a su guarida.\n\nSi cae el puerto, caen Los Halcones.',
         progress: () => [State.rivals.halcones.defeated ? 1 : 0, 1], reward: { dirty: 1000000 }
     },
     {
-        title: 'El Puerto', goal: 'Conquista Veracruz',
-        text: 'Veracruz mueve medio país por mar.\nEl Verdugo lo sabe y lo protege con sangre.',
-        progress: () => [State.territories[7].owner === 'player' ? 1 : 0, 1], reward: { dirty: 2000000 }
+        title: 'La Frontera', goal: 'Conquista Nuevo Laredo',
+        text: 'Nuevo Laredo es la aduana más transitada del continente.\nEl Verdugo la protege con sangre.',
+        progress: () => [State.territories[5].owner === 'player' ? 1 : 0, 1], reward: { dirty: 2000000 }
     },
     {
         title: 'Golfo en Llamas', goal: 'Derrota al Cártel del Golfo Negro (toma Monterrey)', boss: 'golfo',
@@ -254,7 +256,7 @@ Config.story = [
     },
     {
         title: 'El Último Patriarca', goal: 'Derrota a La Familia Serrana (toma CDMX)', boss: 'serrana',
-        text: 'Don Aurelio controla la capital desde hace cuarenta años.\nPresidentes van y vienen; él se queda.\n\nHasta hoy.',
+        text: 'Don Aurelio bajó de la sierra hace cuarenta años y desde entonces manda en la capital.\nPresidentes van y vienen; él se queda.\n\nHasta hoy.',
         progress: () => [State.rivals.serrana.defeated ? 1 : 0, 1], reward: { dirty: 100000000 }
     },
     {
@@ -307,77 +309,101 @@ Config.achievements = [
 /* ===== EVENTOS ALEATORIOS ===== */
 Config.events = [
     {
-        title: 'RETÉN MILITAR', desc: 'El ejército detuvo uno de tus envíos. ¿Qué haces?',
+        title: 'VECINO CHISMOSO', req: () => State.story.chapter <= 2,
+        desc: 'Doña Chela, la vecina, vio a tu mula salir de madrugada. Ya anda preguntando.',
+        opts: [
+            { text: 'Regalarle una despensa ($500 sucio)', cost: { dirty: 500 }, effect: () => UI.notify('Doña Chela ya no vio nada.') },
+            { text: 'Ignorarla (+8 Heat)', effect: () => { Core.Heat.add(8); UI.notify('Doña Chela le contó a medio barrio.', 'bad'); } }
+        ]
+    },
+    {
+        title: 'PRIMER CLIENTE FIJO', req: () => State.story.chapter <= 2 && State.inv.weed >= 10,
+        desc: 'Un mesero de un hotel en Progreso quiere 10 kg de Mota cada semana. Paga bien, pero es nuevo en esto.',
+        opts: [
+            { text: 'Venderle 10 kg (x1.5 precio)', effect: () => { State.inv.weed -= 10; const v = Math.floor(10 * Config.products.weed.basePrice * 1.5); State.money.dirty += v; State.stats.kgSold += 10; State.stats.dirtyEarned += v; UI.notify(`+$${fmt(v)} sucios.`); Sfx.cash(); } },
+            { text: 'Desconfiar', effect: () => { } }
+        ]
+    },
+    {
+        title: 'LA MULA SE PERDIÓ', req: () => State.story.chapter <= 1 && State.stats.playTime > 120,
+        desc: 'Tu mula tomó el camino equivocado y llegó tarde. El comprador está molesto.',
+        opts: [
+            { text: 'Darle un descuento ($300 sucio)', cost: { dirty: 300 }, effect: () => UI.notify('El cliente se calmó.') },
+            { text: 'Que espere', effect: () => { State.market.weed = Math.max(0.5, State.market.weed - 0.2); UI.notify('Se corre la voz de que eres impuntual: baja el precio de la Mota.', 'bad'); } }
+        ]
+    },
+    {
+        title: 'RETÉN MILITAR', req: () => State.story.chapter >= 2 && State.fleet.length >= 2, desc: 'El ejército detuvo uno de tus envíos. ¿Qué haces?',
         opts: [
             { text: 'Pagar soborno ($5K sucio)', cost: { dirty: 5000 }, effect: () => UI.notify('Te dejaron pasar.') },
             { text: 'Forzar el paso (+20 Heat)', effect: () => { Core.Heat.add(20); UI.notify('Escapaste, pero te buscan.', 'bad'); } }
         ]
     },
     {
-        title: 'REMATE DE QUÍMICOS', desc: 'Un proveedor remata precursores a mitad de precio.',
+        title: 'REMATE DE QUÍMICOS', req: () => State.ops.meth > 0, desc: 'Un proveedor remata precursores a mitad de precio.',
         opts: [
             { text: 'Comprar 500 L ($10K limpio)', cost: { clean: 10000 }, effect: () => { State.inv.chems += 500; UI.notify('Bodega llena.'); } },
             { text: 'Ignorar', effect: () => { } }
         ]
     },
     {
-        title: 'PERIODISTA CURIOSO', desc: 'Un reportero está investigando tus negocios fachada.',
+        title: 'PERIODISTA CURIOSO', req: () => Object.keys(State.fronts).length > 0, desc: 'Un reportero está investigando tus negocios fachada.',
         opts: [
             { text: 'Comprar su silencio ($20K limpio)', cost: { clean: 20000 }, effect: () => UI.notify('La nota nunca salió.') },
-            { text: 'Ignorarlo (+35 Heat)', effect: () => { Core.Heat.add(35); Core.News.add('Reportaje exhibe red de empresas fantasma en Sinaloa', 'bad', true); } }
+            { text: 'Ignorarlo (+35 Heat)', effect: () => { Core.Heat.add(35); Core.News.add('Reportaje exhibe red de empresas fantasma en Yucatán', 'bad', true); } }
         ]
     },
     {
-        title: 'HURACÁN EN LA COSTA', desc: 'Una tormenta tropical amenaza tus rutas.',
+        title: 'HURACÁN EN LA COSTA', req: () => State.fleet.length >= 3, desc: 'Una tormenta tropical amenaza tus rutas.',
         opts: [
             { text: 'Resguardar la flota ($3K limpio)', cost: { clean: 3000 }, effect: () => UI.notify('Flota a salvo.') },
             { text: 'Seguir operando', effect: () => { State.fleet.forEach(v => v.hp = Math.max(0, v.hp - 30)); UI.notify('La tormenta dañó tus vehículos (-30 HP).', 'bad'); Core.News.add('Huracán deja daños en carreteras del Pacífico'); } }
         ]
     },
     {
-        title: 'AUGE EN EL NORTE', desc: 'La demanda se disparó. ¿Aprovechas?',
+        title: 'AUGE EN EL NORTE', req: () => State.story.chapter >= 3, desc: 'La demanda se disparó. ¿Aprovechas?',
         opts: [
             { text: 'Subir precios (+10 Heat)', effect: () => { Config.productKeys.forEach(k => { State.market[k] = Math.min(2.0, State.market[k] + 0.4); State.sat[k] = 0; }); Core.Heat.add(10); UI.notify('Precios por las nubes.', 'event'); } },
             { text: 'Perfil bajo', effect: () => Config.productKeys.forEach(k => State.market[k] = Math.min(2.0, State.market[k] + 0.15)) }
         ]
     },
     {
-        title: 'SICARIO TRAIDOR', desc: 'Uno de tus hombres quiere venderle información a la policía.',
+        title: 'SICARIO TRAIDOR', req: () => State.army >= 15, desc: 'Uno de tus hombres quiere venderle información a la policía.',
         opts: [
             { text: 'Pagarle más ($8K sucio)', cost: { dirty: 8000 }, effect: () => UI.notify('Lealtad comprada.') },
             { text: 'Dejarlo ir (-10% sicarios, +15 Heat)', effect: () => { State.army = Math.floor(State.army * 0.9); Core.Heat.add(15); UI.notify('Se llevó a varios con él.', 'bad'); } }
         ]
     },
     {
-        title: 'AUDITORÍA FISCAL', desc: 'Hacienda revisa tus negocios fachada.',
+        title: 'AUDITORÍA FISCAL', req: () => Object.keys(State.fronts).length > 0, desc: 'Hacienda revisa tus negocios fachada.',
         opts: [
             { text: 'Contadores creativos (-5% limpio)', effect: () => { State.money.clean = Math.floor(State.money.clean * 0.95); UI.notify('Auditoría superada.'); } },
             { text: 'Arriesgarse (50/50)', effect: () => { if (Math.random() < 0.5) UI.notify('No encontraron nada.'); else { State.money.clean = Math.floor(State.money.clean * 0.8); UI.notify('Multa: -20% limpio.', 'bad'); } } }
         ]
     },
     {
-        title: 'INVERSIONISTA MISTERIOSO', desc: 'Un empresario extranjero ofrece duplicar una inversión... o desaparecer con ella.',
+        title: 'INVERSIONISTA MISTERIOSO', req: () => State.money.clean >= 25000, desc: 'Un empresario extranjero ofrece duplicar una inversión... o desaparecer con ella.',
         opts: [
             { text: 'Invertir $25K limpio', cost: { clean: 25000 }, effect: () => { if (Math.random() < 0.55) { State.money.clean += 50000; UI.notify('¡Pagó! +$50K limpio.'); Sfx.cash(); } else UI.notify('Desapareció con tu dinero.', 'bad'); } },
             { text: 'No confiar', effect: () => { } }
         ]
     },
     {
-        title: 'OPERATIVO FEDERAL', desc: 'Viene un operativo grande. Tienes minutos para reaccionar.',
+        title: 'OPERATIVO FEDERAL', req: () => State.rank >= 1 || State.heat > State.heatCap * 0.4, desc: 'Viene un operativo grande. Tienes minutos para reaccionar.',
         opts: [
             { text: 'Avisar a tus contactos ($15K limpio)', cost: { clean: 15000 }, effect: () => { State.heat = Math.max(0, State.heat - 40); UI.notify('Operativo desviado.'); } },
             { text: 'Esconder la mercancía (+40 Heat)', effect: () => Core.Heat.add(40) }
         ]
     },
     {
-        title: 'RECLUTAS VOLUNTARIOS', desc: 'Gente del barrio quiere unirse a la organización.',
+        title: 'RECLUTAS VOLUNTARIOS', req: () => State.story.chapter >= 3, desc: 'Gente del barrio quiere unirse a la organización.',
         opts: [
             { text: 'Aceptar 10 (+5 Heat)', effect: () => { State.army += 10; Core.Heat.add(5); UI.notify('+10 sicarios.'); } },
             { text: 'Rechazar', effect: () => { } }
         ]
     },
     {
-        title: 'FALLA EN EL LABORATORIO', desc: 'Un error en producción arruinó parte de un lote.',
+        title: 'FALLA EN EL LABORATORIO', req: () => Config.productKeys.reduce((n, k) => n + State.labs[k], 0) >= 3, desc: 'Un error en producción arruinó parte de un lote.',
         opts: [
             { text: 'Reparar rápido ($5K sucio)', cost: { dirty: 5000 }, effect: () => UI.notify('Producción restablecida.') },
             {
@@ -389,21 +415,21 @@ Config.events = [
         ]
     },
     {
-        title: 'MENSAJE DE UN RIVAL', desc: 'Un cártel rival propone un cese al fuego temporal.',
+        title: 'MENSAJE DE UN RIVAL', req: () => Core.War.owned().length >= 2, desc: 'Un cártel rival propone un cese al fuego temporal.',
         opts: [
             { text: 'Aceptar ($10K sucio, 3 min de paz)', cost: { dirty: 10000 }, effect: () => { const r = Core.Rivals.randomAlive(); if (r) { State.rivals[r].truceUntil = Date.now() + 180000; UI.notify(`Tregua con ${Config.rivals[r].name}.`); } } },
             { text: 'Rechazar (+100 poder rival)', effect: () => { const r = Core.Rivals.randomAlive(); if (r) State.rivals[r].power += 100; UI.notify('El rival se prepara para la guerra.', 'bad'); } }
         ]
     },
     {
-        title: 'FIESTA EN LA SIERRA', desc: 'Tu pueblo quiere una fiesta patronal. Te verían como un héroe.',
+        title: 'FIESTA DEL PUEBLO', req: () => State.rank >= 1, desc: 'Ya todos saben quién eres. El barrio quiere una fiesta patronal y te verían como un héroe.',
         opts: [
             { text: 'Pagar la fiesta ($30K sucio)', cost: { dirty: 30000 }, effect: () => { State.lieutenants.forEach(l => l.loyalty = Math.min(100, l.loyalty + 25)); State.army += 5; UI.notify('El pueblo te adora. +lealtad, +5 sicarios.'); } },
             { text: 'No gastar', effect: () => { } }
         ]
     },
     {
-        title: 'CHIVATAZO', desc: 'Un informante te avisa de un convoy rival con mercancía.',
+        title: 'CHIVATAZO', req: () => State.army >= 20, desc: 'Un informante te avisa de un convoy rival con mercancía.',
         opts: [
             { text: 'Asaltarlo (necesitas 20 sicarios)', effect: () => { if (State.army < 20) return UI.notify('No tienes gente suficiente.', 'bad'); if (Math.random() < 0.6) { const k = pick(Config.productKeys); const q = 50 + Math.floor(Math.random() * 150); State.inv[k] += q; UI.notify(`¡Botín! +${q} kg de ${Config.products[k].name}.`); Sfx.cash(); } else { State.army -= 8; UI.notify('Era una trampa. Perdiste 8 sicarios.', 'bad'); Sfx.gun(); } } },
             { text: 'Dejarlo pasar', effect: () => { } }

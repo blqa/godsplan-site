@@ -34,7 +34,7 @@ Core.Game = {
         try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
         State = newState();
         $('start-screen').classList.add('hidden');
-        Core.News.add('Comienza una nueva era en la sierra de Sinaloa');
+        Core.News.add('Mérida, la ciudad más segura del país, amanece tranquila. Por ahora.');
         this.showChapter(Config.story[0], 'PRÓLOGO');
         this.start();
     },
@@ -162,7 +162,7 @@ Core.Dev = {
     time() { State.lastSave = now() - 3600000; Core.Offline.apply(); },
     attack() {
         const rid = Core.Rivals.randomAlive();
-        const t = State.territories.find(x => x.owner === 'player' && x.id !== 0);
+        const t = State.territories.find(x => x.owner === 'player' && x.id !== Config.baseId);
         if (rid && t) Core.Rivals.spawnAttack(rid, t.id); else UI.notify('DEV: conquista una plaza primero');
     }
 };
