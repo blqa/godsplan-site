@@ -10,10 +10,20 @@ Core.Logistics = {
         if (r.rank && State.rank < r.rank) return false;
         return true;
     },
+    // BALANCE v34: antes era ~2.5x más alto. Un desconocido (antes del cap. 3) casi no llama la atención.
     seizureChance(d) {
-        let c = Config.routes[d].risk / 100 * 0.25 * (0.5 + State.heat / State.heatCap) * Core.Mods.seizure();
+        let c = Config.routes[d].risk / 100 * 0.15 * (0.3 + State.heat / State.heatCap) * Core.Mods.seizure();
+        if (State.story.chapter < 3) c *= 0.4;
         if (d === 4 && State.shadow.lobby_us) c *= 0.25;
-        return clamp(c, 0, 0.6);
+        return clamp(c, 0, 0.4);
+    },
+    // Avisos de entregas exitosas agrupados (para no llenar la pantalla)
+    okBuf: { n: 0, kg: 0, val: 0 },
+    flushOk() {
+        const b = this.okBuf;
+        if (!b.n) return;
+        UI.notify(b.n === 1 ? `✅ Entrega exitosa: ${fmt(b.kg)} kg · +$${fmt(b.val)}` : `✅ ${b.n} entregas exitosas: ${fmt(b.kg)} kg · +$${fmt(b.val)}`);
+        this.okBuf = { n: 0, kg: 0, val: 0 };
     },
 
     updateUI() {
@@ -61,7 +71,9 @@ Core.Logistics = {
         if (reset || +rng.value > max || +rng.value === 0) rng.value = max;
         const amount = +rng.value;
         setText('lbl-load', amount);
-        setText('dispatch-preview', `≈ $${fmt(amount * Core.Market.price(k, d))} · decomiso ${(this.seizureChance(d) * 100).toFixed(1)}%`);
+        const risk = this.seizureChance(d) * 100;
+        const hot = State.heat > State.heatCap * 0.5 ? ' ⚠️ búsqueda alta' : '';
+        setHTML('dispatch-preview', `≈ $${fmt(amount * Core.Market.price(k, d))} · riesgo <span style="color:${risk < 2 ? '#8f8' : risk < 5 ? '#fc0' : '#f66'}">${risk.toFixed(1)}%</span>${hot}`);
     },
     dispatch() {
         if (Core.Game.isFrozen()) return UI.notify('Operaciones congeladas por el Plan de Escape.', 'bad');
@@ -97,7 +109,8 @@ Core.Logistics = {
         const vet = Core.Assets.vetBonus(v);
         const speed = Config.vehicles[v.type].speed * Core.Mods.routeSpeed() * r.speed * (1 + vet);
 
-        let heat = r.risk * Math.min(1, 0.3 + amount / 200);
+        // BALANCE v34: antes una ruta larga daba +20 de búsqueda; ahora ~+6
+        let heat = r.risk * 0.2 * Math.min(1, 0.3 + amount / 300);
         if (hasTech('ghost_log')) heat *= 0.8;
         if (State.contacts.customs) heat *= 0.85;
         if (d === 4 && State.shadow.lobby_us) heat *= 0.25;
@@ -144,6 +157,8 @@ Core.Logistics = {
                 continue;
             }
             State.money.dirty += r.val;
+            State.stats.delivered = (State.stats.delivered || 0) + 1;
+            this.okBuf.n++; this.okBuf.kg += r.amount; this.okBuf.val += r.val;
             State.stats.dirtyEarned += r.val;
             State.stats.kgSold += r.amount;
             State.stats.shipments++;
@@ -156,11 +171,14 @@ Core.Logistics = {
             Sfx.cash();
             if (r.val >= 500000 && Math.random() < 0.5) Core.News.add(`Autoridades investigan red que movió "toneladas" por ${Config.routes[r.dist].name.toLowerCase()}`);
         }
+        if (State.ticks % 20 === 0) this.flushOk();
         if (finished && isVisible('logistics')) this.updateUI();
         if (State.ticks % 5 === 0 && isVisible('logistics')) this.renderLog();
     },
     renderLog() {
-        setText('routes-count', State.routes.length ? `(${State.routes.length})` : '');
+        const st = State.stats, ok = st.delivered || 0, lost = (st.seizures || 0) + (st.hijacked || 0);
+        const pct = ok + lost ? Math.round(ok / (ok + lost) * 100) : 100;
+        setText('routes-count', `${State.routes.length ? `(${State.routes.length} en ruta) · ` : ''}✅ ${fmt(ok)} entregados · 🚔 ${fmt(st.seizures || 0)} decomisados · 🔫 ${fmt(st.hijacked || 0)} asaltados · éxito ${pct}%`);
         setHTML('log-body', State.routes.slice(-40).reverse().map(r => `<tr>
             <td>${Config.vehicles[r.type].icon} ${r.name}</td><td>${fmt(r.amount)} kg ${Config.products[r.prod].name}</td>
             <td>${Config.routes[r.dist].name}</td><td class="gold">$${fmt(r.val)}</td>
@@ -168,9 +186,10 @@ Core.Logistics = {
             || '<tr><td colspan="6" class="muted">Sin envíos activos.</td></tr>');
     },
     hijack() {
-        if (!State.routes.length) return null;
-        const i = Math.floor(Math.random() * State.routes.length);
-        const r = State.routes.splice(i, 1)[0];
+        const opts = State.routes.filter(r => r.dist >= 2); // las rutas cortas son locales y seguras
+        if (!opts.length) return null;
+        const r = pick(opts);
+        State.routes.splice(State.routes.indexOf(r), 1);
         const v = State.fleet.find(x => x.uid === r.vUid);
         if (v) v.hp = Math.max(0, v.hp - 50);
         return r;

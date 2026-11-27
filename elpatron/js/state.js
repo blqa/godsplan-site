@@ -78,7 +78,7 @@ function newState() {
         timers: { frozen: 0, informant: 0 },
         stats: {
             playTime: 0, dirtyEarned: 0, kgSold: 0, shipments: 0, conquests: 0, raids: 0, laundered: 0, contractsDone: 0,
-            lostTerritories: 0, seizures: 0, defended: 0, bossesDefeated: 0, loansPaid: 0
+            lostTerritories: 0, seizures: 0, delivered: 0, hijacked: 0, defended: 0, bossesDefeated: 0, loansPaid: 0
         },
         lastSave: 0
     };

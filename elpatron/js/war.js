@@ -374,6 +374,10 @@ Core.Rivals = {
     truceCost(rid) { return Math.floor(State.rivals[rid].power * 200 * Config.rivals[rid].truceMult * (1 - 0.3 * Core.HR.eff('Relacionista'))); },
     sabotageCost(rid) { return Math.floor(State.rivals[rid].power * 400); },
     inTruce(rid) { return State.rivals[rid].truceUntil > now() || State.timers.informant > now(); },
+    // ¿Este cártel tiene alguna plaza pegada a una tuya?
+    inContact(rid) {
+        return State.territories.some(t => t.owner === 'player' && Core.War.neighbors(t.id).some(n => State.territories[n].owner === rid));
+    },
 
     tick() {
         if (State.stats.playTime < 240) return; // 4 minutos de gracia al iniciar
@@ -383,16 +387,26 @@ Core.Rivals = {
             R.power = Math.min(20000, R.power + 0.4 + lands * 0.35 + State.respect / 2e8);
 
             // Comportamiento según personalidad
-            if (rid === 'halcones' && Math.random() < 0.025 && !this.inTruce(rid)) {
+            // Solo te molestan si ya tienen frontera contigo (antes atacaban desde el otro lado del mapa)
+            const contact = this.inContact(rid);
+            if (rid === 'halcones' && contact && Math.random() < 0.015 && !this.inTruce(rid)) {
                 Core.Heat.add(6);
                 UI.notify('La Dama le pasó un pitazo a la policía sobre ti (+Heat).', 'bad');
             }
-            if (rid === 'golfo' && Math.random() < 0.02 && State.routes.length && !this.inTruce(rid)) {
-                const r = Core.Logistics.hijack();
-                if (r) {
-                    UI.notify(`¡El Golfo Negro asaltó tu cargamento de ${fmt(r.amount)} kg (${r.name})!`, 'bad');
-                    Core.News.add(`Comando armado asalta convoy en carretera federal; se llevan ${fmt(r.amount)} kg`, 'bad');
-                    Sfx.burst(4);
+            if (rid === 'golfo' && contact && Math.random() < 0.01 && State.routes.some(r => r.dist >= 2) && !this.inTruce(rid)) {
+                // tu élite y tu Comandante pueden repeler el asalto
+                const escort = Math.min(0.75, State.elite * 0.05 + 0.15 * Core.HR.eff('Comandante'));
+                if (Math.random() < escort) {
+                    UI.notify('🛡️ Tu escolta repelió un asalto del Golfo Negro a uno de tus convoyes.');
+                    Sfx.burst(3);
+                } else {
+                    const r = Core.Logistics.hijack();
+                    if (r) {
+                        State.stats.hijacked = (State.stats.hijacked || 0) + 1;
+                        UI.notify(`¡El Golfo Negro asaltó tu cargamento de ${fmt(r.amount)} kg (${r.name})! Contrata élite para escoltar.`, 'bad');
+                        Core.News.add(`Comando armado asalta convoy en carretera federal; se llevan ${fmt(r.amount)} kg`, 'bad');
+                        Sfx.burst(4);
+                    }
                 }
             }
             if (rid === 'serrana' && Math.random() < 0.03) {

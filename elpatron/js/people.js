@@ -10,14 +10,22 @@ Core.Heat = {
             Core.Logistics.updateAutoStatus();
             UI.notify('Inspecciones en carretera: la automatización se detuvo.', 'bad');
         }
-        if (State.heat > State.heatCap * 0.5 && Math.random() < 0.008 && State.fleet.length) {
-            const v = pick(State.fleet);
+        const parked = State.fleet.filter(x => x.hp > 0 && !Core.Logistics.isBusy(x.uid));
+        if (State.heat > State.heatCap * 0.6 && Math.random() < 0.004 && parked.length) {
+            const v = pick(parked);
             v.hp = 0;
             UI.notify(`La policía destrozó tu vehículo "${v.name}".`, 'bad');
         }
         if (State.heat >= State.heatCap) this.raid();
     },
-    tick() { State.heat = Math.max(0, State.heat - 0.6); },
+    // BALANCE v34: la búsqueda baja 2.5x más rápido (0.5/s)
+    tick() {
+        // entre más alta, más rápido baja (la policía se distrae con otros casos)
+        State.heat = Math.max(0, State.heat - 1.5 - State.heat * 0.015);
+        const pct = State.heat / State.heatCap;
+        if (pct >= 0.8 && !this.warned) { this.warned = true; Sfx.alert(); UI.notify('⚠️ Búsqueda al 80%: si llega al máximo hay REDADA. Baja el ritmo, usa rutas cortas o paga al Hacker.', 'bad'); }
+        if (pct < 0.6) this.warned = false;
+    },
     render() {
         const pct = State.heat / State.heatCap * 100;
         const bar = $('ui-heat'); if (bar) bar.style.width = pct + '%';

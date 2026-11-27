@@ -217,7 +217,7 @@ Core.Achievements = {
         const rows = [
             ['Tiempo jugado', `${Math.floor(st.playTime / 3600)}h ${Math.floor(st.playTime % 3600 / 60)}m`],
             ['Dinero sucio generado', '$' + fmt(st.dirtyEarned)], ['Dinero lavado', '$' + fmt(st.laundered)],
-            ['Kilos vendidos', fmt(st.kgSold)], ['Envíos completados', fmt(st.shipments)], ['Decomisos sufridos', fmt(st.seizures)],
+            ['Kilos vendidos', fmt(st.kgSold)], ['Envíos entregados', fmt(st.delivered || 0)], ['Decomisos sufridos', fmt(st.seizures)], ['Cargamentos asaltados', fmt(st.hijacked || 0)],
             ['Encargos cumplidos', fmt(st.contractsDone)], ['Plazas conquistadas', fmt(st.conquests)], ['Ataques defendidos', fmt(st.defended)],
             ['Plazas perdidas', fmt(st.lostTerritories)], ['Jefes derrotados', fmt(st.bossesDefeated)], ['Redadas', fmt(st.raids)],
             ['Préstamos liquidados', fmt(st.loansPaid)], ['Legado / Retiros', `${Legacy.points} pts / ${Legacy.runs}`]
@@ -340,7 +340,7 @@ Core.Guide = {
         <h2>3. Producción y mercado</h2>
         <p>Cada producto se fabrica en laboratorios; casi todos necesitan <strong>químicos</strong>. Si vendes mucho de lo mismo, el mercado se <strong>satura</strong> y el precio baja varios minutos: reparte tus ventas. Los <strong>encargos</strong> pagan mejor y no saturan, pero solo llegan cuando ya tienes fama (desde el capítulo 3).</p>
         <h2>4. Logística</h2>
-        <p>Cada vehículo tiene nombre, HP y kilometraje (cada 5,000 km es más rápido). Las rutas largas pagan más pero tienen más riesgo de <strong>decomiso</strong>. Un vehículo con <strong>seguro</strong> no se pierde si lo decomisan.</p>
+        <p>Cada vehículo tiene nombre, HP y kilometraje (cada 5,000 km es más rápido). Las rutas largas pagan más pero tienen más riesgo de <strong>decomiso</strong>, sobre todo con la búsqueda alta: antes de enviar ves el % de riesgo. Las rutas cortas son locales y no las asaltan. Un vehículo con <strong>seguro</strong> no se pierde si lo decomisan, y tu <strong>élite</strong> escolta los convoyes contra asaltos.</p>
         <h2>5. Guerra y rivales</h2>
         <p>Empiezas en <strong>Mérida</strong>, la ciudad más tranquila del país. Hay tres cárteles: <strong>Los Halcones</strong> (sigilosos, en el Golfo y el sureste), <strong>el Golfo Negro</strong> (agresivos, en el norte) y <strong>la Familia Serrana</strong> (la vieja guardia del Pacífico y la capital). Solo atacas plazas conectadas a las tuyas. Cada cártel tiene una <strong>guarida con su jefe</strong> que solo puedes atacar cuando ya no le quedan otras plazas. Cuando te atacan, tienes unos segundos para <strong>mandar refuerzos, negociar, resistir o abandonar</strong>. Mejora tus plazas con fortalezas, labs y bodegas.</p>
         <h2>6. Tenientes</h2>
