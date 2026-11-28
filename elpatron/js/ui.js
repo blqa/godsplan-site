@@ -77,6 +77,8 @@ const UI = {
         this.toggleMore(false);
         this.toggleAside(false);
         $('main').scrollTop = 0;
+        Core.LiveMap.onNav(id);
+        Core.Tips.add(id);
         this.renderView(id);
     },
     renderView(id) {

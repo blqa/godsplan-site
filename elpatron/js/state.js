@@ -76,6 +76,7 @@ function newState() {
         loan: { debt: 0, dueAt: 0, anger: 0, lastPenalty: 0 },
         techs: [],
         research: {},
+        seenTips: [],
         siege: {},
         me: null,
         golpes: { active: null, cd: {}, mult: {}, done: 0 },

@@ -70,6 +70,7 @@ Core.Unlocks = {
             if (State.story.chapter >= Config.unlocks[k] && !State.unlocked.includes(k)) { State.unlocked.push(k); newly.push(k); }
         });
         if (newly.length) {
+            Core.Tips.add(newly.filter(k => !['news', 'achievements'].includes(k))); // esos se explican al abrirlos
             UI.buildNav();
             newly.forEach(k => UI.setBadge(k, 'NUEVO'));
             if (!silent) UI.notify(`🔓 Desbloqueaste: ${newly.map(k => this.nameOf(k)).join(', ')}`, 'event');
@@ -398,6 +399,7 @@ Core.Guide = {
     close() { $('guide-modal').classList.add('hidden'); },
     render() {
         $('guide-content').innerHTML = `
+        <p><button class="action-btn btn-gold" onclick="Core.Tips.reset()">💡 VOLVER A VER LAS VENTANAS DE AYUDA</button></p>
         <h2>0. Modos de juego</h2>
         <p><strong>Modo Historia</strong>: empiezas con Producción, Logística y Flota, y cada capítulo te abre nuevos menús (Finanzas, Tenientes, Guerra, Fachadas...). <strong>Modo Libre</strong>: todo abierto desde el inicio y sin capítulos.</p>
         <h2>1. La meta</h2>

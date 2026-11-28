@@ -110,6 +110,9 @@ Core.Game = {
         Core.Unlocks.refresh(true);
         Core.War.calcBonuses();
         Core.War.initCanvas();
+        Core.LiveMap.init();
+        Core.Tips.add('mapa');
+        setInterval(() => Core.Tips.tick(), 700);
         Core.Contracts.refill();
         Core.Respect.calc();
         Core.News.renderTicker();
