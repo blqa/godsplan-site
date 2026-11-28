@@ -12,13 +12,13 @@
     <meta property="og:title" content="El Patrón: Legado">
     <meta property="og:description" content="Juego idle de estrategia. Un juego de God's Plan Labs.">
     <title>El Patrón: Legado</title>
-    <link rel="icon" type="image/svg+xml" href="icon.svg">
-    <link rel="apple-touch-icon" href="icon.svg">
-    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="./icon.svg">
+    <link rel="apple-touch-icon" href="./icon.svg">
+    <link rel="manifest" href="./manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Jura:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=54">
+    <link rel="stylesheet" href="./css/style.css?v=55">
 </head>
 
 <body>
@@ -30,10 +30,12 @@
             <h1 class="start-logo">EL PATRÓN</h1>
             <div class="start-sub">LEGADO</div>
             <div id="start-legacy" class="start-legacy"></div>
+            <div id="cloud-bar" class="cloud-bar"></div>
             <div id="start-hall" class="start-hall"></div>
             <div class="start-buttons">
                 <button class="big-btn gold hidden" id="btn-continue" onclick="Core.Game.continueGame()">▶ CONTINUAR</button>
                 <button class="big-btn" id="btn-newgame" onclick="Core.Game.newGame()">NUEVA PARTIDA</button>
+                <button class="big-btn ghost" onclick="Core.Cloud.openSlots()">💾 PARTIDAS GUARDADAS (3 SLOTS)</button>
                 <button class="big-btn ghost" onclick="Core.Guide.open()">CÓMO JUGAR</button>
                 <button class="big-btn ghost" id="start-sound" onclick="Sfx.toggle()">🔊 SONIDO</button>
             </div>
@@ -63,6 +65,37 @@
                 </div>
             </div>
             <button class="link-btn" onclick="Core.Game.closeModes()">‹ Volver</button>
+        </div>
+    </div>
+
+    <!-- ============ ACCESO (ALIAS + CLAVE RÁPIDA) ============ -->
+    <div id="login-screen" class="overlay start-screen hidden" style="z-index:2500;">
+        <div class="start-bg"></div>
+        <div class="start-inner" style="max-width:460px;">
+            <div class="start-kicker">ACCESO</div>
+            <h2 class="mode-title">¿QUIÉN ENTRA?</h2>
+            <div class="me-form">
+                <label class="lbl">TU ALIAS</label>
+                <div class="me-row"><input id="login-alias" maxlength="24" placeholder="El Güero" autocomplete="nickname"></div>
+                <label class="lbl">CLAVE RÁPIDA (4+ números o letras)</label>
+                <div class="me-row"><input id="login-pin" type="password" maxlength="12" placeholder="••••" autocomplete="off" onkeydown="if(event.key==='Enter') Core.Cloud.login()"></div>
+                <p class="tiny muted" style="margin-top:8px;">No es una contraseña real: con tu alias y tu clave encuentras tus partidas en cualquier dispositivo. No uses una clave que uses en otro lado.</p>
+                <button class="big-btn gold" style="margin-top:14px;" onclick="Core.Cloud.login()">ENTRAR</button>
+                <button class="big-btn ghost" onclick="Core.Cloud.guest()">JUGAR COMO INVITADO (solo este dispositivo)</button>
+                <p class="tiny center" id="login-msg" style="margin-top:8px;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ SLOTS DE GUARDADO ============ -->
+    <div id="slots-screen" class="overlay start-screen hidden" style="z-index:2500;">
+        <div class="start-bg"></div>
+        <div class="start-inner" style="max-width:620px;">
+            <div class="start-kicker">PARTIDAS GUARDADAS</div>
+            <h2 class="mode-title">3 SLOTS</h2>
+            <p class="tiny muted" id="slots-sub"></p>
+            <div id="slots-list" style="text-align:left;"></div>
+            <button class="link-btn" onclick="Core.Cloud.closeSlots()">‹ Cerrar</button>
         </div>
     </div>
 
@@ -571,33 +604,37 @@
         <footer>
             <div class="footer-btns">
                 <button class="footer-btn" onclick="Core.Guide.open()">[?] GUÍA</button>
+                <button class="footer-btn" onclick="Core.Cloud.openSlots()">💾 PARTIDAS</button>
                 <button class="footer-btn" onclick="Core.SaveIO.exportSave()">EXPORTAR</button>
                 <button class="footer-btn" onclick="Core.SaveIO.importSave()">IMPORTAR</button>
                 <button class="footer-btn danger" onclick="Core.Game.hardReset()">BORRAR</button>
             </div>
             <div class="news-ticker" onclick="if (Core.Unlocks.isOpen('news')) UI.nav('news')"><div class="ticker-label">ÚLTIMA HORA</div><div class="ticker-track"><div class="ticker-move" id="ticker-move"></div></div></div>
+            <span class="footer-slot tiny muted" id="footer-slot"></span>
             <a class="footer-brand" href="https://godsplan.dev" target="_blank" rel="noopener">GOD'S PLAN LABS</a>
         </footer>
 
         <nav id="tabbar" class="tabbar"></nav>
     </div>
 
-    <script src="js/config.js?v=54"></script>
-    <script src="js/state.js?v=54"></script>
-    <script src="js/audio.js?v=54"></script>
-    <script src="js/ui.js?v=54"></script>
-    <script src="js/economy.js?v=54"></script>
-    <script src="js/logistics.js?v=54"></script>
-    <script src="js/war.js?v=54"></script>
-    <script src="js/people.js?v=54"></script>
-    <script src="js/story.js?v=54"></script>
-    <script src="js/aguila.js?v=54"></script>
-    <script src="js/escape.js?v=54"></script>
-    <script src="js/persona.js?v=54"></script>
-    <script src="js/golpes.js?v=54"></script>
-    <script src="js/familia.js?v=54"></script>
-    <script src="js/vendetta.js?v=54"></script>
-    <script src="js/main.js?v=54"></script>
+    <script src="./js/firebase-config.js?v=55"></script>
+    <script src="./js/config.js?v=55"></script>
+    <script src="./js/state.js?v=55"></script>
+    <script src="./js/audio.js?v=55"></script>
+    <script src="./js/ui.js?v=55"></script>
+    <script src="./js/economy.js?v=55"></script>
+    <script src="./js/logistics.js?v=55"></script>
+    <script src="./js/war.js?v=55"></script>
+    <script src="./js/people.js?v=55"></script>
+    <script src="./js/story.js?v=55"></script>
+    <script src="./js/aguila.js?v=55"></script>
+    <script src="./js/escape.js?v=55"></script>
+    <script src="./js/persona.js?v=55"></script>
+    <script src="./js/golpes.js?v=55"></script>
+    <script src="./js/familia.js?v=55"></script>
+    <script src="./js/vendetta.js?v=55"></script>
+    <script src="./js/cloud.js?v=55"></script>
+    <script src="./js/main.js?v=55"></script>
 </body>
 
 </html>

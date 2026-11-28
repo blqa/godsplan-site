@@ -113,6 +113,28 @@ const Core = {};
 const terr = id => Object.assign({}, Config.territories[id], State.territories[id]);
 
 /* ---------- Guardar / cargar ---------- */
+/* Recorre la partida y repara valores rotos usando los valores por defecto */
+function sanitizeState(obj, def, depth = 0) {
+    if (!obj || !def || depth > 4) return;
+    Object.keys(def).forEach(k => {
+        const d = def[k], v = obj[k];
+        if (typeof d === 'number') { if (typeof v !== 'number' || !Number.isFinite(v)) obj[k] = d; }
+        else if (typeof d === 'boolean') { if (typeof v !== 'boolean') obj[k] = d; }
+        else if (typeof d === 'string') { if (typeof v !== 'string') obj[k] = d; }
+        else if (Array.isArray(d)) { if (!Array.isArray(v)) obj[k] = d; }
+        else if (d && typeof d === 'object') { if (!v || typeof v !== 'object' || Array.isArray(v)) obj[k] = d; else sanitizeState(v, d, depth + 1); }
+    });
+    // números sueltos dentro de objetos-mapa (inventario, mercado, stats...)
+    ['money', 'inv', 'market', 'sat', 'stats'].forEach(k => {
+        const o = obj[k]; if (!o) return;
+        Object.keys(o).forEach(x => { if (typeof o[x] === 'number' && !Number.isFinite(o[x])) o[x] = 0; });
+    });
+    if (Array.isArray(obj.territories)) obj.territories.forEach(t => {
+        ['troops', 'elite', 'tanks'].forEach(x => { if (!Number.isFinite(t[x])) t[x] = 0; });
+        t.up = Object.assign({ fort: 0, lab: 0, bodega: 0 }, t.up || {});
+    });
+}
+
 Core.Save = {
     wiping: false,
     has() { try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } },
@@ -190,6 +212,8 @@ Core.Save = {
         }
         // Rutas cuyo vehículo ya no existe se descartan
         merged.routes = merged.routes.filter(r => merged.fleet.some(v => v.uid === r.vUid));
+        // saneamiento: ningún número queda en NaN/Infinity/undefined (partidas viejas, slots de la nube o códigos editados)
+        sanitizeState(merged, newState());
         State = merged;
         return true;
     },

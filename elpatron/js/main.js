@@ -24,6 +24,10 @@ Core.Game = {
         const hall = (Legacy.hall || []).slice(-4).reverse();
         setHTML('start-hall', hall.length ? '🏆 SALÓN DE LA FAMA<br>' + hall.map(h => `${h.emblem} <span style="color:${h.color}">${h.alias}</span> · ${h.cartel} · <span class="gold">${h.title}</span> (+${h.pts})`).join('<br>') : '');
         $('start-legacy').textContent = Legacy.points ? `👑 LEGADO: ${Legacy.points} puntos · ${Legacy.runs} retiro(s) · +${Legacy.points * 5}% a todo · Próxima: ${dynastyName(Legacy.runs)}, cárteles x${dynastyMult(Legacy.runs).toFixed(1)} más duros` : '';
+        Core.Cloud.init();
+        // al cargar un slot, la página se recarga y la partida arranca sola
+        let auto = false; try { auto = sessionStorage.getItem('ep_autocontinue') === '1'; sessionStorage.removeItem('ep_autocontinue'); } catch (e) { }
+        if (auto && has) setTimeout(() => this.continueGame(), 50);
         document.addEventListener('keydown', e => this.keys(e));
         document.addEventListener('pointerdown', () => Sfx.init(), { once: true });
         window.addEventListener('beforeunload', () => { if (this.running) Core.Save.save(); });
