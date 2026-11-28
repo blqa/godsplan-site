@@ -22,6 +22,12 @@
         // menús, ventanas y pantallas de la versión clásica (sin sus scripts)
         const frag = document.createDocumentFragment();
         [...doc.body.childNodes].forEach(n => { if (n.nodeName !== 'SCRIPT') frag.appendChild(document.importNode(n, true)); });
+        // los enlaces relativos de la clásica (./v1/, ./icon.svg...) se resuelven desde la clásica, no desde vN/
+        const base = root + 'index.html';
+        frag.querySelectorAll('[href],[src]').forEach(el => ['href', 'src'].forEach(k => {
+            const v = el.getAttribute(k);
+            if (v && !/^(https?:|mailto:|tel:|data:|javascript:|#|\/)/i.test(v)) el.setAttribute(k, new URL(v, base).href);
+        }));
         document.body.insertBefore(frag, document.body.firstChild);
         // el mismo motor, en el mismo orden
         const srcs = [...doc.querySelectorAll('script[src]')].map(s => new URL(s.getAttribute('src'), root + 'index.html').href);

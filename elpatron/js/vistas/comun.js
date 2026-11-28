@@ -43,7 +43,7 @@ const VK = {
     versionBar(cur) {
         document.querySelectorAll('#version-pick .vp-card').forEach(a => {
             const v = this.VERSIONS.find(x => x.id === a.dataset.ver);
-            a.href = '../' + v.path;
+            a.href = new URL('../' + v.path, location.href).href;
             a.classList.toggle('on', v.id === cur);
         });
     },
