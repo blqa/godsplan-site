@@ -126,21 +126,21 @@ const Config = {
     // ===== Cárteles rivales =====
     rivals: {
         halcones: {
-            id: 'halcones', name: 'Los Halcones', leader: 'La Dama', color: '#b46cff', hq: 7, startPower: 160,
+            id: 'halcones', name: 'Los Zetaz', leader: 'La Dama', color: '#b46cff', hq: 7, startPower: 160,
             aggression: 0.8, truceMult: 1.0, bossPower: 900,
             style: 'Sigilosos. Le pasan información a la policía y atacan tus plazas más débiles.',
             taunts: ['"Te veo, aunque tú no me veas."', '"Un halcón nunca ataca de frente, Patrón."', '"El Golfo de México es mío desde antes que nacieras."']
         },
         golfo: {
-            id: 'golfo', name: 'Cártel del Golfo Negro', leader: 'El Verdugo', color: '#ff4d4d', hq: 6, startPower: 300,
+            id: 'golfo', name: 'Cártel del Gulfo', leader: 'El Verdugo', color: '#ff4d4d', hq: 6, startPower: 300,
             aggression: 1.4, truceMult: 1.6, bossPower: 2200,
             style: 'Agresivos. Atacan seguido, con todo, y asaltan tus cargamentos en ruta.',
             taunts: ['"Voy a colgar tu nombre en un puente."', '"Aquí no se negocia. Aquí se pelea."', '"Mis hombres no conocen el miedo."']
         },
         serrana: {
-            id: 'serrana', name: 'La Familia Serrana', leader: 'Don Aurelio', color: '#ffae00', hq: 11, startPower: 280,
+            id: 'serrana', name: 'Cártel de Sirnaloa', leader: 'Don Aurelio', color: '#ffae00', hq: 11, startPower: 280,
             aggression: 0.6, truceMult: 0.5, bossPower: 4000,
-            style: 'La vieja guardia de la sierra. Dueños del Pacífico, inundan el mercado para tirar tus precios y prefieren negociar.',
+            style: 'La vieja guardia de la sierra de Sirnaloa. Dueños del Pacífico, inundan el mercado para tirar tus precios y prefieren negociar.',
             taunts: ['"Todo tiene un precio, muchacho. Hasta tú."', '"Cuarenta años en la capital. ¿Y tú quién eres?"', '"Los negocios se hacen en la mesa, no en la calle."']
         }
     },
@@ -277,7 +277,7 @@ Config.story = [
     },
     {
         title: 'La Riviera', goal: 'Conquista Cancún',
-        text: 'Cancún: turistas, hoteles y dólares en efectivo.\nLos Halcones la controlan desde su puerto en Veracruz.\nLa Dama no sabe que vas por ella.\n\nArma a tu gente y cruza la península.',
+        text: 'Cancún: turistas, hoteles y dólares en efectivo.\nLos Zetaz la controlan desde su puerto en Veracruz.\nLa Dama no sabe que vas por ella.\n\nArma a tu gente y cruza la península.',
         progress: () => [State.territories[9].owner === 'player' ? 1 : 0, 1], reward: { dirty: 100000 }
     },
     {
@@ -286,8 +286,8 @@ Config.story = [
         progress: () => [Object.keys(State.fronts).length, 2], reward: { clean: 100000 }
     },
     {
-        title: 'La Guerra del Puerto', goal: 'Derrota a Los Halcones (toma Veracruz)', boss: 'halcones',
-        text: 'Veracruz es la fortaleza de La Dama.\nPara llegar a ella tendrás que quitarle Cancún y Oaxaca... y luego entrar a su guarida.\n\nSi cae el puerto, caen Los Halcones.',
+        title: 'La Guerra del Puerto', goal: 'Derrota a Los Zetaz (toma Veracruz)', boss: 'halcones',
+        text: 'Veracruz es la fortaleza de La Dama.\nPara llegar a ella tendrás que quitarle Cancún y Oaxaca... y luego entrar a su guarida.\n\nSi cae el puerto, caen Los Zetaz.',
         progress: () => [State.rivals.halcones.defeated ? 1 : 0, 1], reward: { dirty: 1000000 }
     },
     {
@@ -296,7 +296,7 @@ Config.story = [
         progress: () => [State.territories[5].owner === 'player' ? 1 : 0, 1], reward: { dirty: 2000000 }
     },
     {
-        title: 'Golfo en Llamas', goal: 'Derrota al Cártel del Golfo Negro (toma Monterrey)', boss: 'golfo',
+        title: 'Golfo en Llamas', goal: 'Derrota al Cártel del Gulfo (toma Monterrey)', boss: 'golfo',
         text: 'El Verdugo no negocia. Solo entiende la fuerza.\nMonterrey es su trono de acero.\n\nVe preparado: tanques, élite y todo lo que tengas.',
         progress: () => [State.rivals.golfo.defeated ? 1 : 0, 1], reward: { dirty: 10000000 }
     },
@@ -306,7 +306,7 @@ Config.story = [
         progress: () => [Object.values(State.shadow).filter(Boolean).length, 3], reward: { clean: 20000000 }
     },
     {
-        title: 'El Último Patriarca', goal: 'Derrota a La Familia Serrana (toma CDMX)', boss: 'serrana',
+        title: 'El Último Patriarca', goal: 'Derrota al Cártel de Sirnaloa (toma CDMX)', boss: 'serrana',
         text: 'Don Aurelio bajó de la sierra hace cuarenta años y desde entonces manda en la capital.\nPresidentes van y vienen; él se queda.\n\nHasta hoy.',
         progress: () => [State.rivals.serrana.defeated ? 1 : 0, 1], reward: { dirty: 100000000 }
     },

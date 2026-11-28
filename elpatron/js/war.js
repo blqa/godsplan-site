@@ -848,15 +848,15 @@ Core.Rivals = {
                 // tu élite y tu Comandante pueden repeler el asalto
                 const escort = Math.min(0.85, State.elite * 0.05 + 0.15 * Core.HR.eff('Comandante') + 0.6 * Core.War.escortFactor());
                 if (Math.random() < escort) {
-                    UI.notify('🛡️ Tu escolta repelió un asalto del Golfo Negro a uno de tus convoyes.');
+                    UI.notify('🛡️ Tu escolta repelió un asalto del Cártel del Gulfo a uno de tus convoyes.');
                     Sfx.burst(3);
                 } else {
                     const r = Core.Logistics.hijack();
                     if (r) {
                         State.stats.hijacked = (State.stats.hijacked || 0) + 1;
-                        UI.notify(`¡El Golfo Negro asaltó tu cargamento de ${fmt(r.amount)} kg (${r.name})! Contrata élite para escoltar.`, 'bad');
+                        UI.notify(`¡El Cártel del Gulfo asaltó tu cargamento de ${fmt(r.amount)} kg (${r.name})! Contrata élite para escoltar.`, 'bad');
                         Core.News.add(`Comando armado asalta convoy en carretera federal; se llevan ${fmt(r.amount)} kg`, 'bad');
-                        Core.Vendetta.add({ kind: 'convoy', rid: 'golfo', sev: 1 + (r.val > 1e6 ? 1 : 0), loot: r.val || 0, title: `El Golfo Negro asaltó "${r.name}"`, desc: `Se llevaron ${fmt(r.amount)} kg en la carretera.` });
+                        Core.Vendetta.add({ kind: 'convoy', rid: 'golfo', sev: 1 + (r.val > 1e6 ? 1 : 0), loot: r.val || 0, title: `El Cártel del Gulfo asaltó "${r.name}"`, desc: `Se llevaron ${fmt(r.amount)} kg en la carretera.` });
                         Sfx.burst(4);
                     }
                 }
@@ -864,7 +864,7 @@ Core.Rivals = {
             if (rid === 'serrana' && Math.random() < 0.03) {
                 const k = pick(Config.productKeys.filter(x => State.ops[x] > 0));
                 State.sat[k] += 0.6;
-                Core.News.add(`La Familia Serrana inunda el mercado de ${Config.products[k].name.toLowerCase()}: el precio se desploma`);
+                Core.News.add(`El Cártel de Sirnaloa inunda el mercado de ${Config.products[k].name.toLowerCase()}: el precio se desploma`);
             }
 
             // ¿Ataca al jugador?
@@ -874,7 +874,7 @@ Core.Rivals = {
                 Core.War.neighbors(t.id).some(n => State.territories[n].owner === rid));
             if (!targets.length) return;
             targets.sort((a, b) => Core.War.defenseOf(a.id) - Core.War.defenseOf(b.id));
-            const target = rid === 'halcones' ? targets[0] : pick(targets); // los Halcones van por la más débil
+            const target = rid === 'halcones' ? targets[0] : pick(targets); // Los Zetaz van por la más débil
             const ratio = R.power / Math.max(30, Core.War.defenseOf(target.id));
             let chance = clamp(0.012 * C.aggression * ratio * (1 + 0.25 * (State.dynasty || 0)) * (1 + 0.5 * Core.War.defeatedCount()), 0, 0.15);
             if (State.heat > State.heatCap * 0.5) chance *= 1.5;

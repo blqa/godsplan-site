@@ -35,7 +35,7 @@ Config.choices = [
         at: 4, title: '🏳️ LOS HALCONES SE RINDEN',
         text: () => 'En Cancún capturaste a 40 halcones de La Dama. Están de rodillas en la playa, esperando lo que digas.',
         a: { text: 'Reclutarlos (+40 sicarios)', fx: () => { State.army += 40; return '40 hombres nuevos que te deben la vida. Algunos hasta te prenden veladoras.'; }, honor: 1 },
-        b: { text: 'Fusilarlos (Los Halcones −25% poder)', fx: () => { const R = State.rivals.halcones; if (R && !R.defeated) R.power = Math.round(R.power * 0.75); Core.Heat.add(15); Core.News.add('Hallan 40 cuerpos en una playa de Cancún', 'bad', true); return 'El mensaje llegó hasta La Dama. Sus hombres ya no quieren pelear contra ti.'; }, honor: -1 }
+        b: { text: 'Fusilarlos (Los Zetaz −25% poder)', fx: () => { const R = State.rivals.halcones; if (R && !R.defeated) R.power = Math.round(R.power * 0.75); Core.Heat.add(15); Core.News.add('Hallan 40 cuerpos en una playa de Cancún', 'bad', true); return 'El mensaje llegó hasta La Dama. Sus hombres ya no quieren pelear contra ti.'; }, honor: -1 }
     },
     {
         at: 5, title: '🎉 LA FERIA DEL PUEBLO',
