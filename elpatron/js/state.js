@@ -1,7 +1,8 @@
 /* =========================================================
    Estado del juego, utilidades y guardado
    ========================================================= */
-const SAVE_KEY = 'elpatron_save_v32';
+// cada versión (clasica, v1, v2, v3) tiene su propia partida en curso; el Legado es compartido
+const SAVE_KEY = 'elpatron_save_v32' + (window.EP_VERSION && window.EP_VERSION !== 'clasica' ? '_' + window.EP_VERSION : '');
 const LEGACY_KEY = 'elpatron_legacy';
 
 /* ---------- Utilidades ---------- */

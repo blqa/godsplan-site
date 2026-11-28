@@ -669,9 +669,24 @@ Core.War = {
         const rect = this.canvas.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width * MAP_W;
         const y = (e.clientY - rect.top) / rect.height * MAP_H;
-        let best = null, bd = 26;
-        Config.territories.forEach(t => { const d = Math.hypot(t.x - x, t.y - y); if (d < bd) { bd = d; best = t.id; } });
+        const best = this.pickAt(x, y);
         if (best !== null) { Sfx.click(); this.select(best); }
+    },
+    // plaza más cercana a un punto del mapa (coordenadas 600x430)
+    pickAt(x, y, radius = 26) {
+        let best = null, bd = radius;
+        Config.territories.forEach(t => { const d = Math.hypot(t.x - x, t.y - y); if (d < bd) { bd = d; best = t.id; } });
+        return best;
+    },
+    // convoy más cercano a un punto del mapa
+    routeAt(x, y, radius = 18) {
+        let best = null, bd = radius;
+        State.routes.forEach(r => {
+            if (r.fx === undefined) return;
+            const p = Math.min(1, r.progress / 100), rx = r.fx + (r.tx - r.fx) * p, ry = r.fy + (r.ty - r.fy) * p;
+            const d = Math.hypot(rx - x, ry - y); if (d < bd) { bd = d; best = r; }
+        });
+        return best;
     },
     boom(x, y, size = 1) {
         for (let i = 0; i < 26 * size; i++) {
@@ -682,13 +697,19 @@ Core.War = {
     },
     draw() {
         if (!this.ctx || !isVisible('war')) return;
-        const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height;
+        const W = this.canvas.width, H = this.canvas.height;
         if (!W) { this.resize(); return; }
-        this.t += 1 / 60;
         const { sx, sy } = this.toScreen();
-        const s = Math.min(sx, sy);
-        const X = x => x * sx, Y = y => y * sy;
-        ctx.clearRect(0, 0, W, H);
+        this.ctx.clearRect(0, 0, W, H);
+        this.renderMap(this.ctx, { ox: 0, oy: 0, sx, sy });
+    },
+    // Dibuja el mapa en cualquier canvas. v = { ox, oy, sx, sy } (origen y escala en pixeles).
+    // Lo usan el menú Guerra y las versiones v1/v2/v3 (mapa a pantalla completa, zoom...).
+    tick() { const n = performance.now(); if (n - (this._lt || 0) > 8) { this.t += 1 / 60; this._lt = n; this._step = true; } else this._step = false; },
+    renderMap(ctx, v) {
+        this.tick();
+        const sx = v.sx, sy = v.sy, s = Math.min(sx, sy) * (v.label || 1);
+        const X = x => v.ox + x * sx, Y = y => v.oy + y * sy;
 
         // silueta
         MAP_SHAPES.forEach(shape => {
@@ -770,11 +791,11 @@ Core.War = {
         this.particles = this.particles.filter(p => p.life > 0);
         this.particles.forEach(p => {
             if (p.ring) {
-                p.r += (p.max - p.r) * 0.12; p.life -= 0.03;
+                if (this._step) { p.r += (p.max - p.r) * 0.12; p.life -= 0.03; }
                 ctx.strokeStyle = `rgba(255,180,80,${p.life})`; ctx.lineWidth = 3 * s;
                 ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), p.r * s, 0, Math.PI * 2); ctx.stroke();
             } else {
-                p.x += p.vx; p.y += p.vy; p.vx *= 0.94; p.vy *= 0.94; p.life -= 0.022;
+                if (this._step) { p.x += p.vx; p.y += p.vy; p.vx *= 0.94; p.vy *= 0.94; p.life -= 0.022; }
                 ctx.globalAlpha = Math.max(0, p.life);
                 ctx.fillStyle = p.color;
                 ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), p.r * s, 0, Math.PI * 2); ctx.fill();
