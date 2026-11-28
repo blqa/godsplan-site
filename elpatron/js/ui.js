@@ -79,7 +79,7 @@ const UI = {
         switch (id) {
             case 'ops': Core.Ops.render(); break;
             case 'story': Core.Story.render(); break;
-            case 'war': Core.War.resize(); Core.War.renderPanel(); break;
+            case 'war': Core.War.resize(); Core.War.refresh(true); break;
             case 'rivals': Core.Rivals.render(); Core.Contacts.render(); break;
             case 'logistics': UI.setBadge('logistics', null); Core.Logistics.updateUI(); Core.Market.render(); Core.Logistics.renderLog(); break;
             case 'assets': Core.Assets.renderStore(); break;
@@ -103,7 +103,7 @@ const UI = {
         else if (id === 'finance') Core.Finance.renderLoan();
         else if (id === 'assets') Core.Assets.renderFleet();
         else if (id === 'rivals') { Core.Rivals.render(); Core.Contacts.render(); }
-        else if (id === 'war') Core.War.renderPanel();
+        else if (id === 'war') Core.War.refresh(false);
         else if (id === 'story') Core.Story.render();
         else if (id === 'ending') Core.Legacy.render();
         else if (id === 'ops' && State.ticks % 50 === 0) Core.Ops.render();
@@ -164,14 +164,15 @@ const UI = {
         if (!inc) { box.classList.add('hidden'); return; }
         const C = Config.rivals[inc.rid], c = Config.territories[inc.target];
         const def = Core.War.defenseOf(inc.target);
-        const withAll = (20 + (State.territories[inc.target].troops + State.army) * State.armyPower * 1.5 + State.territories[inc.target].tanks * 300) * (1 + 0.3 * State.territories[inc.target].up.fort) * Core.Mods.defense();
+        const tt = State.territories[inc.target];
+        const withAll = Core.War.defenseWith(inc.target, tt.troops + State.army, (tt.elite || 0) + State.elite, tt.tanks);
         const wasHidden = box.classList.contains('hidden');
         box.classList.remove('hidden');
         setText('aa-title', `${C.leader.toUpperCase()} ATACA ${c.name.toUpperCase()}`);
         setText('aa-desc', `${C.name} viene con ${fmt(inc.power)} de fuerza.${State.incoming.length > 1 ? ` (+${State.incoming.length - 1} ataque más)` : ''}`);
         setText('aa-timer', Math.ceil(inc.left));
         $('aa-bar-fill').style.width = (inc.left / inc.total * 100) + '%';
-        setHTML('aa-stats', `Tu defensa: <b class="${def >= inc.power ? 'green' : 'red'}">${fmt(def)}</b> · con refuerzos: <b class="${withAll >= inc.power ? 'green' : 'red'}">${fmt(withAll)}</b> · Sicarios libres: ${fmt(State.army)}`);
+        setHTML('aa-stats', `Tu defensa: <b class="${def >= inc.power ? 'green' : 'red'}">${fmt(def)}</b> · con refuerzos: <b class="${withAll >= inc.power ? 'green' : 'red'}">${fmt(withAll)}</b> · Libres: ${fmt(State.army)} sicarios + ${fmt(State.elite)} élite`);
         if (wasHidden || $('aa-actions').dataset.inc != inc.id) {
             $('aa-actions').dataset.inc = inc.id;
             $('aa-actions').innerHTML = `
@@ -197,8 +198,8 @@ const UI = {
         setText('inv-fleet', `${free} / ${State.fleet.length}`);
         setText('inv-routes', State.routes.length);
         setText('inv-cap', fmt(State.fleet.reduce((s, v) => s + Core.Mods.vehicleCap(v.type), 0)) + ' kg');
-        setText('inv-army', fmt(Core.War.totalTroops()));
-        setText('inv-elite', fmt(State.elite));
+        setText('inv-army', fmt(Core.War.totalSic()));
+        setText('inv-elite', fmt(Core.War.totalElite()));
         setText('inv-lt', `${Core.HR.activeCount()}/${State.lieutenants.length}`);
         setText('inv-land', `${Core.War.owned().length}/${Config.territories.length}`);
         setText('val-offshore', fmt(State.money.offshore));

@@ -290,7 +290,7 @@ Config.achievements = [
     { id: 'fleet_30', name: 'Flota Inmensa', desc: 'Ten 30 vehículos', check: () => State.fleet.length >= 30 },
     { id: 'army_100', name: 'Ejército Privado', desc: 'Ten 100 sicarios libres', check: () => State.army >= 100 },
     { id: 'army_500', name: 'General de Guerra', desc: 'Ten 500 tropas en total', check: () => Core.War.totalTroops() >= 500 },
-    { id: 'elite_squad', name: 'Escuadrón de la Muerte', desc: 'Ten 10 de élite', check: () => State.elite >= 10 },
+    { id: 'elite_squad', name: 'Escuadrón de la Muerte', desc: 'Ten 10 de élite', check: () => Core.War.totalElite() >= 10 },
     { id: 'high_roller', name: 'Lavado Masivo', desc: 'Lava $1M en total', check: () => State.stats.laundered >= 1e6 },
     { id: 'clean_10m', name: 'Mano Limpia', desc: 'Acumula $10M limpios', check: () => State.money.clean >= 1e7 },
     { id: 'map_control', name: 'Dueño del País', desc: 'Controla los 14 territorios', check: () => ownedCount() >= 14 },

@@ -17,33 +17,95 @@ Core.War = {
         return Config.edges.filter(e => e[0] === id || e[1] === id).map(e => e[0] === id ? e[1] : e[0]);
     },
     owned() { return State.territories.filter(t => t.owner === 'player'); },
-    totalTroops() { return State.army + State.elite + State.territories.reduce((s, t) => s + (t.owner === 'player' ? t.troops : 0), 0); },
-    recruitCost(n) {
-        const base = this.totalTroops();
-        let c = 0;
-        for (let i = 0; i < n; i++) c += 1000 + (base + i) * 50;
-        return c;
+
+    /* ===================== EJÉRCITO ===================== */
+    // Unidades: el sicario escala con tu armamento; la élite pega fuerte, casi no muere y cobra en limpio
+    U: {
+        sic: { cost: 1000, upkeep: 20, atk: 1, def: 1.5 },
+        eli: { cost: 25000, upkeep: 250, atk: 15, def: 12 }
     },
+    totalSic() { return State.army + this.owned().reduce((s, t) => s + t.troops, 0); },
+    totalElite() { return State.elite + this.owned().reduce((s, t) => s + (t.elite || 0), 0); },
+    totalTroops() { return this.totalSic() + this.totalElite(); },
+    // Cuartel: cuántos hombres puedes mantener (más plazas y fortalezas = más espacio)
+    capacity() { return 150 + this.owned().length * 100 + this.owned().reduce((s, t) => s + t.up.fort * 50, 0); },
+    room() { return Math.max(0, this.capacity() - this.totalTroops()); },
+    payrollCost() { return { dirty: this.totalSic() * this.U.sic.upkeep, clean: this.totalElite() * this.U.eli.upkeep }; },
+    weaponCost() { return Math.floor(5000 * Math.pow(1.5, State.weaponsLvl || 0)); },
+
     recruit(n) {
-        if (!Core.pay('dirty', this.recruitCost(n))) return;
+        const room = this.room();
+        if (n === 'max') n = Math.min(room, Math.floor(State.money.dirty / this.U.sic.cost));
+        n = Math.min(n, room);
+        if (room <= 0) return UI.notify('Tu cuartel está lleno. Conquista plazas o construye fortalezas para tener más espacio.', 'bad');
+        if (n <= 0) return UI.notify('No te alcanza el dinero sucio.', 'bad');
+        if (!Core.pay('dirty', n * this.U.sic.cost)) return;
         State.army += n;
         Sfx.gun();
         UI.notify(`Reclutaste ${n} sicarios.`);
-        this.renderPanel();
+        this.refresh(true);
     },
-    recruitElite() {
-        if (!Core.pay('clean', 25000)) return;
-        State.elite++;
+    recruitElite(n) {
+        const room = this.room();
+        if (n === 'max') n = Math.min(room, Math.floor(State.money.clean / this.U.eli.cost));
+        n = Math.min(n, room);
+        if (room <= 0) return UI.notify('Tu cuartel está lleno.', 'bad');
+        if (n <= 0) return UI.notify('No te alcanza el dinero limpio.', 'bad');
+        if (!Core.pay('clean', n * this.U.eli.cost)) return;
+        State.elite += n;
         Sfx.burst(2);
-        UI.notify('Fuerzas especiales contratadas.');
+        UI.notify(`${n} de Fuerzas Especiales se unieron.`);
+        this.refresh(true);
+    },
+    buyWeapons() {
+        if (!Core.pay('clean', this.weaponCost())) return;
+        State.weaponsLvl = (State.weaponsLvl || 0) + 1;
+        State.armyPower += 0.5;
+        Sfx.gun();
+        UI.notify(`Armamento nivel ${State.weaponsLvl}: cada sicario ahora vale x${State.armyPower.toFixed(1)}.`);
+        this.refresh(true);
+    },
+    // Nómina cada minuto. Si no alcanza, desertan.
+    payroll() {
+        const c = this.payrollCost();
+        if (c.dirty > 0) {
+            if (State.money.dirty >= c.dirty) State.money.dirty -= c.dirty;
+            else { const lost = Math.ceil(State.army * 0.1); State.army -= lost; if (lost) UI.notify(`Sin nómina: desertaron ${lost} sicarios. Necesitas $${fmt(c.dirty)} sucio por minuto.`, 'bad'); }
+        }
+        if (c.clean > 0) {
+            if (State.money.clean >= c.clean) State.money.clean -= c.clean;
+            else { const lost = Math.ceil(State.elite * 0.1); State.elite -= lost; if (lost) UI.notify(`Sin nómina: ${lost} de élite se fueron. Necesitan $${fmt(c.clean)} limpio por minuto.`, 'bad'); }
+        }
     },
 
-    attackPower() {
-        return ((State.army * State.armyPower) + State.elite * 2 + State.military[7] * 50) * Core.Mods.attack();
+    /* ----- poder ----- */
+    power(sic, eli, withMlrs = true) {
+        return (sic * State.armyPower * this.U.sic.atk + eli * this.U.eli.atk + (withMlrs ? State.military[7] * 50 : 0)) * Core.Mods.attack();
     },
-    defenseOf(id) {
+    attackPower() { return this.power(State.army, State.elite); },
+    defenseWith(id, sic, eli, tanks) {
         const t = State.territories[id];
-        return (20 + t.troops * State.armyPower * 1.5 + t.tanks * 300) * (1 + 0.3 * t.up.fort) * Core.Mods.defense();
+        return (20 + sic * State.armyPower * this.U.sic.def + eli * this.U.eli.def + tanks * 300) * (1 + 0.3 * t.up.fort) * Core.Mods.defense();
+    },
+    defenseOf(id) { const t = State.territories[id]; return this.defenseWith(id, t.troops, t.elite || 0, t.tanks); },
+    // Ataque más fuerte que te puede llegar a esa plaza (0 si nadie colinda)
+    threat(id) {
+        if (id === Config.baseId) return 0;
+        let max = 0;
+        this.neighbors(id).forEach(n => {
+            const o = State.territories[n].owner, R = State.rivals[o];
+            if (R && !R.defeated) max = Math.max(max, R.power * 0.35);
+        });
+        return max;
+    },
+    status(id) {
+        if (id === Config.baseId) return { txt: '🏠 Base', color: '#8fbc8f', key: 'base' };
+        const th = this.threat(id);
+        if (!th) return { txt: 'Sin frontera', color: '#777', key: 'inner' };
+        const d = this.defenseOf(id);
+        if (d >= th) return { txt: 'Segura', color: '#8f8', key: 'ok' };
+        if (d >= th * 0.6) return { txt: 'En riesgo', color: '#fc0', key: 'risk' };
+        return { txt: 'PELIGRO', color: '#f55', key: 'danger' };
     },
     enemyDefense(id) {
         const c = Config.territories[id], t = State.territories[id];
@@ -62,26 +124,48 @@ Core.War = {
         if (!this.neighbors(id).some(n => State.territories[n].owner === 'player')) return false;
         return !this.hqLocked(id);
     },
-    winChance(id) {
-        const my = this.attackPower(), en = this.enemyDefense(id);
+    chance(my, en) {
         if (my <= 0) return 0;
-        // mi poder varía entre 85% y 115%
-        return clamp((my * 1.15 - en) / (my * 0.3), 0, 1);
+        return clamp((my * 1.15 - en) / (my * 0.3), 0, 1); // tu poder varía entre 85% y 115%
+    },
+
+    /* ----- plan de ataque: cuántos mandas y cuántos se quedan si ganas ----- */
+    plan: { sic: null, eli: null, keep: 0.5 },
+    planned() {
+        const sic = this.plan.sic === null ? State.army : Math.min(this.plan.sic, State.army);
+        const eli = this.plan.eli === null ? State.elite : Math.min(this.plan.eli, State.elite);
+        return { sic, eli };
+    },
+    setPlan(kind, val) {
+        if (kind === 'keep') this.plan.keep = +val;
+        else this.plan[kind] = +val;
+        this.updatePlanUI();
+    },
+    updatePlanUI() {
+        const id = this.selected;
+        if (id === null || !$('plan-power')) return;
+        const p = this.planned();
+        const my = this.power(p.sic, p.eli), en = this.enemyDefense(id), ch = this.chance(my, en);
+        setText('plan-sic', fmt(p.sic)); setText('plan-eli', fmt(p.eli));
+        setText('plan-power', fmt(my));
+        const c = $('plan-chance'); c.textContent = Math.round(ch * 100) + '%'; c.style.color = ch > 0.6 ? '#8f8' : ch > 0.2 ? '#fc0' : '#f55';
+        setText('plan-keep-txt', `Si ganas se quedan ~${Math.round(p.sic * 0.9 * this.plan.keep)} sicarios y ${Math.round(p.eli * this.plan.keep)} de élite a cuidar la plaza`);
     },
 
     launchAttack() {
         const id = this.selected;
         if (id === null) return;
         const t = State.territories[id], c = Config.territories[id];
+        const p = this.planned();
         if (Core.Game.isFrozen()) return UI.notify('Operaciones congeladas por el Plan de Escape.', 'bad');
         if (!this.neighbors(id).some(n => State.territories[n].owner === 'player')) return UI.notify('No hay frontera con esa plaza.', 'bad');
         if (this.hqLocked(id)) return UI.notify('Primero quítale todas sus otras plazas.', 'bad');
-        if (State.army < 5) return UI.notify('Necesitas mínimo 5 sicarios libres.', 'bad');
+        if (p.sic + p.eli < 5) return UI.notify('Manda mínimo 5 hombres (sicarios + élite).', 'bad');
         if (c.hq) {
             const R = Config.rivals[t.owner];
             Sfx.alert();
             UI.modal(`⚔️ ${R.leader.toUpperCase()} TE ESPERA`,
-                `${pick(R.taunts)}\n\nEstás por entrar a la guarida de ${R.name}.\nDefensa del jefe: ${fmt(this.enemyDefense(id))}\nTu ataque: ${fmt(this.attackPower())}\nProbabilidad: ${Math.round(this.winChance(id) * 100)}%`,
+                `${pick(R.taunts)}\n\nEstás por entrar a la guarida de ${R.name}.\nDefensa del jefe: ${fmt(this.enemyDefense(id))}\nTu ataque: ${fmt(this.power(p.sic, p.eli))} (${fmt(p.sic)} sicarios + ${fmt(p.eli)} élite)\nProbabilidad: ${Math.round(this.chance(this.power(p.sic, p.eli), this.enemyDefense(id)) * 100)}%`,
                 [{ text: '¡AL ATAQUE!', style: 'btn-red', cb: () => this.doAttack(id) }, { text: 'Retirarse', cb: () => { } }]);
             return;
         }
@@ -90,47 +174,94 @@ Core.War = {
     doAttack(id) {
         const t = State.territories[id], c = Config.territories[id];
         const prevOwner = t.owner;
-        const my = this.attackPower() * (0.85 + Math.random() * 0.3);
+        const { sic, eli } = this.planned();
+        const my = this.power(sic, eli) * (0.85 + Math.random() * 0.3);
         const en = this.enemyDefense(id);
         State.military[7] = 0; // los MLRS se gastan
         Core.Heat.add(15);
         Sfx.burst(6);
         this.boom(c.x, c.y, 1.3);
-        if (my > en) {
-            State.army -= Math.floor(State.army * (0.05 + Math.random() * 0.1));
+        const won = my > en;
+        // bajas: la élite casi no muere
+        const sicLost = Math.floor(sic * (won ? 0.05 + Math.random() * 0.1 : 0.15 + Math.random() * 0.15));
+        let eliLost = 0;
+        for (let i = 0; i < eli; i++) if (Math.random() < (won ? 0.02 : 0.08)) eliLost++;
+        State.army -= sicLost; State.elite -= eliLost;
+        const lossTxt = `Bajas: ${sicLost} sicarios${eliLost ? ` y ${eliLost} de élite` : ''}.`;
+        if (won) {
+            const gs = Math.round((sic - sicLost) * this.plan.keep), ge = Math.round((eli - eliLost) * this.plan.keep);
             t.owner = 'player';
-            t.troops = Math.floor(State.army / 2);
-            State.army -= t.troops;
-            t.tanks = 0;
+            t.troops = gs; t.elite = ge; t.tanks = 0;
+            State.army -= gs; State.elite -= ge;
             t.up = { fort: 0, lab: 0, bodega: 0 };
             State.stats.conquests++;
             const R = State.rivals[prevOwner];
             if (R) R.power = Math.max(30, R.power - c.power * 0.3);
-            UI.notify(`¡${c.name.toUpperCase()} CONQUISTADA!`);
+            UI.notify(`¡${c.name.toUpperCase()} CONQUISTADA! ${lossTxt} Se quedan ${gs} sicarios y ${ge} de élite.`);
             Core.News.add(`Balacera en ${c.name}: un nuevo grupo toma el control de la plaza`, 'bad', true);
             setTimeout(() => Sfx.explosion(), 300);
             if (c.hq) Core.Rivals.defeat(prevOwner);
         } else {
-            State.army -= Math.floor(State.army * (0.15 + Math.random() * 0.15));
-            UI.notify(`Ataque a ${c.name} fallido. Nos rechazaron.`, 'bad');
+            UI.notify(`Ataque a ${c.name} fallido. ${lossTxt}`, 'bad');
             State.lieutenants.forEach(l => l.loyalty = Math.max(0, l.loyalty - 8));
             Core.News.add(`Enfrentamiento en ${c.name} deja varios muertos; el grupo local resiste`, 'bad');
         }
+        this.plan.sic = null; this.plan.eli = null;
         this.calcBonuses();
-        this.renderPanel();
+        this.refresh(true);
     },
 
-    modifyTroops(n) {
-        const id = this.selected;
-        if (id === null || State.territories[id].owner !== 'player') return;
+    /* ----- mover tropas ----- */
+    move(id, kind, n) {
         const t = State.territories[id];
-        if (n === 'all') n = State.army;
-        if (n === '-all') n = -t.troops;
-        if (n > 0) { const m = Math.min(n, State.army); State.army -= m; t.troops += m; }
-        else { const m = Math.min(-n, t.troops); t.troops -= m; State.army += m; }
+        if (!t || t.owner !== 'player') return;
+        const pool = kind === 'eli' ? 'elite' : 'army', here = kind === 'eli' ? 'elite' : 'troops';
+        t[here] = t[here] || 0;
+        if (n === 'all') n = State[pool];
+        if (n === '-all') n = -t[here];
+        if (n > 0) { const m = Math.min(n, State[pool]); State[pool] -= m; t[here] += m; }
+        else { const m = Math.min(-n, t[here]); t[here] -= m; State[pool] += m; }
         Sfx.click();
-        this.renderPanel();
+        this.refresh(true);
     },
+    modifyTroops(n) { if (this.selected !== null) this.move(this.selected, 'sic', n); },
+    // Regresa a la reserva las tropas de plazas que nadie puede atacar
+    withdrawSafe() {
+        let s = 0, e = 0;
+        this.owned().forEach(t => {
+            if (this.threat(t.id) > 0) return;
+            s += t.troops; e += t.elite || 0;
+            State.army += t.troops; State.elite += t.elite || 0;
+            t.troops = 0; t.elite = 0;
+        });
+        UI.notify(s + e ? `Regresaron a la reserva ${fmt(s)} sicarios y ${fmt(e)} de élite de plazas seguras.` : 'No hay tropas en plazas sin frontera.');
+        this.refresh(true);
+    },
+    // Reparte la reserva entre las plazas con frontera según el peligro de cada una
+    autoDistribute() {
+        const reserve = +($('org-reserve') ? $('org-reserve').value : 0.3);
+        let sic = Math.floor(State.army * (1 - reserve)), eli = Math.floor(State.elite * (1 - reserve));
+        const front = this.owned().filter(t => this.threat(t.id) > 0);
+        if (!front.length) return UI.notify('Ninguna de tus plazas tiene frontera con un rival.', 'bad');
+        const deficit = id => this.threat(id) * 1.15 - this.defenseOf(id);
+        let moved = 0;
+        // de 5 en 5 sicarios a la plaza que más lo necesita; luego la élite de 1 en 1
+        while (sic > 0) {
+            const worst = front.slice().sort((a, b) => deficit(b.id) - deficit(a.id))[0];
+            if (deficit(worst.id) <= 0) break;
+            const m = Math.min(5, sic);
+            worst.troops += m; State.army -= m; sic -= m; moved += m;
+        }
+        while (eli > 0) {
+            const worst = front.slice().sort((a, b) => deficit(b.id) - deficit(a.id))[0];
+            if (deficit(worst.id) <= 0) break;
+            worst.elite = (worst.elite || 0) + 1; State.elite--; eli--; moved++;
+        }
+        const still = front.filter(t => deficit(t.id) > 0).length;
+        UI.notify(moved ? `Tropas repartidas (${fmt(moved)} hombres).${still ? ` ${still} plaza(s) siguen débiles: recluta más.` : ' Todas tus fronteras están cubiertas.'}` : 'Tus fronteras ya están cubiertas.', still ? 'bad' : 'good');
+        this.refresh(true);
+    },
+
     deployTank() {
         const id = this.selected;
         if (id === null || State.territories[id].owner !== 'player') return UI.notify('Selecciona una de tus plazas en el mapa.', 'bad');
@@ -139,7 +270,7 @@ Core.War = {
         State.territories[id].tanks++;
         Sfx.engine();
         UI.notify(`T-90 desplegado en ${Config.territories[id].name}.`);
-        this.renderPanel();
+        this.refresh(true);
     },
     upgradeCost(type, lvl) { return Math.floor(Config.territoryUpgrades.find(u => u.id === type).base * Math.pow(lvl + 1, 1.8)); },
     upgrade(type) {
@@ -151,7 +282,7 @@ Core.War = {
         t.up[type]++;
         Sfx.levelup();
         this.calcBonuses();
-        this.renderPanel();
+        this.refresh(true);
     },
 
     calcBonuses() {
@@ -181,14 +312,47 @@ Core.War = {
             .map(r => `<div><i style="background:${r.color}"></i>${r.name}</div>`).join(''));
     },
 
-    select(id) { this.selected = id; this.renderPanel(); },
-    renderPanel() {
+    select(id) { this.selected = id; this.plan.sic = null; this.plan.eli = null; this.renderPanel(); },
+    // Actualiza todo lo de la pestaña Guerra. force = redibuja también el panel de la plaza.
+    refresh(force) {
+        this.renderArmy();
+        this.renderOrg();
+        const p = $('troop-controls');
+        if (force || !p || !p.contains(document.activeElement)) this.renderPanel();
+    },
+    renderArmy() {
+        const c = this.payrollCost();
         setText('val-army', fmt(State.army));
         setText('val-elite', fmt(State.elite));
         setText('val-attack', fmt(this.attackPower()));
-        setText('recruit-cost', fmt(this.recruitCost(1)));
+        setText('val-barracks', `${fmt(this.totalTroops())} / ${fmt(this.capacity())}`);
+        setText('val-payroll', `$${fmt(c.dirty)} sucio + $${fmt(c.clean)} limpio por minuto`);
+        setText('val-armypower', 'x' + State.armyPower.toFixed(1));
+        setText('btn-weapons', `MEJORAR ARMAMENTO (NV ${(State.weaponsLvl || 0) + 1}) · $${fmt(this.weaponCost())} LIMPIO`);
         setText('btn-deploy-tanks', `T-90 (${State.military[6]}) · DESPLEGAR`);
         setText('mlrs-count', `MLRS LISTOS: ${State.military[7]}`);
+    },
+    renderOrg() {
+        const el = $('army-org');
+        if (!el) return;
+        const rows = this.owned().slice().sort((a, b) => this.threat(b.id) - this.threat(a.id));
+        const danger = rows.filter(t => this.status(t.id).key === 'danger').length;
+        setText('org-alert', danger ? `⚠️ ${danger} plaza(s) en PELIGRO` : '');
+        el.innerHTML = rows.map(t => {
+            const c = Config.territories[t.id], st = this.status(t.id);
+            const rivals = [...new Set(this.neighbors(t.id).map(n => State.territories[n].owner).filter(o => State.rivals[o] && !State.rivals[o].defeated))];
+            const th = this.threat(t.id);
+            return `<tr>
+                <td><b class="white" style="cursor:pointer;" onclick="Core.War.select(${t.id})">${c.name}</b><div class="tiny" style="white-space:normal;">${rivals.map(r => `<span style="color:${Config.rivals[r].color}">●</span>`).join(' ') || '—'}</div></td>
+                <td><span style="color:${st.color}">${st.txt}</span>${th ? `<div class="tiny muted">ataque máx. ~${fmt(th)}</div>` : ''}</td>
+                <td class="gold">${fmt(this.defenseOf(t.id))}</td>
+                <td>${fmt(t.troops)} <span class="org-btns"><button onclick="Core.War.move(${t.id},'sic',-10)">-10</button><button onclick="Core.War.move(${t.id},'sic',10)">+10</button><button onclick="Core.War.move(${t.id},'sic','-all')">0</button></span></td>
+                <td>${fmt(t.elite || 0)} <span class="org-btns"><button onclick="Core.War.move(${t.id},'eli',-1)">-1</button><button onclick="Core.War.move(${t.id},'eli',1)">+1</button></span></td>
+                <td>${t.tanks || 0}</td></tr>`;
+        }).join('');
+    },
+    renderPanel() {
+        this.renderArmy();
         const p = $('troop-controls');
         if (!p) return;
         const id = this.selected;
@@ -202,16 +366,26 @@ Core.War = {
             <div class="chip green">${c.bonus.text}</div>
             ${inc ? `<div class="red tiny" style="margin-top:6px;">⚔️ ¡BAJO ATAQUE! ${Math.ceil(inc.left)}s</div>` : ''}`;
         if (t.owner === 'player') {
-            if (id === Config.baseId) html += `<p class="tiny green" style="margin-top:8px;">🏠 Es tu base: los cárteles nunca la atacan. No necesitas dejar tropas aquí; úsalas para atacar.</p>`;
+            const st = this.status(id), th = this.threat(id);
+            if (id === Config.baseId) html += `<p class="tiny green" style="margin-top:8px;">🏠 Es tu base: los cárteles nunca la atacan. No necesitas dejar tropas aquí.</p>`;
+            else if (!th) html += `<p class="tiny green" style="margin-top:8px;">Ningún cártel colinda con esta plaza: no la pueden atacar.</p>`;
             html += `<div class="row-between" style="margin-top:10px;"><span>DEFENSA</span><b class="gold">${fmt(this.defenseOf(id))}</b></div>
-                <div class="row-between tiny"><span>Defensores ${fmt(t.troops)} · T-90 ${t.tanks}</span><span>Libres ${fmt(State.army)}</span></div>
-                <div class="btn-row">
-                    <button class="action-btn" style="margin:0;" onclick="Core.War.modifyTroops(-10)">-10</button>
-                    <button class="action-btn" style="margin:0;" onclick="Core.War.modifyTroops(-1)">-1</button>
-                    <button class="action-btn" style="margin:0;" onclick="Core.War.modifyTroops(1)">+1</button>
-                    <button class="action-btn" style="margin:0;" onclick="Core.War.modifyTroops(10)">+10</button>
-                    <button class="action-btn btn-green" style="margin:0;" onclick="Core.War.modifyTroops('all')">TODOS</button>
+                ${th ? `<div class="row-between tiny"><span>Ataque rival máximo</span><span style="color:${st.color}">~${fmt(th)} · ${st.txt}</span></div>` : ''}
+                <div class="lbl">SICARIOS AQUÍ: ${fmt(t.troops)} <span class="muted">(libres ${fmt(State.army)})</span></div>
+                <div class="btn-row" style="margin-top:2px;">
+                    <button class="action-btn" style="margin:0;" onclick="Core.War.move(${id},'sic',-10)">-10</button>
+                    <button class="action-btn" style="margin:0;" onclick="Core.War.move(${id},'sic',10)">+10</button>
+                    <button class="action-btn btn-green" style="margin:0;" onclick="Core.War.move(${id},'sic','all')">TODOS</button>
+                    <button class="action-btn btn-red" style="margin:0;" onclick="Core.War.move(${id},'sic','-all')">VACIAR</button>
                 </div>
+                <div class="lbl">ÉLITE AQUÍ: ${fmt(t.elite || 0)} <span class="muted">(libres ${fmt(State.elite)})</span></div>
+                <div class="btn-row" style="margin-top:2px;">
+                    <button class="action-btn" style="margin:0;" onclick="Core.War.move(${id},'eli',-1)">-1</button>
+                    <button class="action-btn" style="margin:0;" onclick="Core.War.move(${id},'eli',1)">+1</button>
+                    <button class="action-btn btn-blue" style="margin:0;" onclick="Core.War.move(${id},'eli','all')">TODOS</button>
+                    <button class="action-btn btn-red" style="margin:0;" onclick="Core.War.move(${id},'eli','-all')">VACIAR</button>
+                </div>
+                ${t.tanks ? `<div class="tiny muted" style="margin-top:6px;">🪖 T-90 desplegados: ${t.tanks}</div>` : ''}
                 <div class="lbl" style="margin-top:12px;">MEJORAS DE PLAZA</div>
                 ${Config.territoryUpgrades.map(u => {
                 const lvl = t.up[u.id];
@@ -220,15 +394,28 @@ Core.War = {
             }).join('')}`;
         } else {
             const adj = this.neighbors(id).some(n => State.territories[n].owner === 'player');
-            const ch = this.winChance(id);
-            html += `<div class="row-between" style="margin-top:10px;"><span>DEFENSA ENEMIGA</span><b class="red">${fmt(this.enemyDefense(id))}</b></div>
-                <div class="row-between"><span>TU ATAQUE</span><b class="gold">${fmt(this.attackPower())}</b></div>`;
+            html += `<div class="row-between" style="margin-top:10px;"><span>DEFENSA ENEMIGA</span><b class="red">${fmt(this.enemyDefense(id))}</b></div>`;
             if (!adj) html += `<p class="tiny red">Sin frontera: conquista una plaza vecina primero.</p>`;
             else if (this.hqLocked(id)) html += `<p class="tiny red">🔒 Guarida protegida: quítale a ${Config.rivals[t.owner].leader} todas sus otras plazas.</p>`;
-            else html += `<div class="row-between"><span>PROBABILIDAD</span><b style="color:${ch > 0.6 ? '#8f8' : ch > 0.2 ? '#fc0' : '#f55'}">${Math.round(ch * 100)}%</b></div>
+            else {
+                const p = this.planned();
+                html += `<div class="lbl" style="margin-top:12px;">FUERZA DE ATAQUE</div>
+                <div class="row-between tiny"><span>Sicarios: <b id="plan-sic">${fmt(p.sic)}</b> / ${fmt(State.army)}</span></div>
+                <input type="range" min="0" max="${State.army}" value="${p.sic}" oninput="Core.War.setPlan('sic', this.value)">
+                <div class="row-between tiny"><span>Élite: <b id="plan-eli">${fmt(p.eli)}</b> / ${fmt(State.elite)}</span></div>
+                <input type="range" min="0" max="${State.elite}" value="${p.eli}" oninput="Core.War.setPlan('eli', this.value)">
+                <label class="lbl">SI GANAS, DEJAR CUIDANDO LA PLAZA</label>
+                <select onchange="Core.War.setPlan('keep', this.value)">
+                    ${[0.25, 0.5, 0.75].map(k => `<option value="${k}" ${this.plan.keep === k ? 'selected' : ''}>${k * 100}% de los que sobrevivan</option>`).join('')}
+                </select>
+                <div class="tiny muted" id="plan-keep-txt" style="margin-top:4px;"></div>
+                <div class="row-between" style="margin-top:8px;"><span>TU ATAQUE</span><b class="gold" id="plan-power">0</b></div>
+                <div class="row-between"><span>PROBABILIDAD</span><b id="plan-chance">0%</b></div>
                 <button class="action-btn btn-red" onclick="Core.War.launchAttack()">${c.hq ? '👑 ENFRENTAR AL JEFE' : 'INICIAR INVASIÓN'}</button>`;
+            }
         }
         p.innerHTML = html;
+        this.updatePlanUI();
     },
     legendHTML() {
         return `<div class="tiny" style="margin-top:12px; line-height:1.8;">
@@ -443,7 +630,7 @@ Core.Rivals = {
         const t = pick(options), b = t.owner;
         const A = State.rivals[a], Bv = State.rivals[b];
         if (A.power * Math.random() > Bv.power * Math.random() * 0.8) {
-            t.owner = a; t.troops = 15;
+            t.owner = a; t.troops = 15; t.elite = 0;
             A.power *= 0.95; Bv.power *= 0.9;
             Core.News.add(`${Config.rivals[a].leader} le arrebata ${Config.territories[t.id].name} a ${Config.rivals[b].leader}`, 'bad');
             Core.War.boom(Config.territories[t.id].x, Config.territories[t.id].y, 0.8);
@@ -481,20 +668,23 @@ Core.Rivals = {
             Sfx.coin();
         } else if (mode === 'abandon') {
             State.army += t.troops;
+            State.elite += t.elite || 0;
             State.military[6] += t.tanks;
-            t.owner = inc.rid; t.troops = 10; t.tanks = 0; t.up = { fort: 0, lab: 0, bodega: 0 };
+            t.owner = inc.rid; t.troops = 10; t.elite = 0; t.tanks = 0; t.up = { fort: 0, lab: 0, bodega: 0 };
             State.stats.lostTerritories++;
             UI.notify(`Abandonaste ${c.name}. Tus hombres y tanques regresaron a la reserva.`, 'bad');
             Core.News.add(`${C.leader} recupera ${c.name} sin disparar un tiro`);
         } else {
-            if (mode === 'reinforce') { t.troops += State.army; State.army = 0; }
+            if (mode === 'reinforce') { t.troops += State.army; State.army = 0; t.elite = (t.elite || 0) + State.elite; State.elite = 0; }
             const def = Core.War.defenseOf(inc.target) * (0.85 + Math.random() * 0.3);
             Core.War.boom(c.x, c.y, 1);
             Sfx.burst(5);
             if (inc.power > def) {
-                t.owner = inc.rid; t.troops = 10; t.tanks = 0; t.up = { fort: 0, lab: 0, bodega: 0 };
+                const escaped = Math.floor((t.elite || 0) / 2); // la mitad de la élite logra escapar
+                State.elite += escaped;
+                t.owner = inc.rid; t.troops = 10; t.elite = 0; t.tanks = 0; t.up = { fort: 0, lab: 0, bodega: 0 };
                 State.stats.lostTerritories++;
-                UI.notify(`¡${C.name} tomó ${c.name}!`, 'bad');
+                UI.notify(`¡${C.name} tomó ${c.name}!${escaped ? ` ${escaped} de élite lograron escapar.` : ''}`, 'bad');
                 Core.News.add(`${C.leader} retoma ${c.name} tras intensa balacera`, 'bad', true);
                 setTimeout(() => Sfx.explosion(), 250);
             } else {
@@ -509,7 +699,7 @@ Core.Rivals = {
         State.incoming = State.incoming.filter(i => i.id !== incId);
         if (!State.incoming.length) UI.setBadge('war', null);
         Core.War.calcBonuses();
-        Core.War.renderPanel();
+        Core.War.refresh(true);
         UI.renderAttackAlert();
     },
     negotiateCost(inc) { return Math.floor(inc.power * 400 * Config.rivals[inc.rid].truceMult * Math.max(0.3, 1 - 0.3 * Core.HR.eff('Relacionista'))); },
@@ -535,7 +725,7 @@ Core.Rivals = {
     defeat(rid) {
         const R = State.rivals[rid], C = Config.rivals[rid];
         R.defeated = true; R.power = 0;
-        State.territories.forEach(t => { if (t.owner === rid) { t.owner = 'player'; t.troops = 5; } });
+        State.territories.forEach(t => { if (t.owner === rid) { t.owner = 'player'; t.troops = 5; t.elite = 0; } });
         State.stats.bossesDefeated++;
         State.incoming = State.incoming.filter(i => i.rid !== rid);
         const reward = 500000 * Math.pow(4, State.stats.bossesDefeated);

@@ -266,7 +266,6 @@ Core.HR = {
 /* ---------- CONTACTOS ---------- */
 Core.Contacts = {
     list: [
-        { id: 'weapons', name: 'Traficante de Armas', icon: '🔫', desc: '+0.5 poder por sicario (acumulable).', cost: 5000, cur: 'clean', repeat: true },
         { id: 'politician', name: 'Político Corrupto', icon: '🎩', desc: 'Baja tu búsqueda al instante (-30 Heat).', cost: 50000, cur: 'dirty', repeat: true },
         { id: 'hacker', name: 'Hacker "The Ghost"', icon: '💻', desc: 'Borra registros digitales (-50 Heat).', cost: 10000, cur: 'clean', repeat: true },
         { id: 'informant', name: 'Informante', icon: '🕵️', desc: 'Ningún cártel te ataca durante 2 minutos.', cost: 5000, cur: 'clean', repeat: true },
@@ -292,8 +291,7 @@ Core.Contacts = {
         const c = this.list.find(x => x.id === id);
         if (!c.repeat && State.contacts[id]) return;
         if (!Core.pay(c.cur, c.cost)) return;
-        if (id === 'weapons') { State.armyPower += 0.5; UI.notify('Armamento mejorado. +0.5 poder por sicario.'); }
-        else if (id === 'politician') { State.heat = Math.max(0, State.heat - 30); UI.notify('Campaña financiada. Heat -30.'); }
+        if (id === 'politician') { State.heat = Math.max(0, State.heat - 30); UI.notify('Campaña financiada. Heat -30.'); }
         else if (id === 'hacker') { State.heat = Math.max(0, State.heat - 50); UI.notify('Registros borrados. Heat -50.'); }
         else if (id === 'informant') { State.timers.informant = Math.max(now(), State.timers.informant) + 120000; UI.notify('Informante activo: 2 minutos sin ataques.'); }
         else { State.contacts[id] = true; UI.notify(`${c.name} ahora trabaja para ti.`); }

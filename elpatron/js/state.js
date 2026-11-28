@@ -48,7 +48,7 @@ function newState() {
         opsStatus: { weed: true, meth: true, coke: true, heroin: true, fenta: true, mobile: true },
         labs: Object.assign(zeroP(), { weed: 1 }),
         autoChem: false,
-        army: 0, elite: 0, armyPower: 1,
+        army: 0, elite: 0, armyPower: 1, weaponsLvl: 0,
         military: { 6: 0, 7: 0 }, militaryBought: { 6: 0, 7: 0 },
         respect: 0, rank: 0,
         heat: 0, heatCap: 100,
@@ -59,7 +59,7 @@ function newState() {
         nextUid: 2,
         routes: [],
         lieutenants: [], candidates: [], nextLtId: 1,
-        territories: Config.territories.map(t => ({ id: t.id, owner: t.owner, troops: t.troops, tanks: 0, up: { fort: 0, lab: 0, bodega: 0 } })),
+        territories: Config.territories.map(t => ({ id: t.id, owner: t.owner, troops: t.troops, elite: 0, tanks: 0, up: { fort: 0, lab: 0, bodega: 0 } })),
         rivals,
         incoming: [],
         contacts: { police: false, customs: false, union: false, lawyer: false },
@@ -118,7 +118,7 @@ Core.Save = {
         const baseRivals = newState().rivals;
         Object.keys(baseRivals).forEach(id => merged.rivals[id] = Object.assign(baseRivals[id], (data.rivals || {})[id] || {}));
         if (!Array.isArray(data.territories) || data.territories.length !== Config.territories.length) merged.territories = newState().territories;
-        merged.territories.forEach(t => { t.up = Object.assign({ fort: 0, lab: 0, bodega: 0 }, t.up || {}); t.tanks = t.tanks || 0; });
+        merged.territories.forEach(t => { t.up = Object.assign({ fort: 0, lab: 0, bodega: 0 }, t.up || {}); t.tanks = t.tanks || 0; t.elite = t.elite || 0; });
         ['unlocked', 'fleet', 'routes', 'lieutenants', 'candidates', 'techs', 'achievements', 'contracts', 'news', 'incoming', 'launderingLevels'].forEach(k => {
             if (!Array.isArray(merged[k])) merged[k] = newState()[k];
         });

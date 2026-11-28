@@ -18,7 +18,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Jura:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=40">
+    <link rel="stylesheet" href="css/style.css?v=41">
 </head>
 
 <body>
@@ -191,19 +191,36 @@
                 <div class="section-title">GEOPOLÍTICA Y DEFENSA</div>
                 <div class="grid-cards two">
                     <div class="op-card">
-                        <h3>EJÉRCITO</h3>
+                        <h3>RECLUTAMIENTO</h3>
                         <div class="army-stats">
-                            <div>LIBRES <b id="val-army" class="gold">0</b></div>
-                            <div>ÉLITE <b id="val-elite" class="blue">0</b></div>
+                            <div>SICARIOS LIBRES <b id="val-army" class="gold">0</b></div>
+                            <div>ÉLITE LIBRE <b id="val-elite" class="blue">0</b></div>
                             <div>ATAQUE <b id="val-attack" class="red">0</b></div>
                         </div>
-                        <p class="muted">Recluta: $<span id="recruit-cost">1,000</span> sucio c/u</p>
-                        <div class="btn-row">
-                            <button class="action-btn btn-green auto-w" onclick="Core.War.recruit(1)">+1</button>
-                            <button class="action-btn btn-green auto-w" onclick="Core.War.recruit(10)">+10</button>
-                            <button class="action-btn btn-green auto-w" onclick="Core.War.recruit(50)">+50</button>
-                            <button class="action-btn btn-blue auto-w" onclick="Core.War.recruitElite()">ÉLITE ($25K LIMPIO)</button>
+                        <div class="row-between tiny"><span>🏚️ Cuartel (hombres / espacio)</span><b id="val-barracks">0 / 0</b></div>
+                        <div class="row-between tiny"><span>💵 Nómina</span><span id="val-payroll" class="muted"></span></div>
+
+                        <div class="unit-row">
+                            <div><b class="white">🔫 Sicario</b> · $1,000 sucio
+                                <div class="tiny muted">Pega 1 × armamento (<span id="val-armypower" class="gold">x1.0</span>) · defiende 1.5 ×. Barato y en cantidad.</div></div>
+                            <div class="btn-row" style="margin:0;">
+                                <button class="action-btn btn-green" style="margin:0;" onclick="Core.War.recruit(10)">+10</button>
+                                <button class="action-btn btn-green" style="margin:0;" onclick="Core.War.recruit(50)">+50</button>
+                                <button class="action-btn btn-green" style="margin:0;" onclick="Core.War.recruit(100)">+100</button>
+                                <button class="action-btn btn-green" style="margin:0;" onclick="Core.War.recruit('max')">MÁX</button>
+                            </div>
                         </div>
+                        <div class="unit-row">
+                            <div><b class="blue">🎖️ Fuerzas Especiales</b> · $25K limpio
+                                <div class="tiny muted">Pega 15 · defiende 12 · casi nunca mueren · escoltan convoyes. Ocupan un solo lugar en el cuartel.</div></div>
+                            <div class="btn-row" style="margin:0;">
+                                <button class="action-btn btn-blue" style="margin:0;" onclick="Core.War.recruitElite(1)">+1</button>
+                                <button class="action-btn btn-blue" style="margin:0;" onclick="Core.War.recruitElite(5)">+5</button>
+                                <button class="action-btn btn-blue" style="margin:0;" onclick="Core.War.recruitElite('max')">MÁX</button>
+                            </div>
+                        </div>
+                        <button class="action-btn btn-gold" id="btn-weapons" onclick="Core.War.buyWeapons()">MEJORAR ARMAMENTO</button>
+                        <div class="tiny muted">Cada nivel suma +0.5 al poder de <b>todos</b> tus sicarios.</div>
                     </div>
                     <div class="op-card" id="heavy-weapons" style="border-color:#5b2a86;">
                         <h3>ARMAS PESADAS <small class="muted">(Pacto Kremlin)</small></h3>
@@ -227,6 +244,26 @@
 
                     <div class="op-card territory-panel" id="troop-controls">
                         <div class="muted tiny">Toca una plaza del mapa</div>
+                    </div>
+                </div>
+
+                <div class="section-title sub">ORGANIZACIÓN DEL EJÉRCITO <span class="tiny red" id="org-alert"></span></div>
+                <div class="op-card">
+                    <p class="tiny muted">Las plazas sin frontera y tu base nunca son atacadas: no necesitan tropas. Pon a tu gente donde colindas con un cártel.</p>
+                    <div class="btn-row">
+                        <button class="action-btn btn-gold" onclick="Core.War.autoDistribute()">🛡️ AUTO-DISTRIBUIR</button>
+                        <select id="org-reserve" style="flex:1; margin-top:5px;">
+                            <option value="0">Sin dejar reserva</option>
+                            <option value="0.3" selected>Dejar 30% libre para atacar</option>
+                            <option value="0.5">Dejar 50% libre para atacar</option>
+                        </select>
+                        <button class="action-btn" onclick="Core.War.withdrawSafe()">↩️ RETIRAR DE PLAZAS SEGURAS</button>
+                    </div>
+                    <div class="table-wrap" style="margin-top:10px;">
+                        <table>
+                            <thead><tr><th>PLAZA</th><th>ESTADO</th><th>DEFENSA</th><th>SICARIOS</th><th>ÉLITE</th><th>T-90</th></tr></thead>
+                            <tbody id="army-org"></tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -481,16 +518,16 @@
         <nav id="tabbar" class="tabbar"></nav>
     </div>
 
-    <script src="js/config.js?v=40"></script>
-    <script src="js/state.js?v=40"></script>
-    <script src="js/audio.js?v=40"></script>
-    <script src="js/ui.js?v=40"></script>
-    <script src="js/economy.js?v=40"></script>
-    <script src="js/logistics.js?v=40"></script>
-    <script src="js/war.js?v=40"></script>
-    <script src="js/people.js?v=40"></script>
-    <script src="js/story.js?v=40"></script>
-    <script src="js/main.js?v=40"></script>
+    <script src="js/config.js?v=41"></script>
+    <script src="js/state.js?v=41"></script>
+    <script src="js/audio.js?v=41"></script>
+    <script src="js/ui.js?v=41"></script>
+    <script src="js/economy.js?v=41"></script>
+    <script src="js/logistics.js?v=41"></script>
+    <script src="js/war.js?v=41"></script>
+    <script src="js/people.js?v=41"></script>
+    <script src="js/story.js?v=41"></script>
+    <script src="js/main.js?v=41"></script>
 </body>
 
 </html>
