@@ -3,7 +3,7 @@
    ========================================================= */
 Core.Logistics = {
     isBusy(uid) { return State.routes.some(r => r.vUid === uid); },
-    usable(v) { return Config.vehicles[v.type].cap > 0 && !this.isBusy(v.uid) && v.hp >= 20; },
+    usable(v) { return Config.vehicles[v.type].cap > 0 && !v.parked && !this.isBusy(v.uid) && v.hp >= 20; },
     routeOpen(d) {
         const r = Config.routes[d];
         if (r.req && !State.shadow[r.req]) return false;
@@ -40,7 +40,7 @@ Core.Logistics = {
 
         const counts = {}, total = {};
         State.fleet.forEach(v => {
-            if (Config.vehicles[v.type].cap <= 0) return;
+            if (Config.vehicles[v.type].cap <= 0 || v.parked) return;
             total[v.type] = (total[v.type] || 0) + 1;
             if (this.usable(v)) counts[v.type] = (counts[v.type] || 0) + 1;
         });
@@ -387,17 +387,29 @@ Core.Assets = {
         Core.Logistics.updateUI();
     },
     renderFleet() {
-        const prem = State.fleet.filter(v => v.insured).reduce((s, v) => s + this.premium(v), 0);
+        const prem = State.fleet.filter(v => v.insured && !v.parked).reduce((s, v) => s + this.premium(v), 0);
         setText('insurance-info', prem ? `Seguro: $${fmt(prem)} limpio/min` : '');
         $('auto-repair-panel').classList.toggle('hidden', Core.HR.eff('Mecánico') <= 0);
+        // resumen por tipo: guardar / sacar / vender de golpe
+        const types = {};
+        State.fleet.forEach(v => { if (Config.vehicles[v.type].cap > 0) { const T = types[v.type] = types[v.type] || { on: 0, off: 0 }; v.parked ? T.off++ : T.on++; } });
+        setHTML('fleet-garage', Object.keys(types).length ? `<div class="lm-lbl" style="margin-bottom:6px">🅿️ GARAJE: lo guardado no lo usa el auto-envío y no paga seguro</div>` + Object.entries(types).map(([t, n]) => {
+            const c = Config.vehicles[t];
+            return `<div class="garage-row"><span>${c.icon} <b>${c.name}</b> <small class="muted">${c.cap} kg</small> · <span class="green">${n.on} en servicio</span>${n.off ? ` · <span class="muted">${n.off} en garaje</span>` : ''}</span>
+                <span class="btn-row" style="margin:0">
+                    ${n.on ? `<button class="action-btn" style="margin:0" onclick="Core.Assets.parkType(${t}, true)">🅿️ GUARDAR TODAS</button>` : ''}
+                    ${n.off ? `<button class="action-btn btn-blue" style="margin:0" onclick="Core.Assets.parkType(${t}, false)">▶ SACAR TODAS</button>` : ''}
+                    <button class="action-btn btn-red" style="margin:0" onclick="Core.Assets.sellType(${t})">${+t === 0 ? '👋 DESPEDIR' : '💲 VENDER'} TODAS</button>
+                </span></div>`;
+        }).join('') : '');
         setHTML('fleet-list', State.fleet.map(v => {
             const c = Config.vehicles[v.type];
             const busy = Core.Logistics.isBusy(v.uid);
             const color = v.hp > 50 ? '#8f8' : (v.hp >= 20 ? '#fc0' : '#f55');
             const stars = '★'.repeat(Math.floor(this.vetBonus(v) / 0.05));
-            return `<div class="op-card" style="padding:12px;">
+            return `<div class="op-card" style="padding:12px;${v.parked ? 'opacity:0.55;' : ''}">
                 <div class="row-between"><b class="white">${c.icon} ${v.name}</b><span class="gold" title="Veterano">${stars}</span></div>
-                <div class="tiny muted">${c.name} · ${fmt(v.km)} km ${busy ? '· <span class="blue">EN RUTA</span>' : ''}</div>
+                <div class="tiny muted">${c.name} · ${fmt(v.km)} km ${busy ? '· <span class="blue">EN RUTA</span>' : ''}${v.parked ? ` · <span class="gold">🅿️ EN GARAJE${busy ? ' (al volver)' : ''}</span>` : ''}</div>
                 <div class="tiny" style="margin-top:3px;">${this.vetBonus(v) > 0 ? `<span class="gold">+${Math.round(this.vetBonus(v) * 100)}% velocidad</span>` : '<span class="muted">Sin bono aún</span>'}
                     <span class="muted">· ${this.vetBonus(v) >= 0.25 ? 'bono máximo' : `faltan ${fmt(5000 - v.km % 5000)} km para +${Math.round(this.vetBonus(v) * 100) + 5}%`}</span></div>
                 <div class="progress-line" style="margin:6px 0;"><div class="progress-active" style="width:${v.hp}%; background:${color}"></div></div>
@@ -405,7 +417,8 @@ Core.Assets = {
                     <label class="toggle-wrapper" style="margin:0;"><input type="checkbox" class="toggle-input" ${v.insured ? 'checked' : ''} onchange="Core.Assets.toggleInsure(${v.uid})"> 🛡️ Seguro</label></div>
                 <div class="btn-row">
                     ${v.hp < 100 && !busy ? `<button class="action-btn" style="margin:0;" onclick="Core.Assets.repair(${v.uid})">REPARAR $${fmt(this.repairCost(v))}</button>` : ''}
-                    ${v.type !== 0 && !busy ? `<button class="action-btn btn-red" style="margin:0;" onclick="Core.Assets.sell(${v.uid})">VENDER</button>` : ''}
+                    ${c.cap > 0 ? `<button class="action-btn ${v.parked ? 'btn-blue' : ''}" style="margin:0;" onclick="Core.Assets.park(${v.uid})">${v.parked ? '▶ SACAR' : '🅿️ GUARDAR'}</button>` : ''}
+                    ${!busy ? `<button class="action-btn btn-red" style="margin:0;" onclick="Core.Assets.sell(${v.uid})">${v.type === 0 ? 'DESPEDIR' : 'VENDER $' + fmt(this.sellValue(v))}</button>` : ''}
                 </div>
             </div>`;
         }).join(''));
@@ -424,15 +437,49 @@ Core.Assets = {
         UI.notify(n ? `${n} vehículos reparados.` : 'Nada que reparar (o falta dinero limpio).', n ? 'good' : 'bad');
         this.renderFleet();
     },
-    sell(uid) {
+    sellValue(v) { return Math.floor(Config.vehicles[v.type].price * 0.4 * v.hp / 100); },
+    // nunca te quedas sin nada que cargue: tiene que sobrar al menos 1 vehículo de carga
+    cargoLeft(except) { return State.fleet.filter(v => Config.vehicles[v.type].cap > 0 && !except.includes(v)).length; },
+    sell(uid, silent) {
         const v = State.fleet.find(x => x.uid === uid);
-        if (!v || v.type === 0 || Core.Logistics.isBusy(uid)) return;
-        const val = Math.floor(Config.vehicles[v.type].price * 0.4 * v.hp / 100);
+        if (!v || Core.Logistics.isBusy(uid)) return 0;
+        if (Config.vehicles[v.type].cap > 0 && !this.cargoLeft([v])) { if (!silent) UI.notify('Es tu último vehículo de carga: compra otro antes de deshacerte de él.', 'bad'); return 0; }
+        const val = this.sellValue(v);
         State.fleet = State.fleet.filter(x => x.uid !== uid);
         State.money.dirty += val;
-        UI.notify(`Vendiste "${v.name}" por $${fmt(val)}.`);
-        this.renderFleet();
+        if (!silent) { UI.notify(v.type === 0 ? `Despediste a "${v.name}". Ya no carga para ti.` : `Vendiste "${v.name}" por $${fmt(val)}.`); Sfx.click(); this.refreshFleet(); }
+        return 1;
     },
+    sellType(t) {
+        const list = State.fleet.filter(v => v.type === t && !Core.Logistics.isBusy(v.uid));
+        if (!list.length) return UI.notify('Todas andan en ruta: espera a que regresen.', 'bad');
+        const c = Config.vehicles[t], val = list.reduce((s, v) => s + this.sellValue(v), 0);
+        UI.modal(t === 0 ? `👋 ¿Despedir ${list.length} ${c.name}s?` : `💲 ¿Vender ${list.length} ${c.name}s?`,
+            `${t === 0 ? 'Se van y ya no cargan para ti. No te dan nada.' : `Te dan $${fmt(val)} sucio (40% de su precio, según su estado).`}\n\nLas que andan en ruta se quedan.${this.cargoLeft(list) ? '' : '\n\nOjo: se queda 1 para que no te quedes sin nada que cargue.'}\n\nSi solo quieres que el auto-envío no las use, mejor guárdalas en el garaje.`,
+            [{ text: t === 0 ? 'DESPEDIRLAS' : 'VENDERLAS', style: 'btn-red', cb: () => {
+                let n = 0; list.forEach(v => n += this.sell(v.uid, true));
+                UI.notify(n ? (t === 0 ? `Despediste ${n} ${c.name}s.` : `Vendiste ${n} ${c.name}s por $${fmt(val)}.`) : 'No se pudo: es tu último vehículo de carga.', n ? 'good' : 'bad');
+                this.refreshFleet();
+            } }, { text: 'Cancelar', cb: () => { } }]);
+    },
+    park(uid) {
+        const v = State.fleet.find(x => x.uid === uid);
+        if (!v) return;
+        if (!v.parked && !State.fleet.some(x => x !== v && Config.vehicles[x.type].cap > 0 && !x.parked)) return UI.notify('Deja al menos un vehículo en servicio o no podrás mover mercancía.', 'bad');
+        v.parked = !v.parked; Sfx.click(); this.refreshFleet();
+    },
+    parkType(t, on) {
+        let n = 0;
+        State.fleet.forEach(v => { if (v.type === t && !!v.parked !== on) { v.parked = on; n++; } });
+        if (on && !State.fleet.some(x => Config.vehicles[x.type].cap > 0 && !x.parked)) {
+            const back = State.fleet.find(x => x.type === t); back.parked = false; n--;
+            UI.notify('Dejé una en servicio: sin vehículos no puedes mover mercancía.', 'bad');
+        }
+        const c = Config.vehicles[t];
+        if (n) UI.notify(on ? `${n} ${c.name}s al garaje: el auto-envío ya no las usa.` : `${n} ${c.name}s de vuelta al servicio.`);
+        Sfx.click(); this.refreshFleet();
+    },
+    refreshFleet() { this.renderFleet(); Core.Logistics.updateUI(); },
     toggleInsure(uid) {
         const v = State.fleet.find(x => x.uid === uid);
         if (v) v.insured = !v.insured;
@@ -441,7 +488,7 @@ Core.Assets = {
     insureAll(on) { State.fleet.forEach(v => v.insured = on); UI.notify('Toda la flota está asegurada.'); this.renderFleet(); },
     insuranceTick() {
         State.fleet.forEach(v => {
-            if (!v.insured) return;
+            if (!v.insured || v.parked) return;
             if (!Core.pay('clean', this.premium(v), true)) { v.insured = false; UI.notify(`Se canceló el seguro de "${v.name}" por falta de pago.`, 'bad'); }
         });
     },

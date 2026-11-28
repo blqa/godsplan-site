@@ -206,9 +206,9 @@ const UI = {
         Config.productKeys.forEach(k => setText('inv-' + k, fmt(State.inv[k]) + ' kg'));
         setText('inv-chems', fmt(State.inv.chems) + ' L');
         const free = State.fleet.filter(v => Core.Logistics.usable(v)).length;
-        setText('inv-fleet', `${free} / ${State.fleet.length}`);
+        setText('inv-fleet', `${free} / ${State.fleet.filter(v => !v.parked).length}`);
         setText('inv-routes', State.routes.length);
-        setText('inv-cap', fmt(State.fleet.reduce((s, v) => s + Core.Mods.vehicleCap(v.type), 0)) + ' kg');
+        setText('inv-cap', fmt(State.fleet.reduce((s, v) => s + (v.parked ? 0 : Core.Mods.vehicleCap(v.type)), 0)) + ' kg');
         setText('inv-army', fmt(Core.War.totalSic()));
         setText('inv-elite', fmt(Core.War.totalElite()));
         setText('inv-lt', `${Core.HR.activeCount()}/${State.lieutenants.length}`);
