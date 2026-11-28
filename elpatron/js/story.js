@@ -398,7 +398,7 @@ Core.Guide = {
         <h2>5. Guerra y rivales</h2>
         <p>Empiezas en <strong>Mérida</strong>, la ciudad más tranquila del país. Hay tres cárteles: <strong>Los Halcones</strong> (sigilosos, en el Golfo y el sureste), <strong>el Golfo Negro</strong> (agresivos, en el norte) y <strong>la Familia Serrana</strong> (la vieja guardia del Pacífico y la capital). Solo atacas plazas conectadas a las tuyas. Cada cártel tiene una <strong>guarida con su jefe</strong> que solo puedes atacar cuando ya no le quedan otras plazas. Cuando te atacan, tienes unos segundos para <strong>mandar refuerzos, negociar, resistir o abandonar</strong>. Mejora tus plazas con fortalezas, labs y bodegas.</p>
         <h2>6. Tenientes</h2>
-        <p>Cada teniente tiene rol, personalidad y sube de nivel trabajando. Si su lealtad baja mucho, te traiciona. Págales bonos.</p>
+        <p>Cada teniente tiene rol, personalidad y sube de nivel trabajando. Puedes asignar varios del mismo rol: el mejor aporta 100%, el segundo 50%, el tercero 25%. Si su lealtad baja mucho, te traiciona. Págales bonos.</p>
         <h2>7. Heat (búsqueda)</h2>
         <p>Envíos, ataques y lavados grandes suben tu búsqueda. Si llega al máximo hay <strong>redada</strong>. Bájala con contactos, tecnología de sigilo o el Plan de Escape.</p>
         <h2>8. Préstamos</h2>

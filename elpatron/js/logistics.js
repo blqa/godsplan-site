@@ -344,7 +344,7 @@ Core.Logistics = {
 /* ---------- FLOTA ---------- */
 Core.Assets = {
     vetBonus(v) { return Math.min(0.25, Math.floor(v.km / 5000) * 0.05); },
-    repairCost(v) { return Math.floor(Math.max(200, Config.vehicles[v.type].price * 0.02) * (1 - 0.1 * Core.HR.levelOf('Mecánico'))); },
+    repairCost(v) { return Math.floor(Math.max(200, Config.vehicles[v.type].price * 0.02) * Math.max(0.3, 1 - 0.1 * Core.HR.levelOf('Mecánico'))); },
     premium(v) { return Math.floor(Math.max(100, Config.vehicles[v.type].price * 0.03)); },
 
     renderStore() {

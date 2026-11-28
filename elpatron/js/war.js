@@ -372,7 +372,7 @@ Core.Rivals = {
     alive() { return Object.keys(State.rivals).filter(id => !State.rivals[id].defeated); },
     randomAlive() { const a = this.alive(); return a.length ? pick(a) : null; },
     territoriesOf(rid) { return State.territories.filter(t => t.owner === rid); },
-    truceCost(rid) { return Math.floor(State.rivals[rid].power * 200 * Config.rivals[rid].truceMult * (1 - 0.3 * Core.HR.eff('Relacionista'))); },
+    truceCost(rid) { return Math.floor(State.rivals[rid].power * 200 * Config.rivals[rid].truceMult * Math.max(0.3, 1 - 0.3 * Core.HR.eff('Relacionista'))); },
     sabotageCost(rid) { return Math.floor(State.rivals[rid].power * 400); },
     inTruce(rid) { return State.rivals[rid].truceUntil > now() || State.timers.informant > now(); },
     // ¿Este cártel tiene alguna plaza pegada a una tuya?
@@ -512,7 +512,7 @@ Core.Rivals = {
         Core.War.renderPanel();
         UI.renderAttackAlert();
     },
-    negotiateCost(inc) { return Math.floor(inc.power * 400 * Config.rivals[inc.rid].truceMult * (1 - 0.3 * Core.HR.eff('Relacionista'))); },
+    negotiateCost(inc) { return Math.floor(inc.power * 400 * Config.rivals[inc.rid].truceMult * Math.max(0.3, 1 - 0.3 * Core.HR.eff('Relacionista'))); },
     truce(rid) {
         const cost = this.truceCost(rid);
         if (!Core.pay('dirty', cost)) return;

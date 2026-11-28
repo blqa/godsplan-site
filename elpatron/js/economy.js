@@ -31,13 +31,13 @@ Core.Mods = {
         if (State.contacts.police) m *= 0.5;
         if (State.luxuries.tiger > 0) m *= 0.95;
         if (State.shadow.fiscal) m *= 0.5;
-        m *= 1 - 0.15 * Core.HR.eff('Relacionista');
+        m *= Math.max(0.4, 1 - 0.15 * Core.HR.eff('Relacionista'));
         return Math.max(0.05, m);
     },
     launderFee() {
         let m = 1 - Core.B.launder;
         if (hasTech('stealth_cash')) m *= 0.8;
-        m *= 1 - 0.2 * Core.HR.eff('Contador');
+        m *= Math.max(0.3, 1 - 0.2 * Core.HR.eff('Contador'));
         m *= Math.max(0.5, 1 - State.luxuries.tiger * 0.05);
         if (State.heat > State.heatCap * 0.5) m *= 1.6; // con mucha búsqueda, lavar cuesta más
         return Math.max(0.1, m);

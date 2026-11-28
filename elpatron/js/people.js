@@ -68,13 +68,16 @@ Core.HR = {
         State.lieutenants.forEach(l => { if (l.active && l.role === role && (!b || l.level > b.level)) b = l; });
         return b;
     },
-    // Efecto del mejor teniente activo de ese rol (0 si no hay)
-    eff(role) {
-        const l = this.best(role);
-        if (!l) return 0;
-        return (1 + 0.25 * (l.level - 1)) * Config.traits[l.trait].mult;
+    // Efecto individual de un teniente según su nivel y personalidad
+    single(l) { return (1 + 0.25 * (l.level - 1)) * Config.traits[l.trait].mult; },
+    // Peso de cada teniente del mismo rol: el principal 100%, el 2.º 50%, el 3.º 25%...
+    SHARE: [1, 0.5, 0.25, 0.125, 0.0625, 0.03],
+    team(role) {
+        return State.lieutenants.filter(l => l.active && l.role === role).sort((a, b) => this.single(b) - this.single(a));
     },
-    levelOf(role) { const l = this.best(role); return l ? l.level : 0; },
+    // Efecto total del rol: se suman todos los asignados, cada uno vale menos que el anterior
+    eff(role) { return this.team(role).reduce((s, l, i) => s + this.single(l) * this.SHARE[i], 0); },
+    levelOf(role) { return this.team(role).reduce((s, l, i) => s + l.level * this.SHARE[i], 0); },
     activeCount() { return State.lieutenants.filter(l => l.active).length; },
 
     search() {
@@ -213,6 +216,11 @@ Core.HR = {
                 <p class="tiny" style="color:${T.color}">${T.desc}</p>
                 <button class="action-btn btn-green" onclick="Core.HR.hire(${i})">CONTRATAR</button></div>`;
         }).join(''));
+        const roles = Object.keys(Config.roles).filter(r => this.team(r).length);
+        setHTML('team-summary', roles.length ? `<div class="op-card"><h3>TU EQUIPO</h3>
+            <p class="tiny muted">Puedes tener varios del mismo rol: el mejor aporta 100%, el segundo 50%, el tercero 25%... Con 6 lugares, decide entre cubrir todos los roles o reforzar uno.</p>
+            ${roles.map(r => `<div class="row-between tiny"><span>${Config.roles[r].icon} ${r} (${this.team(r).length})</span><span class="gold">efecto x${this.eff(r).toFixed(2)}</span></div>`).join('')}
+            </div>` : '');
         setHTML('lieutenants-list', State.lieutenants.map(l => {
             const T = Config.traits[l.trait], R = Config.roles[l.role];
             const next = Config.ltLevels[l.level];
@@ -222,6 +230,7 @@ Core.HR = {
                 <div class="row-between"><h3 style="margin:0;">${R.icon} ${l.name}</h3><span class="gold">${'★'.repeat(l.level)}</span></div>
                 <div style="margin:6px 0;"><span class="chip gold">${l.role}</span><span class="chip" style="border-color:${T.color}; color:${T.color}">${l.trait}</span>${l.active ? '<span class="chip green">ASIGNADO</span>' : ''}</div>
                 <p class="tiny muted">${R.desc}</p>
+                ${l.active ? (() => { const i = this.team(l.role).indexOf(l); return `<p class="tiny ${i === 0 ? 'gold' : 'blue'}">${i === 0 ? '★ Principal: aporta 100%' : `Apoyo #${i}: aporta ${this.SHARE[i] * 100}% de su efecto`}</p>`; })() : ''}
                 <div class="row-between tiny"><span>Experiencia ${l.level >= 5 ? 'MÁX' : `${l.xp}/${next}`}</span><span>Efecto x${((1 + 0.25 * (l.level - 1)) * T.mult).toFixed(2)}</span></div>
                 <div class="progress-line" style="margin:4px 0 8px;"><div class="progress-active" style="width:${xpPct}%"></div></div>
                 <div class="row-between tiny"><span>Lealtad</span><span style="color:${lc}">${Math.floor(l.loyalty)}%</span></div>
