@@ -66,7 +66,9 @@ const Config = {
         { id: 'autolavado', name: 'Autolavado Brillo', icon: '🚿', cost: 90000, cap: 6000, rate: 0.83, risk: 0.004, desc: 'Lava carros... y algo más.' },
         { id: 'antro', name: 'Antro "La Jaula"', icon: '🪩', cost: 350000, cap: 25000, rate: 0.80, risk: 0.007, desc: 'Mucho efectivo, mucho ruido.' },
         { id: 'cambio', name: 'Casa de Cambio', icon: '💱', cost: 1500000, cap: 100000, rate: 0.88, risk: 0.012, desc: 'Dólares entran, pesos salen.' },
-        { id: 'constructora', name: 'Constructora Imperio', icon: '🏗️', cost: 6000000, cap: 450000, rate: 0.92, risk: 0.02, desc: 'Obras públicas infladas. Hacienda vigila de cerca.' }
+        { id: 'constructora', name: 'Constructora Imperio', icon: '🏗️', cost: 6000000, cap: 450000, rate: 0.92, risk: 0.02, desc: 'Obras públicas infladas. Hacienda vigila de cerca.' },
+        { id: 'aerolinea', name: 'Aerolínea "Vuela Ya"', icon: '🛫', cost: 50000000, cap: 1000000, rate: 0.88, risk: 0.02, desc: 'Vuelos medio vacíos, cuentas siempre llenas.' },
+        { id: 'banco', name: 'Banco del Patrón', icon: '🏦', cost: 250000000, cap: 5000000, rate: 0.9, risk: 0.025, desc: 'Tu propio banco. Lava a lo grande... y Hacienda lo sabe.' }
     ],
 
     investments: [
@@ -312,7 +314,8 @@ Config.achievements = [
     { id: 'first_boss', name: 'Cazador de Jefes', desc: 'Derrota a un cártel rival', check: () => State.stats.bossesDefeated >= 1 },
     { id: 'all_bosses', name: 'Sin Competencia', desc: 'Derrota a los 3 cárteles', check: () => State.stats.bossesDefeated >= 3 },
     { id: 'defender', name: 'Muralla', desc: 'Defiende 10 ataques', check: () => State.stats.defended >= 10 },
-    { id: 'fronts_5', name: 'Hombre de Negocios', desc: 'Ten los 5 negocios fachada', check: () => Object.keys(State.fronts).length >= 5 },
+    { id: 'fronts_5', name: 'Hombre de Negocios', desc: 'Ten 5 negocios fachada', check: () => Object.keys(State.fronts).length >= 5 },
+    { id: 'banker', name: 'El Banquero', desc: 'Abre el Banco del Patrón', check: () => !!State.fronts.banco },
     { id: 'loan_paid', name: 'Buen Pagador', desc: 'Liquida un préstamo', check: () => State.stats.loansPaid >= 1 },
     { id: 'veteran', name: 'Kilometraje de Leyenda', desc: 'Un vehículo con 20,000 km', check: () => State.fleet.some(v => v.km >= 20000) },
     { id: 'lt_max', name: 'Mano Derecha', desc: 'Un teniente en nivel 5', check: () => State.lieutenants.some(l => l.level >= 5) },

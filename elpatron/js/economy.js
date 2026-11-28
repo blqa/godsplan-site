@@ -470,11 +470,35 @@ Core.Finance = {
 
 /* ---------- NEGOCIOS FACHADA ---------- */
 Core.Fronts = {
+    MAX_LVL: 10,
     capOf(f, lvl) { return f.cap * (1 + 0.5 * (lvl - 1)); },
+    // probabilidad de auditoría por ciclo de 3 s
+    auditRisk(f, s) {
+        let r = f.risk * (1 + State.heat / 50) * (1 + 0.1 * (s.level - 1));
+        if (hasTech('stealth_cash')) r *= 0.7;
+        if (State.shadow.fiscal) r *= 0.75;          // el Fiscal General frena a Hacienda
+        if (State.shadow.supreme_court) r *= 0.5;    // y los jueces también
+        r *= Math.max(0.5, 1 - 0.1 * Core.HR.eff('Contador'));
+        return r;
+    },
+    // cuánto lavan por minuto los negocios abiertos ahora mismo
+    perMinute() {
+        const fee = Core.Mods.launderFee();
+        return Config.fronts.reduce((sum, f) => {
+            const s = State.fronts[f.id];
+            if (!s || !s.active || s.closedUntil > now()) return sum;
+            return sum + this.capOf(f, s.level) * 20 * (1 - (1 - f.rate) * fee);
+        }, 0);
+    },
     upgradeCost(f, lvl) { return Math.floor(f.cost * lvl * 1.5); },
     render() {
         const fee = Core.Mods.launderFee();
-        $('fronts-grid').innerHTML = Config.fronts.map(f => {
+        const pm = this.perMinute();
+        const eta = pm > 0 ? State.money.dirty / pm : 0;
+        const summary = `<div class="op-card" style="grid-column:1/-1; border-color:var(--gold);">
+            <div class="row-between"><span>💵 Lavando ahora: <b class="green">$${fmt(pm)} limpio por minuto</b></span>
+            <span class="tiny muted">${State.money.dirty > 0 && pm > 0 ? `Tu sucio ($${fmt(State.money.dirty)}) se lava en ~${eta < 60 ? Math.ceil(eta) + ' min' : (eta / 60).toFixed(1) + ' h'}` : ''}</span></div></div>`;
+        $('fronts-grid').innerHTML = summary + Config.fronts.map(f => {
             const s = State.fronts[f.id];
             if (!s) return `<div class="op-card locked">
                 <h3>${f.icon} ${f.name}</h3>
@@ -488,10 +512,10 @@ Core.Fronts = {
                 <h3>${f.icon} ${f.name} <span class="chip gold">NV ${s.level}</span></h3>
                 <p class="tiny muted">${f.desc}</p>
                 <div class="status-row"><span>Lava $${fmt(cap / 3)}/s</span><span>Recibes ${(eff * 100).toFixed(0)}%</span></div>
-                <div class="status-row"><span>Total lavado: $${fmt(s.total || 0)}</span><span>Auditorías: ${s.audits || 0}</span></div>
+                <div class="status-row"><span>Total lavado: $${fmt(s.total || 0)}</span><span>Auditorías: ${s.audits || 0} · riesgo ${(this.auditRisk(f, s) * 20 * 100).toFixed(0)}%/min</span></div>
                 ${closed ? `<div class="red tiny">🚫 CLAUSURADO por Hacienda · reabre en ${fmtTime((s.closedUntil - now()) / 1000)}</div>` : ''}
                 <label class="toggle-wrapper"><input type="checkbox" class="toggle-input" ${s.active ? 'checked' : ''} onchange="Core.Fronts.toggle('${f.id}')"> LAVANDO</label>
-                ${s.level < 5 ? `<button class="action-btn" onclick="Core.Fronts.upgrade('${f.id}')">AMPLIAR A NV ${s.level + 1} · $${fmt(this.upgradeCost(f, s.level))} SUCIO</button>` : '<div class="tiny gold" style="margin-top:6px;">NIVEL MÁXIMO</div>'}
+                ${s.level < this.MAX_LVL ? `<button class="action-btn" onclick="Core.Fronts.upgrade('${f.id}')">AMPLIAR A NV ${s.level + 1} · $${fmt(this.upgradeCost(f, s.level))} SUCIO</button>` : '<div class="tiny gold" style="margin-top:6px;">NIVEL MÁXIMO</div>'}
             </div>`;
         }).join('');
     },
@@ -505,7 +529,7 @@ Core.Fronts = {
     },
     upgrade(id) {
         const f = Config.fronts.find(x => x.id === id), s = State.fronts[id];
-        if (!s || s.level >= 5) return;
+        if (!s || s.level >= this.MAX_LVL) return;
         if (!Core.pay('dirty', this.upgradeCost(f, s.level))) return;
         s.level++;
         Sfx.levelup();
@@ -523,9 +547,7 @@ Core.Fronts = {
             State.money.clean += got;
             State.stats.laundered += got;
             s.total = (s.total || 0) + got;
-            let risk = f.risk * (1 + State.heat / 50) * (1 + 0.2 * (s.level - 1));
-            if (hasTech('stealth_cash')) risk *= 0.7;
-            if (Math.random() < risk) {
+            if (Math.random() < this.auditRisk(f, s)) {
                 s.closedUntil = now() + 120000;
                 s.audits = (s.audits || 0) + 1;
                 Core.Heat.add(8);
