@@ -373,6 +373,7 @@ Core.Offline = {
             State.inv[k] += units;
             produced.push(`${Config.products[k].name}: +${fmt(units)} kg`);
         });
+        Core.RnD.tick(secs); // la investigación sigue aunque no estés
         // las rutas que estaban en camino llegan
         State.routes.forEach(r => r.progress = Math.max(r.progress, 99.9));
         State.heat = Math.max(0, State.heat - secs * 0.1);

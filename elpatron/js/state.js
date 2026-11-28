@@ -75,6 +75,7 @@ function newState() {
         fronts: {},
         loan: { debt: 0, dueAt: 0, anger: 0, lastPenalty: 0 },
         techs: [],
+        research: {},
         achievements: [],
         story: { chapter: 0 },
         contracts: [], contractsUnlocked: false,
@@ -121,7 +122,7 @@ Core.Save = {
         // Merge con valores por defecto para que partidas viejas no truenen
         const merged = Object.assign(def, data);
         ['money', 'inv', 'ops', 'opsStatus', 'labs', 'military', 'militaryBought', 'market', 'sat', 'contacts', 'loan', 'story',
-            'automation', 'luxuries', 'investments', 'shadow', 'timers', 'stats', 'aguila'].forEach(k => {
+            'automation', 'luxuries', 'investments', 'shadow', 'timers', 'stats', 'aguila', 'research'].forEach(k => {
                 merged[k] = Object.assign(newState()[k], data[k] || {});
             });
         merged.stocks = Object.assign(newState().stocks, data.stocks || {});

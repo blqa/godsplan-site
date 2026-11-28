@@ -176,7 +176,7 @@ const Config = {
     // ===== Tenientes =====
     roles: {
         'Logístico': { icon: '🚚', desc: 'Desbloquea la logística automática. +5% vel. de rutas por nivel.' },
-        'Químico': { icon: '⚗️', desc: '+20% producción y gasta la mitad de químicos.' },
+        'Químico': { icon: '⚗️', desc: '+20% producción, gasta la mitad de químicos y acelera la investigación (I+D).' },
         'Contador': { icon: '📒', desc: '-20% comisión de lavado (también en fachadas).' },
         'Mecánico': { icon: '🔧', desc: 'Repara la flota automáticamente y más barato.' },
         'Comandante': { icon: '🎖️', desc: '+15% ataque y defensa.' },

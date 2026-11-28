@@ -632,34 +632,71 @@ Core.Lifestyle = {
 
 /* ---------- I + D (árbol de 3 ramas) ---------- */
 Core.RnD = {
+    // La investigación toma tiempo: un laboratorio por rama, una tecnología a la vez en cada uno.
+    // Así ya no se compra todo el árbol de un jalón cuando sobra el dinero.
+    TIMES: [45, 90, 180, 300, 480, 720], // segundos según la posición en la rama
+    slot(b) { return State.research[b] || null; },
+    cost(t) { return Math.round(t.cost * legacyMult()); },
+    baseTime(t) { const i = Config.techs.filter(x => x.branch === t.branch).indexOf(t); return this.TIMES[Math.min(i, this.TIMES.length - 1)]; },
+    speed() { return 1 + 0.25 * Core.HR.eff('Químico'); },
     state(t) {
         if (hasTech(t.id)) return 'bought';
+        const s = this.slot(t.branch);
+        if (s && s.id === t.id) return 'researching';
         if (t.req && !hasTech(t.req)) return 'locked';
         return 'available';
     },
+    tick(secs = 3) {
+        Config.techBranches.forEach(b => {
+            const s = this.slot(b.id);
+            if (!s) return;
+            s.left -= secs * this.speed();
+            if (s.left > 0) return;
+            const t = Config.techs.find(x => x.id === s.id);
+            State.research[b.id] = null;
+            if (!hasTech(t.id)) State.techs.push(t.id);
+            Sfx.levelup();
+            UI.notify(`🔬 Investigación completa: ${t.name}`);
+            Core.News.add(`Laboratorio clandestino logra avance: "${t.name}"`);
+            if (t.id === 'subs_1') Core.Assets.renderStore();
+            UI.setBadge('rnd', '!');
+        });
+        if (UI.current === 'rnd') this.render();
+    },
     render() {
         setText('tech-count', `${State.techs.length} / ${Config.techs.length}`);
+        UI.setBadge('rnd', null);
+        const sp = this.speed();
+        setText('rnd-note', `Cada rama tiene su propio laboratorio: puedes investigar una tecnología a la vez en cada una. Velocidad x${sp.toFixed(2)}${sp > 1 ? ' (gracias a tus Químicos)' : ' (contrata Químicos para acelerar)'}.`);
         $('tech-tree').innerHTML = Config.techBranches.map(b => `
             <div class="tech-branch"><h4>${b.icon} ${b.name}</h4>
             ${Config.techs.filter(t => t.branch === b.id).map(t => {
-            const st = this.state(t);
-            return `<div class="tech-node ${st}">
+            const st = this.state(t), busy = this.slot(b.id);
+            let foot;
+            if (st === 'bought') foot = '<span class="green tiny">✔ INVESTIGADO</span>';
+            else if (st === 'researching') {
+                const s = busy, pct = 100 - s.left / s.total * 100;
+                foot = `<div class="tiny gold">🔬 INVESTIGANDO... ${fmtTime(Math.ceil(s.left / sp))}</div>
+                    <div class="progress-line" style="height:6px; margin-top:4px;"><div class="progress-active" style="width:${clamp(pct, 0, 100)}%;"></div></div>`;
+            }
+            else if (st === 'locked') foot = `<span class="tiny muted">🔒 Requiere ${Config.techs.find(x => x.id === t.req).name}</span>`;
+            else foot = `<button class="action-btn btn-gold" onclick="Core.RnD.buy('${t.id}')" ${busy ? 'disabled' : ''}>${busy ? 'LABORATORIO OCUPADO' : `INVESTIGAR $${fmt(this.cost(t))} · ${fmtTime(Math.ceil(this.baseTime(t) / sp))}`}</button>`;
+            return `<div class="tech-node ${st === 'researching' ? 'available' : st}">
                     <b>${t.name}</b>
                     <div class="td">${t.desc}</div>
-                    ${st === 'bought' ? '<span class="green tiny">✔ INVESTIGADO</span>'
-                    : st === 'locked' ? `<span class="tiny muted">🔒 Requiere ${Config.techs.find(x => x.id === t.req).name}</span>`
-                        : `<button class="action-btn btn-gold" onclick="Core.RnD.buy('${t.id}')">INVESTIGAR $${fmt(t.cost)} LIMPIO</button>`}
+                    ${foot}
                 </div>`;
         }).join('')}</div>`).join('');
     },
     buy(id) {
         const t = Config.techs.find(x => x.id === id);
         if (!t || this.state(t) !== 'available') return;
-        if (!Core.pay('clean', t.cost)) return;
-        State.techs.push(id);
-        Sfx.levelup();
-        UI.notify(`Investigación completa: ${t.name}`);
-        if (id === 'subs_1') Core.Assets.renderStore();
+        if (this.slot(t.branch)) return UI.notify('Ese laboratorio ya está investigando algo.', 'bad');
+        if (!Core.pay('clean', this.cost(t))) return;
+        const total = this.baseTime(t);
+        State.research[t.branch] = { id: t.id, left: total, total };
+        Sfx.click();
+        UI.notify(`🔬 Investigando ${t.name}: lista en ${fmtTime(Math.ceil(total / this.speed()))}.`);
         this.render();
     }
 };

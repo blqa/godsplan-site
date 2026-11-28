@@ -135,6 +135,7 @@ Core.Game = {
             Core.Rivals.tick();
             Core.Fronts.tick();
             Core.Aguila.tick();
+            Core.RnD.tick();
             Core.Finance.loanTick();
             Core.HR.tick();
             if (State.stats.playTime % 60 === 0) Core.War.payroll();
