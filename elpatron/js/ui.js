@@ -4,8 +4,9 @@
    ========================================================= */
 const VIEWS = [
     { id: 'ops', icon: '🏭', name: 'PRODUCCIÓN', short: 'Producir' },
+    { id: 'mapa', icon: '🗺️', name: 'MAPA', short: 'Mapa' },
     { id: 'story', icon: '📖', name: 'HISTORIA', short: 'Historia' },
-    { id: 'war', icon: '🗺️', name: 'GUERRA', short: 'Guerra' },
+    { id: 'war', icon: '⚔️', name: 'GUERRA', short: 'Guerra' },
     { id: 'rivals', icon: '🤝', name: 'RIVALES Y CONTACTOS', short: 'Rivales' },
     { id: 'logistics', icon: '🚚', name: 'LOGÍSTICA', short: 'Envíos' },
     { id: 'assets', icon: '🚗', name: 'FLOTA', short: 'Flota' },
@@ -24,7 +25,7 @@ const VIEWS = [
     { id: 'achievements', icon: '🏆', name: 'LOGROS', short: 'Logros' },
     { id: 'ending', icon: '🏁', name: 'RETIRO', short: 'Retiro' }
 ];
-const TAB_PRIORITY = ['ops', 'logistics', 'war', 'finance', 'story', 'assets', 'hr'];
+const TAB_PRIORITY = ['ops', 'mapa', 'logistics', 'war', 'finance', 'story', 'assets', 'hr'];
 let TABBAR = ['ops', 'logistics', 'war', 'finance'];
 
 const UI = {

@@ -55,6 +55,7 @@ Core.fame = function () {
 /* ---------- DESBLOQUEOS ---------- */
 Core.Unlocks = {
     isOpen(key) {
+        if (key === 'mapa') return true;
         if (State.mode === 'libre') return key !== 'story';
         return State.unlocked.includes(key);
     },

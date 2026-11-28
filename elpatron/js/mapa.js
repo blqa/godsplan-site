@@ -1,5 +1,5 @@
 /* =========================================================
-   MAPA VIVO (siempre visible arriba de cada menú)
+   MAPA (sección propia: mapa grande + info del estado a un lado)
    - El mismo mapa del menú Guerra (Core.War.renderMap) con zoom y arrastre
    - Convoyes moviéndose, frentes, ataques en camino con flecha y cuenta regresiva
    - Toca una plaza o un convoy: panel rápido para actuar sin cambiar de menú
@@ -14,7 +14,7 @@ Core.LiveMap = {
 
     init() {
         if (this.ready) return; this.ready = true;
-        try { this.size = localStorage.getItem(this.KEY) || (window.innerWidth < 760 ? 'off' : 'sm'); } catch (e) { }
+        this.size = 'lg';
         this.box = $('live-map');
         this.wrap = $('lm-canvas-wrap');
         this.c = $('lm-canvas');
@@ -23,22 +23,18 @@ Core.LiveMap = {
         this.applySize();
         window.addEventListener('resize', () => this.fit());
         this.bindPointer();
-        document.addEventListener('pointerdown', e => { if (!this.panelEl.contains(e.target) && e.target !== this.c) this.closePanel(); });
+        this.closePanel();
         const loop = () => { this.draw(); requestAnimationFrame(loop); };
         requestAnimationFrame(loop);
         setInterval(() => { this.bar(); if (this.panelRefresh) this.panelRefresh(); }, 500);
     },
-    visible() { return this.ready && this.size !== 'off' && UI.current !== 'war' && Core.Game.running && !document.hidden; },
-    setSize(s) { this.size = s; try { localStorage.setItem(this.KEY, s); } catch (e) { } this.applySize(); Sfx.click(); },
+    visible() { return this.ready && UI.current === 'mapa' && Core.Game.running && !document.hidden; },
+    setSize() { }, // (antes había tamaños; ahora el mapa vive en su propia sección)
     applySize() {
-        this.box.dataset.size = this.size;
-        this.wrap.style.height = this.SIZES[this.size] + 'px';
-        document.querySelectorAll('#live-map .lm-size button').forEach(b => b.classList.toggle('on', b.dataset.s === this.size));
-        this.closePanel();
         setTimeout(() => this.fit(), 30);
     },
     // en el menú Guerra no hace falta (ya tiene su mapa grande)
-    onNav(id) { if (this.box) this.box.classList.toggle('hidden', id === 'war'); this.closePanel(); setTimeout(() => this.fit(), 30); },
+    onNav(id) { if (id === 'mapa') setTimeout(() => this.fit(), 30); },
     fit() {
         if (!this.c) return;
         this.dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -62,7 +58,7 @@ Core.LiveMap = {
     zoomBy(f) { this.cam.z = clamp(this.cam.z * f, 1, 4.5); this.clampCam(); },
     clampCam() { this.cam.cx = clamp(this.cam.cx, 0, 600); this.cam.cy = clamp(this.cam.cy, 0, 430); },
     center() { this.cam = { z: 1, cx: 300, cy: 215 }; this.closePanel(); },
-    focus(id, z) { const t = Config.territories[id]; this.cam.cx = t.x; this.cam.cy = t.y; this.cam.z = Math.max(this.cam.z, z || 2); if (this.size === 'off') this.setSize('sm'); },
+    focus(id, z) { const t = Config.territories[id]; this.cam.cx = t.x; this.cam.cy = t.y; this.cam.z = Math.max(this.cam.z, z || 2); if (UI.current !== 'mapa') UI.nav('mapa'); },
     toMap(e) { const r = this.c.getBoundingClientRect(), v = this.view(); return { x: ((e.clientX - r.left) * this.dpr - v.ox) / v.sx, y: ((e.clientY - r.top) * this.dpr - v.oy) / v.sy }; },
     bindPointer() {
         const c = this.c; let down = null; const pts = new Map(); let pinch = 0;
@@ -79,7 +75,7 @@ Core.LiveMap = {
         const up = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = 0; if (down && !down.moved && !pts.size) this.click(e); if (!pts.size) down = null; };
         c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
         // la rueda hace zoom solo con el mapa grande o con Ctrl, para no estorbar al bajar la página
-        c.addEventListener('wheel', e => { if (this.size !== 'lg' && !e.ctrlKey) return; e.preventDefault(); this.zoomBy(e.deltaY < 0 ? 1.15 : 1 / 1.15); }, { passive: false });
+        c.addEventListener('wheel', e => { e.preventDefault(); this.zoomBy(e.deltaY < 0 ? 1.15 : 1 / 1.15); }, { passive: false });
     },
     hover(e) { const m = this.toMap(e), z = this.cam.z, id = Core.War.stateAt(m.x, m.y); Core.War.hoverId = id; this.c.style.cursor = (id !== null || Core.War.routeAt(m.x, m.y, 12 / Math.sqrt(z))) ? 'pointer' : (this.cam.z > 1 ? 'grab' : 'default'); },
 
@@ -135,14 +131,10 @@ Core.LiveMap = {
         const render = () => { const sc = p.scrollTop; p.innerHTML = `<button class="lm-x" onclick="Core.LiveMap.closePanel()">✕</button>` + fn(); p.scrollTop = sc; };
         render();
         p.classList.remove('hidden');
-        const w = p.offsetWidth, h = p.offsetHeight;
-        let x = e.clientX + 16, y = e.clientY - 30;
-        if (x + w > window.innerWidth - 10) x = e.clientX - w - 16;
-        p.style.left = clamp(x, 8, window.innerWidth - w - 8) + 'px';
-        p.style.top = clamp(y, 8, window.innerHeight - h - 8) + 'px';
-        this.panelRefresh = () => { if (!p.classList.contains('hidden') && !p.contains(document.activeElement)) render(); };
+        if (window.innerWidth <= 900) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        this.panelRefresh = () => { if (!p.contains(document.activeElement)) render(); };
     },
-    closePanel() { if (this.panelEl) this.panelEl.classList.add('hidden'); this.panelRefresh = null; Core.War.selected = UI.current === 'war' ? Core.War.selected : null; },
+    closePanel() { if (this.panelEl) this.panelEl.innerHTML = `<div class="lm-empty"><b>🗺️</b>Toca cualquier estado del mapa para ver su capital, quién lo controla, su bono y con quién colinda.<br><br>Tienes que conquistar los <b style="display:inline;font-size:1em">32</b>.</div>`; this.panelRefresh = null; Core.War.selected = UI.current === 'war' ? Core.War.selected : null; },
     act(code) { try { code(); } catch (e) { console.warn(e); } if (this.panelRefresh) this.panelRefresh(); },
 
     plazaHTML(id) {
