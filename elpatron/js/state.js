@@ -72,7 +72,7 @@ function newState() {
         contracts: [], contractsUnlocked: false,
         news: [],
         weatherCurrent: 0,
-        automation: { active: false, smart: false, prod: 'weed', veh: -1, dist: 1, min: 20 },
+        automation: { active: false, smart: false, prod: 'weed', veh: -1, dist: 1, min: 20, fill: 0.5, reserve: true },
         ticks: 0,
         luxuries: { ak47: 0, tiger: 0, lambo: 0 },
         investments: { local: 0, hotel: 0, office: 0, casino: 0, island: 0 },

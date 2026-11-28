@@ -202,6 +202,7 @@ Core.War = {
             <div class="chip green">${c.bonus.text}</div>
             ${inc ? `<div class="red tiny" style="margin-top:6px;">⚔️ ¡BAJO ATAQUE! ${Math.ceil(inc.left)}s</div>` : ''}`;
         if (t.owner === 'player') {
+            if (id === Config.baseId) html += `<p class="tiny green" style="margin-top:8px;">🏠 Es tu base: los cárteles nunca la atacan. No necesitas dejar tropas aquí; úsalas para atacar.</p>`;
             html += `<div class="row-between" style="margin-top:10px;"><span>DEFENSA</span><b class="gold">${fmt(this.defenseOf(id))}</b></div>
                 <div class="row-between tiny"><span>Defensores ${fmt(t.troops)} · T-90 ${t.tanks}</span><span>Libres ${fmt(State.army)}</span></div>
                 <div class="btn-row">

@@ -139,6 +139,8 @@ Core.HR = {
         const l = State.lieutenants.find(x => x.id === id);
         if (!l || !Core.pay('dirty', this.bonusCost(l))) return;
         l.loyalty = 100;
+        l.warned = false;
+        if (!State.lieutenants.some(x => x.loyalty < 35)) UI.setBadge('hr', null);
         Sfx.coin();
         this.render();
     },
@@ -165,6 +167,13 @@ Core.HR = {
             }
             if (!minute) return;
             l.loyalty = Math.max(0, l.loyalty - 4 * T.decay * (l.active ? 1 : 0.5));
+            if (l.loyalty < 35 && !l.warned) {
+                l.warned = true;
+                Sfx.alert();
+                UI.notify(`😠 ${l.name} (${l.role}) anda inconforme: lealtad ${Math.floor(l.loyalty)}%. Págale un BONO en Tenientes o te va a traicionar.`, 'bad');
+                UI.setBadge('hr', '!');
+            }
+            if (l.loyalty >= 50) l.warned = false;
             if (l.trait === 'Impulsivo' && l.active && Math.random() < 0.05) {
                 Core.Heat.add(10);
                 UI.notify(`${l.name} se peleó en una cantina. (+Heat)`, 'bad');

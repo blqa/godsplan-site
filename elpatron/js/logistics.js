@@ -59,7 +59,10 @@ Core.Logistics = {
         const A = State.automation;
         autoP.value = A.prod; autoD.value = String(A.dist); autoV.value = String(A.veh);
         if (!autoV.value) autoV.value = '-1';
-        $('auto-min-load').value = A.min;
+        if (A.fill === undefined) A.fill = 0.5;
+        if (A.reserve === undefined) A.reserve = true;
+        $('auto-fill').value = String(A.fill);
+        $('auto-reserve').checked = !!A.reserve;
         $('auto-smart-toggle').checked = !!A.smart;
         this.updateAutoStatus();
         this.calc();
@@ -172,9 +175,9 @@ Core.Logistics = {
             State.stats.shipments++;
             if (v) {
                 v.hp = Math.max(0, v.hp - 10);
-                const before = Math.floor(v.km / 5000);
+                const before = Core.Assets.vetBonus(v);
                 v.km += Config.routes[r.dist].km;
-                if (Math.floor(v.km / 5000) > before && v.km >= 5000) UI.notify(`"${v.name}" ahora es veterano: ${fmt(v.km)} km (+${Math.round(Core.Assets.vetBonus(v) * 100)}% vel.)`, 'event');
+                if (Core.Assets.vetBonus(v) > before) UI.notify(`"${v.name}" ahora es veterano: ${fmt(v.km)} km (+${Math.round(Core.Assets.vetBonus(v) * 100)}% vel.)`, 'event');
             }
             Sfx.cash();
             if (r.val >= 500000 && Math.random() < 0.5) Core.News.add(`Autoridades investigan red que movió "toneladas" por ${Config.routes[r.dist].name.toLowerCase()}`);
@@ -229,12 +232,19 @@ Core.Logistics = {
         if ((State.stats.delivered || 0) >= this.AUTO_UNLOCK) return 1;
         return 0;
     },
+    // kg que se apartan para los encargos activos
+    reserved(k) {
+        if (!State.automation.reserve) return 0;
+        return State.contracts.filter(c => c.prod === k).reduce((s, c) => s + c.qty, 0);
+    },
+    available(k) { return Math.max(0, State.inv[k] - this.reserved(k)); },
     readAuto() {
         const A = State.automation;
         A.prod = $('auto-prod').value || A.prod || 'weed';
         A.dist = +$('auto-dist').value || 1;
         A.veh = $('auto-veh').value === '' ? -1 : +$('auto-veh').value;
-        A.min = Math.max(1, parseInt($('auto-min-load').value) || 1);
+        A.fill = parseFloat($('auto-fill').value) || 0.5;
+        A.reserve = $('auto-reserve').checked;
         A.smart = $('auto-smart-toggle').checked;
         this.updateAutoStatus();
     },
@@ -278,6 +288,8 @@ Core.Logistics = {
             st.textContent = txt; st.style.color = A.active ? 'var(--success)' : '#666';
         }
         setText('inv-auto', tier === 0 ? '🔒' : (A.active ? '⚡ ON' : 'OFF'));
+        const res = Config.productKeys.filter(k => this.reserved(k) > 0).map(k => `${Config.products[k].name} ${fmt(Math.min(State.inv[k], this.reserved(k)))}/${fmt(this.reserved(k))} kg`);
+        setText('auto-reserve-info', A.reserve && res.length ? `Apartando para encargos: ${res.join(' · ')}` : '');
     },
     autoRun() {
         const A = State.automation;
@@ -294,19 +306,20 @@ Core.Logistics = {
         for (const v of free) {
             if (sent >= limit) break;
             const cap = Core.Mods.vehicleCap(v.type);
-            const need = Math.min(A.min, cap); // una mula no puede llevar 20 kg: con que vaya llena basta
+            // espera a que haya carga suficiente para llenar el vehículo al % elegido
+            const need = Math.max(1, Math.ceil(cap * (A.fill || 0.5)));
             let k = A.prod;
             if (tier === 2 && A.smart) {
                 let best = 0; k = null;
                 Config.productKeys.forEach(p => {
-                    const amt = Math.min(cap, State.inv[p]);
+                    const amt = Math.min(cap, this.available(p));
                     if (amt < need) return;
                     const val = amt * Core.Market.price(p, d);
                     if (val > best) { best = val; k = p; }
                 });
-                if (!k) break;
+                if (!k) continue; // este vehículo no se llena todavía; prueba uno más chico
             }
-            const amt = Math.min(cap, State.inv[k]);
+            const amt = Math.min(cap, this.available(k));
             if (amt < need) continue;
             if (this.execute(v, k, amt, d)) sent++;
         }
