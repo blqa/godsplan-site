@@ -112,7 +112,7 @@ Core.Story = {
     render() {
         if (State.mode === 'libre') {
             const g = Core.Legacy.goalsMet();
-            setHTML('mini-story', `<b class="gold">🗺️ MODO LIBRE</b><br>Plan de retiro: ${g}/4 metas<br><span class="muted">$1B offshore · 14 plazas · 16 techs · 5 misiones</span>`);
+            setHTML('mini-story', `<b class="gold">🗺️ MODO LIBRE</b><br>Plan de retiro: ${g}/4 metas<br><span class="muted">$1B offshore · 32 estados · 16 techs · 5 misiones</span>`);
             const bar = $('mini-story-bar'); if (bar) bar.style.width = (g / 4 * 100) + '%';
             return;
         }
@@ -288,7 +288,7 @@ Core.Respect = {
         let val = State.money.offshore + State.money.clean + State.money.dirty * 0.1 - State.loan.debt * 0.5;
         Config.investments.forEach(i => val += (State.investments[i.id] || 0) * i.cost);
         Config.fronts.forEach(f => { if (State.fronts[f.id]) val += f.cost * State.fronts[f.id].level; });
-        val += Core.War.owned().length * 5000000;
+        val += Core.War.weight() * 5000000;
         Object.keys(State.stocks).forEach(k => val += State.stocks[k].owned * State.stocks[k].price);
         State.respect = Math.max(0, Math.floor(val));
         const old = State.rank;
@@ -403,7 +403,7 @@ Core.Guide = {
         <h2>0. Modos de juego</h2>
         <p><strong>Modo Historia</strong>: empiezas con Producción, Logística y Flota, y cada capítulo te abre nuevos menús (Finanzas, Tenientes, Guerra, Fachadas...). <strong>Modo Libre</strong>: todo abierto desde el inicio y sin capítulos.</p>
         <h2>1. La meta</h2>
-        <p>Retírate como <strong>EL REY DE REYES</strong>: junta <strong>$1B</strong> en tu cuenta offshore, controla los <strong>14 territorios</strong> e investiga las <strong>16 tecnologías</strong>. La pestaña <strong>HISTORIA</strong> te guía capítulo por capítulo.</p>
+        <p>Retírate como <strong>EL REY DE REYES</strong>: junta <strong>$1B</strong> en tu cuenta offshore, controla los <strong>32 estados</strong> e investiga las <strong>16 tecnologías</strong>. La pestaña <strong>HISTORIA</strong> te guía capítulo por capítulo.</p>
         <h2>2. Dinero sucio y limpio</h2>
         <p>Vender mercancía da dinero <strong>sucio</strong> (producción, tropas, vehículos). Lo conviertes en <strong>limpio</strong> lavándolo a mano o con <strong>negocios fachada</strong>, que lavan solos pero pueden ser clausurados por Hacienda. Con el limpio compras propiedades, tecnología y poder político.</p>
         <h2>3. Producción y mercado</h2>

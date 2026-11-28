@@ -81,7 +81,7 @@ Core.LiveMap = {
         // la rueda hace zoom solo con el mapa grande o con Ctrl, para no estorbar al bajar la página
         c.addEventListener('wheel', e => { if (this.size !== 'lg' && !e.ctrlKey) return; e.preventDefault(); this.zoomBy(e.deltaY < 0 ? 1.15 : 1 / 1.15); }, { passive: false });
     },
-    hover(e) { const m = this.toMap(e), z = this.cam.z; this.c.style.cursor = (Core.War.pickAt(m.x, m.y, 22 / Math.sqrt(z)) !== null || Core.War.routeAt(m.x, m.y, 12 / Math.sqrt(z))) ? 'pointer' : (this.cam.z > 1 ? 'grab' : 'default'); },
+    hover(e) { const m = this.toMap(e), z = this.cam.z, id = Core.War.stateAt(m.x, m.y); Core.War.hoverId = id; this.c.style.cursor = (id !== null || Core.War.routeAt(m.x, m.y, 12 / Math.sqrt(z))) ? 'pointer' : (this.cam.z > 1 ? 'grab' : 'default'); },
 
     /* ---------- dibujo ---------- */
     draw() {
@@ -111,7 +111,7 @@ Core.LiveMap = {
     bar() {
         if (!this.ready || !Core.Game.running) return;
         const S = State, bits = [];
-        bits.push(`<span style="color:${Core.Me.color()}">●</span> ${Core.War.owned().length}/14 plazas`);
+        bits.push(`<span style="color:${Core.Me.color()}">●</span> ${Core.War.owned().length}/${Config.territories.length} estados`);
         if (S.routes.length) bits.push(`🚚 ${S.routes.length} en ruta`);
         if (S.incoming.length) bits.push(`<span class="red lm-blink">⚔️ ${S.incoming.length} ataque${S.incoming.length > 1 ? 's' : ''}</span>`);
         if (Core.Unlocks.isOpen('war')) { const d = Core.War.owned().filter(t => Core.War.status(t.id).key === 'danger').length; if (d) bits.push(`<span class="red">⚠️ ${d} en peligro</span>`); }
@@ -124,7 +124,7 @@ Core.LiveMap = {
         const m = this.toMap(e), z = this.cam.z;
         const r = Core.War.routeAt(m.x, m.y, 12 / Math.sqrt(z));
         if (r) { Sfx.click(); return this.panel(() => this.routeHTML(r), e); }
-        const id = Core.War.pickAt(m.x, m.y, 24 / Math.sqrt(z));
+        const id = Core.War.pickAt(m.x, m.y, 14 / Math.sqrt(z));
         if (id === null) return this.closePanel();
         Sfx.click();
         Core.War.selected = id;
@@ -149,8 +149,10 @@ Core.LiveMap = {
         const W = Core.War, c = Config.territories[id], t = State.territories[id], mine = t.owner === 'player', war = Core.Unlocks.isOpen('war');
         const color = mine ? Core.Me.color() : Config.rivals[t.owner].color, owner = mine ? Core.Me.cartel() : `${Config.rivals[t.owner].name} · ${Config.rivals[t.owner].leader}`;
         const inc = State.incoming.find(i => i.target === id), P = State.stats.playTime;
-        let h = `<div class="lm-h" style="border-color:${color}"><b style="color:${color}">${c.hq ? '👑 ' : ''}${c.name}</b><small>${owner}</small></div>
-            <div class="lm-chip">🎁 ${c.bonus.text}</div>`;
+        const nb = W.neighbors(id).map(n => Config.territories[n].name).join(', ');
+        let h = `<div class="lm-h" style="border-color:${color}"><b style="color:${color}">${c.hq ? '👑 ' : ''}${c.name}</b><small>📍 ${c.cap} · ${owner}</small></div>
+            <div class="lm-chip">🎁 ${c.bonus.text}</div>
+            <p class="lm-note">🧭 Colinda con: ${nb}</p>`;
         if (inc) h += `<div class="lm-alert">⚔️ ATAQUE EN CAMINO · ${fmt(inc.power)} de fuerza · ${Math.ceil(inc.left)}s</div>`;
         if (mine) {
             if (id === Config.baseId) return h + `<p class="lm-note">🏠 Tu base. Los cárteles nunca la atacan: no necesita tropas.</p>`;

@@ -142,7 +142,7 @@ Core.Family = {
             const rid = Core.Rivals.randomAlive();
             const enemy = rid ? Config.rivals[rid].name : 'Una banda de secuestradores';
             const ransom = Math.max(200000, Math.floor(State.money.dirty * 0.15 + this.base() * 3));
-            const en = Math.round(150 * (1 + Core.War.owned().length * 0.6) * dynMult());
+            const en = Math.round(150 * (1 + Core.War.weight() * 0.6) * dynMult());
             // el rescate lo hace tu mejor gente de todas tus plazas (30% de todo tu ejército)
             const rs = Math.floor(Core.War.totalSic() * 0.3), re = Math.floor(Core.War.totalElite() * 0.3);
             const ch = Core.War.chance(Core.War.power(rs, re), en);

@@ -225,7 +225,7 @@ Core.Market = {
         return Math.floor(p);
     },
     // Tamaño de tu mercado: crece con cada plaza que controlas (más calles, más clientes)
-    size() { return 1 + 0.5 * Core.War.owned().length; },
+    size() { return 1 + 0.5 * Core.War.weight(); },
     // Las rutas lejanas venden en otros mercados y saturan menos el local
     ROUTE_SAT: { 1: 1, 2: 0.8, 3: 0.5, 4: 0.3, 5: 0.15, 6: 0.15 },
     MAX_SAT: 2.5, // el precio nunca baja de ~30%

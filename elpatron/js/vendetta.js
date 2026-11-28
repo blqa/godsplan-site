@@ -22,7 +22,7 @@ Config.vendetta = {
 Core.Vendetta = {
     list() { return State.vendettas; },
     on() { return Core.Unlocks.isOpen('cuentas'); },
-    base() { return Math.round(60000 * (1 + 0.5 * Core.War.owned().length) * dynMult()); },
+    base() { return Math.round(60000 * (1 + 0.5 * Core.War.weight()) * dynMult()); },
     culpritName(v) {
         if (v.rid && Config.rivals[v.rid]) return (State.rivals[v.rid] && State.rivals[v.rid].defeated ? 'los restos de ' : '') + Config.rivals[v.rid].name;
         return v.who || 'desconocidos';
@@ -54,7 +54,7 @@ Core.Vendetta = {
     huntForce() { return { sic: State.army, eli: State.elite }; },
     huntDiff(v) {
         const R = v.rid && State.rivals[v.rid];
-        return Math.round(120 * v.sev * (1 + 0.4 * Core.War.owned().length) * dynMult() * (R && !R.defeated ? Core.War.allyMult() : 0.7));
+        return Math.round(120 * v.sev * (1 + 0.4 * Core.War.weight()) * dynMult() * (R && !R.defeated ? Core.War.allyMult() : 0.7));
     },
     huntChance(v) {
         const f = this.huntForce();

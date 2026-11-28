@@ -126,19 +126,19 @@ const Config = {
     // ===== Cárteles rivales =====
     rivals: {
         halcones: {
-            id: 'halcones', name: 'Los Zetaz', leader: 'La Dama', color: '#b46cff', hq: 7, startPower: 160,
+            id: 'halcones', name: 'Los Zetaz', leader: 'La Dama', color: '#b46cff', hq: 24, startPower: 160,
             aggression: 0.8, truceMult: 1.0, bossPower: 900,
             style: 'Sigilosos. Le pasan información a la policía y atacan tus plazas más débiles.',
             taunts: ['"Te veo, aunque tú no me veas."', '"Un halcón nunca ataca de frente, Patrón."', '"El Golfo de México es mío desde antes que nacieras."']
         },
         golfo: {
-            id: 'golfo', name: 'Cártel del Gulfo', leader: 'El Verdugo', color: '#ff4d4d', hq: 6, startPower: 300,
+            id: 'golfo', name: 'Cártel del Gulfo', leader: 'El Verdugo', color: '#ff4d4d', hq: 5, startPower: 300,
             aggression: 1.4, truceMult: 1.6, bossPower: 2200,
             style: 'Agresivos. Atacan seguido, con todo, y asaltan tus cargamentos en ruta.',
             taunts: ['"Voy a colgar tu nombre en un puente."', '"Aquí no se negocia. Aquí se pelea."', '"Mis hombres no conocen el miedo."']
         },
         serrana: {
-            id: 'serrana', name: 'Cártel de Sirnaloa', leader: 'Don Aurelio', color: '#ffae00', hq: 11, startPower: 280,
+            id: 'serrana', name: 'Cártel de Sirnaloa', leader: 'Don Aurelio', color: '#ffae00', hq: 20, startPower: 280,
             aggression: 0.6, truceMult: 0.5, bossPower: 4000,
             style: 'La vieja guardia de la sierra de Sirnaloa. Dueños del Pacífico, inundan el mercado para tirar tus precios y prefieren negociar.',
             taunts: ['"Todo tiene un precio, muchacho. Hasta tú."', '"Cuarenta años en la capital. ¿Y tú quién eres?"', '"Los negocios se hacen en la mesa, no en la calle."']
@@ -147,25 +147,42 @@ const Config = {
 
     // ===== Mapa (coordenadas en un lienzo virtual de 600x430) =====
     // Base del jugador: Mérida, la capital con menos presencia criminal del país
-    baseId: 8,
+    baseId: 30, // Yucatán (Mérida)
     territories: [
-        { id: 0, name: 'Culiacán', x: 180, y: 202, lbl: 'l', owner: 'serrana', power: 260, troops: 20, bonus: { type: 'defense', val: 0.1, text: '+10% Defensa' } },
-        { id: 1, name: 'Tijuana', x: 36, y: 26, lbl: 'r', owner: 'serrana', power: 250, troops: 20, bonus: { type: 'price', val: 0.2, text: '+20% Precio de venta' } },
-        { id: 2, name: 'Hermosillo', x: 125, y: 111, lbl: 'r', owner: 'serrana', power: 200, troops: 15, bonus: { type: 'speed', val: 0.1, text: '+10% Vel. flota' } },
-        { id: 3, name: 'Juárez', x: 193, y: 59, lbl: 'r', owner: 'golfo', power: 220, troops: 20, bonus: { type: 'cap', val: 0.25, text: '+25% capacidad de carga' } },
-        { id: 4, name: 'Chihuahua', x: 212, y: 115, lbl: 'r', owner: 'golfo', power: 180, troops: 15, bonus: { type: 'prod', val: 0.15, text: '+15% Producción' } },
-        { id: 5, name: 'Nuevo Laredo', x: 327, y: 144, lbl: 'r', owner: 'golfo', power: 300, troops: 25, bonus: { type: 'price', val: 0.15, text: '+15% Precio de venta' } },
-        { id: 6, name: 'Monterrey', x: 319, y: 182, lbl: 'r', owner: 'golfo', power: 800, troops: 40, hq: true, bonus: { type: 'launder', val: 0.1, text: '-10% comisión de lavado' } },
-        { id: 7, name: 'Veracruz', x: 393, y: 307, lbl: 'r', owner: 'halcones', power: 420, troops: 30, hq: true, bonus: { type: 'speed', val: 0.2, text: '+20% Vel. flota (puerto)' } },
-        { id: 8, name: 'Mérida', x: 531, y: 273, lbl: 'b', owner: 'player', power: 50, troops: 0, bonus: { type: 'prod', val: 0.1, text: '+10% Producción' } },
-        { id: 9, name: 'Cancún', x: 577, y: 272, lbl: 't', owner: 'halcones', power: 120, troops: 10, bonus: { type: 'price', val: 0.15, text: '+15% Precio de venta' } },
-        { id: 10, name: 'Guadalajara', x: 263, y: 280, lbl: 'l', owner: 'serrana', power: 250, troops: 20, bonus: { type: 'chems', val: 1, text: 'Químicos gratis' } },
-        { id: 11, name: 'CDMX', x: 347, y: 314, lbl: 'l', owner: 'serrana', power: 1200, troops: 60, hq: true, bonus: { type: 'heat', val: 0.1, text: '-10% Heat' } },
-        { id: 12, name: 'Acapulco', x: 333, y: 361, lbl: 'l', owner: 'serrana', power: 280, troops: 20, bonus: { type: 'launder', val: 0.1, text: '-10% comisión de lavado' } },
-        { id: 13, name: 'Oaxaca', x: 391, y: 353, lbl: 'r', owner: 'halcones', power: 160, troops: 12, bonus: { type: 'prod', val: 0.1, text: '+10% Producción' } }
+        { id: 0, key: 'BC', name: 'Baja California', cap: 'Tijuana', x: 51, y: 37, r: 14.5, owner: 'serrana', power: 250, troops: 20, bonus: { type: 'price', val: 0.2, text: '+20% Precio de venta' } },
+        { id: 1, key: 'BCS', name: 'Baja California Sur', cap: 'La Paz', x: 79, y: 132, r: 11.6, owner: 'serrana', power: 150, troops: 10, bonus: { type: 'price', val: 0.05, text: '+5% Precio de venta (turismo)' } },
+        { id: 2, key: 'SON', name: 'Sonora', cap: 'Hermosillo', x: 142, y: 91, r: 32.7, owner: 'serrana', power: 210, troops: 15, bonus: { type: 'speed', val: 0.1, text: '+10% Vel. flota' } },
+        { id: 3, key: 'CHIH', name: 'Chihuahua', cap: 'Ciudad Juárez', x: 212, y: 117, r: 38.5, owner: 'golfo', power: 220, troops: 18, bonus: { type: 'cap', val: 0.25, text: '+25% capacidad de carga' } },
+        { id: 4, key: 'COAH', name: 'Coahuila', cap: 'Saltillo', x: 286, y: 142, r: 28.0, owner: 'golfo', power: 220, troops: 16, bonus: { type: 'defense', val: 0.05, text: '+5% Defensa' } },
+        { id: 5, key: 'NL', name: 'Nuevo León', cap: 'Monterrey', x: 326, y: 175, r: 14.9, owner: 'golfo', power: 800, troops: 40, hq: true, bonus: { type: 'launder', val: 0.1, text: '-10% comisión de lavado' } },
+        { id: 6, key: 'TAMS', name: 'Tamaulipas', cap: 'Nuevo Laredo', x: 352, y: 234, r: 17.7, owner: 'golfo', power: 260, troops: 20, bonus: { type: 'price', val: 0.15, text: '+15% Precio de venta' } },
+        { id: 7, key: 'SIN', name: 'Sinaloa', cap: 'Culiacán', x: 182, y: 182, r: 12.9, owner: 'serrana', power: 260, troops: 20, bonus: { type: 'defense', val: 0.1, text: '+10% Defensa' } },
+        { id: 8, key: 'DGO', name: 'Durango', cap: 'Durango', x: 235, y: 193, r: 26.7, owner: 'serrana', power: 200, troops: 14, bonus: { type: 'prod', val: 0.05, text: '+5% Producción' } },
+        { id: 9, key: 'ZAC', name: 'Zacatecas', cap: 'Zacatecas', x: 270, y: 225, r: 15.1, owner: 'golfo', power: 190, troops: 14, bonus: { type: 'launder', val: 0.05, text: '-5% comisión de lavado' } },
+        { id: 10, key: 'SLP', name: 'San Luis Potosí', cap: 'San Luis Potosí', x: 316, y: 253, r: 14.0, owner: 'golfo', power: 200, troops: 15, bonus: { type: 'speed', val: 0.05, text: '+5% Vel. flota' } },
+        { id: 11, key: 'NAY', name: 'Nayarit', cap: 'Tepic', x: 235, y: 262, r: 11.0, owner: 'serrana', power: 170, troops: 12, bonus: { type: 'prod', val: 0.05, text: '+5% Producción' } },
+        { id: 12, key: 'AGS', name: 'Aguascalientes', cap: 'Aguascalientes', x: 283, y: 260, r: 6.5, owner: 'serrana', power: 150, troops: 10, bonus: { type: 'launder', val: 0.05, text: '-5% comisión de lavado' } },
+        { id: 13, key: 'JAL', name: 'Jalisco', cap: 'Guadalajara', x: 240, y: 300, r: 15.8, owner: 'serrana', power: 250, troops: 20, bonus: { type: 'chems', val: 1, text: 'Químicos gratis' } },
+        { id: 14, key: 'COL', name: 'Colima', cap: 'Manzanillo', x: 253, y: 320, r: 5.5, owner: 'serrana', power: 150, troops: 10, bonus: { type: 'speed', val: 0.1, text: '+10% Vel. flota (puerto)' } },
+        { id: 15, key: 'GTO', name: 'Guanajuato', cap: 'León', x: 305, y: 285, r: 11.9, owner: 'serrana', power: 220, troops: 16, bonus: { type: 'prod', val: 0.05, text: '+5% Producción' } },
+        { id: 16, key: 'QRO', name: 'Querétaro', cap: 'Querétaro', x: 326, y: 289, r: 6.6, owner: 'golfo', power: 170, troops: 12, bonus: { type: 'launder', val: 0.05, text: '-5% comisión de lavado' } },
+        { id: 17, key: 'HGO', name: 'Hidalgo', cap: 'Pachuca', x: 347, y: 292, r: 10.1, owner: 'golfo', power: 180, troops: 14, bonus: { type: 'defense', val: 0.05, text: '+5% Defensa' } },
+        { id: 18, key: 'MICH', name: 'Michoacán', cap: 'Morelia', x: 294, y: 316, r: 15.7, owner: 'serrana', power: 240, troops: 18, bonus: { type: 'prod', val: 0.1, text: '+10% Producción' } },
+        { id: 19, key: 'MEX', name: 'Estado de México', cap: 'Toluca', x: 334, y: 313, r: 9.2, owner: 'serrana', power: 300, troops: 22, bonus: { type: 'defense', val: 0.1, text: '+10% Defensa' } },
+        { id: 20, key: 'CDMX', name: 'Ciudad de México', cap: 'CDMX', x: 346, y: 318, r: 2.9, owner: 'serrana', power: 1200, troops: 60, hq: true, bonus: { type: 'heat', val: 0.1, text: '-10% Heat' } },
+        { id: 21, key: 'MOR', name: 'Morelos', cap: 'Cuernavaca', x: 347, y: 328, r: 5.5, owner: 'halcones', power: 190, troops: 14, bonus: { type: 'heat', val: 0.05, text: '-5% Heat' } },
+        { id: 22, key: 'TLAX', name: 'Tlaxcala', cap: 'Tlaxcala', x: 365, y: 314, r: 4.2, owner: 'halcones', power: 150, troops: 10, bonus: { type: 'heat', val: 0.05, text: '-5% Heat' } },
+        { id: 23, key: 'PUE', name: 'Puebla', cap: 'Puebla', x: 366, y: 329, r: 9.9, owner: 'halcones', power: 200, troops: 14, bonus: { type: 'prod', val: 0.05, text: '+5% Producción' } },
+        { id: 24, key: 'VER', name: 'Veracruz', cap: 'Veracruz', x: 437, y: 347, r: 10.4, owner: 'halcones', power: 420, troops: 30, hq: true, bonus: { type: 'speed', val: 0.2, text: '+20% Vel. flota (puerto)' } },
+        { id: 25, key: 'GRO', name: 'Guerrero', cap: 'Acapulco', x: 337, y: 352, r: 17.8, owner: 'halcones', power: 230, troops: 16, bonus: { type: 'launder', val: 0.1, text: '-10% comisión de lavado' } },
+        { id: 26, key: 'OAX', name: 'Oaxaca', cap: 'Oaxaca', x: 392, y: 364, r: 23.7, owner: 'halcones', power: 170, troops: 12, bonus: { type: 'prod', val: 0.1, text: '+10% Producción' } },
+        { id: 27, key: 'CHIS', name: 'Chiapas', cap: 'Tuxtla Gutiérrez', x: 475, y: 374, r: 20.4, owner: 'halcones', power: 160, troops: 12, bonus: { type: 'price', val: 0.05, text: '+5% Precio de venta' } },
+        { id: 28, key: 'TAB', name: 'Tabasco', cap: 'Villahermosa', x: 473, y: 337, r: 9.4, owner: 'halcones', power: 140, troops: 10, bonus: { type: 'speed', val: 0.05, text: '+5% Vel. flota' } },
+        { id: 29, key: 'CAMP', name: 'Campeche', cap: 'Campeche', x: 519, y: 324, r: 17.4, owner: 'halcones', power: 110, troops: 8, bonus: { type: 'launder', val: 0.05, text: '-5% comisión de lavado' } },
+        { id: 30, key: 'YUC', name: 'Yucatán', cap: 'Mérida', x: 537, y: 280, r: 15.2, owner: 'player', power: 50, troops: 0, bonus: { type: 'prod', val: 0.1, text: '+10% Producción' } },
+        { id: 31, key: 'QROO', name: 'Quintana Roo', cap: 'Cancún', x: 551, y: 307, r: 14.4, owner: 'halcones', power: 120, troops: 10, bonus: { type: 'price', val: 0.15, text: '+15% Precio de venta' } }
     ],
-    edges: [[0, 2], [0, 4], [0, 10], [1, 2], [1, 3], [2, 3], [2, 4], [3, 4], [3, 5], [4, 6], [5, 6], [6, 10], [6, 7],
-        [10, 11], [10, 12], [11, 12], [11, 7], [11, 13], [12, 13], [7, 13], [7, 8], [8, 9], [8, 13]],
+    edges: [[0, 1], [0, 2], [2, 3], [2, 7], [3, 4], [3, 7], [3, 8], [4, 5], [4, 8], [4, 9], [4, 10], [5, 6], [5, 9], [5, 10], [6, 10], [6, 24], [7, 8], [7, 11], [8, 9], [8, 11], [9, 10], [9, 11], [9, 12], [9, 13], [9, 15], [10, 13], [10, 15], [10, 16], [10, 17], [10, 24], [11, 13], [12, 13], [13, 14], [13, 15], [13, 18], [14, 18], [15, 16], [15, 18], [16, 17], [16, 18], [16, 19], [17, 19], [17, 22], [17, 23], [17, 24], [18, 19], [18, 25], [19, 20], [19, 21], [19, 22], [19, 23], [19, 25], [20, 21], [21, 23], [21, 25], [22, 23], [23, 24], [23, 25], [23, 26], [24, 26], [24, 27], [24, 28], [25, 26], [26, 27], [27, 28], [28, 29], [29, 30], [29, 31], [30, 31]],
 
     territoryUpgrades: [
         { id: 'fort', name: 'Fortaleza', icon: '🏰', desc: '+30% defensa por nivel', base: 40000 },
@@ -276,9 +293,9 @@ Config.story = [
         progress: () => [State.lieutenants.length, 2], reward: { dirty: 25000 }
     },
     {
-        title: 'La Riviera', goal: 'Conquista Cancún',
-        text: 'Cancún: turistas, hoteles y dólares en efectivo.\nLos Zetaz la controlan desde su puerto en Veracruz.\nLa Dama no sabe que vas por ella.\n\nArma a tu gente y cruza la península.',
-        progress: () => [State.territories[9].owner === 'player' ? 1 : 0, 1], reward: { dirty: 100000 }
+        title: 'La Riviera', goal: 'Conquista Quintana Roo (Cancún)',
+        text: 'Quintana Roo: Cancún, turistas, hoteles y dólares en efectivo.\nLos Zetaz lo controlan desde su puerto en Veracruz.\nLa Dama no sabe que vas por ella.\n\nArma a tu gente y cruza la península.',
+        progress: () => [State.territories[31].owner === 'player' ? 1 : 0, 1], reward: { dirty: 100000 }
     },
     {
         title: 'Fachadas', goal: 'Ten 2 negocios fachada',
@@ -287,17 +304,17 @@ Config.story = [
     },
     {
         title: 'La Guerra del Puerto', goal: 'Derrota a Los Zetaz (toma Veracruz)', boss: 'halcones',
-        text: 'Veracruz es la fortaleza de La Dama.\nPara llegar a ella tendrás que quitarle Cancún y Oaxaca... y luego entrar a su guarida.\n\nSi cae el puerto, caen Los Zetaz.',
+        text: 'Veracruz es la fortaleza de La Dama.\nPara llegar a ella tendrás que quitarle todos sus estados del sureste y del centro... y luego entrar a su guarida.\n\nSi cae el puerto, caen Los Zetaz.',
         progress: () => [State.rivals.halcones.defeated ? 1 : 0, 1], reward: { dirty: 1000000 }
     },
     {
-        title: 'La Frontera', goal: 'Conquista Nuevo Laredo',
+        title: 'La Frontera', goal: 'Conquista Tamaulipas (Nuevo Laredo)',
         text: 'Nuevo Laredo es la aduana más transitada del continente.\nEl Verdugo la protege con sangre.',
-        progress: () => [State.territories[5].owner === 'player' ? 1 : 0, 1], reward: { dirty: 2000000 }
+        progress: () => [State.territories[6].owner === 'player' ? 1 : 0, 1], reward: { dirty: 2000000 }
     },
     {
         title: 'Golfo en Llamas', goal: 'Derrota al Cártel del Gulfo (toma Monterrey)', boss: 'golfo',
-        text: 'El Verdugo no negocia. Solo entiende la fuerza.\nMonterrey es su trono de acero.\n\nVe preparado: tanques, élite y todo lo que tengas.',
+        text: 'El Verdugo no negocia. Solo entiende la fuerza.\nMonterrey, en Nuevo León, es su trono de acero.\n\nVe preparado: tanques, élite y todo lo que tengas.',
         progress: () => [State.rivals.golfo.defeated ? 1 : 0, 1], reward: { dirty: 10000000 }
     },
     {
@@ -321,7 +338,7 @@ Config.story = [
 const ownedCount = () => State.territories.filter(t => t.owner === 'player').length;
 Config.achievements = [
     { id: 'first_k', name: 'Primer Kilo', desc: 'Gana $1,000 sucios', check: () => State.stats.dirtyEarned >= 1000 },
-    { id: 'boss', name: 'Jefe de Plaza', desc: 'Controla 3 territorios', check: () => ownedCount() >= 3 },
+    { id: 'boss', name: 'Jefe de Plaza', desc: 'Controla 3 estados', check: () => ownedCount() >= 3 },
     { id: 'kingpin', name: 'Capo de Capos', desc: 'Acumula $1M sucios', check: () => State.money.dirty >= 1e6 },
     { id: 'fleet_master', name: 'Flotilla', desc: 'Ten 10 vehículos', check: () => State.fleet.length >= 10 },
     { id: 'fleet_30', name: 'Flota Inmensa', desc: 'Ten 30 vehículos', check: () => State.fleet.length >= 30 },
@@ -330,7 +347,7 @@ Config.achievements = [
     { id: 'elite_squad', name: 'Escuadrón de la Muerte', desc: 'Ten 10 de élite', check: () => Core.War.totalElite() >= 10 },
     { id: 'high_roller', name: 'Lavado Masivo', desc: 'Lava $1M en total', check: () => State.stats.laundered >= 1e6 },
     { id: 'clean_10m', name: 'Mano Limpia', desc: 'Acumula $10M limpios', check: () => State.money.clean >= 1e7 },
-    { id: 'map_control', name: 'Dueño del País', desc: 'Controla los 14 territorios', check: () => ownedCount() >= 14 },
+    { id: 'map_control', name: 'Dueño del País', desc: 'Controla los 32 estados', check: () => ownedCount() >= Config.territories.length },
     { id: 'meth_king', name: 'Heisenberg', desc: 'Ten 100 kg de Cristal', check: () => State.inv.meth >= 100 },
     { id: 'heroin_lord', name: 'Triángulo Dorado', desc: 'Ten 100 kg de Heroína', check: () => State.inv.heroin >= 100 },
     { id: 'chems_50k', name: 'El Alquimista', desc: 'Ten 50,000 L de químicos', check: () => State.inv.chems >= 50000 },

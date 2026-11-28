@@ -34,7 +34,7 @@ Config.golpes = [
 Core.Golpes = {
     G() { return State.golpes; },
     // los golpes se hacen más difíciles conforme avanzas
-    scale() { return (1 + 0.5 * Core.War.owned().length) * dynMult(); },
+    scale() { return (1 + 0.5 * Core.War.weight()) * dynMult(); },
     diff(g) { return Math.round(g.diff * this.scale()); },
     ready(g) { return (this.G().cd[g.id] || 0) <= State.stats.playTime; },
     crew(g) { const m = this.G().mult[g.id] || 1; return { sic: g.sic * m, eli: g.eli * m }; },

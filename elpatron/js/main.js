@@ -63,7 +63,7 @@ Core.Game = {
             State.money.clean += 10000;
             State.unlocked = Object.keys(Config.unlocks);
             this.start();
-            UI.modal('🗺️ MODO LIBRE', 'Todo está desbloqueado desde el inicio y no hay capítulos.\nArrancas en Mérida con $26.5K sucios y $10.5K limpios.\n\nTu meta: retirarte con $1B offshore, los 14 territorios y las 16 tecnologías. Cómo llegues es cosa tuya.', [{ text: 'A JUGAR', style: 'btn-gold', cb: () => { } }]);
+            UI.modal('🗺️ MODO LIBRE', 'Todo está desbloqueado desde el inicio y no hay capítulos.\nArrancas en Mérida con $26.5K sucios y $10.5K limpios.\n\nTu meta: retirarte con $1B offshore, los 32 estados y las 16 tecnologías. Cómo llegues es cosa tuya.', [{ text: 'A JUGAR', style: 'btn-gold', cb: () => { } }]);
         } else {
             this.showChapter(Config.story[0], 'PRÓLOGO');
             this.start();

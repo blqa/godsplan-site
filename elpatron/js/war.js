@@ -5,21 +5,6 @@
 const MAP_W = 600, MAP_H = 430;
 
 // Silueta aproximada del país (solo decorativa)
-// México por estados: se dibuja una vez en un canvas aparte y luego solo se copia (rápido)
-const MAP_IMG = { ready: false, canvas: null, k: 2, pad: 40, vk: 0.58, vx: 6, vy: 18 }; // vk/vx/vy: dónde cae el SVG (1000x680) en el lienzo virtual 600x430
-(function () {
-    const img = new Image();
-    img.onload = () => {
-        const k = MAP_IMG.k, pad = MAP_IMG.pad, c = document.createElement('canvas');
-        c.width = 1000 * k + pad * 2; c.height = 680 * k + pad * 2;
-        const g = c.getContext('2d');
-        g.shadowColor = 'rgba(110,220,150,0.45)'; g.shadowBlur = 30;
-        g.drawImage(img, pad, pad, 1000 * k, 680 * k);
-        g.shadowBlur = 0; g.globalAlpha = 0.9; g.drawImage(img, pad, pad, 1000 * k, 680 * k);
-        MAP_IMG.canvas = c; MAP_IMG.ready = true;
-    };
-    img.src = './img/mexico.svg';
-})();
 const MAP_SHAPES = [
     [[20, 22], [250, 28], [300, 62], [345, 78], [420, 92], [445, 140], [432, 200], [442, 258], [472, 298], [503, 288], [522, 232], [588, 198], [598, 240], [562, 302], [503, 332], [470, 332], [462, 382], [432, 412], [362, 402], [292, 397], [222, 335], [190, 284], [160, 232], [120, 172], [80, 112], [58, 62], [20, 22]],
     [[22, 34], [44, 42], [72, 112], [110, 190], [132, 232], [114, 238], [80, 172], [44, 102], [18, 44], [22, 34]]
@@ -48,7 +33,9 @@ Core.War = {
     },
     totalTroops() { return this.totalSic() + this.totalElite(); },
     // Cuartel: cuántos hombres puedes mantener (más plazas y fortalezas = más espacio)
-    capacity() { return 200 + this.owned().length * 150 + this.owned().reduce((s, t) => s + t.up.fort * 75 + (t.role === 'cuartel' ? 100 : 0), 0); },
+    // "peso" de tus plazas en la escala vieja de 14 (para que 32 estados no rompan el balance)
+    weight() { const n = this.owned().length; return n ? 1 + (n - 1) * 13 / (Config.territories.length - 1) : 0; }, // 1 estado = 1 plaza vieja, 32 = 14
+    capacity() { return 200 + Math.round(this.weight() * 150) + this.owned().reduce((s, t) => s + t.up.fort * 75 + (t.role === 'cuartel' ? 100 : 0), 0); },
     room() { return Math.max(0, this.capacity() - this.totalTroops()); },
     payrollCost() { return { dirty: this.totalSic() * this.U.sic.upkeep, clean: this.totalElite() * this.U.eli.upkeep }; },
     weaponCost() { return Math.floor(5000 * Math.pow(1.5, State.weaponsLvl || 0)); },
@@ -116,7 +103,7 @@ Core.War = {
         if ((t.unstableUntil || 0) > P) m *= 0.7;
         return m;
     },
-    plazaCost(mult) { return Math.round(40000 * (1 + 0.3 * this.owned().length) * dynMult() * mult); },
+    plazaCost(mult) { return Math.round(40000 * (1 + 0.3 * this.weight()) * dynMult() * mult); },
     setRole(id, role) {
         const t = State.territories[id];
         if (t.owner !== 'player' || t.role === role) return;
@@ -173,7 +160,7 @@ Core.War = {
 
     /* ----- Operaciones del ejército (con tropa de la reserva) ----- */
     opPower(type) { return (State.armyOps || []).filter(o => o.type === type).reduce((s, o) => s + this.power(o.sic, o.eli, false), 0); },
-    escortFactor() { return Math.min(1, this.opPower('escort') / (250 * (1 + 0.3 * this.owned().length) * dynMult())); },
+    escortFactor() { return Math.min(1, this.opPower('escort') / (250 * (1 + 0.3 * this.weight()) * dynMult())); },
     startOp(type, frac, rid) {
         const sic = Math.floor(State.army * frac), eli = Math.floor(State.elite * frac);
         if (sic + eli < 5) return UI.notify('Necesitas al menos 5 hombres libres en la reserva.', 'bad');
@@ -371,6 +358,7 @@ Core.War = {
             State.army -= gs; State.elite -= ge;
             t.up = { fort: 0, lab: 0, bodega: 0 };
             t.role = 'none'; t.unstableUntil = State.stats.playTime + 180; t.shieldUntil = 0;
+            t.graceUntil = State.stats.playTime + (this.owned().length <= 5 ? 240 : 90); // los rivales se reagrupan antes de contraatacar
             State.stats.conquests++;
             const R = State.rivals[prevOwner];
             if (R) R.power = Math.max(30, R.power - c.power * 0.3);
@@ -552,7 +540,7 @@ Core.War = {
         return `<div class="lbl" style="margin-top:12px;">ESTADO DE LA PLAZA</div>
             <div class="tiny">⚔️ Amenazas: ${rivals.length ? rivals.map(r => `<span style="color:${Config.rivals[r].color}">${Config.rivals[r].name}</span>`).join(', ') : '<span class="green">ninguna</span>'}${State.incoming.some(i => i.target === id) ? ' · <b class="red">ATAQUE EN CAMINO</b>' : ''}</div>
             <div class="tiny">📦 Suministros: ${sup}</div>
-            <div class="tiny">${unstable ? `<span class="red">⚠️ Inestable ${fmtTime(t.unstableUntil - P)} (−30% defensa)</span>` : '<span class="green">✔ Estable</span>'}${shielded ? ` · <span class="blue">🛡️ Blindada ${fmtTime(t.shieldUntil - P)}</span>` : ''}${t.retreat ? ' · 🏃 Repliegue activo' : ''}</div>
+            <div class="tiny">${unstable ? `<span class="red">⚠️ Inestable ${fmtTime(t.unstableUntil - P)} (−30% defensa)</span>` : '<span class="green">✔ Estable</span>'}${shielded ? ` · <span class="blue">🛡️ Blindada ${fmtTime(t.shieldUntil - P)}</span>` : ''}${(t.graceUntil || 0) > P ? ` · <span class="green">🕊️ Rivales reagrupándose ${fmtTime(t.graceUntil - P)}</span>` : ''}${t.retreat ? ' · 🏃 Repliegue activo' : ''}</div>
             <div class="lbl" style="margin-top:10px;">ROL DE LA PLAZA</div>
             <select onchange="Core.War.setRole(${id}, this.value)">${Object.keys(R).map(k => `<option value="${k}" ${(t.role || 'none') === k ? 'selected' : ''}>${R[k].icon} ${R[k].name}${k === 'none' ? '' : ' · ' + R[k].desc}</option>`).join('')}</select>
             <div class="tiny muted">Cambiar de rol cuesta $${fmt(this.plazaCost(1))} sucio.</div>
@@ -669,6 +657,8 @@ Core.War = {
         this.resize();
         window.addEventListener('resize', () => this.resize());
         this.canvas.addEventListener('pointerdown', e => this.click(e));
+        this.canvas.addEventListener('pointermove', e => { const r = this.canvas.getBoundingClientRect(); const id = this.stateAt((e.clientX - r.left) / r.width * MAP_W, (e.clientY - r.top) / r.height * MAP_H); this.hoverId = id; this.canvas.style.cursor = id !== null ? 'pointer' : 'default'; });
+        this.canvas.addEventListener('pointerleave', () => { this.hoverId = null; });
         const loop = () => { this.draw(); requestAnimationFrame(loop); };
         requestAnimationFrame(loop);
     },
@@ -689,9 +679,18 @@ Core.War = {
     },
     // plaza más cercana a un punto del mapa (coordenadas 600x430)
     pickAt(x, y, radius = 26) {
-        let best = null, bd = radius;
+        const hit = this.stateAt(x, y);
+        if (hit !== null) return hit;
+        let best = null, bd = radius * 0.5;
         Config.territories.forEach(t => { const d = Math.hypot(t.x - x, t.y - y); if (d < bd) { bd = d; best = t.id; } });
         return best;
+    },
+    // qué estado hay en un punto del mapa (coordenadas 600x430), usando su forma real
+    stateAt(x, y) {
+        if (!this._hit) this._hit = document.createElement('canvas').getContext('2d');
+        const sx = (x - MAP_SVG.x) / MAP_SVG.k, sy = (y - MAP_SVG.y) / MAP_SVG.k, all = this.statePaths();
+        for (let i = 0; i < all.length; i++) if (all[i].some(p => this._hit.isPointInPath(p, sx, sy))) return i;
+        return null;
     },
     // convoy más cercano a un punto del mapa
     routeAt(x, y, radius = 18) {
@@ -720,28 +719,47 @@ Core.War = {
     },
     // Dibuja el mapa en el canvas que se le pase (lo usa el menú Guerra).
     tick() { const n = performance.now(); if (n - (this._lt || 0) > 8) { this.t += 1 / 60; this._lt = n; this._step = true; } else this._step = false; },
+    // Recorre los estados con sus formas ya transformadas al lienzo (px = grosor de 1 pixel en coords del SVG)
+    _paths: null,
+    statePaths() { return this._paths || (this._paths = STATE_PATHS.map(list => list.map(d => new Path2D(d)))); },
+    eachState(ctx, v, fn) {
+        const k = MAP_SVG.k, px = 1 / (k * Math.min(v.sx, v.sy)), all = this.statePaths();
+        ctx.save();
+        ctx.translate(v.ox + MAP_SVG.x * v.sx, v.oy + MAP_SVG.y * v.sy);
+        ctx.scale(k * v.sx, k * v.sy);
+        State.territories.forEach(t => fn(t, Config.territories[t.id], all[t.id], px));
+        ctx.restore();
+    },
     renderMap(ctx, v) {
         this.tick();
         const sx = v.sx, sy = v.sy, s = Math.min(sx, sy) * (v.label || 1);
         const X = x => v.ox + x * sx, Y = y => v.oy + y * sy;
 
-        // México por estados (img/mexico.svg); si aún no carga, la silueta simple
-        if (MAP_IMG.ready) { const M = MAP_IMG, p = M.pad / M.k * M.vk; ctx.drawImage(M.canvas, X(M.vx - p), Y(M.vy - p), (1000 * M.vk + 2 * p) * sx, (680 * M.vk + 2 * p) * sy); }
-        else MAP_SHAPES.forEach(shape => {
-            ctx.beginPath();
-            shape.forEach((p, i) => i ? ctx.lineTo(X(p[0]), Y(p[1])) : ctx.moveTo(X(p[0]), Y(p[1])));
-            ctx.fillStyle = '#0c120e'; ctx.fill();
-            ctx.strokeStyle = '#1d2c22'; ctx.lineWidth = 1.5 * s; ctx.stroke();
+        // ESTADOS: cada uno pintado del color de su dueño, con sus fronteras reales
+        const P = State.stats.playTime;
+        const sel = this.selected, hov = this.hoverId;
+        this.eachState(ctx, v, (t, c, paths) => {
+            const mine = t.owner === 'player', col = mine ? Core.Me.color() : Config.rivals[t.owner].color;
+            ctx.fillStyle = '#16261c'; paths.forEach(p => ctx.fill(p));
+            ctx.globalAlpha = mine ? 0.55 : 0.3; ctx.fillStyle = col; paths.forEach(p => ctx.fill(p)); ctx.globalAlpha = 1;
+            if (State.incoming.some(i => i.target === t.id)) { ctx.globalAlpha = 0.25 + 0.25 * Math.sin(this.t * 8); ctx.fillStyle = '#ff2020'; paths.forEach(p => ctx.fill(p)); ctx.globalAlpha = 1; }
+            if (hov === t.id && sel !== t.id) { ctx.globalAlpha = 0.18; ctx.fillStyle = '#fff'; paths.forEach(p => ctx.fill(p)); ctx.globalAlpha = 1; }
         });
-
-        // conexiones
+        // fronteras entre estados (línea fina) y frentes de guerra (rojo)
+        this.eachState(ctx, v, (t, c, paths, px) => { ctx.strokeStyle = 'rgba(0,0,0,0.65)'; ctx.lineWidth = 1.2 * px; paths.forEach(p => ctx.stroke(p)); });
+        // estado seleccionado: todo su contorno iluminado
+        if (sel !== null && sel !== undefined) this.eachState(ctx, v, (t, c, paths, px) => {
+            if (t.id !== sel) return;
+            ctx.save(); ctx.shadowColor = '#ffe9a8'; ctx.shadowBlur = 14;
+            ctx.strokeStyle = '#ffe08a'; ctx.lineWidth = 3 * px; paths.forEach(p => ctx.stroke(p));
+            ctx.restore();
+            ctx.globalAlpha = 0.12; ctx.fillStyle = '#fff'; paths.forEach(p => ctx.fill(p)); ctx.globalAlpha = 1;
+        });
         Config.edges.forEach(([a, b]) => {
             const A = Config.territories[a], Bt = Config.territories[b];
-            const oa = State.territories[a].owner, ob = State.territories[b].owner;
-            const front = (oa === 'player') !== (ob === 'player');
-            ctx.strokeStyle = front ? 'rgba(255,70,70,0.55)' : (oa === 'player' ? 'rgba(197,160,89,0.45)' : 'rgba(255,255,255,0.08)');
-            ctx.lineWidth = (front ? 2 : 1) * s;
-            ctx.setLineDash(front ? [4 * s, 4 * s] : []);
+            const front = (State.territories[a].owner === 'player') !== (State.territories[b].owner === 'player');
+            if (!front) return;
+            ctx.strokeStyle = 'rgba(255,70,70,0.6)'; ctx.lineWidth = 1.6 * s; ctx.setLineDash([4 * s, 4 * s]);
             ctx.beginPath(); ctx.moveTo(X(A.x), Y(A.y)); ctx.lineTo(X(Bt.x), Y(Bt.y)); ctx.stroke();
         });
         ctx.setLineDash([]);
@@ -760,51 +778,43 @@ Core.War = {
             ctx.fillText(Config.vehicles[r.type].icon, X(x), Y(y) - 2 * s);
         });
 
-        // territorios
+        // marcadores y nombres de los estados
         State.territories.forEach(t => {
             const c = Config.territories[t.id];
             const color = t.owner === 'player' ? Core.Me.color() : Config.rivals[t.owner].color;
-            const x = X(c.x), y = Y(c.y), rad = (c.hq ? 14 : 10) * s;
+            const x = X(c.x), y = Y(c.y), rad = (c.hq ? 7 : 4.5) * s;
+            const room = c.r * Math.min(sx, sy); // qué tan grande se ve el estado en pantalla
             const attacked = State.incoming.some(i => i.target === t.id);
             if (attacked) {
                 const pr = (this.t * 1.5) % 1;
                 ctx.strokeStyle = `rgba(255,50,50,${1 - pr})`; ctx.lineWidth = 3 * s;
-                ctx.beginPath(); ctx.arc(x, y, rad + pr * 28 * s, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath(); ctx.arc(x, y, rad + pr * 24 * s, 0, Math.PI * 2); ctx.stroke();
             }
-            if (this.selected === t.id) {
-                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2 * s;
-                ctx.beginPath(); ctx.arc(x, y, rad + 5 * s, 0, Math.PI * 2); ctx.stroke();
-            }
-            ctx.shadowBlur = 14 * s; ctx.shadowColor = color;
-            ctx.fillStyle = color;
-            ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
-            ctx.shadowBlur = 0;
-            if (c.hq) { ctx.font = `${12 * s}px sans-serif`; ctx.fillText('👑', x, y - rad - 7 * s); }
+            ctx.fillStyle = color; ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5 * s;
+            ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            if (c.hq) { ctx.font = `${11 * s}px sans-serif`; ctx.fillText('👑', x, y - rad - 7 * s); }
             if (t.owner === 'player') {
-                const P = State.stats.playTime, ic = [];
+                const ic = [];
                 if (t.role && t.role !== 'none') ic.push(Config.plazaRoles[t.role].icon);
                 if ((t.shieldUntil || 0) > P) ic.push('🛡️');
                 if ((t.unstableUntil || 0) > P) ic.push('⚠️');
                 if (t.up.fort) ic.push('🏰'.repeat(t.up.fort));
-                if (ic.length) { ctx.font = `${9 * s}px sans-serif`; ctx.fillText(ic.join(''), x, y + rad + 9 * s); }
-                const st = this.status(t.id);
-                if (st.key === 'danger' || st.key === 'risk') { ctx.strokeStyle = st.color; ctx.lineWidth = 1.5 * s; ctx.setLineDash([3 * s, 3 * s]); ctx.beginPath(); ctx.arc(x, y, rad + 3 * s, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); }
+                if (ic.length && room > 12) { ctx.font = `${8 * s}px sans-serif`; ctx.fillText(ic.join(''), x, y + rad + 17 * s); }
             }
-            // nombre de la plaza del lado que no estorba (lbl: r/l/t/b)
-            const side = c.lbl || (c.x > 500 ? 'l' : 'r');
-            const def = t.owner === 'player' ? this.defenseOf(t.id) : this.enemyDefense(t.id);
-            let lx = x, ly = y - 3 * s, dy = 11 * s;
-            if (side === 'r') { ctx.textAlign = 'left'; lx = x + rad + 5 * s; }
-            else if (side === 'l') { ctx.textAlign = 'right'; lx = x - rad - 5 * s; }
-            else { ctx.textAlign = 'center'; ly = side === 't' ? y - rad - 22 * s : y + rad + 12 * s; }
-            ctx.font = `bold ${10 * s}px monospace`; ctx.fillStyle = '#eee';
+            // nombre: completo si cabe, abreviado en los estados chiquitos
+            const big = room > 26, name = big ? c.name : c.key;
             ctx.shadowColor = '#000'; ctx.shadowBlur = 4 * s;
-            ctx.fillText(c.name, lx, ly);
-            ctx.font = `${8.5 * s}px monospace`; ctx.fillStyle = '#999';
-            ctx.fillText(`DEF ${fmt(def)}`, lx, ly + dy);
+            ctx.font = `bold ${(big ? 9.5 : 8) * s}px monospace`; ctx.fillStyle = t.id === sel ? '#ffe08a' : '#eee';
+            ctx.fillText(name, x, y + rad + 7 * s);
+            if (room > 34) {
+                const def = t.owner === 'player' ? this.defenseOf(t.id) : this.enemyDefense(t.id);
+                ctx.font = `${7.5 * s}px monospace`; ctx.fillStyle = '#aaa';
+                ctx.fillText(`DEF ${fmt(def)}`, x, y + rad + 16 * s + (t.owner === 'player' && room > 12 ? 0 : 0));
+            }
             ctx.shadowBlur = 0;
-            ctx.textAlign = 'center';
         });
+
 
         // partículas
         this.particles = this.particles.filter(p => p.life > 0);
@@ -889,7 +899,7 @@ Core.Rivals = {
             // ¿Ataca al jugador?
             if (this.inTruce(rid)) return;
             if (State.incoming.length >= 2) return;
-            const targets = State.territories.filter(t => t.owner === 'player' && t.id !== Config.baseId && !State.incoming.some(i => i.target === t.id) &&
+            const targets = State.territories.filter(t => t.owner === 'player' && t.id !== Config.baseId && !State.incoming.some(i => i.target === t.id) && (t.graceUntil || 0) <= State.stats.playTime &&
                 Core.War.neighbors(t.id).some(n => State.territories[n].owner === rid));
             if (!targets.length) return;
             targets.sort((a, b) => Core.War.defenseOf(a.id) - Core.War.defenseOf(b.id));

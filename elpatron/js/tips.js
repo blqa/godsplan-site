@@ -3,8 +3,8 @@
    que lo abres) sale una ventana que explica para qué sirve y cómo se usa.
    ========================================================= */
 Config.tips = {
-    mapa: { icon: '🗺️', name: 'El mapa vivo', what: 'Arriba de cada menú está el mapa del país en tiempo real: tus plazas, las de los cárteles, tus convoyes viajando y los ataques que vienen.',
-        how: ['Toca una plaza para ver su defensa y actuar ahí mismo (mover gente, blindar, atacar).', 'Toca un convoy para ver qué lleva y su riesgo.', 'Con ▁ ▃ █ lo escondes, lo haces chico o grande. ＋ y － para hacer zoom.'], tip: 'Cuando veas una flecha roja con segundos, te están atacando: toca la plaza.' },
+    mapa: { icon: '🗺️', name: 'El mapa vivo', what: 'Arriba de cada menú está México con sus 32 estados en tiempo real: cada estado pintado del color de su dueño, tus convoyes viajando y los ataques que vienen.',
+        how: ['Toca un estado: se iluminan sus fronteras y ves su capital, su defensa y sus vecinos. Ahí mismo mueves gente, blindas o atacas.', 'Toca un convoy para ver qué lleva y su riesgo.', 'Con ▁ ▃ █ lo escondes, lo haces chico o grande. ＋ y － para hacer zoom.'], tip: 'Cuando veas una flecha roja con segundos, te están atacando: toca la plaza.' },
     ops: { icon: '🏭', name: 'Producción', what: 'Aquí se cocina tu mercancía. Cada producto se fabrica solo, poco a poco, y se guarda en tu bodega.',
         how: ['MEJORAR sube un poco la velocidad de ese producto.', '+LAB multiplica todo lo que produce ese producto (2 labs = el doble).', 'Los productos caros (cristal, coca...) necesitan químicos: compra o deja AUTO-IMPORTAR prendido.'], tip: 'Los labs rinden mucho más que mejorar. Desbloquea el siguiente producto en cuanto puedas: vale más por kilo.' },
     story: { icon: '📖', name: 'Historia', what: 'Tu camino de vendedor de esquina a Rey de Reyes, en 11 capítulos.',
@@ -40,7 +40,7 @@ Config.tips = {
     shadow: { icon: '🏛️', name: 'Gabinete Sombra', what: 'Compras al gobierno: medios, fiscales, jueces... Mejoras enormes y permanentes.',
         how: ['Cada mejora pide un rango mínimo y mucho dinero limpio.', 'Para el capítulo 9 necesitas 3.'], tip: 'El Fiscal General y el Control de Medios son los que más ayudan.' },
     ending: { icon: '🏁', name: 'Retiro', what: 'Tu plan para desaparecer como El Rey de Reyes y empezar una nueva dinastía más fuerte.',
-        how: ['Necesitas $1B en tu cuenta offshore, las 14 plazas, las 16 tecnologías y las 5 misiones del Plan de Escape.', 'El FBI te va a cazar: soborna agentes y termina tus misiones.', 'Al retirarte ganas Legado: bonos para siempre en tus próximas partidas.'], tip: 'Pasa tu dinero limpio a la cuenta offshore desde Finanzas.' },
+        how: ['Necesitas $1B en tu cuenta offshore, los 32 estados, las 16 tecnologías y las 5 misiones del Plan de Escape.', 'El FBI te va a cazar: soborna agentes y termina tus misiones.', 'Al retirarte ganas Legado: bonos para siempre en tus próximas partidas.'], tip: 'Pasa tu dinero limpio a la cuenta offshore desde Finanzas.' },
     aguila: { icon: '🦅', name: 'El Águila (EE.UU.)', what: 'Cuando ya no quede ningún cártel, puedes vender en Estados Unidos... pero Washington te va a perseguir.',
         how: ['Abre células en ciudades gringas: venden tu mercancía al triple.', 'La atención de Washington sube: compra defensas.', 'Junta 100 de influencia para firmar El Pacto del Águila (+50 de Legado).'], tip: '' },
     golpes: { icon: '🎯', name: 'Golpes', what: 'Misiones especiales: asaltar un tren, un camión de valores, un convoy del ejército...',

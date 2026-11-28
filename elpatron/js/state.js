@@ -46,7 +46,7 @@ function newState() {
     Config.shadow.forEach(s => shadow[s.id] = false);
     const zeroP = () => ({ weed: 0, meth: 0, coke: 0, heroin: 0, fenta: 0 });
     return {
-        version: 36,
+        version: 37,
         mode: 'story',          // 'story' = Modo Historia, 'libre' = Modo Libre
         dynasty: dyn, dynMult: dm,
         unlocked: ['ops', 'story', 'logistics', 'assets'],
@@ -158,7 +158,7 @@ Core.Save = {
         merged.stocks = Object.assign(newState().stocks, data.stocks || {});
         const baseRivals = newState().rivals;
         Object.keys(baseRivals).forEach(id => merged.rivals[id] = Object.assign(baseRivals[id], (data.rivals || {})[id] || {}));
-        if (!Array.isArray(data.territories) || data.territories.length !== Config.territories.length) merged.territories = newState().territories;
+        if (!Array.isArray(data.territories) || (data.territories.length !== Config.territories.length && data.territories.length !== 14)) merged.territories = newState().territories; // las de 14 ciudades se convierten abajo (v37)
         merged.territories.forEach(t => { t.up = Object.assign({ fort: 0, lab: 0, bodega: 0 }, t.up || {}); t.tanks = t.tanks || 0; t.elite = t.elite || 0; });
         ['unlocked', 'fleet', 'routes', 'lieutenants', 'candidates', 'techs', 'achievements', 'contracts', 'news', 'incoming', 'launderingLevels'].forEach(k => {
             if (!Array.isArray(merged[k])) merged[k] = newState()[k];
@@ -211,6 +211,32 @@ Core.Save = {
             }
             merged.version = 36;
         }
+        // v37: el mapa pasó de 14 ciudades a los 32 estados. Cada ciudad vieja se vuelve su estado;
+        // los estados nuevos quedan con su cártel (o son tuyos si ese cártel ya cayó).
+        if (Array.isArray(merged.territories) && merged.territories.length === 14) {
+            const OLD = { 0: 7, 1: 0, 2: 2, 3: 3, 4: 3, 5: 6, 6: 5, 7: 24, 8: 30, 9: 31, 10: 13, 11: 20, 12: 25, 13: 26 };
+            const dm = merged.dynMult || 1;
+            const fresh = Config.territories.map(t => ({ id: t.id, owner: t.owner, troops: t.owner === 'player' ? 0 : Math.round(t.troops * dm), elite: 0, tanks: 0, up: { fort: 0, lab: 0, bodega: 0 } }));
+            const done = {};
+            merged.territories.slice().forEach(o => {
+                const n = fresh[OLD[o.id]];
+                if (!n) return;
+                if (!done[n.id]) { n.owner = o.owner; n.troops = 0; n.up = { fort: 0, lab: 0, bodega: 0 }; done[n.id] = true; }
+                if (o.owner === 'player' || n.owner === o.owner) {
+                    n.troops += o.troops || 0; n.elite = (n.elite || 0) + (o.elite || 0); n.tanks += o.tanks || 0;
+                    ['fort', 'lab', 'bodega'].forEach(k => n.up[k] = Math.max(n.up[k], (o.up && o.up[k]) || 0));
+                    if (o.role) n.role = o.role; if (o.retreat) n.retreat = true;
+                }
+            });
+            fresh.forEach(n => {
+                const R = merged.rivals[n.owner];
+                if (R && R.defeated) { n.owner = 'player'; n.troops = 5; }
+            });
+            merged.territories = fresh;
+            merged.incoming = []; merged.siege = {};
+            merged.version = 37;
+        }
+        if ((merged.version || 0) < 37) merged.version = 37;
         // Rutas cuyo vehículo ya no existe se descartan
         merged.routes = merged.routes.filter(r => merged.fleet.some(v => v.uid === r.vUid));
         // saneamiento: ningún número queda en NaN/Infinity/undefined (partidas viejas, slots de la nube o códigos editados)
