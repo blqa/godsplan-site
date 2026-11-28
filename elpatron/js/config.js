@@ -219,9 +219,9 @@ Config.unlocks = {
     fronts: 4, rnd: 4, stocks: 4,
     lifestyle: 5,
     shadow: 8,
-    ending: 10, aguila: 10
+    ending: 10, aguila: 10, golpes: 4, familia: 5
 };
-Config.unlockNames = { autosend: 'Auto-envío', stocks: 'Wall Street', contracts: 'Encargos' };
+Config.unlockNames = { autosend: 'Auto-envío', stocks: 'Wall Street', contracts: 'Encargos', golpes: 'Golpes', familia: 'Familia' };
 
 /* ===== EL ÁGUILA: el gobierno de Estados Unidos (fin de juego) ===== */
 Config.aguila = {

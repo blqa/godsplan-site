@@ -418,8 +418,8 @@ Core.War = {
         const id = this.selected;
         if (id === null) { p.innerHTML = '<h3>SELECCIONA UNA PLAZA</h3><p class="muted">Toca un punto del mapa. Solo puedes atacar plazas conectadas a las tuyas.</p>' + this.legendHTML(); return; }
         const c = Config.territories[id], t = State.territories[id];
-        const ownerName = t.owner === 'player' ? 'TUYA' : Config.rivals[t.owner].name.toUpperCase();
-        const ownerColor = t.owner === 'player' ? 'var(--gold)' : Config.rivals[t.owner].color;
+        const ownerName = t.owner === 'player' ? `${Core.Me.emblem()} ${Core.Me.cartel().toUpperCase()}` : Config.rivals[t.owner].name.toUpperCase();
+        const ownerColor = t.owner === 'player' ? Core.Me.color() : Config.rivals[t.owner].color;
         const inc = State.incoming.find(i => i.target === id);
         let html = `<h3>${c.hq ? '👑 ' : ''}${c.name.toUpperCase()}</h3>
             <div class="tiny" style="color:${ownerColor}; margin-bottom:6px;">● ${ownerName}${c.hq ? ' · GUARIDA DEL JEFE' : ''}</div>
@@ -570,7 +570,7 @@ Core.War = {
         // territorios
         State.territories.forEach(t => {
             const c = Config.territories[t.id];
-            const color = t.owner === 'player' ? '#c5a059' : Config.rivals[t.owner].color;
+            const color = t.owner === 'player' ? Core.Me.color() : Config.rivals[t.owner].color;
             const x = X(c.x), y = Y(c.y), rad = (c.hq ? 14 : 10) * s;
             const attacked = State.incoming.some(i => i.target === t.id);
             if (attacked) {

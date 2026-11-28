@@ -26,8 +26,8 @@ const fmtTime = s => { s = Math.max(0, Math.ceil(s)); const m = Math.floor(s / 6
 
 /* ---------- Legado (sobrevive a los reinicios) ---------- */
 const Legacy = (() => {
-    try { return Object.assign({ points: 0, runs: 0, wins: 0 }, JSON.parse(localStorage.getItem(LEGACY_KEY) || '{}')); }
-    catch (e) { return { points: 0, runs: 0, wins: 0 }; }
+    try { return Object.assign({ points: 0, runs: 0, wins: 0, hall: [] }, JSON.parse(localStorage.getItem(LEGACY_KEY) || '{}')); }
+    catch (e) { return { points: 0, runs: 0, wins: 0, hall: [] }; }
 })();
 const legacyMult = () => 1 + Legacy.points * 0.05;
 /* Dinastías: cada retiro (y cada punto de Legado) hace a los enemigos más duros.
@@ -77,6 +77,9 @@ function newState() {
         techs: [],
         research: {},
         siege: {},
+        me: null,
+        golpes: { active: null, cd: {}, mult: {}, done: 0 },
+        family: { spouse: null, kids: [], compadre: null, happy: 70, momReady: 0, baby: 0, nextEvent: 0 },
         escape: { missions: {}, fbi: 0, nextOp: 0, started: false, alerted: false, bribes: 0 },
         achievements: [],
         story: { chapter: 0 },
@@ -124,7 +127,7 @@ Core.Save = {
         // Merge con valores por defecto para que partidas viejas no truenen
         const merged = Object.assign(def, data);
         ['money', 'inv', 'ops', 'opsStatus', 'labs', 'military', 'militaryBought', 'market', 'sat', 'contacts', 'loan', 'story',
-            'automation', 'luxuries', 'investments', 'shadow', 'timers', 'stats', 'aguila', 'research', 'siege', 'escape'].forEach(k => {
+            'automation', 'luxuries', 'investments', 'shadow', 'timers', 'stats', 'aguila', 'research', 'siege', 'escape', 'golpes', 'family'].forEach(k => {
                 merged[k] = Object.assign(newState()[k], data[k] || {});
             });
         merged.stocks = Object.assign(newState().stocks, data.stocks || {});
@@ -164,6 +167,11 @@ Core.Save = {
             if ((merged.stats.laundered || 0) > 0 || merged.money.offshore > 0) u.add('finance');
             merged.unlocked = [...u];
             merged.version = 35;
+        }
+        // partidas de antes de "tu personaje": un patrón genérico, sin decisiones atrasadas
+        if (!data.me) {
+            merged.me = { alias: 'El Patrón', cartel: 'Cártel del Sureste', emblem: '👑', color: '#c5a059', honor: 0, fear: false, choices: {} };
+            Config.choices.forEach(c => { if (c.at < (merged.story.chapter || 0)) merged.me.choices[c.title] = 'x'; });
         }
         merged.aguila.def = Object.assign({ infiltrado: 0, abogados: 0, tuneles: 0 }, merged.aguila.def || {});
         // v36: dinastías. Una partida recién empezada después de un retiro recibe la dificultad

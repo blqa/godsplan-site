@@ -16,6 +16,7 @@ Core.Logistics = {
         if (Core.fame() < 3) c *= 0.4;
         if (d === 4 && State.shadow.lobby_us) c *= 0.25;
         if (d >= 3 && Core.Aguila.borderOn()) c *= 1.6;
+        c *= Core.Family.mod('seizure');
         return clamp(c, 0, 0.4);
     },
     // Avisos de entregas exitosas agrupados (para no llenar la pantalla)

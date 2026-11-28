@@ -181,7 +181,7 @@ Core.HR = {
                 }
             }
             if (!minute) return;
-            l.loyalty = Math.max(0, l.loyalty - 4 * T.decay * (l.active ? 1 : 0.5));
+            l.loyalty = Math.max(0, l.loyalty - 4 * T.decay * (l.active ? 1 : 0.5) * Core.Family.mod('loyalty'));
             if (l.loyalty < 35 && !l.warned) {
                 l.warned = true;
                 Sfx.alert();

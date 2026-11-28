@@ -22,6 +22,7 @@ Core.Mods = {
         let m = Core.B.price * legacyMult();
         if (k === 'meth' && hasTech('blue_meth')) m *= 1.3;
         if (hasTech('prod_master')) m *= 1.25;
+        m *= Core.Family.mod('price');
         return m;
     },
     heat() {
@@ -32,6 +33,7 @@ Core.Mods = {
         if (State.luxuries.tiger > 0) m *= 0.95;
         if (State.shadow.fiscal) m *= 0.5;
         m *= Math.max(0.4, 1 - 0.15 * Core.HR.eff('Relacionista'));
+        m *= Core.Family.mod('heat');
         return Math.max(0.05, m);
     },
     launderFee() {
@@ -39,6 +41,7 @@ Core.Mods = {
         if (hasTech('stealth_cash')) m *= 0.8;
         m *= Math.max(0.3, 1 - 0.2 * Core.HR.eff('Contador'));
         m *= Math.max(0.5, 1 - State.luxuries.tiger * 0.05);
+        m *= Core.Family.mod('fee');
         if (State.heat > State.heatCap * 0.5) m *= 1.6; // con mucha búsqueda, lavar cuesta más
         return Math.max(0.1, m);
     },

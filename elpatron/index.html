@@ -18,7 +18,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Jura:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=52">
+    <link rel="stylesheet" href="css/style.css?v=53">
 </head>
 
 <body>
@@ -30,6 +30,7 @@
             <h1 class="start-logo">EL PATRÓN</h1>
             <div class="start-sub">LEGADO</div>
             <div id="start-legacy" class="start-legacy"></div>
+            <div id="start-hall" class="start-hall"></div>
             <div class="start-buttons">
                 <button class="big-btn gold hidden" id="btn-continue" onclick="Core.Game.continueGame()">▶ CONTINUAR</button>
                 <button class="big-btn" id="btn-newgame" onclick="Core.Game.newGame()">NUEVA PARTIDA</button>
@@ -47,14 +48,14 @@
             <div class="start-kicker">NUEVA PARTIDA</div>
             <h2 class="mode-title">ELIGE TU CAMINO</h2>
             <div class="mode-grid">
-                <div class="mode-card recommended" onclick="Core.Game.startMode('story')">
+                <div class="mode-card recommended" onclick="Core.Me.open('story')">
                     <div class="mode-tag">RECOMENDADO</div>
                     <div class="mode-icon">📖</div>
                     <h3>MODO HISTORIA</h3>
                     <p>Empiezas con lo básico y cada capítulo te abre nuevos menús: finanzas, tenientes, guerra, fachadas... Ideal para aprender a jugar.</p>
                     <ul><li>11 capítulos y 3 jefes finales</li><li>Los menús se desbloquean poco a poco</li><li>Recompensas por cada capítulo</li></ul>
                 </div>
-                <div class="mode-card" onclick="Core.Game.startMode('libre')">
+                <div class="mode-card" onclick="Core.Me.open('libre')">
                     <div class="mode-icon">🗺️</div>
                     <h3>MODO LIBRE</h3>
                     <p>Todo desbloqueado desde el primer segundo y sin historia. Tú decides cómo construir tu imperio.</p>
@@ -62,6 +63,28 @@
                 </div>
             </div>
             <button class="link-btn" onclick="Core.Game.closeModes()">‹ Volver</button>
+        </div>
+    </div>
+
+    <!-- ============ TU PERSONAJE ============ -->
+    <div id="me-screen" class="overlay start-screen hidden">
+        <div class="start-bg"></div>
+        <div class="start-inner" style="max-width:560px;">
+            <div class="start-kicker">¿QUIÉN ERES?</div>
+            <h2 class="mode-title">TU LEYENDA EMPIEZA AQUÍ</h2>
+            <div class="me-form">
+                <label class="lbl">¿CÓMO TE VAN A DECIR?</label>
+                <div class="me-row"><input id="me-alias" maxlength="28" oninput="Core.Me.renderPick()" placeholder="El Patrón"><button class="action-btn" onclick="Core.Me.random('alias'); Core.Me.renderPick()">🎲</button></div>
+                <label class="lbl">NOMBRE DE TU CÁRTEL</label>
+                <div class="me-row"><input id="me-cartel" maxlength="34" oninput="Core.Me.renderPick()" placeholder="Cártel del Sureste"><button class="action-btn" onclick="Core.Me.random('cartel'); Core.Me.renderPick()">🎲</button></div>
+                <label class="lbl">TU EMBLEMA</label>
+                <div id="me-emblems" class="me-chips"></div>
+                <label class="lbl">TU COLOR EN EL MAPA</label>
+                <div id="me-colors" class="me-chips"></div>
+                <div id="me-preview" class="me-preview"></div>
+                <button class="big-btn gold" style="margin-top:16px;" onclick="Core.Me.confirm()">EMPEZAR</button>
+            </div>
+            <button class="link-btn" onclick="Core.Me.back()">‹ Volver</button>
         </div>
     </div>
 
@@ -138,6 +161,7 @@
             <div class="brand">
                 <span class="brand-name">EL PATRÓN</span>
                 <span class="rank-badge" id="ui-rank-badge">PISTOLERO</span>
+                <span class="me-tag" id="me-tag"></span>
             </div>
 
             <div class="hud-stats">
@@ -182,6 +206,7 @@
             <section id="view-story" class="view hidden">
                 <div class="section-title">LA HISTORIA DEL PATRÓN</div>
                 <div id="story-current"></div>
+                <div id="story-choices" style="margin-top:14px;"></div>
                 <div class="section-title sub">CAPÍTULOS</div>
                 <div id="story-list" class="story-list"></div>
             </section>
@@ -409,6 +434,18 @@
                 <div id="aguila-wrap"></div>
             </section>
 
+            <!-- GOLPES -->
+            <section id="view-golpes" class="view hidden">
+                <div class="section-title">GOLPES · MISIONES ESPECIALES</div>
+                <div id="golpes-wrap"></div>
+            </section>
+
+            <!-- FAMILIA -->
+            <section id="view-familia" class="view hidden">
+                <div class="section-title">FAMILIA Y VIDA PERSONAL</div>
+                <div id="familia-wrap"></div>
+            </section>
+
             <!-- ESTILO DE VIDA -->
             <section id="view-lifestyle" class="view hidden">
                 <div class="section-title">LUJOS & PROPIEDADES</div>
@@ -528,18 +565,21 @@
         <nav id="tabbar" class="tabbar"></nav>
     </div>
 
-    <script src="js/config.js?v=52"></script>
-    <script src="js/state.js?v=52"></script>
-    <script src="js/audio.js?v=52"></script>
-    <script src="js/ui.js?v=52"></script>
-    <script src="js/economy.js?v=52"></script>
-    <script src="js/logistics.js?v=52"></script>
-    <script src="js/war.js?v=52"></script>
-    <script src="js/people.js?v=52"></script>
-    <script src="js/story.js?v=52"></script>
-    <script src="js/aguila.js?v=52"></script>
-    <script src="js/escape.js?v=52"></script>
-    <script src="js/main.js?v=52"></script>
+    <script src="js/config.js?v=53"></script>
+    <script src="js/state.js?v=53"></script>
+    <script src="js/audio.js?v=53"></script>
+    <script src="js/ui.js?v=53"></script>
+    <script src="js/economy.js?v=53"></script>
+    <script src="js/logistics.js?v=53"></script>
+    <script src="js/war.js?v=53"></script>
+    <script src="js/people.js?v=53"></script>
+    <script src="js/story.js?v=53"></script>
+    <script src="js/aguila.js?v=53"></script>
+    <script src="js/escape.js?v=53"></script>
+    <script src="js/persona.js?v=53"></script>
+    <script src="js/golpes.js?v=53"></script>
+    <script src="js/familia.js?v=53"></script>
+    <script src="js/main.js?v=53"></script>
 </body>
 
 </html>

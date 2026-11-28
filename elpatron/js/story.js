@@ -6,6 +6,7 @@
 /* ---------- PERIÓDICO ---------- */
 Core.News = {
     add(text, type = '', big = false) {
+        text = Core.Me.fill(text);
         if (State.shadow.media && type === 'bad' && Math.random() < 0.5) return; // tus medios callan la mitad
         if (State.news.slice(0, 12).some(n => n.text === text)) return; // no repetir el mismo titular
         const d = new Date();
@@ -125,12 +126,13 @@ Core.Story = {
         $('story-current').innerHTML = `<div class="story-card">
             <div class="sc-chapter">CAPÍTULO ${State.story.chapter + 1} DE ${Config.story.length}</div>
             <div class="sc-title">${c.title}</div>
-            <div class="sc-text">${c.text.replace(/\n/g, '<br>')}</div>
+            <div class="sc-text">${Core.Me.fill(c.text).replace(/\n/g, '<br>')}</div>
             <div class="sc-goal">🎯 ${c.goal}</div>
             <div class="progress-line" style="margin:10px 0;"><div class="progress-active" style="width:${pct}%"></div></div>
             <div class="row-between tiny"><span>${fmt(v)} / ${fmt(max)}</span><span class="gold">${r.dirty ? 'Recompensa: $' + fmt(r.dirty) + ' sucios' : r.clean ? 'Recompensa: $' + fmt(r.clean) + ' limpios' : 'Recompensa: tu leyenda'}</span></div>
             ${c.boss ? `<p class="tiny red" style="margin-top:10px;">👑 JEFE FINAL: ${Config.rivals[c.boss].leader} — ${Config.rivals[c.boss].name}</p>` : ''}
         </div>`;
+        setHTML('story-choices', Core.Choices.html());
         $('story-list').innerHTML = Config.story.map((s, i) => {
             const st = i < State.story.chapter ? 'done' : i === State.story.chapter ? 'current' : 'locked';
             return `<div class="story-item ${st}"><span class="si-num">${i + 1}</span><span>${st === 'locked' ? '???' : s.title}</span><span class="push-right tiny">${st === 'done' ? '✔' : st === 'current' ? '▶ EN CURSO' : '🔒'}</span></div>`;
@@ -330,10 +332,12 @@ Core.Legacy = {
     winGame() {
         if (this.goalsMet() < 4) return UI.notify('Aún no cumples todas las condiciones.', 'bad');
         const pact = State.aguila.done ? Config.aguila.PACT_LEGACY : 0;
-        const pts = this.pointsFor() + 25 + pact;
+        const L = Core.Me.legend(), extreme = L.min !== undefined || L.max !== undefined ? 5 : 0;
+        const kids = Core.Family.legacyBonus();
+        const pts = this.pointsFor() + 25 + pact + extreme + kids;
         Sfx.fanfare();
-        UI.modal('👑 EL REY DE REYES', `Desapareciste con mil millones de dólares. Controlas el país entero y ya no queda nadie que te desafíe.\n\nTu nombre será leyenda por generaciones.${pact ? '\n\nY Washington firmó contigo: hasta el Águila te respeta.' : ''}\n\nGanas ${pts} puntos de Legado.`, [
-            { text: 'NUEVA DINASTÍA', style: 'btn-gold', cb: () => this.retire(pts, true) }
+        UI.modal('👑 EL REY DE REYES', `${Core.Me.alias()} desapareció con mil millones de dólares. ${Core.Me.cartel()} controla el país entero y ya no queda nadie que lo desafíe.\n\nTU LEYENDA: ${L.title}\n${L.text}${pact ? '\n\nY Washington firmó contigo: hasta el Águila te respeta.' : ''}${kids ? `\n\nTus ${State.family.kids.length} hijos llevan tu apellido (+${kids} Legado).` : ''}${extreme ? '\nLeyenda extrema: +5 Legado.' : ''}\n\nGanas ${pts} puntos de Legado.`, [
+            { text: 'NUEVA DINASTÍA', style: 'btn-gold', cb: () => this.retire(pts, true, L.title) }
         ]);
     },
     earlyRetire() {
@@ -344,7 +348,8 @@ Core.Legacy = {
             { text: 'Cancelar', cb: () => { } }
         ]);
     },
-    retire(pts, won) {
+    retire(pts, won, title) {
+        Legacy.hall = (Legacy.hall || []).concat([{ alias: Core.Me.alias(), cartel: Core.Me.cartel(), emblem: Core.Me.emblem(), color: Core.Me.color(), title: won ? title || 'EL REY DE REYES' : 'RETIRO ANTICIPADO', pts, mins: Math.floor(State.stats.playTime / 60) }]).slice(-8);
         Legacy.points += pts;
         Legacy.runs += 1;
         if (won) Legacy.wins += 1;

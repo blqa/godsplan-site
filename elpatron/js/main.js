@@ -21,6 +21,8 @@ Core.Game = {
             } catch (e) { }
         }
         $('btn-newgame').textContent = has ? 'NUEVA PARTIDA (BORRA LA ACTUAL)' : 'NUEVA PARTIDA';
+        const hall = (Legacy.hall || []).slice(-4).reverse();
+        setHTML('start-hall', hall.length ? '🏆 SALÓN DE LA FAMA<br>' + hall.map(h => `${h.emblem} <span style="color:${h.color}">${h.alias}</span> · ${h.cartel} · <span class="gold">${h.title}</span> (+${h.pts})`).join('<br>') : '');
         $('start-legacy').textContent = Legacy.points ? `👑 LEGADO: ${Legacy.points} puntos · ${Legacy.runs} retiro(s) · +${Legacy.points * 5}% a todo · Próxima: ${dynastyName(Legacy.runs)}, cárteles x${dynastyMult(Legacy.runs).toFixed(1)} más duros` : '';
         document.addEventListener('keydown', e => this.keys(e));
         document.addEventListener('pointerdown', () => Sfx.init(), { once: true });
@@ -42,15 +44,16 @@ Core.Game = {
     },
     closeModes() { $('mode-screen').classList.add('hidden'); },
     // Paso 2: arrancar en el modo elegido
-    startMode(mode) {
+    startMode(mode, me) {
         Sfx.click();
         if (Core.Save.has() && !confirm('¿Empezar de cero? Se borrará tu partida actual (el Legado se conserva).')) return;
         try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
         State = newState();
         State.mode = mode;
+        State.me = me || { alias: 'El Patrón', cartel: 'Cártel del Sureste', emblem: '👑', color: '#c5a059', honor: 0, fear: false, choices: {} };
         $('mode-screen').classList.add('hidden');
         $('start-screen').classList.add('hidden');
-        Core.News.add('Mérida, la ciudad más segura del país, amanece tranquila. Por ahora.');
+        Core.News.add(`Mérida, la ciudad más segura del país, amanece tranquila. Nadie ha oído hablar de "${State.me.alias}"... por ahora.`);
         if (mode === 'libre') {
             State.money.dirty += 25000;
             State.money.clean += 10000;
@@ -70,7 +73,7 @@ Core.Game = {
         const scr = $('intro-screen');
         scr.classList.remove('hidden');
         setText('intro-chapter', header);
-        const full = `CAPÍTULO ${idx + 1}: ${ch.title.toUpperCase()}\n\n${ch.text}\n\n🎯 Objetivo: ${ch.goal}`;
+        const full = Core.Me.fill(`CAPÍTULO ${idx + 1}: ${ch.title.toUpperCase()}\n\n${ch.text}\n\n🎯 Objetivo: ${ch.goal}`);
         const el = $('intro-text');
         el.textContent = '';
         let i = 0;
@@ -99,6 +102,7 @@ Core.Game = {
         if (this.running) return;
         this.running = true;
         UI.buildNav();
+        Core.Me.renderTag();
         Core.Unlocks.refresh(true);
         Core.War.calcBonuses();
         Core.War.initCanvas();
@@ -136,6 +140,9 @@ Core.Game = {
             Core.Fronts.tick();
             Core.Aguila.tick();
             Core.Escape.tick();
+            Core.Golpes.tick();
+            Core.Family.tick();
+            Core.Choices.tick();
             Core.RnD.tick();
             Core.Finance.loanTick();
             Core.HR.tick();
