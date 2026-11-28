@@ -538,10 +538,12 @@ Core.Fronts = {
     toggle(id) { const s = State.fronts[id]; if (s) s.active = !s.active; },
     tick() {
         const fee = Core.Mods.launderFee();
+        // apartan lo de 2 nóminas para que tus sicarios no deserten
+        const keep = Core.War.payrollCost().dirty * 2;
         Config.fronts.forEach(f => {
             const s = State.fronts[f.id];
-            if (!s || !s.active || s.closedUntil > now() || State.money.dirty < 1) return;
-            const amt = Math.min(Math.floor(State.money.dirty), this.capOf(f, s.level));
+            if (!s || !s.active || s.closedUntil > now() || State.money.dirty - keep < 1) return;
+            const amt = Math.min(Math.floor(State.money.dirty - keep), this.capOf(f, s.level));
             const got = Math.floor(amt * (1 - (1 - f.rate) * fee));
             State.money.dirty -= amt;
             State.money.clean += got;
