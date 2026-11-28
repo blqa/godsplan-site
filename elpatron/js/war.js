@@ -620,6 +620,7 @@ Core.Rivals = {
 
         // Guerra entre cárteles
         if (Math.random() < 0.04) this.rivalWar();
+        this.remnantsTick();
     },
     rivalWar() {
         const a = this.randomAlive();
@@ -658,6 +659,7 @@ Core.Rivals = {
         if (!inc) return;
         const t = State.territories[inc.target], c = Config.territories[inc.target], C = Config.rivals[inc.rid];
         if (t.owner !== 'player') { State.incoming = State.incoming.filter(i => i.id !== incId); UI.renderAttackAlert(); return; }
+        if (inc.remnant) return this.resolveRemnant(inc, mode);
 
         if (mode === 'negotiate') {
             const cost = this.negotiateCost(inc);
@@ -697,6 +699,68 @@ Core.Rivals = {
             }
         }
         State.incoming = State.incoming.filter(i => i.id !== incId);
+        if (!State.incoming.length) UI.setBadge('war', null);
+        Core.War.calcBonuses();
+        Core.War.refresh(true);
+        UI.renderAttackAlert();
+    },
+    /* ----- REMANENTES: células sueltas de los cárteles caídos ----- */
+    remnantsTick() {
+        const dead = Object.keys(State.rivals).filter(id => State.rivals[id].defeated);
+        if (!dead.length || State.incoming.length || State.timers.informant > now()) return;
+        if (Math.random() > 0.006 * dead.length) return; // más o menos cada 5-8 minutos
+        const rid = pick(dead);
+        // prefieren las plazas que eran de su cártel
+        let targets = Core.War.owned().filter(t => t.id !== Config.baseId && Config.territories[t.id].owner === rid);
+        if (!targets.length) targets = Core.War.owned().filter(t => t.id !== Config.baseId);
+        if (!targets.length) return;
+        const t = pick(targets);
+        // su fuerza depende de tu defensa ahí: a veces resistes solo, a veces necesitas refuerzos
+        const power = Math.max(150, Math.floor(Core.War.defenseOf(t.id) * (0.5 + Math.random() * 0.9)));
+        const time = 25 + (hasTech('war_3') ? 15 : 0);
+        State.incoming.push({ id: now(), rid, target: t.id, power, left: time, total: time, remnant: true });
+        Sfx.alert();
+        UI.setBadge('war', '!');
+        UI.renderAttackAlert();
+    },
+    resolveRemnant(inc, mode) {
+        const t = State.territories[inc.target], c = Config.territories[inc.target];
+        const label = `los remanentes de ${Config.rivals[inc.rid].name}`;
+        // saqueo: pierden un nivel de mejora y un poco de dinero sucio
+        const loot = () => {
+            const ups = Object.keys(t.up).filter(k => t.up[k] > 0);
+            const u = ups.length ? pick(ups) : null;
+            if (u) t.up[u]--;
+            const cash = Math.floor(State.money.dirty * 0.02);
+            State.money.dirty -= cash;
+            return `${u ? `Perdiste un nivel de ${Config.territoryUpgrades.find(x => x.id === u).name}` : 'Destrozaron la plaza'} y se llevaron $${fmt(cash)}.`;
+        };
+        if (mode === 'negotiate') {
+            const cost = this.negotiateCost(inc);
+            if (!Core.pay('dirty', cost)) return;
+            UI.notify(`Les pagaste $${fmt(cost)} a ${label}. Se fueron.`);
+            Sfx.coin();
+        } else if (mode === 'abandon') {
+            UI.notify(`Dejaste que ${label} saquearan ${c.name}. ${loot()}`, 'bad');
+        } else {
+            if (mode === 'reinforce') { t.troops += State.army; State.army = 0; t.elite = (t.elite || 0) + State.elite; State.elite = 0; }
+            const def = Core.War.defenseOf(inc.target) * (0.85 + Math.random() * 0.3);
+            Core.War.boom(c.x, c.y, 0.8);
+            Sfx.burst(4);
+            if (inc.power > def) {
+                const lost = Math.floor(t.troops * 0.5), lostE = Math.floor((t.elite || 0) * 0.25);
+                t.troops -= lost; t.elite = (t.elite || 0) - lostE;
+                UI.notify(`${label.charAt(0).toUpperCase() + label.slice(1)} saquearon ${c.name}: murieron ${lost} sicarios${lostE ? ` y ${lostE} de élite` : ''}. ${loot()}`, 'bad');
+                Core.News.add(`Comando armado saquea ${c.name}; autoridades culpan a "células" del crimen organizado`, 'bad');
+            } else {
+                const loss = Math.min(t.troops, Math.floor(t.troops * clamp(inc.power / def, 0, 1) * 0.2));
+                t.troops -= loss;
+                State.stats.defended++;
+                UI.notify(`¡Repeliste a ${label} en ${c.name}! Perdiste ${loss} hombres.`);
+                Core.News.add(`Frustran ataque de una célula criminal en ${c.name}`);
+            }
+        }
+        State.incoming = State.incoming.filter(i => i.id !== inc.id);
         if (!State.incoming.length) UI.setBadge('war', null);
         Core.War.calcBonuses();
         Core.War.refresh(true);

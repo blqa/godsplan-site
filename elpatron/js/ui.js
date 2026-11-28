@@ -168,8 +168,8 @@ const UI = {
         const withAll = Core.War.defenseWith(inc.target, tt.troops + State.army, (tt.elite || 0) + State.elite, tt.tanks);
         const wasHidden = box.classList.contains('hidden');
         box.classList.remove('hidden');
-        setText('aa-title', `${C.leader.toUpperCase()} ATACA ${c.name.toUpperCase()}`);
-        setText('aa-desc', `${C.name} viene con ${fmt(inc.power)} de fuerza.${State.incoming.length > 1 ? ` (+${State.incoming.length - 1} ataque más)` : ''}`);
+        setText('aa-title', inc.remnant ? `REMANENTES ATACAN ${c.name.toUpperCase()}` : `${C.leader.toUpperCase()} ATACA ${c.name.toUpperCase()}`);
+        setText('aa-desc', `${inc.remnant ? `Una célula suelta de ${C.name} quiere saquear la plaza` : C.name} con ${fmt(inc.power)} de fuerza.${State.incoming.length > 1 ? ` (+${State.incoming.length - 1} ataque más)` : ''}`);
         setText('aa-timer', Math.ceil(inc.left));
         $('aa-bar-fill').style.width = (inc.left / inc.total * 100) + '%';
         setHTML('aa-stats', `Tu defensa: <b class="${def >= inc.power ? 'green' : 'red'}">${fmt(def)}</b> · con refuerzos: <b class="${withAll >= inc.power ? 'green' : 'red'}">${fmt(withAll)}</b> · Libres: ${fmt(State.army)} sicarios + ${fmt(State.elite)} élite`);
@@ -179,7 +179,7 @@ const UI = {
                 <button class="action-btn btn-green" onclick="Core.Rivals.resolve(${inc.id}, 'reinforce')">🛡️ REFUERZOS</button>
                 <button class="action-btn" onclick="Core.Rivals.resolve(${inc.id}, 'fight')">⚔️ RESISTIR</button>
                 <button class="action-btn btn-blue" onclick="Core.Rivals.resolve(${inc.id}, 'negotiate')">💵 NEGOCIAR $${fmt(Core.Rivals.negotiateCost(inc))}</button>
-                <button class="action-btn btn-red" onclick="Core.Rivals.resolve(${inc.id}, 'abandon')">🏳️ ABANDONAR</button>`;
+                <button class="action-btn btn-red" onclick="Core.Rivals.resolve(${inc.id}, 'abandon')">${inc.remnant ? '🏳️ DEJAR QUE SAQUEEN' : '🏳️ ABANDONAR'}</button>`;
         }
     },
 
