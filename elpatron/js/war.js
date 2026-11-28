@@ -5,6 +5,21 @@
 const MAP_W = 600, MAP_H = 430;
 
 // Silueta aproximada del país (solo decorativa)
+// México por estados: se dibuja una vez en un canvas aparte y luego solo se copia (rápido)
+const MAP_IMG = { ready: false, canvas: null, k: 2, pad: 40, vk: 0.58, vx: 6, vy: 18 }; // vk/vx/vy: dónde cae el SVG (1000x680) en el lienzo virtual 600x430
+(function () {
+    const img = new Image();
+    img.onload = () => {
+        const k = MAP_IMG.k, pad = MAP_IMG.pad, c = document.createElement('canvas');
+        c.width = 1000 * k + pad * 2; c.height = 680 * k + pad * 2;
+        const g = c.getContext('2d');
+        g.shadowColor = 'rgba(110,220,150,0.45)'; g.shadowBlur = 30;
+        g.drawImage(img, pad, pad, 1000 * k, 680 * k);
+        g.shadowBlur = 0; g.globalAlpha = 0.9; g.drawImage(img, pad, pad, 1000 * k, 680 * k);
+        MAP_IMG.canvas = c; MAP_IMG.ready = true;
+    };
+    img.src = './img/mexico.svg';
+})();
 const MAP_SHAPES = [
     [[20, 22], [250, 28], [300, 62], [345, 78], [420, 92], [445, 140], [432, 200], [442, 258], [472, 298], [503, 288], [522, 232], [588, 198], [598, 240], [562, 302], [503, 332], [470, 332], [462, 382], [432, 412], [362, 402], [292, 397], [222, 335], [190, 284], [160, 232], [120, 172], [80, 112], [58, 62], [20, 22]],
     [[22, 34], [44, 42], [72, 112], [110, 190], [132, 232], [114, 238], [80, 172], [44, 102], [18, 44], [22, 34]]
@@ -710,8 +725,9 @@ Core.War = {
         const sx = v.sx, sy = v.sy, s = Math.min(sx, sy) * (v.label || 1);
         const X = x => v.ox + x * sx, Y = y => v.oy + y * sy;
 
-        // silueta
-        MAP_SHAPES.forEach(shape => {
+        // México por estados (img/mexico.svg); si aún no carga, la silueta simple
+        if (MAP_IMG.ready) { const M = MAP_IMG, p = M.pad / M.k * M.vk; ctx.drawImage(M.canvas, X(M.vx - p), Y(M.vy - p), (1000 * M.vk + 2 * p) * sx, (680 * M.vk + 2 * p) * sy); }
+        else MAP_SHAPES.forEach(shape => {
             ctx.beginPath();
             shape.forEach((p, i) => i ? ctx.lineTo(X(p[0]), Y(p[1])) : ctx.moveTo(X(p[0]), Y(p[1])));
             ctx.fillStyle = '#0c120e'; ctx.fill();
@@ -774,15 +790,19 @@ Core.War = {
                 const st = this.status(t.id);
                 if (st.key === 'danger' || st.key === 'risk') { ctx.strokeStyle = st.color; ctx.lineWidth = 1.5 * s; ctx.setLineDash([3 * s, 3 * s]); ctx.beginPath(); ctx.arc(x, y, rad + 3 * s, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); }
             }
-            // etiquetas a la izquierda si el punto está pegado al borde derecho
-            const right = c.x > 500;
-            ctx.textAlign = right ? 'right' : 'left';
-            const lx = right ? x - rad - 5 * s : x + rad + 5 * s;
-            ctx.font = `bold ${10 * s}px monospace`; ctx.fillStyle = '#eee';
-            ctx.fillText(c.name, lx, y - 3 * s);
-            ctx.font = `${8.5 * s}px monospace`; ctx.fillStyle = '#888';
+            // nombre de la plaza del lado que no estorba (lbl: r/l/t/b)
+            const side = c.lbl || (c.x > 500 ? 'l' : 'r');
             const def = t.owner === 'player' ? this.defenseOf(t.id) : this.enemyDefense(t.id);
-            ctx.fillText(`DEF ${fmt(def)}`, lx, y + 8 * s);
+            let lx = x, ly = y - 3 * s, dy = 11 * s;
+            if (side === 'r') { ctx.textAlign = 'left'; lx = x + rad + 5 * s; }
+            else if (side === 'l') { ctx.textAlign = 'right'; lx = x - rad - 5 * s; }
+            else { ctx.textAlign = 'center'; ly = side === 't' ? y - rad - 22 * s : y + rad + 12 * s; }
+            ctx.font = `bold ${10 * s}px monospace`; ctx.fillStyle = '#eee';
+            ctx.shadowColor = '#000'; ctx.shadowBlur = 4 * s;
+            ctx.fillText(c.name, lx, ly);
+            ctx.font = `${8.5 * s}px monospace`; ctx.fillStyle = '#999';
+            ctx.fillText(`DEF ${fmt(def)}`, lx, ly + dy);
+            ctx.shadowBlur = 0;
             ctx.textAlign = 'center';
         });
 
