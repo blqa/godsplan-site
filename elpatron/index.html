@@ -18,7 +18,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Jura:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./css/style.css?v=56">
+    <link rel="stylesheet" href="./css/style.css?v=57">
 </head>
 
 <body>
@@ -32,11 +32,17 @@
             <div id="start-legacy" class="start-legacy"></div>
             <div id="cloud-bar" class="cloud-bar"></div>
             <div id="start-hall" class="start-hall"></div>
-            <div class="version-bar">VERSIÓN: <b>Clásica</b> · <a href="./v1/">Mapa Vivo</a> · <a href="./v2/">El Rancho</a> · <a href="./v3/">Híbrido</a><div class="tiny muted">Cada versión tiene su propia partida y sus 3 slots. El Legado es el mismo.</div></div>
+            <div class="version-pick" id="version-pick">
+                <a class="vp-card on" data-ver="clasica" href="./"><span>📜</span><b>Clásica</b><small>Menús</small></a>
+                <a class="vp-card" data-ver="v1" href="./v1/"><span>🗺️</span><b>Mapa Vivo</b><small>Pantalla completa</small></a>
+                <a class="vp-card" data-ver="v2" href="./v2/"><span>🏡</span><b>El Rancho</b><small>Tu base</small></a>
+                <a class="vp-card" data-ver="v3" href="./v3/"><span>🔍</span><b>Híbrido</b><small>Con zoom</small></a>
+            </div>
+            <p class="version-note">Cada versión guarda su propia partida · el Legado es el mismo</p>
             <div class="start-buttons">
                 <button class="big-btn gold hidden" id="btn-continue" onclick="Core.Game.continueGame()">▶ CONTINUAR</button>
                 <button class="big-btn" id="btn-newgame" onclick="Core.Game.newGame()">NUEVA PARTIDA</button>
-                <button class="big-btn ghost" onclick="Core.Cloud.openSlots()">💾 PARTIDAS GUARDADAS (3 SLOTS)</button>
+                <button class="big-btn ghost" onclick="Core.Cloud.openSlots()">💾 PARTIDAS GUARDADAS</button>
                 <button class="big-btn ghost" onclick="Core.Guide.open()">CÓMO JUGAR</button>
                 <button class="big-btn ghost" id="start-sound" onclick="Sfx.toggle()">🔊 SONIDO</button>
             </div>
@@ -73,18 +79,26 @@
     <div id="login-screen" class="overlay start-screen hidden" style="z-index:2500;">
         <div class="start-bg"></div>
         <div class="start-inner" style="max-width:460px;">
-            <div class="start-kicker">ACCESO</div>
-            <h2 class="mode-title">¿QUIÉN ENTRA?</h2>
-            <div class="me-form">
-                <label class="lbl">TU ALIAS</label>
-                <div class="me-row"><input id="login-alias" maxlength="24" placeholder="El Güero" autocomplete="nickname"></div>
-                <label class="lbl">CLAVE RÁPIDA (4+ números o letras)</label>
-                <div class="me-row"><input id="login-pin" type="password" maxlength="12" placeholder="••••" autocomplete="off" onkeydown="if(event.key==='Enter') Core.Cloud.login()"></div>
-                <p class="tiny muted" style="margin-top:8px;">No es una contraseña real: con tu alias y tu clave encuentras tus partidas en cualquier dispositivo. No uses una clave que uses en otro lado.</p>
-                <button class="big-btn gold" style="margin-top:14px;" onclick="Core.Cloud.login()">ENTRAR</button>
-                <button class="big-btn ghost" onclick="Core.Cloud.guest()">JUGAR COMO INVITADO (solo este dispositivo)</button>
-                <p class="tiny center" id="login-msg" style="margin-top:8px;"></p>
+            <div class="start-kicker">CUENTA</div>
+            <h2 class="mode-title" id="login-title">INICIAR SESIÓN</h2>
+            <div class="login-tabs">
+                <button id="tab-login" class="on" onclick="Core.Cloud.tab('login')">INICIAR SESIÓN</button>
+                <button id="tab-register" onclick="Core.Cloud.tab('register')">CREAR CUENTA</button>
             </div>
+            <form class="me-form" onsubmit="event.preventDefault(); Core.Cloud.submit();">
+                <label class="lbl">USUARIO</label>
+                <div class="me-row"><input id="login-user" maxlength="20" placeholder="elguero" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
+                <label class="lbl">CONTRASEÑA</label>
+                <div class="me-row"><input id="login-pass" type="password" maxlength="64" placeholder="mínimo 6 caracteres" autocomplete="current-password"></div>
+                <div id="login-pass2-wrap" class="hidden">
+                    <label class="lbl">REPITE LA CONTRASEÑA</label>
+                    <div class="me-row"><input id="login-pass2" type="password" maxlength="64" autocomplete="new-password"></div>
+                </div>
+                <p class="tiny muted" style="margin-top:8px;" id="login-hint">Usuario: 3 a 20 letras, números, punto, guion o guion bajo.</p>
+                <button type="submit" class="big-btn gold" style="margin-top:14px;" id="login-go">ENTRAR</button>
+                <button type="button" class="big-btn ghost" onclick="Core.Cloud.guest()">JUGAR COMO INVITADO (solo este dispositivo)</button>
+                <p class="tiny center" id="login-msg" style="margin-top:8px; min-height:1.2em;"></p>
+            </form>
         </div>
     </div>
 
@@ -618,24 +632,24 @@
         <nav id="tabbar" class="tabbar"></nav>
     </div>
 
-    <script src="./js/firebase-config.js?v=56"></script>
-    <script src="./js/config.js?v=56"></script>
-    <script src="./js/state.js?v=56"></script>
-    <script src="./js/audio.js?v=56"></script>
-    <script src="./js/ui.js?v=56"></script>
-    <script src="./js/economy.js?v=56"></script>
-    <script src="./js/logistics.js?v=56"></script>
-    <script src="./js/war.js?v=56"></script>
-    <script src="./js/people.js?v=56"></script>
-    <script src="./js/story.js?v=56"></script>
-    <script src="./js/aguila.js?v=56"></script>
-    <script src="./js/escape.js?v=56"></script>
-    <script src="./js/persona.js?v=56"></script>
-    <script src="./js/golpes.js?v=56"></script>
-    <script src="./js/familia.js?v=56"></script>
-    <script src="./js/vendetta.js?v=56"></script>
-    <script src="./js/cloud.js?v=56"></script>
-    <script src="./js/main.js?v=56"></script>
+    <script src="./js/firebase-config.js?v=57"></script>
+    <script src="./js/config.js?v=57"></script>
+    <script src="./js/state.js?v=57"></script>
+    <script src="./js/audio.js?v=57"></script>
+    <script src="./js/ui.js?v=57"></script>
+    <script src="./js/economy.js?v=57"></script>
+    <script src="./js/logistics.js?v=57"></script>
+    <script src="./js/war.js?v=57"></script>
+    <script src="./js/people.js?v=57"></script>
+    <script src="./js/story.js?v=57"></script>
+    <script src="./js/aguila.js?v=57"></script>
+    <script src="./js/escape.js?v=57"></script>
+    <script src="./js/persona.js?v=57"></script>
+    <script src="./js/golpes.js?v=57"></script>
+    <script src="./js/familia.js?v=57"></script>
+    <script src="./js/vendetta.js?v=57"></script>
+    <script src="./js/cloud.js?v=57"></script>
+    <script src="./js/main.js?v=57"></script>
 </body>
 
 </html>

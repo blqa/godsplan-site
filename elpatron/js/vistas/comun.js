@@ -41,11 +41,11 @@ const VK = {
     /* ---------- Selector de versiones (pantalla de inicio) ---------- */
     VERSIONS: [{ id: 'clasica', name: 'Clásica', path: '' }, { id: 'v1', name: 'Mapa Vivo', path: 'v1/' }, { id: 'v2', name: 'El Rancho', path: 'v2/' }, { id: 'v3', name: 'Híbrido', path: 'v3/' }],
     versionBar(cur) {
-        const inner = document.querySelector('#start-screen .start-inner');
-        if (!inner) return;
-        const d = document.createElement('div'); d.className = 'version-bar';
-        d.innerHTML = 'VERSIÓN: ' + this.VERSIONS.map(v => v.id === cur ? `<b>${v.name}</b>` : `<a href="../${v.path}">${v.name}</a>`).join(' · ') + '<div class="tiny muted">Cada versión tiene su propia partida y sus 3 slots. El Legado es el mismo.</div>';
-        inner.insertBefore(d, inner.querySelector('.start-buttons'));
+        document.querySelectorAll('#version-pick .vp-card').forEach(a => {
+            const v = this.VERSIONS.find(x => x.id === a.dataset.ver);
+            a.href = '../' + v.path;
+            a.classList.toggle('on', v.id === cur);
+        });
     },
 
     /* ---------- HUD mínimo ---------- */

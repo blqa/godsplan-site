@@ -1,10 +1,10 @@
 /* =========================================================
-   NUBE: acceso por Alias + Clave rápida y 3 slots de guardado
+   NUBE: cuentas con usuario y contraseña (Firebase Auth) y 3 slots de guardado
    - Firebase (Auth anónima + Firestore) cargado con import() dinámico,
      así funciona aunque el juego use <script> normales.
    - Si Firebase o la red fallan, todo sigue funcionando con localStorage.
    - Ruta en Firestore: profiles/{perfil}/slots/{versión}_{1..3}
-     {perfil} = huella SHA-256 de "alias|clave" (nunca se guarda la clave).
+     {perfil} = uid de Firebase. El usuario "elguero" se registra como elguero@godsplan.site.
    ========================================================= */
 Core.Cloud = {
     SDK: 'https://www.gstatic.com/firebasejs/10.12.2/',
@@ -23,13 +23,20 @@ Core.Cloud = {
     timeout(p, ms = 6000) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]); },
 
     /* ---------- arranque ---------- */
+    DOMAIN: 'godsplan.site',
     async init() {
         try { this.user = JSON.parse(localStorage.getItem(this.SESSION_KEY) || 'null'); } catch (e) { this.user = null; }
+        if (this.user && !this.user.guest && !this.user.real) this.user = null; // sesiones del acceso viejo (alias+clave)
         this.renderBar();
-        if (!this.user) this.openLogin();
         await this.connect();
+        if (this.online) {
+            // Firebase recuerda la sesión: esperamos a saber si ya había alguien adentro
+            const u = await new Promise(ok => { const off = this.fb.onAuthStateChanged(this.fb.auth, x => { off(); ok(x); }); });
+            if (u) this.setUser(u);
+            else if (this.user && !this.user.guest) this.user = null;
+        }
+        if (!this.user) this.openLogin();
         this.renderBar();
-        if (this.user && !this.user.guest) this.touchProfile();
         // autoguardado en el slot activo cada 2 minutos
         setInterval(() => { if (Core.Game.running && this.active()) this.saveSlot(this.active(), true); }, 120000);
     },
@@ -40,9 +47,11 @@ Core.Cloud = {
                 import(this.SDK + 'firebase-app.js'), import(this.SDK + 'firebase-auth.js'), import(this.SDK + 'firebase-firestore.js')
             ]), 8000);
             const app = appM.initializeApp(window.EP_FIREBASE);
-            const auth = authM.getAuth(app);
-            await this.timeout(authM.signInAnonymously(auth), 8000);
-            this.fb = { db: fsM.getFirestore(app), doc: fsM.doc, getDoc: fsM.getDoc, setDoc: fsM.setDoc, deleteDoc: fsM.deleteDoc };
+            this.fb = {
+                auth: authM.getAuth(app), onAuthStateChanged: authM.onAuthStateChanged, signIn: authM.signInWithEmailAndPassword,
+                signUp: authM.createUserWithEmailAndPassword, updateProfile: authM.updateProfile, signOut: authM.signOut,
+                db: fsM.getFirestore(app), doc: fsM.doc, getDoc: fsM.getDoc, setDoc: fsM.setDoc, deleteDoc: fsM.deleteDoc
+            };
             this.online = true;
         } catch (e) {
             console.warn('Nube no disponible, guardando solo en este dispositivo:', e && e.message);
@@ -50,45 +59,77 @@ Core.Cloud = {
         }
         return this.online;
     },
-    useCloud() { return this.online && this.user && !this.user.guest; },
+    useCloud() { return this.online && this.user && !this.user.guest && this.fb.auth.currentUser; },
     ref(n) { return this.fb.doc(this.fb.db, 'profiles', this.user.pid, 'slots', `${this.ver()}_${n}`); },
-    async touchProfile() {
+    setUser(u) {
+        const name = u.displayName || (u.email || '').split('@')[0];
+        this.user = { alias: name, pid: u.uid, guest: false, real: true };
+        try { localStorage.setItem(this.SESSION_KEY, JSON.stringify(this.user)); } catch (e) { }
+        this.cache = {};
+    },
+    async touchProfile(created) {
         if (!this.useCloud()) return;
-        try { await this.timeout(this.fb.setDoc(this.fb.doc(this.fb.db, 'profiles', this.user.pid), { alias: this.user.alias, lastSeen: Date.now() }, { merge: true })); } catch (e) { }
+        const data = { user: this.user.alias, lastSeen: Date.now() };
+        if (created) data.created = Date.now();
+        try { await this.timeout(this.fb.setDoc(this.fb.doc(this.fb.db, 'profiles', this.user.pid), data, { merge: true })); } catch (e) { }
     },
 
-    /* ---------- acceso ficticio ---------- */
-    async hash(txt) {
-        try {
-            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt));
-            return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
-        } catch (e) { // navegadores sin crypto.subtle (http): huella simple
-            let h = 0; for (const ch of txt) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-            return ('p' + h.toString(16)).padEnd(32, '0');
-        }
+    /* ---------- cuentas: usuario + contraseña (por dentro usuario@godsplan.site) ---------- */
+    mode: 'login',
+    tab(m) {
+        this.mode = m;
+        $('tab-login').classList.toggle('on', m === 'login');
+        $('tab-register').classList.toggle('on', m === 'register');
+        $('login-pass2-wrap').classList.toggle('hidden', m !== 'register');
+        setText('login-title', m === 'login' ? 'INICIAR SESIÓN' : 'CREAR CUENTA');
+        setText('login-go', m === 'login' ? 'ENTRAR' : 'CREAR MI CUENTA');
+        $('login-pass').autocomplete = m === 'login' ? 'current-password' : 'new-password';
+        setText('login-msg', '');
     },
     openLogin() {
         $('login-screen').classList.remove('hidden');
-        $('login-alias').value = this.user && !this.user.guest ? this.user.alias : '';
-        $('login-pin').value = '';
-        setText('login-msg', this.online ? '☁️ Conectado a la nube' : 'Tus partidas se guardan en la nube cuando hay conexión.');
+        $('login-pass').value = ''; $('login-pass2').value = '';
+        this.tab('login');
+        if (!this.online) setText('login-msg', '⚠️ Sin conexión con el servidor: por ahora solo puedes jugar como invitado.');
     },
     closeLogin() { $('login-screen').classList.add('hidden'); },
-    async login() {
-        const alias = ($('login-alias').value || '').trim().slice(0, 24);
-        const pin = ($('login-pin').value || '').trim();
-        if (alias.length < 2) return setText('login-msg', '⚠️ Escribe un alias de al menos 2 letras.');
-        if (pin.length < 4) return setText('login-msg', '⚠️ La clave rápida debe tener al menos 4 caracteres.');
-        const pid = await this.hash(alias.toLowerCase() + '|' + pin);
-        this.user = { alias, pid, guest: false };
-        try { localStorage.setItem(this.SESSION_KEY, JSON.stringify(this.user)); } catch (e) { }
-        this.cache = {};
-        this.closeLogin();
-        Sfx.click();
-        await this.connect();
-        this.touchProfile();
-        this.renderBar();
-        UI.notify(`👤 Entraste como ${alias}${this.online ? ' (☁️ nube)' : ' (💾 solo este dispositivo)'}.`);
+    errorText(e) {
+        const c = (e && e.code) || '';
+        if (c.includes('email-already-in-use')) return 'Ese usuario ya existe. Elige otro o inicia sesión.';
+        if (c.includes('invalid-credential') || c.includes('wrong-password') || c.includes('user-not-found') || c.includes('invalid-login')) return 'Usuario o contraseña incorrectos.';
+        if (c.includes('weak-password')) return 'La contraseña debe tener al menos 6 caracteres.';
+        if (c.includes('too-many-requests')) return 'Demasiados intentos. Espera unos minutos.';
+        if (c.includes('network')) return 'Sin conexión. Revisa tu internet.';
+        if (c.includes('operation-not-allowed')) return 'El registro con contraseña no está activado en Firebase todavía.';
+        return 'No se pudo: ' + (c || (e && e.message) || 'error desconocido');
+    },
+    async submit() {
+        const user = ($('login-user').value || '').trim().toLowerCase();
+        const pass = $('login-pass').value || '';
+        if (!/^[a-z0-9._-]{3,20}$/.test(user)) return setText('login-msg', '⚠️ Usuario: 3 a 20 letras, números, punto, guion o guion bajo (sin espacios ni acentos).');
+        if (pass.length < 6) return setText('login-msg', '⚠️ La contraseña debe tener al menos 6 caracteres.');
+        if (this.mode === 'register' && pass !== $('login-pass2').value) return setText('login-msg', '⚠️ Las contraseñas no coinciden.');
+        if (!await this.connect()) return setText('login-msg', '⚠️ Sin conexión con el servidor. Juega como invitado o intenta más tarde.');
+        const email = `${user}@${this.DOMAIN}`;
+        $('login-go').disabled = true;
+        setText('login-msg', this.mode === 'login' ? 'Entrando...' : 'Creando tu cuenta...');
+        try {
+            let cred;
+            if (this.mode === 'register') {
+                cred = await this.timeout(this.fb.signUp(this.fb.auth, email, pass), 12000);
+                try { await this.fb.updateProfile(cred.user, { displayName: user }); } catch (e) { }
+            } else cred = await this.timeout(this.fb.signIn(this.fb.auth, email, pass), 12000);
+            this.setUser(cred.user);
+            if (cred.user.displayName !== user) this.user.alias = user;
+            await this.touchProfile(this.mode === 'register');
+            this.closeLogin();
+            Sfx.click();
+            this.renderBar();
+            UI.notify(this.mode === 'register' ? `👤 Cuenta creada. ¡Bienvenido, ${user}!` : `👤 Entraste como ${user}.`);
+        } catch (e) {
+            setText('login-msg', '⚠️ ' + this.errorText(e));
+        }
+        $('login-go').disabled = false;
     },
     guest() {
         this.user = { alias: 'Invitado', pid: 'guest', guest: true };
@@ -96,6 +137,13 @@ Core.Cloud = {
         this.cache = {};
         this.closeLogin();
         this.renderBar();
+    },
+    async logout() {
+        if (this.online && this.fb.auth.currentUser) { try { await this.fb.signOut(this.fb.auth); } catch (e) { } }
+        try { localStorage.removeItem(this.SESSION_KEY); } catch (e) { }
+        this.user = null; this.cache = {};
+        this.renderBar();
+        this.openLogin();
     },
 
     /* ---------- resumen de un slot ---------- */
@@ -186,7 +234,7 @@ Core.Cloud = {
     line(s) { return s ? `${s.emblem} ${s.alias} · ${s.mode}${s.mode === 'Historia' ? ' cap. ' + s.chapter : ''} · ${s.rank} · $${fmt(s.worth)} · ${fmtTime(s.playTime)}` : ''; },
     renderBar() {
         const u = this.user;
-        const html = u ? `👤 <b>${u.alias}</b> · ${u.guest ? '💾 invitado (solo este dispositivo)' : this.online ? '☁️ nube conectada' : '💾 sin nube por ahora'} · <a href="#" onclick="Core.Cloud.openLogin(); return false;">cambiar</a>` : '';
+        const html = u ? `👤 <b>${u.alias}</b> · ${u.guest ? '💾 invitado (solo este dispositivo)' : this.useCloud() ? '☁️ nube conectada' : '💾 sin nube por ahora'} · <a href="#" onclick="Core.Cloud.logout(); return false;">${u.guest ? 'iniciar sesión' : 'cerrar sesión'}</a>` : '';
         setHTML('cloud-bar', html);
         setText('footer-slot', u ? `👤 ${u.alias}${this.active() ? ' · Slot ' + this.active() : ''}` : '');
     },
