@@ -703,8 +703,7 @@ Core.War = {
         this.ctx.clearRect(0, 0, W, H);
         this.renderMap(this.ctx, { ox: 0, oy: 0, sx, sy });
     },
-    // Dibuja el mapa en cualquier canvas. v = { ox, oy, sx, sy } (origen y escala en pixeles).
-    // Lo usan el menú Guerra y las versiones v1/v2/v3 (mapa a pantalla completa, zoom...).
+    // Dibuja el mapa en el canvas que se le pase (lo usa el menú Guerra).
     tick() { const n = performance.now(); if (n - (this._lt || 0) > 8) { this.t += 1 / 60; this._lt = n; this._step = true; } else this._step = false; },
     renderMap(ctx, v) {
         this.tick();

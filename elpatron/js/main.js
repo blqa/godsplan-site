@@ -210,5 +210,4 @@ Core.Dev = {
     }
 };
 
-// en v1/v2/v3 el cargador (js/vistas/shell.js) arranca el juego cuando termina de bajar todo
-if (!window.EP_SHELL) window.addEventListener('load', () => Core.Game.boot());
+window.addEventListener('load', () => Core.Game.boot());
