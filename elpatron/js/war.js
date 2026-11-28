@@ -28,7 +28,7 @@ Core.War = {
     totalElite() { return State.elite + this.owned().reduce((s, t) => s + (t.elite || 0), 0); },
     totalTroops() { return this.totalSic() + this.totalElite(); },
     // Cuartel: cuántos hombres puedes mantener (más plazas y fortalezas = más espacio)
-    capacity() { return 150 + this.owned().length * 100 + this.owned().reduce((s, t) => s + t.up.fort * 50, 0); },
+    capacity() { return 200 + this.owned().length * 150 + this.owned().reduce((s, t) => s + t.up.fort * 75, 0); },
     room() { return Math.max(0, this.capacity() - this.totalTroops()); },
     payrollCost() { return { dirty: this.totalSic() * this.U.sic.upkeep, clean: this.totalElite() * this.U.eli.upkeep }; },
     weaponCost() { return Math.floor(5000 * Math.pow(1.5, State.weaponsLvl || 0)); },

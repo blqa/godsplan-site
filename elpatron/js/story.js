@@ -392,7 +392,7 @@ Core.Guide = {
         <h2>2. Dinero sucio y limpio</h2>
         <p>Vender mercancía da dinero <strong>sucio</strong> (producción, tropas, vehículos). Lo conviertes en <strong>limpio</strong> lavándolo a mano o con <strong>negocios fachada</strong>, que lavan solos pero pueden ser clausurados por Hacienda. Con el limpio compras propiedades, tecnología y poder político.</p>
         <h2>3. Producción y mercado</h2>
-        <p>Cada producto se fabrica en laboratorios; casi todos necesitan <strong>químicos</strong>. Si vendes mucho de lo mismo, el mercado se <strong>satura</strong> y el precio baja varios minutos: reparte tus ventas. Los <strong>encargos</strong> pagan mejor y no saturan, pero solo llegan cuando ya tienes fama (desde el capítulo 3).</p>
+        <p>Cada producto se fabrica en laboratorios; casi todos necesitan <strong>químicos</strong>. Si vendes mucho de lo mismo, el mercado se <strong>satura</strong> y el precio baja unos minutos. Tu mercado crece con cada plaza que conquistas, y las rutas largas e internacionales saturan mucho menos. Los <strong>encargos</strong> pagan mejor y no saturan, pero solo llegan cuando ya tienes fama (desde el capítulo 3).</p>
         <h2>4. Logística</h2>
         <p>Cada vehículo tiene nombre, HP y kilometraje (cada 5,000 km es más rápido). Las rutas largas pagan más pero tienen más riesgo de <strong>decomiso</strong>, sobre todo con la búsqueda alta: antes de enviar ves el % de riesgo. Las rutas cortas son locales y no las asaltan. Un vehículo con <strong>seguro</strong> no se pierde si lo decomisan, y tu <strong>élite</strong> escolta los convoyes contra asaltos.</p>
         <h2>5. Guerra y rivales</h2>

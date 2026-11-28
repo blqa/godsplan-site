@@ -117,7 +117,7 @@ Core.Logistics = {
             amount += cargo[k];
             if (cargo[k] > cargo[main]) main = k;
         });
-        keys.forEach(k => { State.inv[k] -= cargo[k]; Core.Market.sell(k, cargo[k]); });
+        keys.forEach(k => { State.inv[k] -= cargo[k]; Core.Market.sell(k, cargo[k], d); });
         v.idleSince = null;
 
         const vet = Core.Assets.vetBonus(v);
@@ -334,7 +334,11 @@ Core.Logistics = {
                 const amt = Math.min(cap, this.available(A.prod));
                 if (amt > 0) { cargo[A.prod] = amt; total = amt; }
             }
-            if (total < need) break; // este no se llena aún: los demás esperan su turno
+            if (total < need) {
+                // los demás esperan su turno, pero máximo 30 s: si no se llena, pasan los siguientes
+                if (v.idleSince && now() - v.idleSince < 30000) break;
+                continue;
+            }
             if (this.executeCargo(v, cargo, d)) sent++;
         }
         if (sent && isVisible('logistics')) this.updateUI();

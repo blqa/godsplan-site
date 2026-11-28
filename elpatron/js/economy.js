@@ -220,14 +220,25 @@ Core.Market = {
         if (dist === 6 && k === 'heroin') p *= 3;
         return Math.floor(p);
     },
-    sell(k, amount) {
-        State.sat[k] += amount / 400;
-        if (State.sat[k] > 1.5 && Math.random() < 0.3) Core.News.add(`Se desploma el precio de la ${Config.products[k].name.toLowerCase()} en las calles por exceso de oferta`);
+    // Tamaño de tu mercado: crece con cada plaza que controlas (más calles, más clientes)
+    size() { return 1 + 0.5 * Core.War.owned().length; },
+    // Las rutas lejanas venden en otros mercados y saturan menos el local
+    ROUTE_SAT: { 1: 1, 2: 0.8, 3: 0.5, 4: 0.3, 5: 0.15, 6: 0.15 },
+    MAX_SAT: 2.5, // el precio nunca baja de ~30%
+    sell(k, amount, dist = 2) {
+        State.sat[k] = Math.min(this.MAX_SAT, State.sat[k] + amount / (400 * this.size()) * (this.ROUTE_SAT[dist] || 1));
+        // una sola noticia cuando se satura (antes salía en cada venta)
+        State.satNews = State.satNews || {};
+        if (State.sat[k] > 1.5 && !State.satNews[k]) {
+            State.satNews[k] = true;
+            Core.News.add(`Se desploma el precio de la ${Config.products[k].name.toLowerCase()} en las calles por exceso de oferta`);
+        }
     },
     fluctuate() {
         Config.productKeys.forEach(k => {
             State.market[k] = clamp(State.market[k] + (Math.random() * 0.2 - 0.1), 0.5, 2.0);
-            State.sat[k] *= 0.98; // tarda varios minutos en recuperarse
+            State.sat[k] *= 0.97; // se recupera en unos minutos
+            if (State.sat[k] < 0.7 && State.satNews) State.satNews[k] = false;
             if (State.sat[k] < 0.001) State.sat[k] = 0;
         });
         Object.keys(State.stocks).forEach(k => {
@@ -251,6 +262,7 @@ Core.Market = {
                 <div class="row-between tiny"><span>Saturación ${satPct}%</span><span>Tendencia x${m.toFixed(2)}</span></div>
                 <div class="sat-bar"><div style="width:${satPct}%"></div></div></div>`;
         });
+        html += `<p class="tiny muted" style="margin-top:8px;">Tamaño de tu mercado: <b class="gold">x${this.size().toFixed(1)}</b> (crece con cada plaza). Las rutas largas e internacionales saturan mucho menos que las cortas.</p>`;
         setHTML('market-ticker', html);
     }
 };

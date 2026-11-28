@@ -78,6 +78,7 @@ function newState() {
         investments: { local: 0, hotel: 0, office: 0, casino: 0, island: 0 },
         shadow,
         timers: { frozen: 0, informant: 0 },
+        satNews: {},
         stats: {
             playTime: 0, dirtyEarned: 0, kgSold: 0, shipments: 0, conquests: 0, raids: 0, laundered: 0, contractsDone: 0,
             lostTerritories: 0, seizures: 0, delivered: 0, hijacked: 0, defended: 0, bossesDefeated: 0, loansPaid: 0
@@ -123,6 +124,10 @@ Core.Save = {
             if (!Array.isArray(merged[k])) merged[k] = newState()[k];
         });
         if (!merged.fleet.length) merged.fleet = newState().fleet;
+        // quita titulares repetidos (bug de saturación) y deja la saturación dentro del nuevo tope
+        const seen = new Set();
+        merged.news = merged.news.filter(n => { if (seen.has(n.text)) return false; seen.add(n.text); return true; });
+        Object.keys(merged.sat).forEach(k => merged.sat[k] = Math.min(2.5, merged.sat[k]));
         // v33: la base pasó de Culiacán a Mérida y se redistribuyó el mapa
         if ((data.version || 0) < 33) {
             const fresh = newState();
