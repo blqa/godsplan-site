@@ -268,6 +268,10 @@ Core.War = {
         if (!this.neighbors(id).some(n => State.territories[n].owner === 'player')) return false;
         return !this.hqLocked(id);
     },
+    oddsAll(id) { return this.chance(this.power(State.army, State.elite), this.enemyDefense(id)); },
+    forceFrac: 1,
+    setForce(f) { this.forceFrac = f; this.plan.sic = f >= 1 ? null : Math.floor(State.army * f); this.plan.eli = f >= 1 ? null : Math.floor(State.elite * f); },
+    lootOf(id) { const c = Config.territories[id]; return Math.round(c.power * (c.hq ? 400 : 120) * dynMult()); },
     chance(my, en) {
         if (my <= 0) return 0;
         return clamp((my * 1.15 - en) / (my * 0.3), 0, 1); // tu poder varía entre 85% y 115%
@@ -310,10 +314,27 @@ Core.War = {
             Sfx.alert();
             UI.modal(`⚔️ ${R.leader.toUpperCase()} TE ESPERA · FASE ${ph}/3`,
                 `${ph === 1 ? pick(R.taunts) + '\n\n' : ''}FASE ${ph}: ${P.name}\n${P.desc}\n\nDefensa de esta fase: ${fmt(this.enemyDefense(id))}\nTu ataque: ${fmt(this.power(p.sic, p.eli))} (${fmt(p.sic)} sicarios + ${fmt(p.eli)} élite)\nProbabilidad: ${Math.round(this.chance(this.power(p.sic, p.eli), this.enemyDefense(id)) * 100)}%`,
-                [{ text: '¡AL ATAQUE!', style: 'btn-red', cb: () => this.doAttack(id) }, { text: 'Retirarse', cb: () => { } }]);
+                [{ text: '¡AL ATAQUE!', style: 'btn-red', cb: () => this.battle(id) }, { text: 'Retirarse', cb: () => { } }]);
             return;
         }
-        this.doAttack(id);
+        this.battle(id);
+    },
+    battling: null,
+    battle(id) {
+        if (this.battling) return UI.notify('Tu gente ya está peleando: espera el resultado.', 'bad');
+        const p = this.planned(), T = Config.territories[id];
+        const from = this.neighbors(id).filter(n => State.territories[n].owner === 'player').map(n => Config.territories[n])
+            .sort((a, b) => Math.hypot(a.x - T.x, a.y - T.y) - Math.hypot(b.x - T.x, b.y - T.y))[0];
+        if (!from) return this.doAttack(id);
+        this.plan.sic = p.sic; this.plan.eli = p.eli; // se congela cuánta gente va
+        this.battling = { id, from: from.id, start: performance.now(), dur: 2800, n: Math.min(18, 4 + Math.round(Math.sqrt(p.sic + p.eli * 3))) };
+        Sfx.alert(); setTimeout(() => Sfx.burst(4), 1500);
+        if (Core.LiveMap.panelRefresh) Core.LiveMap.panelRefresh(true);
+        setTimeout(() => {
+            this.battling = null;
+            if (State.territories[id].owner !== 'player') this.doAttack(id);
+            if (Core.LiveMap.panelRefresh) Core.LiveMap.panelRefresh(true);
+        }, 2800);
     },
     doAttack(id) {
         const t = State.territories[id], c = Config.territories[id];
@@ -339,6 +360,7 @@ Core.War = {
             t.troops = Math.floor(t.troops * 0.7);
             State.rivals[prevOwner].power = Math.max(30, State.rivals[prevOwner].power * 0.85);
             Sfx.explosion();
+            this.lastBattle = { id, won: true, phase: ph, sicLost, eliLost, at: performance.now() };
             UI.modal(`✔ FASE ${ph} GANADA: ${this.PHASES[ph - 1].name}`,
                 `${lossTxt}\n\nSiguiente: FASE ${ph + 1} · ${this.PHASES[ph].name}\n${this.PHASES[ph].desc}\n\nTienes ${fmtTime(this.SIEGE_SECS)} para lanzar la siguiente fase antes de que ${R.leader} se reorganice. Y ojo: va a contraatacar.`,
                 [{ text: 'ENTENDIDO', style: 'btn-gold', cb: () => { } }]);
@@ -360,18 +382,22 @@ Core.War = {
             t.role = 'none'; t.unstableUntil = State.stats.playTime + 180; t.shieldUntil = 0;
             t.graceUntil = State.stats.playTime + (this.owned().length <= 5 ? 240 : 90); // los rivales se reagrupan antes de contraatacar
             State.stats.conquests++;
+            const loot = this.lootOf(id);
+            State.money.dirty += loot;
+            this.lastBattle = { id, won: true, sicLost, eliLost, gs, ge, loot, at: performance.now() };
             const R = State.rivals[prevOwner];
             if (R) R.power = Math.max(30, R.power - c.power * 0.3);
-            UI.notify(`¡${c.name.toUpperCase()} CONQUISTADA! ${lossTxt} Se quedan ${gs} sicarios y ${ge} de élite.`);
+            UI.notify(`¡${c.name.toUpperCase()} CONQUISTADA! ${lossTxt} Se quedan ${gs} sicarios y ${ge} de élite. 💰 Botín: $${fmt(loot)} sucio.`);
             Core.News.add(`Balacera en ${c.name}: un nuevo grupo toma el control de la plaza`, 'bad', true);
             setTimeout(() => Sfx.explosion(), 300);
             if (c.hq) Core.Rivals.defeat(prevOwner);
         } else {
+            this.lastBattle = { id, won: false, sicLost, eliLost, at: performance.now() };
             UI.notify(`Ataque a ${c.name} fallido. ${lossTxt}`, 'bad');
             State.lieutenants.forEach(l => l.loyalty = Math.max(0, l.loyalty - 8));
             Core.News.add(`Enfrentamiento en ${c.name} deja varios muertos; el grupo local resiste`, 'bad');
         }
-        this.plan.sic = null; this.plan.eli = null;
+        this.plan.sic = null; this.plan.eli = null; this.forceFrac = 1;
         this.calcBonuses();
         this.refresh(true);
     },
@@ -755,6 +781,15 @@ Core.War = {
             ctx.restore();
             ctx.globalAlpha = 0.12; ctx.fillStyle = '#fff'; paths.forEach(p => ctx.fill(p)); ctx.globalAlpha = 1;
         });
+        // a quién puedes atacar: contorno punteado del color de tu probabilidad
+        const odds = {}, warOn = Core.Unlocks.isOpen('war') && !(Core.Game.isFrozen && Core.Game.isFrozen());
+        if (warOn) this.eachState(ctx, v, (t, c, paths, px) => {
+            if (!this.canAttack(t.id)) return;
+            const o = odds[t.id] = this.oddsAll(t.id), col = o >= 0.75 ? '80,230,120' : o >= 0.45 ? '255,200,80' : '255,90,90';
+            ctx.strokeStyle = `rgba(${col},${0.55 + 0.35 * Math.sin(this.t * 4)})`; ctx.lineWidth = 2.2 * px;
+            ctx.setLineDash([6 * px, 4 * px]); ctx.lineDashOffset = -this.t * 20 * px; paths.forEach(p => ctx.stroke(p));
+            ctx.setLineDash([]); ctx.lineDashOffset = 0;
+        });
         Config.edges.forEach(([a, b]) => {
             const A = Config.territories[a], Bt = Config.territories[b];
             const front = (State.territories[a].owner === 'player') !== (State.territories[b].owner === 'player');
@@ -778,6 +813,27 @@ Core.War = {
             ctx.fillText(Config.vehicles[r.type].icon, X(x), Y(y) - 2 * s);
         });
 
+        // batalla en curso: tu gente avanza y se agarra a balazos en la plaza
+        const B = this.battling;
+        if (B) {
+            const A = Config.territories[B.from], T = Config.territories[B.id], k = (performance.now() - B.start) / B.dur;
+            ctx.fillStyle = Core.Me.color();
+            for (let i = 0; i < B.n; i++) {
+                const d = clamp((k - i * 0.02) / 0.55, 0, 1), jx = Math.sin(i * 7.1) * 6, jy = Math.cos(i * 3.7) * 6;
+                const x = A.x + (T.x - A.x) * d + jx * (d < 1 ? 0.4 : 1), y = A.y + (T.y - A.y) * d + jy * (d < 1 ? 0.4 : 1);
+                ctx.beginPath(); ctx.arc(X(x), Y(y), 2.2 * s, 0, Math.PI * 2); ctx.fill();
+            }
+            if (k > 0.5) {
+                for (let i = 0; i < 6; i++) if (Math.random() < 0.5) {
+                    const a = Math.random() * 6.28, r = Math.random() * 12;
+                    ctx.fillStyle = Math.random() < 0.5 ? '#ffd27a' : '#ff6a3a';
+                    ctx.beginPath(); ctx.arc(X(T.x + Math.cos(a) * r), Y(T.y + Math.sin(a) * r), (1 + Math.random() * 2) * s, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.font = `${(16 + 4 * Math.sin(this.t * 20)) * s}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('⚔️', X(T.x), Y(T.y) - 16 * s);
+            }
+        }
+
         // marcadores y nombres de los estados
         State.territories.forEach(t => {
             const c = Config.territories[t.id];
@@ -800,14 +856,21 @@ Core.War = {
                 if ((t.shieldUntil || 0) > P) ic.push('🛡️');
                 if ((t.unstableUntil || 0) > P) ic.push('⚠️');
                 if (t.up.fort) ic.push('🏰'.repeat(t.up.fort));
-                if (ic.length && room > 12) { ctx.font = `${8 * s}px sans-serif`; ctx.fillText(ic.join(''), x, y + rad + 17 * s); }
+                if (ic.length && room > 12) { ctx.font = `${8 * s}px sans-serif`; ctx.fillText(ic.join(''), x, y + rad + 26 * s); }
             }
             // nombre: completo si cabe, abreviado en los estados chiquitos
             const big = room > 26, name = big ? c.name : c.key;
             ctx.shadowColor = '#000'; ctx.shadowBlur = 4 * s;
             ctx.font = `bold ${(big ? 9.5 : 8) * s}px monospace`; ctx.fillStyle = t.id === sel ? '#ffe08a' : '#eee';
             ctx.fillText(name, x, y + rad + 7 * s);
-            if (room > 34) {
+            if (odds[t.id] !== undefined) {
+                const o = odds[t.id];
+                ctx.font = `bold ${8 * s}px monospace`; ctx.fillStyle = o >= 0.75 ? '#6f6' : o >= 0.45 ? '#fc5' : '#f66';
+                ctx.fillText(`⚔${Math.round(o * 100)}%`, x, y + rad + 16 * s);
+            } else if (t.owner === 'player' && t.id !== Config.baseId) {
+                ctx.font = `${7.5 * s}px monospace`; ctx.fillStyle = (t.troops + (t.elite || 0)) ? '#cfc' : '#f88';
+                ctx.fillText(`🔫${fmt(t.troops)}${t.elite ? ' 🎖️' + fmt(t.elite) : ''}`, x, y + rad + 16 * s);
+            } else if (room > 34) {
                 const def = t.owner === 'player' ? this.defenseOf(t.id) : this.enemyDefense(t.id);
                 ctx.font = `${7.5 * s}px monospace`; ctx.fillStyle = '#aaa';
                 ctx.fillText(`DEF ${fmt(def)}`, x, y + rad + 16 * s + (t.owner === 'player' && room > 12 ? 0 : 0));

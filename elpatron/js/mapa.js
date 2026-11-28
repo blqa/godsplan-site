@@ -56,7 +56,7 @@ Core.LiveMap = {
         return { ox: this.c.width / 2 - this.cam.cx * sx, oy: this.c.height / 2 - this.cam.cy * sy, sx, sy, label: eff / Math.min(sx, sy) };
     },
     zoomBy(f) { this.cam.z = clamp(this.cam.z * f, 1, 4.5); this.clampCam(); },
-    clampCam() { this.cam.cx = clamp(this.cam.cx, 0, 600); this.cam.cy = clamp(this.cam.cy, 0, 430); },
+    clampCam() { const m = 0.5 / this.cam.z; this.cam.cx = clamp(this.cam.cx, 300 - 600 * m, 300 + 600 * m); this.cam.cy = clamp(this.cam.cy, 215 - 430 * m, 215 + 430 * m); },
     center() { this.cam = { z: 1, cx: 300, cy: 215 }; this.closePanel(); },
     focus(id, z) { const t = Config.territories[id]; this.cam.cx = t.x; this.cam.cy = t.y; this.cam.z = Math.max(this.cam.z, z || 2); if (UI.current !== 'mapa') UI.nav('mapa'); },
     toMap(e) { const r = this.c.getBoundingClientRect(), v = this.view(); return { x: ((e.clientX - r.left) * this.dpr - v.ox) / v.sx, y: ((e.clientY - r.top) * this.dpr - v.oy) / v.sy }; },
@@ -70,14 +70,14 @@ Core.LiveMap = {
             if (!down) return;
             const dx = e.clientX - down.x, dy = e.clientY - down.y;
             if (Math.abs(dx) + Math.abs(dy) > 6) down.moved = true;
-            if (down.moved && this.cam.z > 1) { const k = this.scales(); this.cam.cx = down.cx - dx * this.dpr / k.sx; this.cam.cy = down.cy - dy * this.dpr / k.sy; this.clampCam(); }
+            if (down.moved) { const k = this.scales(); this.cam.cx = down.cx - dx * this.dpr / k.sx; this.cam.cy = down.cy - dy * this.dpr / k.sy; this.clampCam(); }
         });
         const up = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = 0; if (down && !down.moved && !pts.size) this.click(e); if (!pts.size) down = null; };
         c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
         // la rueda hace zoom solo con el mapa grande o con Ctrl, para no estorbar al bajar la página
         c.addEventListener('wheel', e => { e.preventDefault(); this.zoomBy(e.deltaY < 0 ? 1.15 : 1 / 1.15); }, { passive: false });
     },
-    hover(e) { const m = this.toMap(e), z = this.cam.z, id = Core.War.stateAt(m.x, m.y); Core.War.hoverId = id; this.c.style.cursor = (id !== null || Core.War.routeAt(m.x, m.y, 12 / Math.sqrt(z))) ? 'pointer' : (this.cam.z > 1 ? 'grab' : 'default'); },
+    hover(e) { const m = this.toMap(e), z = this.cam.z, id = Core.War.stateAt(m.x, m.y); Core.War.hoverId = id; this.c.style.cursor = (id !== null || Core.War.routeAt(m.x, m.y, 12 / Math.sqrt(z))) ? 'pointer' : 'grab'; },
 
     /* ---------- dibujo ---------- */
     draw() {
@@ -132,10 +132,10 @@ Core.LiveMap = {
         render();
         p.classList.remove('hidden');
         if (window.innerWidth <= 900) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        this.panelRefresh = () => { if (!p.contains(document.activeElement)) render(); };
+        this.panelRefresh = (force) => { const el = document.activeElement; if (force || !(p.contains(el) && /INPUT|SELECT|TEXTAREA/.test(el.tagName))) render(); };
     },
     closePanel() { if (this.panelEl) this.panelEl.innerHTML = `<div class="lm-empty"><b>🗺️</b>Toca cualquier estado del mapa para ver su capital, quién lo controla, su bono y con quién colinda.<br><br>Tienes que conquistar los <b style="display:inline;font-size:1em">32</b>.</div>`; this.panelRefresh = null; Core.War.selected = UI.current === 'war' ? Core.War.selected : null; },
-    act(code) { try { code(); } catch (e) { console.warn(e); } if (this.panelRefresh) this.panelRefresh(); },
+    act(code) { try { code(); } catch (e) { console.warn(e); } if (this.panelRefresh) this.panelRefresh(true); },
 
     plazaHTML(id) {
         const W = Core.War, c = Config.territories[id], t = State.territories[id], mine = t.owner === 'player', war = Core.Unlocks.isOpen('war');
@@ -145,6 +145,11 @@ Core.LiveMap = {
         let h = `<div class="lm-h" style="border-color:${color}"><b style="color:${color}">${c.hq ? '👑 ' : ''}${c.name}</b><small>📍 ${c.cap} · ${owner}</small></div>
             <div class="lm-chip">🎁 ${c.bonus.text}</div>
             <p class="lm-note">🧭 Colinda con: ${nb}</p>`;
+        const lb = W.lastBattle;
+        if (W.battling && W.battling.id === id) h += `<div class="lm-alert">⚔️ TU GENTE ESTÁ PELEANDO AQUÍ…</div>`;
+        else if (lb && lb.id === id && performance.now() - lb.at < 25000) h += lb.won
+            ? `<div class="lm-win"><b>${lb.phase ? '✔ FASE ' + lb.phase + ' GANADA' : '🏆 ¡ESTADO CONQUISTADO!'}</b>Bajas: ${lb.sicLost} 🔫${lb.eliLost ? ' · ' + lb.eliLost + ' 🎖️' : ''}${lb.loot ? `<br>Se quedan ${lb.gs} 🔫 ${lb.ge ? '+ ' + lb.ge + ' 🎖️ ' : ''}a cuidarlo · 💰 Botín $${fmt(lb.loot)}` : ''}</div>`
+            : `<div class="lm-lose"><b>💀 ATAQUE FALLIDO</b>Bajas: ${lb.sicLost} 🔫${lb.eliLost ? ' · ' + lb.eliLost + ' 🎖️' : ''}. Junta más gente y vuelve a intentar.</div>`;
         if (inc) h += `<div class="lm-alert">⚔️ ATAQUE EN CAMINO · ${fmt(inc.power)} de fuerza · ${Math.ceil(inc.left)}s</div>`;
         if (mine) {
             if (id === Config.baseId) return h + `<p class="lm-note">🏠 Tu base. Los cárteles nunca la atacan: no necesita tropas.</p>`;
@@ -179,14 +184,17 @@ Core.LiveMap = {
             if (!war) h += `<p class="lm-note">🔒 Podrás atacar plazas desde el capítulo ${Core.Unlocks.chapterFor('war')}.</p>`;
             else if (!adj) h += `<p class="lm-note">Sin frontera: primero conquista una plaza vecina.</p>`;
             else if (W.hqLocked(id)) h += `<p class="lm-note">🔒 Primero quítale todas sus otras plazas.</p>`;
-            else {
-                W.plan = W.plan || { sic: null, eli: null, keep: 0.5 };
-                const p = W.planned(), ch = W.chance(W.power(p.sic, p.eli), W.enemyDefense(id));
-                const col = ch >= 0.75 ? 'green' : ch >= 0.45 ? 'gold' : 'red';
-                h += `<p class="lm-note">Mandarías toda tu reserva: ${fmt(p.sic)} 🔫 + ${fmt(p.eli)} 🎖️ (ataque ${fmt(W.power(p.sic, p.eli))}).</p>
+            else if (!(W.battling && W.battling.id === id)) {
+                const fr = W.forceFrac || 1; W.setForce(fr);
+                const p = W.planned(), my = W.power(p.sic, p.eli), ch = W.chance(my, W.enemyDefense(id));
+                const col = ch >= 0.75 ? 'green' : ch >= 0.45 ? 'gold' : 'red', keep = W.plan.keep || 0.5;
+                h += `<div class="lm-lbl">¿Cuánta gente mandas? (libres: ${fmt(State.army)} 🔫 · ${fmt(State.elite)} 🎖️)</div>
+                    <div class="lm-btns">${[0.25, 0.5, 0.75, 1].map(f => `<button class="${fr === f ? 'on' : ''}" onclick="Core.LiveMap.act(()=>Core.War.setForce(${f}))">${f === 1 ? 'Todos' : f * 100 + '%'}</button>`).join('')}</div>
+                    <p class="lm-note">Mandas ${fmt(p.sic)} 🔫 + ${fmt(p.eli)} 🎖️ · ataque <b>${fmt(my)}</b> contra defensa <b class="red">${fmt(W.enemyDefense(id))}</b></p>
                     <div class="lm-odds"><span>Probabilidad de ganar</span><b class="${col}">${Math.round(ch * 100)}%</b></div>
-                    <div class="lm-btns"><button class="red big" onclick="Core.LiveMap.act(()=>{Core.War.select(${id});Core.War.plan={sic:null,eli:null,keep:0.5};Core.War.launchAttack()})" ${p.sic + p.eli < 5 ? 'disabled' : ''}>⚔️ ATACAR ${c.hq ? '(FASE ' + W.siegePhase(id) + ')' : ''}</button></div>
-                    ${ch < 0.6 ? '<p class="lm-note">💡 Recluta más o usa RESERVA DE ATAQUE en Guerra para tener más gente libre.</p>' : ''}`;
+                    <p class="lm-note">Si ganas: bajas ~${fmt(Math.round(p.sic * 0.1))} 🔫 · se quedan ~${fmt(Math.round(p.sic * 0.9 * keep))} a cuidarlo · 💰 botín ~$${fmt(W.lootOf(id))}<br>Si pierdes: bajas ~${fmt(Math.round(p.sic * 0.22))} 🔫 y tus tenientes se enojan.</p>
+                    <div class="lm-btns"><button class="red big" onclick="Core.LiveMap.act(()=>{Core.War.selected=${id};Core.War.setForce(Core.War.forceFrac||1);Core.War.launchAttack()})" ${p.sic + p.eli < 5 || W.battling ? 'disabled' : ''}>⚔️ ATACAR ${c.hq ? '(FASE ' + W.siegePhase(id) + ')' : ''}</button></div>
+                    ${ch < 0.6 ? '<p class="lm-note">💡 Con menos de 60% mejor junta más gente: recluta en Guerra o saca tropas de estados tranquilos.</p>' : ''}`;
             }
         }
         if (war) h += `<div class="lm-btns"><button class="ghost" onclick="Core.LiveMap.closePanel(); UI.nav('war'); Core.War.select(${id})">⚙️ Todo sobre esta plaza</button></div>`;

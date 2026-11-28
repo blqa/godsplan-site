@@ -3,8 +3,8 @@
    que lo abres) sale una ventana que explica para qué sirve y cómo se usa.
    ========================================================= */
 Config.tips = {
-    mapa: { icon: '🗺️', name: 'El mapa vivo', what: 'Arriba de cada menú está México con sus 32 estados en tiempo real: cada estado pintado del color de su dueño, tus convoyes viajando y los ataques que vienen.',
-        how: ['Toca un estado: se iluminan sus fronteras y ves su capital, su defensa y sus vecinos. Ahí mismo mueves gente, blindas o atacas.', 'Toca un convoy para ver qué lleva y su riesgo.', 'Con ▁ ▃ █ lo escondes, lo haces chico o grande. ＋ y － para hacer zoom.'], tip: 'Cuando veas una flecha roja con segundos, te están atacando: toca la plaza.' },
+    mapa: { icon: '🗺️', name: 'El mapa', what: 'México con sus 32 estados en tiempo real: cada estado pintado del color de su dueño, tus convoyes viajando y los ataques que vienen. Tu meta es pintarlos todos de tu color.',
+        how: ['Toca un estado: se iluminan sus fronteras y ves su capital, su defensa y sus vecinos. Ahí mismo mueves gente, blindas o atacas.', 'Toca un convoy para ver qué lleva y su riesgo.', 'Arrastra para moverte. Rueda del mouse (o dos dedos en el cel) o ＋ y － para hacer zoom; ⟲ regresa a ver todo el país.', 'Los estados con contorno punteado son los que puedes atacar; el ⚔% es tu probabilidad de ganar (verde = fácil, rojo = difícil).'], tip: 'Cuando veas una flecha roja con segundos, te están atacando: toca el estado y refuérzalo.' },
     ops: { icon: '🏭', name: 'Producción', what: 'Aquí se cocina tu mercancía. Cada producto se fabrica solo, poco a poco, y se guarda en tu bodega.',
         how: ['MEJORAR sube un poco la velocidad de ese producto.', '+LAB multiplica todo lo que produce ese producto (2 labs = el doble).', 'Los productos caros (cristal, coca...) necesitan químicos: compra o deja AUTO-IMPORTAR prendido.'], tip: 'Los labs rinden mucho más que mejorar. Desbloquea el siguiente producto en cuanto puedas: vale más por kilo.' },
     story: { icon: '📖', name: 'Historia', what: 'Tu camino de vendedor de esquina a Rey de Reyes, en 11 capítulos.',
