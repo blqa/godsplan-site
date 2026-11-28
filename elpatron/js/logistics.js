@@ -15,6 +15,7 @@ Core.Logistics = {
         let c = Config.routes[d].risk / 100 * 0.15 * (0.3 + State.heat / State.heatCap) * Core.Mods.seizure();
         if (Core.fame() < 3) c *= 0.4;
         if (d === 4 && State.shadow.lobby_us) c *= 0.25;
+        if (d >= 3 && Core.Aguila.borderOn()) c *= 1.6;
         return clamp(c, 0, 0.4);
     },
     // Avisos de entregas exitosas agrupados (para no llenar la pantalla)

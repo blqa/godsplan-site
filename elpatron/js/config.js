@@ -219,9 +219,37 @@ Config.unlocks = {
     fronts: 4, rnd: 4, stocks: 4,
     lifestyle: 5,
     shadow: 8,
-    ending: 10
+    ending: 10, aguila: 10
 };
 Config.unlockNames = { autosend: 'Auto-envío', stocks: 'Wall Street', contracts: 'Encargos' };
+
+/* ===== EL ÁGUILA: el gobierno de Estados Unidos (fin de juego) ===== */
+Config.aguila = {
+    // Células de venta en EE.UU.: se llevan tu mercancía y la venden a precio gringo
+    cities: [
+        { id: 'hou', name: 'Houston', icon: '🤠', cost: 20000000, kg: 40, price: 2.5, desc: 'La puerta de entrada. Bodegas, refinerías y carreteras infinitas.' },
+        { id: 'la', name: 'Los Ángeles', icon: '🌴', cost: 60000000, kg: 80, price: 2.8, desc: 'Hollywood paga lo que sea por la fiesta.' },
+        { id: 'chi', name: 'Chicago', icon: '🌬️', cost: 150000000, kg: 120, price: 3, desc: 'El centro del país. Todo pasa por aquí.' },
+        { id: 'mia', name: 'Miami', icon: '🌊', cost: 300000000, kg: 160, price: 3.2, desc: 'Lanchas rápidas, bancos discretos y yates.' },
+        { id: 'ny', name: 'Nueva York', icon: '🗽', cost: 600000000, kg: 250, price: 3.5, desc: 'Wall Street también se desvela.' }
+    ],
+    CELL_MAX: 5,
+    // Defensas contra Washington (3 niveles cada una)
+    defenses: [
+        { id: 'infiltrado', name: 'Infiltrado en la DEA', icon: '🕵️', cur: 'clean', base: 25000000, desc: 'Cada nivel: 25% de probabilidad de frenar una redada y te avisa antes.' },
+        { id: 'abogados', name: 'Bufete en Nueva York', icon: '⚖️', cur: 'clean', base: 40000000, desc: 'Cada nivel: las sanciones congelan menos dinero y los amparos cuestan 25% menos. Necesario para liberar cuentas.' },
+        { id: 'tuneles', name: 'Túneles bajo la frontera', icon: '🚇', cur: 'dirty', base: 30000000, desc: 'Cada nivel: +25% de venta en tus células y los operativos fronterizos te pegan menos.' }
+    ],
+    // Acciones para comprar poder en Washington (el costo sube cada vez que las usas)
+    acts: [
+        { id: 'campana', name: 'Financiar una campaña', icon: '🗳️', cur: 'clean', base: 50000000, inf: 8, att: 6, desc: 'Un congresista más que te debe el favor.' },
+        { id: 'chantaje', name: 'Chantajear a un senador', icon: '📸', cur: 'dirty', base: 80000000, inf: 15, att: 10, risk: 0.35, desc: '65% de que funcione. Si sale mal, todo Washington se entera (+25 atención).' },
+        { id: 'farma', name: 'Lobby con las farmacéuticas', icon: '💊', cur: 'clean', base: 150000000, inf: 12, att: 3, desc: 'Los que venden las pastillas legales también quieren su parte.' },
+        { id: 'pentagono', name: 'Contrato con el Pentágono', icon: '🎖️', cur: 'clean', base: 300000000, inf: 20, att: 12, desc: 'Tus empresas fachada le venden al ejército gringo. Ya no te pueden tocar tan fácil.' }
+    ],
+    PACT_COST: 500000000,
+    PACT_LEGACY: 50
+};
 
 /* ===== HISTORIA: capítulos con objetivos y recompensas ===== */
 Config.story = [
@@ -277,7 +305,7 @@ Config.story = [
     },
     {
         title: 'El Rey de Reyes', goal: 'Cumple el Plan de Retiro',
-        text: 'No queda nadie arriba de ti.\nSolo falta lo más difícil: desaparecer con todo... y que tu nombre viva para siempre.',
+        text: 'No queda nadie arriba de ti.\nSolo falta lo más difícil: desaparecer con todo... y que tu nombre viva para siempre.\n\nPero al norte alguien ya escribió tu nombre en una lista. El Águila te está mirando (menú EL ÁGUILA).',
         progress: () => [Core.Legacy.goalsMet(), 3], reward: {}
     }
 ];
@@ -316,6 +344,9 @@ Config.achievements = [
     { id: 'defender', name: 'Muralla', desc: 'Defiende 10 ataques', check: () => State.stats.defended >= 10 },
     { id: 'fronts_5', name: 'Hombre de Negocios', desc: 'Ten 5 negocios fachada', check: () => Object.keys(State.fronts).length >= 5 },
     { id: 'banker', name: 'El Banquero', desc: 'Abre el Banco del Patrón', check: () => !!State.fronts.banco },
+    { id: 'gringo', name: 'Al Otro Lado', desc: 'Abre tu primera célula en Estados Unidos', check: () => Object.values(State.aguila.cells).some(x => x > 0) },
+    { id: 'aguila_pact', name: 'El Pacto del Águila', desc: 'Doblega al gobierno de Estados Unidos', check: () => State.aguila.done },
+    { id: 'dynasty_2', name: 'Nueva Dinastía', desc: 'Empieza una partida después de retirarte', check: () => (State.dynasty || 0) >= 1 },
     { id: 'loan_paid', name: 'Buen Pagador', desc: 'Liquida un préstamo', check: () => State.stats.loansPaid >= 1 },
     { id: 'veteran', name: 'Kilometraje de Leyenda', desc: 'Un vehículo con 20,000 km', check: () => State.fleet.some(v => v.km >= 20000) },
     { id: 'lt_max', name: 'Mano Derecha', desc: 'Un teniente en nivel 5', check: () => State.lieutenants.some(l => l.level >= 5) },

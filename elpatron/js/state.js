@@ -30,17 +30,25 @@ const Legacy = (() => {
     catch (e) { return { points: 0, runs: 0, wins: 0 }; }
 })();
 const legacyMult = () => 1 + Legacy.points * 0.05;
+/* Dinastías: cada retiro (y cada punto de Legado) hace a los enemigos más duros.
+   Tu Legado multiplica tu economía; esto mantiene el reto en las partidas siguientes. */
+const dynastyMult = d => 1 + 0.5 * d + (d > 0 ? 0.02 * Legacy.points : 0);
+const dynMult = () => (State && State.dynMult) || 1;
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+const dynastyName = d => 'Dinastía ' + (ROMAN[d] || (d + 1));
 
 /* ---------- Estado inicial ---------- */
 function newState() {
     const rivals = {};
-    Object.values(Config.rivals).forEach(r => rivals[r.id] = { power: r.startPower, truceUntil: 0, relation: 0, defeated: false });
+    const dyn = Legacy.runs, dm = dynastyMult(dyn);
+    Object.values(Config.rivals).forEach(r => rivals[r.id] = { power: Math.round(r.startPower * dm), truceUntil: 0, relation: 0, defeated: false });
     const shadow = {};
     Config.shadow.forEach(s => shadow[s.id] = false);
     const zeroP = () => ({ weed: 0, meth: 0, coke: 0, heroin: 0, fenta: 0 });
     return {
-        version: 35,
+        version: 36,
         mode: 'story',          // 'story' = Modo Historia, 'libre' = Modo Libre
+        dynasty: dyn, dynMult: dm,
         unlocked: ['ops', 'story', 'logistics', 'assets'],
         money: { dirty: 1500 + Legacy.points * 10000, clean: 500, offshore: 0 },
         inv: Object.assign(zeroP(), { chems: 0 }),
@@ -59,7 +67,7 @@ function newState() {
         nextUid: 2,
         routes: [],
         lieutenants: [], candidates: [], nextLtId: 1,
-        territories: Config.territories.map(t => ({ id: t.id, owner: t.owner, troops: t.troops, elite: 0, tanks: 0, up: { fort: 0, lab: 0, bodega: 0 } })),
+        territories: Config.territories.map(t => ({ id: t.id, owner: t.owner, troops: t.owner === 'player' ? t.troops : Math.round(t.troops * dm), elite: 0, tanks: 0, up: { fort: 0, lab: 0, bodega: 0 } })),
         rivals,
         incoming: [],
         contacts: { police: false, customs: false, union: false, lawyer: false },
@@ -79,6 +87,7 @@ function newState() {
         shadow,
         timers: { frozen: 0, informant: 0 },
         satNews: {},
+        aguila: { attention: 0, influence: 0, cells: {}, def: { infiltrado: 0, abogados: 0, tuneles: 0 }, frozen: 0, acts: {}, borderUntil: 0, done: false, alerted: false, sold: 0 },
         stats: {
             playTime: 0, dirtyEarned: 0, kgSold: 0, shipments: 0, conquests: 0, raids: 0, laundered: 0, contractsDone: 0,
             lostTerritories: 0, seizures: 0, delivered: 0, hijacked: 0, defended: 0, bossesDefeated: 0, loansPaid: 0
@@ -112,7 +121,7 @@ Core.Save = {
         // Merge con valores por defecto para que partidas viejas no truenen
         const merged = Object.assign(def, data);
         ['money', 'inv', 'ops', 'opsStatus', 'labs', 'military', 'militaryBought', 'market', 'sat', 'contacts', 'loan', 'story',
-            'automation', 'luxuries', 'investments', 'shadow', 'timers', 'stats'].forEach(k => {
+            'automation', 'luxuries', 'investments', 'shadow', 'timers', 'stats', 'aguila'].forEach(k => {
                 merged[k] = Object.assign(newState()[k], data[k] || {});
             });
         merged.stocks = Object.assign(newState().stocks, data.stocks || {});
@@ -152,6 +161,19 @@ Core.Save = {
             if ((merged.stats.laundered || 0) > 0 || merged.money.offshore > 0) u.add('finance');
             merged.unlocked = [...u];
             merged.version = 35;
+        }
+        merged.aguila.def = Object.assign({ infiltrado: 0, abogados: 0, tuneles: 0 }, merged.aguila.def || {});
+        // v36: dinastías. Una partida recién empezada después de un retiro recibe la dificultad
+        // de su dinastía; las partidas avanzadas se quedan como estaban.
+        if (data.dynasty === undefined) {
+            const fresh = (merged.stats.playTime || 0) < 1800 && Legacy.runs > 0;
+            merged.dynasty = fresh ? Legacy.runs : 0;
+            merged.dynMult = fresh ? dynastyMult(Legacy.runs) : 1;
+            if (fresh) {
+                Object.values(merged.rivals).forEach(R => { if (!R.defeated) R.power = Math.round(R.power * merged.dynMult); });
+                merged.territories.forEach(t => { if (t.owner !== 'player') t.troops = Math.round(t.troops * merged.dynMult); });
+            }
+            merged.version = 36;
         }
         // Rutas cuyo vehículo ya no existe se descartan
         merged.routes = merged.routes.filter(r => merged.fleet.some(v => v.uid === r.vUid));

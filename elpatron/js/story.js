@@ -321,12 +321,14 @@ Core.Legacy = {
         setText('legacy-current', Legacy.points);
         setText('legacy-gain', '+' + this.pointsFor());
         setText('legacy-runs', Legacy.runs);
+        setText('legacy-dynasty', `Vas en la ${dynastyName(State.dynasty || 0)}${State.dynasty ? ` (cárteles x${dynMult().toFixed(1)} más duros)` : ''}. Tu próximo retiro abre la ${dynastyName(Legacy.runs + 1)}: cárteles x${dynastyMult(Legacy.runs + 1).toFixed(1)} más duros.${State.aguila.done ? ` 🦅 Pacto firmado: +${Config.aguila.PACT_LEGACY} Legado al ganar.` : ''}`);
     },
     winGame() {
         if (this.goalsMet() < 3) return UI.notify('Aún no cumples todas las condiciones.', 'bad');
-        const pts = this.pointsFor() + 25;
+        const pact = State.aguila.done ? Config.aguila.PACT_LEGACY : 0;
+        const pts = this.pointsFor() + 25 + pact;
         Sfx.fanfare();
-        UI.modal('👑 EL REY DE REYES', `Desapareciste con mil millones de dólares. Controlas el país entero y ya no queda nadie que te desafíe.\n\nTu nombre será leyenda por generaciones.\n\nGanas ${pts} puntos de Legado.`, [
+        UI.modal('👑 EL REY DE REYES', `Desapareciste con mil millones de dólares. Controlas el país entero y ya no queda nadie que te desafíe.\n\nTu nombre será leyenda por generaciones.${pact ? '\n\nY Washington firmó contigo: hasta el Águila te respeta.' : ''}\n\nGanas ${pts} puntos de Legado.`, [
             { text: 'NUEVA DINASTÍA', style: 'btn-gold', cb: () => this.retire(pts, true) }
         ]);
     },

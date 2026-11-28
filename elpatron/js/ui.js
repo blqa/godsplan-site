@@ -15,6 +15,7 @@ const VIEWS = [
     { id: 'contracts', icon: '📋', name: 'ENCARGOS', short: 'Encargos' },
     { id: 'rnd', icon: '🧪', name: 'I + D', short: 'I+D' },
     { id: 'shadow', icon: '🏛️', name: 'GABINETE SOMBRA', short: 'Gabinete' },
+    { id: 'aguila', icon: '🦅', name: 'EL ÁGUILA', short: 'EE.UU.' },
     { id: 'lifestyle', icon: '💎', name: 'LUJOS', short: 'Lujos' },
     { id: 'news', icon: '📰', name: 'PERIÓDICO', short: 'Noticias' },
     { id: 'achievements', icon: '🏆', name: 'LOGROS', short: 'Logros' },
@@ -89,6 +90,7 @@ const UI = {
             case 'contracts': Core.Contracts.render(); break;
             case 'rnd': Core.RnD.render(); break;
             case 'shadow': Core.Shadow.render(); break;
+            case 'aguila': Core.Aguila.render(); break;
             case 'lifestyle': Core.Lifestyle.render(); break;
             case 'news': Core.News.render(); break;
             case 'achievements': Core.Achievements.render(); break;

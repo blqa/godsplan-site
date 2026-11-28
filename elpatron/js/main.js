@@ -21,7 +21,7 @@ Core.Game = {
             } catch (e) { }
         }
         $('btn-newgame').textContent = has ? 'NUEVA PARTIDA (BORRA LA ACTUAL)' : 'NUEVA PARTIDA';
-        $('start-legacy').textContent = Legacy.points ? `👑 LEGADO: ${Legacy.points} puntos · ${Legacy.runs} retiro(s) · +${Legacy.points * 5}% a todo` : '';
+        $('start-legacy').textContent = Legacy.points ? `👑 LEGADO: ${Legacy.points} puntos · ${Legacy.runs} retiro(s) · +${Legacy.points * 5}% a todo · Próxima: ${dynastyName(Legacy.runs)}, cárteles x${dynastyMult(Legacy.runs).toFixed(1)} más duros` : '';
         document.addEventListener('keydown', e => this.keys(e));
         document.addEventListener('pointerdown', () => Sfx.init(), { once: true });
         window.addEventListener('beforeunload', () => { if (this.running) Core.Save.save(); });
@@ -134,6 +134,7 @@ Core.Game = {
             Core.Heat.tick();
             Core.Rivals.tick();
             Core.Fronts.tick();
+            Core.Aguila.tick();
             Core.Finance.loanTick();
             Core.HR.tick();
             if (State.stats.playTime % 60 === 0) Core.War.payroll();

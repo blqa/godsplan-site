@@ -111,8 +111,8 @@ Core.War = {
         const c = Config.territories[id], t = State.territories[id];
         const r = State.rivals[t.owner];
         if (!r) return 0;
-        if (c.hq) return Config.rivals[t.owner].bossPower * (1 + r.power / 3000) + t.troops * 3;
-        return c.power * (1 + r.power / 2000) + t.troops * 2;
+        if (c.hq) return Config.rivals[t.owner].bossPower * dynMult() * (1 + r.power / 3000) + t.troops * 3;
+        return c.power * dynMult() * (1 + r.power / 2000) + t.troops * 2;
     },
     hqLocked(id) {
         const c = Config.territories[id], owner = State.territories[id].owner;
@@ -596,7 +596,7 @@ Core.Rivals = {
         this.alive().forEach(rid => {
             const R = State.rivals[rid], C = Config.rivals[rid];
             const lands = this.territoriesOf(rid).length;
-            R.power = Math.min(20000, R.power + 0.4 + lands * 0.35 + State.respect / 2e8);
+            R.power = Math.min(20000 * dynMult(), R.power + (0.4 + lands * 0.35 + State.respect / 2e8) * dynMult());
 
             // Comportamiento según personalidad
             // Solo te molestan si ya tienen frontera contigo (antes atacaban desde el otro lado del mapa)
@@ -636,7 +636,7 @@ Core.Rivals = {
             targets.sort((a, b) => Core.War.defenseOf(a.id) - Core.War.defenseOf(b.id));
             const target = rid === 'halcones' ? targets[0] : pick(targets); // los Halcones van por la más débil
             const ratio = R.power / Math.max(30, Core.War.defenseOf(target.id));
-            let chance = clamp(0.012 * C.aggression * ratio, 0, 0.12);
+            let chance = clamp(0.012 * C.aggression * ratio * (1 + 0.25 * (State.dynasty || 0)), 0, 0.12);
             if (State.heat > State.heatCap * 0.5) chance *= 1.5;
             if (hasTech('war_3')) chance *= 0.8;
             if (Math.random() < chance) this.spawnAttack(rid, target.id);
@@ -740,7 +740,7 @@ Core.Rivals = {
         if (!targets.length) return;
         const t = pick(targets);
         // su fuerza depende de tu defensa ahí: a veces resistes solo, a veces necesitas refuerzos
-        const power = Math.max(150, Math.floor(Core.War.defenseOf(t.id) * (0.5 + Math.random() * 0.9)));
+        const power = Math.max(150 * dynMult(), Math.floor(Core.War.defenseOf(t.id) * (0.5 + Math.random() * 0.9) * (1 + 0.1 * (State.dynasty || 0))));
         const time = 25 + (hasTech('war_3') ? 15 : 0);
         State.incoming.push({ id: now(), rid, target: t.id, power, left: time, total: time, remnant: true });
         Sfx.alert();
