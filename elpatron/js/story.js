@@ -7,6 +7,7 @@
 Core.News = {
     add(text, type = '', big = false) {
         if (State.shadow.media && type === 'bad' && Math.random() < 0.5) return; // tus medios callan la mitad
+        if (State.news.slice(0, 12).some(n => n.text === text)) return; // no repetir el mismo titular
         const d = new Date();
         State.news.unshift({ text, type, big, time: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` });
         State.news = State.news.slice(0, 40);

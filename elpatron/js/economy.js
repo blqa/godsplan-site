@@ -4,7 +4,7 @@
    ========================================================= */
 
 /* ---------- Modificadores centrales (un solo lugar para todos los bonus) ---------- */
-Core.B = { price: 1, speed: 1, cap: 0, chems: false, launder: 0, heat: 1, defense: 1, prod: 1, raidKeep: 0 };
+Core.B = { price: 1, speed: 1, capMult: 1, chems: false, launder: 0, heat: 1, defense: 1, prod: 1, raidKeep: 0 };
 
 Core.Mods = {
     prod(k) {
@@ -77,7 +77,8 @@ Core.Mods = {
     },
     vehicleCap(type) {
         const v = Config.vehicles[type];
-        return v.cap > 0 ? v.cap + Core.B.cap : 0;
+        // los bonus de capacidad son porcentaje (antes sumaban kg a cada vehículo y una mula cargaba 4,700 kg)
+        return v.cap > 0 ? Math.round(v.cap * Core.B.capMult) : 0;
     }
 };
 

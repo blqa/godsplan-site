@@ -150,7 +150,7 @@ const Config = {
         { id: 0, name: 'Culiacán', x: 170, y: 195, owner: 'serrana', power: 260, troops: 20, bonus: { type: 'defense', val: 0.1, text: '+10% Defensa' } },
         { id: 1, name: 'Tijuana', x: 45, y: 45, owner: 'serrana', power: 250, troops: 20, bonus: { type: 'price', val: 0.2, text: '+20% Precio de venta' } },
         { id: 2, name: 'Hermosillo', x: 115, y: 110, owner: 'serrana', power: 200, troops: 15, bonus: { type: 'speed', val: 0.1, text: '+10% Vel. flota' } },
-        { id: 3, name: 'Juárez', x: 235, y: 50, owner: 'golfo', power: 220, troops: 20, bonus: { type: 'cap', val: 500, text: '+500 kg capacidad' } },
+        { id: 3, name: 'Juárez', x: 235, y: 50, owner: 'golfo', power: 220, troops: 20, bonus: { type: 'cap', val: 0.25, text: '+25% capacidad de carga' } },
         { id: 4, name: 'Chihuahua', x: 240, y: 125, owner: 'golfo', power: 180, troops: 15, bonus: { type: 'prod', val: 0.15, text: '+15% Producción' } },
         { id: 5, name: 'Nuevo Laredo', x: 390, y: 105, owner: 'golfo', power: 300, troops: 25, bonus: { type: 'price', val: 0.15, text: '+15% Precio de venta' } },
         { id: 6, name: 'Monterrey', x: 375, y: 175, owner: 'golfo', power: 800, troops: 40, hq: true, bonus: { type: 'launder', val: 0.1, text: '-10% comisión de lavado' } },
@@ -168,7 +168,7 @@ const Config = {
     territoryUpgrades: [
         { id: 'fort', name: 'Fortaleza', icon: '🏰', desc: '+30% defensa por nivel', base: 40000 },
         { id: 'lab', name: 'Lab local', icon: '⚗️', desc: '+8% producción global por nivel', base: 60000 },
-        { id: 'bodega', name: 'Bodega', icon: '📦', desc: '+100 kg por vehículo y -5% pérdida en redadas', base: 30000 }
+        { id: 'bodega', name: 'Bodega', icon: '📦', desc: '+2% capacidad de carga y -5% pérdida en redadas', base: 30000 }
     ],
 
     // ===== Tenientes =====

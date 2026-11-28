@@ -189,7 +189,7 @@ Core.Logistics = {
                 if (Core.Assets.vetBonus(v) > before) UI.notify(`"${v.name}" ahora es veterano: ${fmt(v.km)} km (+${Math.round(Core.Assets.vetBonus(v) * 100)}% vel.)`, 'event');
             }
             Sfx.cash();
-            if (r.val >= 500000 && Math.random() < 0.5) Core.News.add(`Autoridades investigan red que movió "toneladas" por ${Config.routes[r.dist].name.toLowerCase()}`);
+            if (r.val >= 500000 && Math.random() < 0.05) Core.News.add(`Autoridades investigan red que movió "toneladas" por ${Config.routes[r.dist].name.toLowerCase()}`);
         }
         if (State.ticks % 20 === 0) this.flushOk();
         if (finished && isVisible('logistics')) this.updateUI();
@@ -310,11 +310,12 @@ Core.Logistics = {
         if (!this.routeOpen(d)) return;
         const limit = tier === 1 ? 1 : Infinity;
         let sent = 0;
-        // Fila justa: sale primero el que lleva más tiempo esperando. Si ese todavía no se
-        // llena, los demás lo esperan (así los barcos y avionetas también salen).
+        // Primero los vehículos más grandes (menos viajes = menos riesgo). Si el grande todavía no se
+        // llena pero tu producción lo llena en ~20 s, los demás lo esperan; si no, pasan los chicos.
         const free = State.fleet.filter(v => this.usable(v) && (A.veh < 0 || v.type === A.veh))
-            .sort((a, b) => (a.idleSince || 0) - (b.idleSince || 0));
+            .sort((a, b) => (Config.vehicles[b.type].cap - Config.vehicles[a.type].cap) || ((a.idleSince || 0) - (b.idleSince || 0)));
         const smart = tier === 2 && A.smart;
+        const rate = (smart ? Config.productKeys : [A.prod]).reduce((s, k) => s + (State.ops[k] > 0 && State.opsStatus[k] ? Core.Ops.rate(k) : 0), 0);
         // precio por kg de cada producto, del más caro al más barato
         const order = Config.productKeys.slice().sort((a, b) => Core.Market.price(b, d) - Core.Market.price(a, d));
         for (const v of free) {
@@ -335,9 +336,8 @@ Core.Logistics = {
                 if (amt > 0) { cargo[A.prod] = amt; total = amt; }
             }
             if (total < need) {
-                // los demás esperan su turno, pero máximo 30 s: si no se llena, pasan los siguientes
-                if (v.idleSince && now() - v.idleSince < 30000) break;
-                continue;
+                if (need - total <= rate * 20) break; // se llena pronto: los demás esperan
+                continue;                              // tardaría mucho: que salgan los chicos
             }
             if (this.executeCargo(v, cargo, d)) sent++;
         }

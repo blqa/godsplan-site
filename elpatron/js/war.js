@@ -286,21 +286,21 @@ Core.War = {
     },
 
     calcBonuses() {
-        const B = { price: 1, speed: 1, cap: 0, chems: false, launder: 0, heat: 1, defense: 1, prod: 1, raidKeep: 0 };
+        const B = { price: 1, speed: 1, capMult: 1, chems: false, launder: 0, heat: 1, defense: 1, prod: 1, raidKeep: 0 };
         const txt = [];
         State.territories.forEach(t => {
             if (t.owner !== 'player') return;
             const b = Config.territories[t.id].bonus;
             if (b.type === 'price') B.price += b.val;
             if (b.type === 'speed') B.speed += b.val;
-            if (b.type === 'cap') B.cap += b.val;
+            if (b.type === 'cap') B.capMult += b.val;
             if (b.type === 'chems') B.chems = true;
             if (b.type === 'launder') B.launder += b.val;
             if (b.type === 'heat') B.heat -= b.val;
             if (b.type === 'defense') B.defense += b.val;
             if (b.type === 'prod') B.prod += b.val;
             B.prod += 0.08 * t.up.lab;
-            B.cap += 100 * t.up.bodega;
+            B.capMult += 0.02 * t.up.bodega;
             B.raidKeep += 0.05 * t.up.bodega;
             txt.push(b.text);
         });
