@@ -242,7 +242,7 @@ Core.War = {
         const reserve = +($('org-reserve') ? $('org-reserve').value : 0.3);
         let sic = Math.floor(State.army * (1 - reserve)), eli = Math.floor(State.elite * (1 - reserve));
         const front = this.owned().filter(t => this.threat(t.id) > 0);
-        if (!front.length) return UI.notify('Ninguna de tus plazas tiene frontera con un rival.', 'bad');
+        if (!front.length) return this.spreadEven(sic, eli);
         const deficit = id => this.threat(id) * 1.15 - this.defenseOf(id);
         let moved = 0;
         // de 5 en 5 sicarios a la plaza que más lo necesita; luego la élite de 1 en 1
@@ -259,6 +259,30 @@ Core.War = {
         }
         const still = front.filter(t => deficit(t.id) > 0).length;
         UI.notify(moved ? `Tropas repartidas (${fmt(moved)} hombres).${still ? ` ${still} plaza(s) siguen débiles: recluta más.` : ' Todas tus fronteras están cubiertas.'}` : 'Tus fronteras ya están cubiertas.', still ? 'bad' : 'good');
+        this.refresh(true);
+    },
+
+    // Sin rivales en la frontera: reparte parejo entre todas tus plazas (los restos de cárteles
+    // atacan cualquiera, sobre todo las que eran suyas), llenando primero la más débil
+    spreadEven(sic, eli) {
+        const plazas = this.owned().filter(t => t.id !== Config.baseId);
+        if (!plazas.length) return UI.notify('Aún no tienes plazas además de tu base.', 'bad');
+        if (sic + eli <= 0) return UI.notify('No tienes tropas en la reserva para repartir.', 'bad');
+        // las plazas que eran de un cártel derrotado pesan el doble (ahí atacan sus restos)
+        const w = t => { const o = Config.territories[t.id].owner, R = State.rivals[o]; return R && R.defeated ? 2 : 1; };
+        const score = t => this.defenseOf(t.id) / w(t);
+        const give = (n, unit) => {
+            const step = Math.max(unit === 'sic' ? 5 : 1, Math.ceil(n / (plazas.length * 25)));
+            while (n > 0) {
+                const t = plazas.reduce((a, b) => score(b) < score(a) ? b : a);
+                const m = Math.min(step, n);
+                if (unit === 'sic') { t.troops += m; State.army -= m; }
+                else { t.elite = (t.elite || 0) + m; State.elite -= m; }
+                n -= m;
+            }
+        };
+        give(sic, 'sic'); give(eli, 'eli');
+        UI.notify(`Sin rivales en tus fronteras: repartí ${fmt(sic + eli)} hombres parejo entre tus ${plazas.length} plazas (más donde atacan los restos de cárteles).`, 'good');
         this.refresh(true);
     },
 
