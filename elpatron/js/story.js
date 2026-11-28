@@ -35,6 +35,49 @@ Core.News = {
     flavor() { if (Math.random() < 0.08) this.add(pick(Config.flavorNews)); }
 };
 
+/* ---------- FAMA ----------
+   En Modo Historia es el capítulo actual. En Modo Libre se calcula con tus avances.
+   Sirve para decidir qué eventos salen, cuántos encargos llegan, etc. */
+Core.fame = function () {
+    if (State.mode !== 'libre') return State.story.chapter;
+    const s = State.stats;
+    let f = 0;
+    if (s.kgSold >= 50) f++;
+    if (s.laundered >= 20000) f++;
+    if (State.lieutenants.length >= 2) f++;
+    f += Math.min(3, Core.War.owned().length - 1);
+    f += State.rank * 2;
+    return Math.min(10, f);
+};
+
+/* ---------- DESBLOQUEOS ---------- */
+Core.Unlocks = {
+    isOpen(key) {
+        if (State.mode === 'libre') return key !== 'story';
+        return State.unlocked.includes(key);
+    },
+    nameOf(key) {
+        const v = VIEWS.find(x => x.id === key);
+        return v ? v.name : (Config.unlockNames[key] || key);
+    },
+    // Revisa qué se abre con el capítulo actual. Regresa la lista de lo nuevo.
+    refresh(silent) {
+        if (State.mode === 'libre') return [];
+        const newly = [];
+        Object.keys(Config.unlocks).forEach(k => {
+            if (State.story.chapter >= Config.unlocks[k] && !State.unlocked.includes(k)) { State.unlocked.push(k); newly.push(k); }
+        });
+        if (newly.length) {
+            UI.buildNav();
+            newly.forEach(k => UI.setBadge(k, 'NUEVO'));
+            if (!silent) UI.notify(`🔓 Desbloqueaste: ${newly.map(k => this.nameOf(k)).join(', ')}`, 'event');
+        }
+        UI.applyUnlocks();
+        return newly;
+    },
+    chapterFor(key) { return (Config.unlocks[key] || 0) + 1; }
+};
+
 /* ---------- HISTORIA ---------- */
 Core.Story = {
     current() { return Config.story[State.story.chapter]; },
@@ -46,7 +89,7 @@ Core.Story = {
     },
     check() {
         const c = this.current();
-        if (!c || State.story.chapter >= Config.story.length - 1) return;
+        if (State.mode === 'libre' || !c || State.story.chapter >= Config.story.length - 1) return;
         const [v, max] = this.progress();
         if (v < max) return;
         // recompensa
@@ -58,10 +101,18 @@ Core.Story = {
         Sfx.fanfare();
         UI.setBadge('story', '!');
         const rewardTxt = [r.dirty ? `$${fmt(r.dirty)} sucios` : '', r.clean ? `$${fmt(r.clean)} limpios` : ''].filter(Boolean).join(' + ');
-        Core.Game.showChapter(next, `✔ CAPÍTULO ${State.story.chapter}: ${c.title.toUpperCase()} COMPLETADO${rewardTxt ? '\nRecompensa: ' + rewardTxt : ''}`);
+        const newly = Core.Unlocks.refresh(true);
+        const unlockTxt = newly.length ? '\n🔓 Desbloqueaste: ' + newly.map(k => Core.Unlocks.nameOf(k)).join(', ') : '';
+        Core.Game.showChapter(next, `✔ CAPÍTULO ${State.story.chapter}: ${c.title.toUpperCase()} COMPLETADO${rewardTxt ? '\nRecompensa: ' + rewardTxt : ''}${unlockTxt}`);
         this.render();
     },
     render() {
+        if (State.mode === 'libre') {
+            const g = Core.Legacy.goalsMet();
+            setHTML('mini-story', `<b class="gold">🗺️ MODO LIBRE</b><br>Plan de retiro: ${g}/3 metas<br><span class="muted">$1B offshore · 14 plazas · 16 techs</span>`);
+            const bar = $('mini-story-bar'); if (bar) bar.style.width = (g / 3 * 100) + '%';
+            return;
+        }
         const c = this.current();
         const [v, max] = this.progress();
         const pct = Math.round(v / max * 100);
@@ -102,7 +153,7 @@ Core.Contracts = {
     },
     // Cuántos clientes especiales te buscan según tu fama
     max() {
-        const ch = State.story.chapter;
+        const ch = Core.fame();
         if (ch < 3) return 0;                       // nadie te conoce todavía
         if (State.rank >= 2 || ch >= 7) return 3;
         if (State.rank >= 1 || ch >= 5) return 2;
@@ -123,7 +174,7 @@ Core.Contracts = {
         UI.setBadge('contracts', null);
         if (this.max() === 0) {
             $('contracts-grid').innerHTML = `<div class="op-card locked"><h3>🔒 NADIE TE CONOCE TODAVÍA</h3>
-                <p class="muted">Los clientes especiales solo le compran a alguien con nombre. Termina el capítulo 3 de la historia ("La Red") para que la gente empiece a buscarte.</p></div>`;
+                <p class="muted">Los clientes especiales solo le compran a alguien con nombre. ${State.mode === 'libre' ? 'Vende, lava y contrata gente para que corra tu fama.' : 'Termina el capítulo 3 de la historia ("La Red") para que la gente empiece a buscarte.'}</p></div>`;
             return;
         }
         State.contracts.forEach(c => c.seen = true);
@@ -333,6 +384,8 @@ Core.Guide = {
     close() { $('guide-modal').classList.add('hidden'); },
     render() {
         $('guide-content').innerHTML = `
+        <h2>0. Modos de juego</h2>
+        <p><strong>Modo Historia</strong>: empiezas con Producción, Logística y Flota, y cada capítulo te abre nuevos menús (Finanzas, Tenientes, Guerra, Fachadas...). <strong>Modo Libre</strong>: todo abierto desde el inicio y sin capítulos.</p>
         <h2>1. La meta</h2>
         <p>Retírate como <strong>EL REY DE REYES</strong>: junta <strong>$1B</strong> en tu cuenta offshore, controla los <strong>14 territorios</strong> e investiga las <strong>16 tecnologías</strong>. La pestaña <strong>HISTORIA</strong> te guía capítulo por capítulo.</p>
         <h2>2. Dinero sucio y limpio</h2>

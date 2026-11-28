@@ -285,6 +285,7 @@ Core.Shadow = {
         if (!Core.pay('clean', s.cost)) return;
         State.shadow[id] = true;
         if (id === 'fiscal') State.heatCap = 200;
+        UI.applyUnlocks();
         Sfx.fanfare();
         UI.notify(`ADQUIRIDO: ${s.name}`);
         if (!State.shadow.media) Core.News.add(`Rumores de un "poder detrás del poder" sacuden al gobierno`);

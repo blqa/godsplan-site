@@ -207,6 +207,20 @@ const Config = {
     ]
 };
 
+/* ===== DESBLOQUEOS DEL MODO HISTORIA =====
+   número = capítulo (desde 0) en el que se abre cada menú o función */
+Config.unlocks = {
+    ops: 0, story: 0, logistics: 0, assets: 0,
+    finance: 1, news: 1, achievements: 1,
+    hr: 2, autosend: 2,
+    war: 3, rivals: 3, contracts: 3,
+    fronts: 4, rnd: 4, stocks: 4,
+    lifestyle: 5,
+    shadow: 8,
+    ending: 10
+};
+Config.unlockNames = { autosend: 'Auto-envío', stocks: 'Wall Street', contracts: 'Encargos' };
+
 /* ===== HISTORIA: capítulos con objetivos y recompensas ===== */
 Config.story = [
     {
@@ -309,7 +323,7 @@ Config.achievements = [
 /* ===== EVENTOS ALEATORIOS ===== */
 Config.events = [
     {
-        title: 'VECINO CHISMOSO', req: () => State.story.chapter <= 2,
+        title: 'VECINO CHISMOSO', req: () => Core.fame() <= 2,
         desc: 'Doña Chela, la vecina, vio a tu mula salir de madrugada. Ya anda preguntando.',
         opts: [
             { text: 'Regalarle una despensa ($500 sucio)', cost: { dirty: 500 }, effect: () => UI.notify('Doña Chela ya no vio nada.') },
@@ -317,7 +331,7 @@ Config.events = [
         ]
     },
     {
-        title: 'PRIMER CLIENTE FIJO', req: () => State.story.chapter <= 2 && State.inv.weed >= 10,
+        title: 'PRIMER CLIENTE FIJO', req: () => Core.fame() <= 2 && State.inv.weed >= 10,
         desc: 'Un mesero de un hotel en Progreso quiere 10 kg de Mota cada semana. Paga bien, pero es nuevo en esto.',
         opts: [
             { text: 'Venderle 10 kg (x1.5 precio)', effect: () => { State.inv.weed -= 10; const v = Math.floor(10 * Config.products.weed.basePrice * 1.5); State.money.dirty += v; State.stats.kgSold += 10; State.stats.dirtyEarned += v; UI.notify(`+$${fmt(v)} sucios.`); Sfx.cash(); } },
@@ -325,7 +339,7 @@ Config.events = [
         ]
     },
     {
-        title: 'LA MULA SE PERDIÓ', req: () => State.story.chapter <= 1 && State.stats.playTime > 120,
+        title: 'LA MULA SE PERDIÓ', req: () => Core.fame() <= 1 && State.stats.playTime > 120,
         desc: 'Tu mula tomó el camino equivocado y llegó tarde. El comprador está molesto.',
         opts: [
             { text: 'Darle un descuento ($300 sucio)', cost: { dirty: 300 }, effect: () => UI.notify('El cliente se calmó.') },
@@ -333,7 +347,7 @@ Config.events = [
         ]
     },
     {
-        title: 'RETÉN MILITAR', req: () => State.story.chapter >= 2 && State.fleet.length >= 2, desc: 'El ejército detuvo uno de tus envíos. ¿Qué haces?',
+        title: 'RETÉN MILITAR', req: () => Core.fame() >= 2 && State.fleet.length >= 2, desc: 'El ejército detuvo uno de tus envíos. ¿Qué haces?',
         opts: [
             { text: 'Pagar soborno ($5K sucio)', cost: { dirty: 5000 }, effect: () => UI.notify('Te dejaron pasar.') },
             { text: 'Forzar el paso (+20 Heat)', effect: () => { Core.Heat.add(20); UI.notify('Escapaste, pero te buscan.', 'bad'); } }
@@ -361,7 +375,7 @@ Config.events = [
         ]
     },
     {
-        title: 'AUGE EN EL NORTE', req: () => State.story.chapter >= 3, desc: 'La demanda se disparó. ¿Aprovechas?',
+        title: 'AUGE EN EL NORTE', req: () => Core.fame() >= 3, desc: 'La demanda se disparó. ¿Aprovechas?',
         opts: [
             { text: 'Subir precios (+10 Heat)', effect: () => { Config.productKeys.forEach(k => { State.market[k] = Math.min(2.0, State.market[k] + 0.4); State.sat[k] = 0; }); Core.Heat.add(10); UI.notify('Precios por las nubes.', 'event'); } },
             { text: 'Perfil bajo', effect: () => Config.productKeys.forEach(k => State.market[k] = Math.min(2.0, State.market[k] + 0.15)) }
@@ -396,7 +410,7 @@ Config.events = [
         ]
     },
     {
-        title: 'RECLUTAS VOLUNTARIOS', req: () => State.story.chapter >= 3, desc: 'Gente del barrio quiere unirse a la organización.',
+        title: 'RECLUTAS VOLUNTARIOS', req: () => Core.fame() >= 3, desc: 'Gente del barrio quiere unirse a la organización.',
         opts: [
             { text: 'Aceptar 10 (+5 Heat)', effect: () => { State.army += 10; Core.Heat.add(5); UI.notify('+10 sicarios.'); } },
             { text: 'Rechazar', effect: () => { } }

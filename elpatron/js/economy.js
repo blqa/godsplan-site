@@ -99,7 +99,13 @@ Core.Ops = {
     render() {
         const grid = $('ops-grid');
         let html = '';
-        Config.productKeys.forEach(k => {
+        // Químicos solo aparecen cuando ya fabricas algo que los necesita
+        $('chem-card').classList.toggle('hidden', !Config.productKeys.some(k => State.ops[k] > 0 && Config.products[k].chems > 0) && State.inv.chems <= 0);
+        // En Modo Historia solo se ve el siguiente producto por desbloquear
+        const firstLocked = Config.productKeys.find(k => !(State.ops[k] > 0));
+        const shown = State.mode === 'libre' ? Config.productKeys : Config.productKeys.filter(k => State.ops[k] > 0 || k === firstLocked);
+        const hiddenCount = Config.productKeys.length - shown.length;
+        shown.forEach(k => {
             const p = Config.products[k];
             const unlocked = State.ops[k] > 0;
             const cc = this.chemCost(k);
@@ -118,7 +124,8 @@ Core.Ops = {
                     : `<button class="action-btn btn-locked" onclick="Core.Ops.unlock('${k}')">DESBLOQUEAR $${fmt(p.unlock)} SUCIO</button>`}
             </div>`;
         });
-        html += `
+        if (hiddenCount > 0) html += `<div class="op-card locked"><h3>🔒 ${hiddenCount} PRODUCTOS MÁS</h3><p class="tiny muted">Desbloquea el siguiente producto para descubrir los demás.</p></div>`;
+        if (State.mode === 'libre' || State.ops.coke > 0) html += `
             <div class="op-card ${State.ops.mobile ? '' : 'locked'}" style="border-color:#444;">
                 <h3>LABORATORIO MÓVIL</h3>
                 <p class="tiny muted">Produce Coca lento y la protege por completo en las redadas.</p>

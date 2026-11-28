@@ -39,7 +39,9 @@ function newState() {
     Config.shadow.forEach(s => shadow[s.id] = false);
     const zeroP = () => ({ weed: 0, meth: 0, coke: 0, heroin: 0, fenta: 0 });
     return {
-        version: 33,
+        version: 35,
+        mode: 'story',          // 'story' = Modo Historia, 'libre' = Modo Libre
+        unlocked: ['ops', 'story', 'logistics', 'assets'],
         money: { dirty: 1500 + Legacy.points * 10000, clean: 500, offshore: 0 },
         inv: Object.assign(zeroP(), { chems: 0 }),
         ops: Object.assign(zeroP(), { weed: 1, mobile: false }),
@@ -117,7 +119,7 @@ Core.Save = {
         Object.keys(baseRivals).forEach(id => merged.rivals[id] = Object.assign(baseRivals[id], (data.rivals || {})[id] || {}));
         if (!Array.isArray(data.territories) || data.territories.length !== Config.territories.length) merged.territories = newState().territories;
         merged.territories.forEach(t => { t.up = Object.assign({ fort: 0, lab: 0, bodega: 0 }, t.up || {}); t.tanks = t.tanks || 0; });
-        ['fleet', 'routes', 'lieutenants', 'candidates', 'techs', 'achievements', 'contracts', 'news', 'incoming', 'launderingLevels'].forEach(k => {
+        ['unlocked', 'fleet', 'routes', 'lieutenants', 'candidates', 'techs', 'achievements', 'contracts', 'news', 'incoming', 'launderingLevels'].forEach(k => {
             if (!Array.isArray(merged[k])) merged[k] = newState()[k];
         });
         if (!merged.fleet.length) merged.fleet = newState().fleet;
@@ -130,6 +132,21 @@ Core.Save = {
             merged.contracts = [];
             merged.story.chapter = Math.min(merged.story.chapter || 0, 3);
             merged.version = 33;
+        }
+        // v35: modos de juego. Las partidas viejas pasan a Modo Historia y conservan
+        // los menús donde ya tenían avances.
+        if (!data.mode) {
+            merged.mode = 'story';
+            const u = new Set(['ops', 'story', 'logistics', 'assets']);
+            Object.keys(Config.unlocks).forEach(v => { if ((merged.story.chapter || 0) >= Config.unlocks[v]) u.add(v); });
+            if (merged.lieutenants.length) { u.add('hr'); u.add('autosend'); }
+            if (Object.keys(merged.fronts).length) u.add('fronts');
+            if (merged.techs.length) u.add('rnd');
+            if (merged.territories.filter(t => t.owner === 'player').length > 1 || merged.army > 0) { u.add('war'); u.add('rivals'); }
+            if (Object.values(merged.investments).some(x => x > 0)) u.add('lifestyle');
+            if ((merged.stats.laundered || 0) > 0 || merged.money.offshore > 0) u.add('finance');
+            merged.unlocked = [...u];
+            merged.version = 35;
         }
         // Rutas cuyo vehículo ya no existe se descartan
         merged.routes = merged.routes.filter(r => merged.fleet.some(v => v.uid === r.vUid));

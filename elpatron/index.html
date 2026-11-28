@@ -40,6 +40,31 @@
         </div>
     </div>
 
+    <!-- ============ ELEGIR MODO DE JUEGO ============ -->
+    <div id="mode-screen" class="overlay start-screen hidden">
+        <div class="start-bg"></div>
+        <div class="start-inner" style="max-width:760px;">
+            <div class="start-kicker">NUEVA PARTIDA</div>
+            <h2 class="mode-title">ELIGE TU CAMINO</h2>
+            <div class="mode-grid">
+                <div class="mode-card recommended" onclick="Core.Game.startMode('story')">
+                    <div class="mode-tag">RECOMENDADO</div>
+                    <div class="mode-icon">📖</div>
+                    <h3>MODO HISTORIA</h3>
+                    <p>Empiezas con lo básico y cada capítulo te abre nuevos menús: finanzas, tenientes, guerra, fachadas... Ideal para aprender a jugar.</p>
+                    <ul><li>11 capítulos y 3 jefes finales</li><li>Los menús se desbloquean poco a poco</li><li>Recompensas por cada capítulo</li></ul>
+                </div>
+                <div class="mode-card" onclick="Core.Game.startMode('libre')">
+                    <div class="mode-icon">🗺️</div>
+                    <h3>MODO LIBRE</h3>
+                    <p>Todo desbloqueado desde el primer segundo y sin historia. Tú decides cómo construir tu imperio.</p>
+                    <ul><li>Todos los menús abiertos</li><li>Empiezas con más dinero</li><li>Misma meta: el retiro</li></ul>
+                </div>
+            </div>
+            <button class="link-btn" onclick="Core.Game.closeModes()">‹ Volver</button>
+        </div>
+    </div>
+
     <!-- ============ INTRO DE HISTORIA ============ -->
     <div id="intro-screen" class="overlay intro-screen hidden">
         <div class="intro-box">
@@ -140,7 +165,7 @@
             <!-- PRODUCCIÓN -->
             <section id="view-ops" class="view">
                 <div class="section-title">COMPLEJO INDUSTRIAL & PRECURSORES</div>
-                <div class="op-card">
+                <div class="op-card" id="chem-card">
                     <h3>IMPORTACIÓN DE QUÍMICOS</h3>
                     <p class="muted">Stock: <b id="val-chems" class="white">0</b> L · Se paga con dinero limpio.</p>
                     <div class="btn-row">
@@ -180,7 +205,7 @@
                             <button class="action-btn btn-blue auto-w" onclick="Core.War.recruitElite()">ÉLITE ($25K LIMPIO)</button>
                         </div>
                     </div>
-                    <div class="op-card" style="border-color:#5b2a86;">
+                    <div class="op-card" id="heavy-weapons" style="border-color:#5b2a86;">
                         <h3>ARMAS PESADAS <small class="muted">(Pacto Kremlin)</small></h3>
                         <p class="muted">T-90: +300 defensa en la plaza donde lo despliegues. MLRS: +50 ataque cada uno, se gastan al atacar.</p>
                         <div class="btn-row">
@@ -297,8 +322,10 @@
                     </div>
                     <div class="op-card loan-card" id="loan-card"></div>
                 </div>
-                <div class="section-title sub">WALL STREET <span class="tiny muted">Acciones con beneficios pasivos (dinero limpio)</span></div>
-                <div id="stock-market-grid" class="grid-cards three"></div>
+                <div id="stocks-wrap">
+                    <div class="section-title sub">WALL STREET <span class="tiny muted">Acciones con beneficios pasivos (dinero limpio)</span></div>
+                    <div id="stock-market-grid" class="grid-cards three"></div>
+                </div>
                 <div class="section-title sub">LAVADO MANUAL</div>
                 <div class="grid-cards" id="laundering-grid"></div>
             </section>
@@ -416,14 +443,14 @@
                 <div class="data-row"><span>Capacidad</span><span id="inv-cap">0</span></div>
                 <div class="data-row" style="cursor:pointer;" onclick="UI.nav('logistics')" title="Configurar auto-envío"><span>Auto-envío</span><span id="inv-auto">🔒</span></div>
             </div>
-            <div class="data-block">
+            <div class="data-block" id="aside-force">
                 <div class="data-header">FUERZA</div>
                 <div class="data-row"><span>Sicarios</span><span id="inv-army">0</span></div>
                 <div class="data-row"><span>Élite</span><span id="inv-elite">0</span></div>
                 <div class="data-row"><span>Tenientes</span><span id="inv-lt">0</span></div>
                 <div class="data-row"><span>Plazas</span><span id="inv-land">0</span></div>
             </div>
-            <div class="data-block story-mini" onclick="UI.nav('story')">
+            <div class="data-block story-mini" onclick="UI.nav(State.mode === 'libre' ? 'ending' : 'story')">
                 <div class="data-header">📖 OBJETIVO</div>
                 <div id="mini-story" class="tiny"></div>
                 <div class="mini-bar"><div id="mini-story-bar"></div></div>
@@ -437,7 +464,7 @@
                 <button class="footer-btn" onclick="Core.SaveIO.importSave()">IMPORTAR</button>
                 <button class="footer-btn danger" onclick="Core.Game.hardReset()">BORRAR</button>
             </div>
-            <div class="news-ticker" onclick="UI.nav('news')"><div class="ticker-label">ÚLTIMA HORA</div><div class="ticker-track"><div class="ticker-move" id="ticker-move"></div></div></div>
+            <div class="news-ticker" onclick="if (Core.Unlocks.isOpen('news')) UI.nav('news')"><div class="ticker-label">ÚLTIMA HORA</div><div class="ticker-track"><div class="ticker-move" id="ticker-move"></div></div></div>
             <a class="footer-brand" href="https://godsplan.dev" target="_blank" rel="noopener">GOD'S PLAN LABS</a>
         </footer>
 

@@ -13,6 +13,13 @@ Core.Game = {
         Sfx.updateButtons();
         const has = Core.Save.has();
         $('btn-continue').classList.toggle('hidden', !has);
+        if (has) {
+            try {
+                const d = JSON.parse(localStorage.getItem(SAVE_KEY));
+                const lbl = d.mode === 'libre' ? 'MODO LIBRE' : `HISTORIA · CAP. ${((d.story && d.story.chapter) || 0) + 1}`;
+                $('btn-continue').textContent = `▶ CONTINUAR (${lbl})`;
+            } catch (e) { }
+        }
         $('btn-newgame').textContent = has ? 'NUEVA PARTIDA (BORRA LA ACTUAL)' : 'NUEVA PARTIDA';
         $('start-legacy').textContent = Legacy.points ? `👑 LEGADO: ${Legacy.points} puntos · ${Legacy.runs} retiro(s) · +${Legacy.points * 5}% a todo` : '';
         document.addEventListener('keydown', e => this.keys(e));
@@ -28,15 +35,32 @@ Core.Game = {
         this.start();
         Core.Offline.apply();
     },
+    // Paso 1: elegir modo de juego
     newGame() {
         Sfx.init(); Sfx.click();
+        $('mode-screen').classList.remove('hidden');
+    },
+    closeModes() { $('mode-screen').classList.add('hidden'); },
+    // Paso 2: arrancar en el modo elegido
+    startMode(mode) {
+        Sfx.click();
         if (Core.Save.has() && !confirm('¿Empezar de cero? Se borrará tu partida actual (el Legado se conserva).')) return;
         try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
         State = newState();
+        State.mode = mode;
+        $('mode-screen').classList.add('hidden');
         $('start-screen').classList.add('hidden');
         Core.News.add('Mérida, la ciudad más segura del país, amanece tranquila. Por ahora.');
-        this.showChapter(Config.story[0], 'PRÓLOGO');
-        this.start();
+        if (mode === 'libre') {
+            State.money.dirty += 25000;
+            State.money.clean += 10000;
+            State.unlocked = Object.keys(Config.unlocks);
+            this.start();
+            UI.modal('🗺️ MODO LIBRE', 'Todo está desbloqueado desde el inicio y no hay capítulos.\nArrancas en Mérida con $26.5K sucios y $10.5K limpios.\n\nTu meta: retirarte con $1B offshore, los 14 territorios y las 16 tecnologías. Cómo llegues es cosa tuya.', [{ text: 'A JUGAR', style: 'btn-gold', cb: () => { } }]);
+        } else {
+            this.showChapter(Config.story[0], 'PRÓLOGO');
+            this.start();
+        }
     },
 
     // Muestra la intro de un capítulo con efecto de máquina de escribir
@@ -74,6 +98,8 @@ Core.Game = {
     start() {
         if (this.running) return;
         this.running = true;
+        UI.buildNav();
+        Core.Unlocks.refresh(true);
         Core.War.calcBonuses();
         Core.War.initCanvas();
         Core.Contracts.refill();

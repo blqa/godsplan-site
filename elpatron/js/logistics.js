@@ -13,7 +13,7 @@ Core.Logistics = {
     // BALANCE v34: antes era ~2.5x más alto. Un desconocido (antes del cap. 3) casi no llama la atención.
     seizureChance(d) {
         let c = Config.routes[d].risk / 100 * 0.15 * (0.3 + State.heat / State.heatCap) * Core.Mods.seizure();
-        if (State.story.chapter < 3) c *= 0.4;
+        if (Core.fame() < 3) c *= 0.4;
         if (d === 4 && State.shadow.lobby_us) c *= 0.25;
         return clamp(c, 0, 0.4);
     },
@@ -249,6 +249,8 @@ Core.Logistics = {
     },
     updateAutoStatus() {
         const A = State.automation, tier = this.autoTier();
+        // En Modo Historia el panel aparece hasta el capítulo 3 o al ganarte el auto-envío
+        $('auto-logistics-panel').classList.toggle('hidden', !(Core.Unlocks.isOpen('autosend') || tier > 0));
         const chip = $('auto-tier-chip');
         if (chip) {
             chip.textContent = ['BLOQUEADO', 'BÁSICO', 'OPERADOR'][tier];

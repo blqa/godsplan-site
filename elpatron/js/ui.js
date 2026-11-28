@@ -20,25 +20,49 @@ const VIEWS = [
     { id: 'achievements', icon: '🏆', name: 'LOGROS', short: 'Logros' },
     { id: 'ending', icon: '🏁', name: 'RETIRO', short: 'Retiro' }
 ];
-const TABBAR = ['ops', 'logistics', 'war', 'finance'];
+const TAB_PRIORITY = ['ops', 'logistics', 'war', 'finance', 'story', 'assets', 'hr'];
+let TABBAR = ['ops', 'logistics', 'war', 'finance'];
 
 const UI = {
     current: 'ops',
     badges: {},
 
+    // Arma los menús solo con lo desbloqueado
     buildNav() {
-        $('side-nav').innerHTML = VIEWS.map(v => `<div class="nav-item" data-view="${v.id}" onclick="UI.nav('${v.id}')">
-            <span class="ni-icon">${v.icon}</span>${v.name}<span class="badge hidden"></span></div>`).join('');
+        const open = VIEWS.filter(v => Core.Unlocks.isOpen(v.id));
+        const locked = VIEWS.filter(v => !Core.Unlocks.isOpen(v.id) && v.id !== 'story');
+        TABBAR = TAB_PRIORITY.filter(id => Core.Unlocks.isOpen(id)).slice(0, 4);
+        $('side-nav').innerHTML = open.map(v => `<div class="nav-item" data-view="${v.id}" onclick="UI.nav('${v.id}')">
+            <span class="ni-icon">${v.icon}</span>${v.name}<span class="badge hidden"></span></div>`).join('')
+            + (locked.length ? `<div class="nav-locked">🔒 ${locked.length} menús más se desbloquean con la historia</div>` : '');
         $('tabbar').innerHTML = TABBAR.map(id => {
             const v = VIEWS.find(x => x.id === id);
             return `<div class="tab-item" data-view="${id}" onclick="UI.nav('${id}')"><span class="ti-icon">${v.icon}</span>${v.short.toUpperCase()}<span class="badge hidden"></span></div>`;
         }).join('') + `<div class="tab-item" data-view="more" onclick="UI.toggleMore()"><span class="ti-icon">☰</span>MÁS<span class="badge hidden"></span></div>`;
-        $('more-panel').innerHTML = VIEWS.filter(v => !TABBAR.includes(v.id)).map(v =>
-            `<div class="more-item" data-view="${v.id}" onclick="UI.nav('${v.id}')"><span class="mi-icon">${v.icon}</span>${v.short.toUpperCase()}<span class="badge hidden"></span></div>`).join('');
+        $('tabbar').style.gridTemplateColumns = `repeat(${TABBAR.length + 1}, 1fr)`;
+        $('more-panel').innerHTML = open.filter(v => !TABBAR.includes(v.id)).map(v =>
+            `<div class="more-item" data-view="${v.id}" onclick="UI.nav('${v.id}')"><span class="mi-icon">${v.icon}</span>${v.short.toUpperCase()}<span class="badge hidden"></span></div>`).join('')
+            + (locked.length ? `<div class="more-item locked-more"><span class="mi-icon">🔒</span>${locked.length} MÁS</div>` : '');
+        document.querySelectorAll('[data-view]').forEach(n => n.classList.toggle('active', n.dataset.view === this.current));
+        Object.keys(this.badges).forEach(k => this.setBadge(k, this.badges[k]));
+    },
+    // Esconde partes de pantallas que aún no tocan
+    applyUnlocks() {
+        const show = (id, on) => { const e = $(id); if (e) e.classList.toggle('hidden', !on); };
+        show('stocks-wrap', Core.Unlocks.isOpen('stocks'));
+        show('aside-force', Core.Unlocks.isOpen('war'));
+        show('heavy-weapons', !!State.shadow.kremlin_pact || State.mode === 'libre');
+        Core.Logistics.updateAutoStatus();
     },
 
     nav(id) {
+        if (!Core.Unlocks.isOpen(id)) {
+            const v = VIEWS.find(x => x.id === id);
+            UI.notify(`🔒 ${v ? v.name : 'Esto'} se desbloquea en el capítulo ${Core.Unlocks.chapterFor(id)} de la historia.`, 'bad');
+            return;
+        }
         Sfx.click();
+        if (this.badges[id] === 'NUEVO') this.setBadge(id, null);
         this.current = id;
         document.querySelectorAll('.view').forEach(s => s.classList.add('hidden'));
         const target = $('view-' + id);
@@ -89,10 +113,11 @@ const UI = {
         this.badges[view] = val;
         document.querySelectorAll(`[data-view="${view}"] .badge`).forEach(b => {
             b.classList.toggle('hidden', !val);
-            b.textContent = val || '';
+            // en el menú lateral se ve el texto; en móvil solo un punto
+            b.textContent = b.closest('.nav-item') ? (val || '') : '';
         });
         // el botón "MÁS" muestra punto si alguna vista escondida tiene aviso
-        const hiddenHas = VIEWS.some(v => !TABBAR.includes(v.id) && this.badges[v.id]);
+        const hiddenHas = VIEWS.some(v => !TABBAR.includes(v.id) && this.badges[v.id] && Core.Unlocks.isOpen(v.id));
         const mb = document.querySelector('.tab-item[data-view="more"] .badge');
         if (mb) mb.classList.toggle('hidden', !hiddenHas);
     },
