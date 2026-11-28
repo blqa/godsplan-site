@@ -121,7 +121,7 @@ Core.Logistics = {
 
         State.routes.push(Object.assign({
             id: now() + Math.floor(Math.random() * 1000), vUid: v.uid, type: v.type, name: v.name,
-            prod: k, amount, val: amount * price, progress: 0, speed, dist: d
+            prod: k, amount, val: amount * price, progress: 0, speed, dist: d, vet
         }, this.mapPoints(d)));
         Core.Heat.add(heat);
         this.renderLog();
@@ -188,7 +188,7 @@ Core.Logistics = {
         const pct = ok + lost ? Math.round(ok / (ok + lost) * 100) : 100;
         setText('routes-count', `${State.routes.length ? `(${State.routes.length} en ruta) · ` : ''}✅ ${fmt(ok)} entregados · 🚔 ${fmt(st.seizures || 0)} decomisados · 🔫 ${fmt(st.hijacked || 0)} asaltados · éxito ${pct}%`);
         setHTML('log-body', State.routes.slice(-40).reverse().map(r => `<tr>
-            <td>${Config.vehicles[r.type].icon} ${r.name}</td><td>${fmt(r.amount)} kg ${Config.products[r.prod].name}</td>
+            <td>${Config.vehicles[r.type].icon} ${r.name}${r.vet ? ` <span class="gold" title="Bono de veterano">★+${Math.round(r.vet * 100)}%</span>` : ''}</td><td>${fmt(r.amount)} kg ${Config.products[r.prod].name}</td>
             <td>${Config.routes[r.dist].name}</td><td class="gold">$${fmt(r.val)}</td>
             <td>${(this.seizureChance(r.dist) * 100).toFixed(1)}%</td><td>${Math.floor(r.progress)}%</td></tr>`).join('')
             || '<tr><td colspan="6" class="muted">Sin envíos activos.</td></tr>');
@@ -364,6 +364,8 @@ Core.Assets = {
             return `<div class="op-card" style="padding:12px;">
                 <div class="row-between"><b class="white">${c.icon} ${v.name}</b><span class="gold" title="Veterano">${stars}</span></div>
                 <div class="tiny muted">${c.name} · ${fmt(v.km)} km ${busy ? '· <span class="blue">EN RUTA</span>' : ''}</div>
+                <div class="tiny" style="margin-top:3px;">${this.vetBonus(v) > 0 ? `<span class="gold">+${Math.round(this.vetBonus(v) * 100)}% velocidad</span>` : '<span class="muted">Sin bono aún</span>'}
+                    <span class="muted">· ${this.vetBonus(v) >= 0.25 ? 'bono máximo' : `faltan ${fmt(5000 - v.km % 5000)} km para +${Math.round(this.vetBonus(v) * 100) + 5}%`}</span></div>
                 <div class="progress-line" style="margin:6px 0;"><div class="progress-active" style="width:${v.hp}%; background:${color}"></div></div>
                 <div class="row-between tiny"><span style="color:${color}">HP ${v.hp}%</span>
                     <label class="toggle-wrapper" style="margin:0;"><input type="checkbox" class="toggle-input" ${v.insured ? 'checked' : ''} onchange="Core.Assets.toggleInsure(${v.uid})"> 🛡️ Seguro</label></div>
