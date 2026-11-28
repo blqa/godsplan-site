@@ -185,6 +185,7 @@ Core.Contracts = {
                 <div class="status-row"><span>Pide ${fmt(c.qty)} kg de ${Config.products[c.prod].name}</span><span>⏱ ${fmtTime((c.expires - now()) / 1000)}</span></div>
                 <div class="status-row"><span>Tienes <span style="color:${ok ? '#8f8' : '#f66'}">${fmt(have)} kg</span></span><span>x${c.mult.toFixed(2)} mercado</span></div>
                 <div style="font-size:1.1rem; color:var(--gold); margin:10px 0;">$${fmt(c.reward)} SUCIO ${c.cleanBonus ? '<span class="chip blue">+20% LIMPIO</span>' : ''}</div>
+                ${!ok && State.automation.active && !State.automation.reserve ? `<p class="tiny red">⚠️ Tu auto-envío se está llevando esta mercancía. En Logística activa "No tocar la mercancía de los encargos".</p>` : ''}
                 <button class="action-btn ${ok ? 'btn-green' : 'btn-locked'}" onclick="Core.Contracts.deliver(${c.id})">ENTREGAR</button>
             </div>`;
         }).join('');

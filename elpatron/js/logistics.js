@@ -105,12 +105,20 @@ Core.Logistics = {
         else to = { x: -50, y: 300 };
         return { fx: from.x, fy: from.y, tx: to.x, ty: to.y };
     },
-    execute(v, k, amount, d) {
-        if (State.inv[k] < amount || amount <= 0) return false;
+    execute(v, k, amount, d) { return this.executeCargo(v, { [k]: amount }, d); },
+    // Envía un vehículo con uno o varios productos (carga mixta)
+    executeCargo(v, cargo, d) {
+        const keys = Object.keys(cargo).filter(k => cargo[k] > 0);
+        if (!keys.length || keys.some(k => State.inv[k] < cargo[k])) return false;
         const r = Config.routes[d];
-        const price = Core.Market.price(k, d);
-        State.inv[k] -= amount;
-        Core.Market.sell(k, amount);
+        let val = 0, amount = 0, main = keys[0];
+        keys.forEach(k => {
+            val += cargo[k] * Core.Market.price(k, d);
+            amount += cargo[k];
+            if (cargo[k] > cargo[main]) main = k;
+        });
+        keys.forEach(k => { State.inv[k] -= cargo[k]; Core.Market.sell(k, cargo[k]); });
+        v.idleSince = null;
 
         const vet = Core.Assets.vetBonus(v);
         const speed = Config.vehicles[v.type].speed * Core.Mods.routeSpeed() * r.speed * (1 + vet);
@@ -124,7 +132,7 @@ Core.Logistics = {
 
         State.routes.push(Object.assign({
             id: now() + Math.floor(Math.random() * 1000), vUid: v.uid, type: v.type, name: v.name,
-            prod: k, amount, val: amount * price, progress: 0, speed, dist: d, vet
+            prod: main, cargo, amount, val, progress: 0, speed, dist: d, vet
         }, this.mapPoints(d)));
         Core.Heat.add(heat);
         this.renderLog();
@@ -139,6 +147,7 @@ Core.Logistics = {
             State.routes.splice(i, 1);
             finished = true;
             const v = State.fleet.find(x => x.uid === r.vUid);
+            if (v) v.idleSince = now();
             const place = pick(Config.territories).name;
             if (Math.random() < this.seizureChance(r.dist)) {
                 // DECOMISO
@@ -191,7 +200,7 @@ Core.Logistics = {
         const pct = ok + lost ? Math.round(ok / (ok + lost) * 100) : 100;
         setText('routes-count', `${State.routes.length ? `(${State.routes.length} en ruta) · ` : ''}✅ ${fmt(ok)} entregados · 🚔 ${fmt(st.seizures || 0)} decomisados · 🔫 ${fmt(st.hijacked || 0)} asaltados · éxito ${pct}%`);
         setHTML('log-body', State.routes.slice(-40).reverse().map(r => `<tr>
-            <td>${Config.vehicles[r.type].icon} ${r.name}${r.vet ? ` <span class="gold" title="Bono de veterano">★+${Math.round(r.vet * 100)}%</span>` : ''}</td><td>${fmt(r.amount)} kg ${Config.products[r.prod].name}</td>
+            <td>${Config.vehicles[r.type].icon} ${r.name}${r.vet ? ` <span class="gold" title="Bono de veterano">★+${Math.round(r.vet * 100)}%</span>` : ''}</td><td>${fmt(r.amount)} kg ${r.cargo && Object.keys(r.cargo).length > 1 ? `mixta (${Object.keys(r.cargo).map(k => Config.products[k].name).join(', ')})` : Config.products[r.prod].name}</td>
             <td>${Config.routes[r.dist].name}</td><td class="gold">$${fmt(r.val)}</td>
             <td>${(this.seizureChance(r.dist) * 100).toFixed(1)}%</td><td>${Math.floor(r.progress)}%</td></tr>`).join('')
             || '<tr><td colspan="6" class="muted">Sin envíos activos.</td></tr>');
@@ -301,27 +310,32 @@ Core.Logistics = {
         if (!this.routeOpen(d)) return;
         const limit = tier === 1 ? 1 : Infinity;
         let sent = 0;
+        // Fila justa: sale primero el que lleva más tiempo esperando. Si ese todavía no se
+        // llena, los demás lo esperan (así los barcos y avionetas también salen).
         const free = State.fleet.filter(v => this.usable(v) && (A.veh < 0 || v.type === A.veh))
-            .sort((a, b) => Config.vehicles[b.type].cap - Config.vehicles[a.type].cap);
+            .sort((a, b) => (a.idleSince || 0) - (b.idleSince || 0));
+        const smart = tier === 2 && A.smart;
+        // precio por kg de cada producto, del más caro al más barato
+        const order = Config.productKeys.slice().sort((a, b) => Core.Market.price(b, d) - Core.Market.price(a, d));
         for (const v of free) {
             if (sent >= limit) break;
             const cap = Core.Mods.vehicleCap(v.type);
-            // espera a que haya carga suficiente para llenar el vehículo al % elegido
             const need = Math.max(1, Math.ceil(cap * (A.fill || 0.5)));
-            let k = A.prod;
-            if (tier === 2 && A.smart) {
-                let best = 0; k = null;
-                Config.productKeys.forEach(p => {
-                    const amt = Math.min(cap, this.available(p));
-                    if (amt < need) return;
-                    const val = amt * Core.Market.price(p, d);
-                    if (val > best) { best = val; k = p; }
-                });
-                if (!k) continue; // este vehículo no se llena todavía; prueba uno más chico
+            const cargo = {};
+            let total = 0;
+            if (smart) {
+                // llena con lo más caro primero, mezclando productos
+                for (const k of order) {
+                    const amt = Math.min(cap - total, this.available(k));
+                    if (amt > 0) { cargo[k] = amt; total += amt; }
+                    if (total >= cap) break;
+                }
+            } else {
+                const amt = Math.min(cap, this.available(A.prod));
+                if (amt > 0) { cargo[A.prod] = amt; total = amt; }
             }
-            const amt = Math.min(cap, this.available(k));
-            if (amt < need) continue;
-            if (this.execute(v, k, amt, d)) sent++;
+            if (total < need) break; // este no se llena aún: los demás esperan su turno
+            if (this.executeCargo(v, cargo, d)) sent++;
         }
         if (sent && isVisible('logistics')) this.updateUI();
     }
