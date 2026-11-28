@@ -147,6 +147,18 @@ Core.HR = {
         Sfx.coin();
         this.render();
     },
+    // Paga bono a todos los que no estén al 100% de lealtad
+    payAll() {
+        const who = State.lieutenants.filter(l => l.loyalty < 100);
+        if (!who.length) return UI.notify('Todos tus tenientes ya están al 100% de lealtad.');
+        const cost = who.reduce((s, l) => s + this.bonusCost(l), 0);
+        if (!Core.pay('dirty', cost)) return;
+        who.forEach(l => { l.loyalty = 100; l.warned = false; });
+        UI.setBadge('hr', null);
+        Sfx.cash();
+        UI.notify(`💵 Bono pagado a ${who.length} teniente${who.length > 1 ? 's' : ''}: -$${fmt(cost)} sucio.`);
+        this.render();
+    },
     fire(id) {
         const l = State.lieutenants.find(x => x.id === id);
         if (!l) return;
@@ -217,6 +229,13 @@ Core.HR = {
                 <button class="action-btn btn-green" onclick="Core.HR.hire(${i})">CONTRATAR</button></div>`;
         }).join(''));
         const roles = Object.keys(Config.roles).filter(r => this.team(r).length);
+        const pend = State.lieutenants.filter(l => l.loyalty < 100);
+        const pendCost = pend.reduce((s, l) => s + this.bonusCost(l), 0);
+        const low = State.lieutenants.filter(l => l.loyalty < 35).length;
+        setHTML('bonus-all', State.lieutenants.length ? `<div class="op-card" style="margin-top:20px; ${low ? 'border-color:#7a2020;' : ''}">
+            <div class="row-between"><div><h3 style="margin:0;">💵 BONO A TODOS</h3>
+            <div class="tiny muted">${pend.length ? `${pend.length} teniente${pend.length > 1 ? 's' : ''} sin lealtad completa${low ? ` · <span class="red">${low} a punto de traicionar</span>` : ''}` : 'Todos están al 100%'}</div></div>
+            <button class="action-btn btn-green auto-w" style="margin:0;" onclick="Core.HR.payAll()" ${pend.length ? '' : 'disabled'}>PAGAR A TODOS $${fmt(pendCost)} SUCIO</button></div></div>` : '');
         setHTML('team-summary', roles.length ? `<div class="op-card"><h3>TU EQUIPO</h3>
             <p class="tiny muted">Puedes tener varios del mismo rol: el mejor aporta 100%, el segundo 50%, el tercero 25%... Con 6 lugares, decide entre cubrir todos los roles o reforzar uno.</p>
             ${roles.map(r => `<div class="row-between tiny"><span>${Config.roles[r].icon} ${r} (${this.team(r).length})</span><span class="gold">efecto x${this.eff(r).toFixed(2)}</span></div>`).join('')}
