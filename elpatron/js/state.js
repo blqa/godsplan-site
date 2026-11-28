@@ -79,6 +79,8 @@ function newState() {
         siege: {},
         me: null,
         golpes: { active: null, cd: {}, mult: {}, done: 0 },
+        vendettas: [], vendettaLog: [], vendettaSeq: 0,
+        armyOps: [],
         family: { spouse: null, kids: [], compadre: null, happy: 70, momReady: 0, baby: 0, nextEvent: 0 },
         escape: { missions: {}, fbi: 0, nextOp: 0, started: false, alerted: false, bribes: 0 },
         achievements: [],

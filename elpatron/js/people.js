@@ -204,13 +204,15 @@ Core.HR = {
             const stolen = Math.floor(State.money.dirty * 0.15);
             State.money.dirty -= stolen;
             UI.notify(`💀 TRAICIÓN: ${l.name} huyó con $${fmt(stolen)}.`, 'bad');
+            Core.Vendetta.add({ kind: 'traicion', who: l.name, sev: 2, loot: stolen, title: `${l.name} te robó y huyó`, desc: `Tu ${l.role} se llevó $${fmt(stolen)} sucios.` });
         } else if (l.trait === 'Impulsivo') {
             const r = Core.Rivals.randomAlive();
             if (r) State.rivals[r].power += 150;
             UI.notify(`💀 TRAICIÓN: ${l.name} se pasó con ${r ? Config.rivals[r].name : 'el enemigo'}.`, 'bad');
+            Core.Vendetta.add({ kind: 'traicion', who: l.name, rid: r || null, sev: 2, title: `${l.name} se pasó con el enemigo`, desc: `Tu ${l.role} ahora trabaja para ${r ? Config.rivals[r].name : 'el enemigo'} y sabe tus secretos.` });
         } else {
             const v = State.fleet.filter(x => x.type !== 0 && !Core.Logistics.isBusy(x.uid));
-            if (v.length) { const s = pick(v); State.fleet = State.fleet.filter(x => x.uid !== s.uid); UI.notify(`💀 TRAICIÓN: ${l.name} se robó "${s.name}".`, 'bad'); }
+            if (v.length) { const s = pick(v); State.fleet = State.fleet.filter(x => x.uid !== s.uid); UI.notify(`💀 TRAICIÓN: ${l.name} se robó "${s.name}".`, 'bad'); Core.Vendetta.add({ kind: 'traicion', who: l.name, sev: 1, loot: Config.vehicles[s.type].price, title: `${l.name} se robó "${s.name}"`, desc: 'Se llevó uno de tus vehículos.' }); }
             else UI.notify(`💀 TRAICIÓN: ${l.name} desapareció sin dejar rastro.`, 'bad');
         }
         Core.News.add(`Hallan pistas sobre "${l.name}", exintegrante de una organización criminal`);

@@ -143,6 +143,8 @@ Core.Game = {
             Core.Golpes.tick();
             Core.Family.tick();
             Core.Choices.tick();
+            Core.Vendetta.tick();
+            Core.War.opsTick();
             Core.RnD.tick();
             Core.Finance.loanTick();
             Core.HR.tick();

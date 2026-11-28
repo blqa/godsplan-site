@@ -24,11 +24,16 @@ Core.War = {
         sic: { cost: 1000, upkeep: 20, atk: 1, def: 1.5 },
         eli: { cost: 25000, upkeep: 250, atk: 15, def: 12 }
     },
-    totalSic() { return State.army + this.owned().reduce((s, t) => s + t.troops, 0); },
-    totalElite() { return State.elite + this.owned().reduce((s, t) => s + (t.elite || 0), 0); },
+    totalSic() { return State.army + this.owned().reduce((s, t) => s + t.troops, 0) + this.busy('sic'); },
+    totalElite() { return State.elite + this.owned().reduce((s, t) => s + (t.elite || 0), 0) + this.busy('eli'); },
+    // tropas fuera de la reserva y de las plazas (operaciones del ejército y golpes)
+    busy(k) {
+        const g = State.golpes && State.golpes.active;
+        return (State.armyOps || []).reduce((s, o) => s + o[k], 0) + (g ? g[k] : 0);
+    },
     totalTroops() { return this.totalSic() + this.totalElite(); },
     // Cuartel: cuántos hombres puedes mantener (más plazas y fortalezas = más espacio)
-    capacity() { return 200 + this.owned().length * 150 + this.owned().reduce((s, t) => s + t.up.fort * 75, 0); },
+    capacity() { return 200 + this.owned().length * 150 + this.owned().reduce((s, t) => s + t.up.fort * 75 + (t.role === 'cuartel' ? 100 : 0), 0); },
     room() { return Math.max(0, this.capacity() - this.totalTroops()); },
     payrollCost() { return { dirty: this.totalSic() * this.U.sic.upkeep, clean: this.totalElite() * this.U.eli.upkeep }; },
     weaponCost() { return Math.floor(5000 * Math.pow(1.5, State.weaponsLvl || 0)); },
@@ -85,7 +90,127 @@ Core.War = {
     attackPower() { return this.power(State.army, State.elite); },
     defenseWith(id, sic, eli, tanks) {
         const t = State.territories[id];
-        return (20 + sic * State.armyPower * this.U.sic.def + eli * this.U.eli.def + tanks * 300) * (1 + 0.3 * t.up.fort) * Core.Mods.defense();
+        return (20 + sic * State.armyPower * this.U.sic.def + eli * this.U.eli.def + tanks * 300) * (1 + 0.3 * t.up.fort) * Core.Mods.defense() * this.plazaMod(id);
+    },
+    /* ----- Roles y tácticas de plaza ----- */
+    plazaMod(id) {
+        const t = State.territories[id], P = State.stats.playTime;
+        let m = 1;
+        if (t.role === 'bastion') m *= 1.3;
+        if ((t.shieldUntil || 0) > P) m *= 1.5;
+        if ((t.unstableUntil || 0) > P) m *= 0.7;
+        return m;
+    },
+    plazaCost(mult) { return Math.round(40000 * (1 + 0.3 * this.owned().length) * dynMult() * mult); },
+    setRole(id, role) {
+        const t = State.territories[id];
+        if (t.owner !== 'player' || t.role === role) return;
+        if (role !== 'none' && !Core.pay('dirty', this.plazaCost(1))) return;
+        t.role = role;
+        const R = Config.plazaRoles[role];
+        UI.notify(`${R.icon} ${Config.territories[id].name}: ${R.name}.`);
+        Sfx.levelup();
+        this.calcBonuses(); this.refresh(true);
+    },
+    shield(id) {
+        const t = State.territories[id], P = State.stats.playTime;
+        if (t.owner !== 'player' || (t.shieldCd || 0) > P) return;
+        if (!Core.pay('dirty', this.plazaCost(1.5))) return;
+        t.shieldUntil = P + 180; t.shieldCd = P + 600;
+        UI.notify(`🛡️ ${Config.territories[id].name} blindada 3 minutos (+50% defensa).`);
+        Sfx.levelup(); this.refresh(true);
+    },
+    stabilize(id) {
+        const t = State.territories[id];
+        if ((t.unstableUntil || 0) <= State.stats.playTime) return;
+        if (!Core.pay('dirty', this.plazaCost(0.8))) return;
+        t.unstableUntil = 0;
+        UI.notify(`🤝 ${Config.territories[id].name} estabilizada: le pagaste a la gente y a la policía local.`);
+        Sfx.coin(); this.refresh(true);
+    },
+    toggleRetreat(id) { const t = State.territories[id]; t.retreat = !t.retreat; Sfx.click(); this.refresh(true); },
+
+    /* ----- Preajustes de organización ----- */
+    recallAll(silent) {
+        let s = 0, e = 0;
+        this.owned().forEach(t => { s += t.troops; e += t.elite || 0; State.army += t.troops; State.elite += t.elite || 0; t.troops = 0; t.elite = 0; });
+        if (!silent) UI.notify(`Regresaron a la reserva ${fmt(s)} sicarios y ${fmt(e)} de élite.`);
+    },
+    preset(kind) {
+        if (kind === 'regroup') return this.withdrawSafe();
+        this.recallAll(true);
+        const res = { front: 0, balanced: 0.3, attack: 0.6 }[kind];
+        if ($('org-reserve')) $('org-reserve').value = String(res);
+        this.autoDistribute(res);
+        UI.notify({ front: '🛡️ Todo a las fronteras, primero las más peligrosas.', balanced: '⚖️ Fronteras cubiertas y 30% de reserva.', attack: '⚔️ Fronteras con lo justo y 60% listo para atacar.' }[kind]);
+    },
+    // ¿cuántos minutos de nómina tienes?
+    cushion() {
+        const c = this.payrollCost();
+        return { sic: c.dirty ? State.money.dirty / c.dirty : Infinity, eli: c.clean ? State.money.clean / c.clean : Infinity };
+    },
+    cushionHTML() {
+        const k = this.cushion();
+        const f = m => m === Infinity ? '∞' : m >= 60 ? '60+ min' : `${Math.floor(m)} min`;
+        const col = m => m < 2 ? 'red' : m < 5 ? 'gold' : 'green';
+        return `Colchón de nómina: sicarios <b class="${col(k.sic)}">${f(k.sic)}</b> · élite <b class="${col(k.eli)}">${f(k.eli)}</b>${Math.min(k.sic, k.eli) < 2 ? ' <span class="red">⚠️ ¡van a desertar!</span>' : ''}`;
+    },
+
+    /* ----- Operaciones del ejército (con tropa de la reserva) ----- */
+    opPower(type) { return (State.armyOps || []).filter(o => o.type === type).reduce((s, o) => s + this.power(o.sic, o.eli, false), 0); },
+    escortFactor() { return Math.min(1, this.opPower('escort') / (250 * (1 + 0.3 * this.owned().length) * dynMult())); },
+    startOp(type, frac, rid) {
+        const sic = Math.floor(State.army * frac), eli = Math.floor(State.elite * frac);
+        if (sic + eli < 5) return UI.notify('Necesitas al menos 5 hombres libres en la reserva.', 'bad');
+        if (type === 'harass') {
+            if (!rid || !Core.Rivals.inContact(rid)) return UI.notify('No colindas con ese cártel.', 'bad');
+            if (Core.Rivals.inTruce(rid)) return UI.notify('Estás en tregua con ese cártel.', 'bad');
+        }
+        State.army -= sic; State.elite -= eli;
+        State.armyOps.push({ id: now() + Math.random(), type, rid: rid || null, sic, eli, until: type === 'harass' ? State.stats.playTime + 180 : 0 });
+        UI.notify(type === 'harass' ? `🔥 ${fmt(sic)} sicarios y ${fmt(eli)} élite hostigan a ${Config.rivals[rid].name} por 3 minutos.` : `🚚 ${fmt(sic)} sicarios y ${fmt(eli)} élite escoltan tus rutas.`);
+        Sfx.gun(); this.refresh(true);
+    },
+    endOp(id, msg) {
+        const o = State.armyOps.find(x => x.id === id);
+        if (!o) return;
+        State.army += o.sic; State.elite += o.eli;
+        State.armyOps = State.armyOps.filter(x => x.id !== id);
+        if (msg !== false) UI.notify(o.type === 'harass' ? `Regresó tu gente del hostigamiento (${fmt(o.sic)} sicarios, ${fmt(o.eli)} élite).` : 'Tus escoltas regresaron a la reserva.');
+        this.refresh(true);
+    },
+    // cada 3 segundos
+    opsTick() {
+        (State.armyOps || []).slice().forEach(o => {
+            if (o.type !== 'harass') return;
+            const R = State.rivals[o.rid];
+            if (!R || R.defeated) return this.endOp(o.id, false);
+            const p = this.power(o.sic, o.eli, false);
+            R.power = Math.max(30, R.power - p * 0.0015);
+            Core.Heat.add(0.4);
+            // desgaste: de vez en cuando cae alguno
+            if (Math.random() < 0.15 && o.sic > 0) o.sic -= Math.max(1, Math.floor(o.sic * 0.01));
+            if (o.until <= State.stats.playTime) {
+                Core.News.add(`Semana violenta: ${Core.Me.cartel()} hostiga plazas de ${Config.rivals[o.rid].name}`, 'bad');
+                this.endOp(o.id);
+            }
+        });
+        if (UI.current === 'war') this.renderOps();
+    },
+    renderOps() {
+        const el = $('army-ops');
+        if (!el) return;
+        const ops = State.armyOps || [];
+        const near = Core.Rivals.alive().filter(r => Core.Rivals.inContact(r));
+        const ef = this.escortFactor();
+        el.innerHTML = `<p class="tiny muted">Usa tropa libre de la reserva (${fmt(State.army)} sicarios, ${fmt(State.elite)} élite). Siguen cobrando nómina.</p>
+            <div class="lbl">🔥 HOSTIGAR A UN RIVAL VECINO (3 min · le baja poder · +búsqueda)</div>
+            <div class="btn-row">${near.length ? near.map(r => `<button class="action-btn btn-red" style="margin:0;" onclick="Core.War.startOp('harass', 0.25, '${r}')">${Config.rivals[r].name} · 25% reserva</button>`).join('') : '<span class="tiny muted">No colindas con ningún cártel vivo.</span>'}</div>
+            <div class="lbl">🚚 ESCOLTAR RUTAS (menos asaltos y decomisos)</div>
+            <div class="btn-row"><button class="action-btn btn-blue" style="margin:0;" onclick="Core.War.startOp('escort', 0.1)">+10% reserva</button><button class="action-btn btn-blue" style="margin:0;" onclick="Core.War.startOp('escort', 0.25)">+25% reserva</button></div>
+            <div class="tiny ${ef >= 0.8 ? 'green' : ef > 0.3 ? 'gold' : 'muted'}">Cobertura de escolta: ${Math.round(ef * 100)}% (frena hasta 60% de asaltos y 30% de decomisos)</div>
+            ${ops.length ? '<div class="lbl">EN CURSO</div>' + ops.map(o => `<div class="row-between tiny" style="margin:4px 0;"><span>${o.type === 'harass' ? '🔥 Hostigando a ' + Config.rivals[o.rid].name + ' · ' + fmtTime(o.until - State.stats.playTime) : '🚚 Escolta de rutas'} · ${fmt(o.sic)} sic + ${fmt(o.eli)} élite</span><button class="action-btn" style="margin:0; width:auto; padding:4px 10px;" onclick="Core.War.endOp(${o.id})">REGRESAR</button></div>`).join('') : ''}
+            <div class="tiny muted" style="margin-top:6px;">💡 Las cacerías del AJUSTE DE CUENTAS y los GOLPES también usan tu reserva.</div>`;
     },
     defenseOf(id) { const t = State.territories[id]; return this.defenseWith(id, t.troops, t.elite || 0, t.tanks); },
     // Ataque más fuerte que te puede llegar a esa plaza (0 si nadie colinda)
@@ -230,6 +355,7 @@ Core.War = {
             t.troops = gs; t.elite = ge; t.tanks = 0;
             State.army -= gs; State.elite -= ge;
             t.up = { fort: 0, lab: 0, bodega: 0 };
+            t.role = 'none'; t.unstableUntil = State.stats.playTime + 180; t.shieldUntil = 0;
             State.stats.conquests++;
             const R = State.rivals[prevOwner];
             if (R) R.power = Math.max(30, R.power - c.power * 0.3);
@@ -274,8 +400,8 @@ Core.War = {
         this.refresh(true);
     },
     // Reparte la reserva entre las plazas con frontera según el peligro de cada una
-    autoDistribute() {
-        const reserve = +($('org-reserve') ? $('org-reserve').value : 0.3);
+    autoDistribute(res) {
+        const reserve = res !== undefined ? res : +($('org-reserve') ? $('org-reserve').value : 0.3);
         let sic = Math.floor(State.army * (1 - reserve)), eli = Math.floor(State.elite * (1 - reserve));
         const front = this.owned().filter(t => this.threat(t.id) > 0);
         if (!front.length) return this.spreadEven(sic, eli);
@@ -360,7 +486,7 @@ Core.War = {
             if (b.type === 'defense') B.defense += b.val;
             if (b.type === 'prod') B.prod += b.val;
             B.prod += 0.08 * t.up.lab;
-            B.capMult += 0.02 * t.up.bodega;
+            B.capMult += 0.02 * t.up.bodega + (t.role === 'acopio' ? 0.04 : 0);
             B.raidKeep += 0.05 * t.up.bodega;
             txt.push(b.text);
         });
@@ -387,10 +513,41 @@ Core.War = {
         setText('val-attack', fmt(this.attackPower()));
         setText('val-barracks', `${fmt(this.totalTroops())} / ${fmt(this.capacity())}`);
         setText('val-payroll', `$${fmt(c.dirty)} sucio + $${fmt(c.clean)} limpio por minuto`);
+        setHTML('org-payroll', this.cushionHTML());
+        this.renderOps();
         setText('val-armypower', 'x' + State.armyPower.toFixed(1));
         setText('btn-weapons', `MEJORAR ARMAMENTO (NV ${(State.weaponsLvl || 0) + 1}) · $${fmt(this.weaponCost())} LIMPIO`);
         setText('btn-deploy-tanks', `T-90 (${State.military[6]}) · DESPLEGAR`);
         setText('mlrs-count', `MLRS LISTOS: ${State.military[7]}`);
+    },
+    flags(t) {
+        const P = State.stats.playTime, f = [];
+        if (t.role && t.role !== 'none') f.push(Config.plazaRoles[t.role].icon);
+        if ((t.shieldUntil || 0) > P) f.push('🛡️');
+        if ((t.unstableUntil || 0) > P) f.push('⚠️');
+        if (t.retreat) f.push('🏃');
+        if (State.incoming.some(i => i.target === t.id)) f.push('⚔️');
+        return f.length ? `<div class="tiny">${f.join(' ')}</div>` : '';
+    },
+    tacticsHTML(id) {
+        const t = State.territories[id], P = State.stats.playTime, R = Config.plazaRoles;
+        const unstable = (t.unstableUntil || 0) > P, shielded = (t.shieldUntil || 0) > P, cd = (t.shieldCd || 0) > P;
+        const rivals = [...new Set(this.neighbors(id).map(n => State.territories[n].owner).filter(o => State.rivals[o] && !State.rivals[o].defeated))];
+        const sup = [t.up.lab ? `🧪 lab nv${t.up.lab}` : '', t.up.bodega ? `📦 bodega nv${t.up.bodega}` : '', t.up.fort ? `🏰 fortaleza nv${t.up.fort}` : ''].filter(Boolean).join(' · ') || 'sin mejoras';
+        return `<div class="lbl" style="margin-top:12px;">ESTADO DE LA PLAZA</div>
+            <div class="tiny">⚔️ Amenazas: ${rivals.length ? rivals.map(r => `<span style="color:${Config.rivals[r].color}">${Config.rivals[r].name}</span>`).join(', ') : '<span class="green">ninguna</span>'}${State.incoming.some(i => i.target === id) ? ' · <b class="red">ATAQUE EN CAMINO</b>' : ''}</div>
+            <div class="tiny">📦 Suministros: ${sup}</div>
+            <div class="tiny">${unstable ? `<span class="red">⚠️ Inestable ${fmtTime(t.unstableUntil - P)} (−30% defensa)</span>` : '<span class="green">✔ Estable</span>'}${shielded ? ` · <span class="blue">🛡️ Blindada ${fmtTime(t.shieldUntil - P)}</span>` : ''}${t.retreat ? ' · 🏃 Repliegue activo' : ''}</div>
+            <div class="lbl" style="margin-top:10px;">ROL DE LA PLAZA</div>
+            <select onchange="Core.War.setRole(${id}, this.value)">${Object.keys(R).map(k => `<option value="${k}" ${(t.role || 'none') === k ? 'selected' : ''}>${R[k].icon} ${R[k].name}${k === 'none' ? '' : ' · ' + R[k].desc}</option>`).join('')}</select>
+            <div class="tiny muted">Cambiar de rol cuesta $${fmt(this.plazaCost(1))} sucio.</div>
+            <div class="lbl" style="margin-top:10px;">ACCIONES TÁCTICAS</div>
+            <div class="btn-row" style="margin-top:2px;">
+                <button class="action-btn btn-blue" style="margin:0;" onclick="Core.War.shield(${id})" ${cd ? 'disabled' : ''}>🛡️ ${cd ? (shielded ? 'BLINDADA' : 'RECARGANDO ' + fmtTime(t.shieldCd - P)) : `BLINDAR 3 MIN · $${fmt(this.plazaCost(1.5))}`}</button>
+                ${unstable ? `<button class="action-btn btn-gold" style="margin:0;" onclick="Core.War.stabilize(${id})">🤝 ESTABILIZAR · $${fmt(this.plazaCost(0.8))}</button>` : ''}
+                <button class="action-btn ${t.retreat ? 'btn-green' : ''}" style="margin:0;" onclick="Core.War.toggleRetreat(${id})">🏃 REPLIEGUE AUTOMÁTICO: ${t.retreat ? 'SÍ' : 'NO'}</button>
+            </div>
+            <div class="tiny muted">Con repliegue, si pierdes la plaza se salvan 60% de los sicarios y toda la élite.</div>`;
     },
     renderOrg() {
         const el = $('army-org');
@@ -404,10 +561,10 @@ Core.War = {
             const th = this.threat(t.id);
             return `<tr>
                 <td><b class="white" style="cursor:pointer;" onclick="Core.War.select(${t.id})">${c.name}</b><div class="tiny" style="white-space:normal;">${rivals.map(r => `<span style="color:${Config.rivals[r].color}">●</span>`).join(' ') || '—'}</div></td>
-                <td><span style="color:${st.color}">${st.txt}</span>${th ? `<div class="tiny muted">ataque máx. ~${fmt(th)}</div>` : ''}</td>
+                <td><span style="color:${st.color}">${st.txt}</span>${th ? `<div class="tiny muted">ataque máx. ~${fmt(th)}</div>` : ''}${this.flags(t)}</td>
                 <td class="gold">${fmt(this.defenseOf(t.id))}</td>
-                <td>${fmt(t.troops)} <span class="org-btns"><button onclick="Core.War.move(${t.id},'sic',-10)">-10</button><button onclick="Core.War.move(${t.id},'sic',10)">+10</button><button onclick="Core.War.move(${t.id},'sic','-all')">0</button></span></td>
-                <td>${fmt(t.elite || 0)} <span class="org-btns"><button onclick="Core.War.move(${t.id},'eli',-1)">-1</button><button onclick="Core.War.move(${t.id},'eli',1)">+1</button></span></td>
+                <td>${fmt(t.troops)} <span class="org-btns"><button onclick="Core.War.move(${t.id},'sic',-10)">-10</button><button onclick="Core.War.move(${t.id},'sic',10)">+10</button><button onclick="Core.War.move(${t.id},'sic',50)">+50</button><button onclick="Core.War.move(${t.id},'sic','-all')">0</button></span></td>
+                <td>${fmt(t.elite || 0)} <span class="org-btns"><button onclick="Core.War.move(${t.id},'eli',-1)">-1</button><button onclick="Core.War.move(${t.id},'eli',1)">+1</button><button onclick="Core.War.move(${t.id},'eli',5)">+5</button><button onclick="Core.War.move(${t.id},'eli','-all')">0</button></span></td>
                 <td>${t.tanks || 0}</td></tr>`;
         }).join('');
     },
@@ -451,7 +608,7 @@ Core.War = {
                 const lvl = t.up[u.id];
                 return `<div class="up-row"><div><div>${u.icon} ${u.name} <span class="pips">${'●'.repeat(lvl)}${'○'.repeat(3 - lvl)}</span></div><div class="tiny muted">${u.desc}</div></div>
                     ${lvl < 3 ? `<button class="action-btn btn-gold" onclick="Core.War.upgrade('${u.id}')">$${fmt(this.upgradeCost(u.id, lvl))}</button>` : '<span class="tiny gold">MAX</span>'}</div>`;
-            }).join('')}`;
+            }).join('')}` + (id === Config.baseId ? '' : this.tacticsHTML(id));
         } else {
             const adj = this.neighbors(id).some(n => State.territories[n].owner === 'player');
             html += `<div class="row-between" style="margin-top:10px;"><span>DEFENSA ENEMIGA</span><b class="red">${fmt(this.enemyDefense(id))}</b></div>`;
@@ -587,7 +744,16 @@ Core.War = {
             ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
             ctx.shadowBlur = 0;
             if (c.hq) { ctx.font = `${12 * s}px sans-serif`; ctx.fillText('👑', x, y - rad - 7 * s); }
-            if (t.owner === 'player' && t.up.fort) { ctx.font = `${9 * s}px sans-serif`; ctx.fillText('🏰'.repeat(t.up.fort), x, y + rad + 8 * s); }
+            if (t.owner === 'player') {
+                const P = State.stats.playTime, ic = [];
+                if (t.role && t.role !== 'none') ic.push(Config.plazaRoles[t.role].icon);
+                if ((t.shieldUntil || 0) > P) ic.push('🛡️');
+                if ((t.unstableUntil || 0) > P) ic.push('⚠️');
+                if (t.up.fort) ic.push('🏰'.repeat(t.up.fort));
+                if (ic.length) { ctx.font = `${9 * s}px sans-serif`; ctx.fillText(ic.join(''), x, y + rad + 9 * s); }
+                const st = this.status(t.id);
+                if (st.key === 'danger' || st.key === 'risk') { ctx.strokeStyle = st.color; ctx.lineWidth = 1.5 * s; ctx.setLineDash([3 * s, 3 * s]); ctx.beginPath(); ctx.arc(x, y, rad + 3 * s, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); }
+            }
             // etiquetas a la izquierda si el punto está pegado al borde derecho
             const right = c.x > 500;
             ctx.textAlign = right ? 'right' : 'left';
@@ -655,10 +821,11 @@ Core.Rivals = {
             if (rid === 'halcones' && contact && Math.random() < 0.015 && !this.inTruce(rid)) {
                 Core.Heat.add(6);
                 UI.notify('La Dama le pasó un pitazo a la policía sobre ti (+Heat).', 'bad');
+                Core.Vendetta.add({ kind: 'pitazo', rid: 'halcones', sev: 1, title: 'La Dama te puso el dedo', desc: 'Un halcón de La Dama le pasó tu ubicación a la policía.' });
             }
             if (rid === 'golfo' && contact && Math.random() < 0.01 && State.routes.some(r => r.dist >= 2) && !this.inTruce(rid)) {
                 // tu élite y tu Comandante pueden repeler el asalto
-                const escort = Math.min(0.75, State.elite * 0.05 + 0.15 * Core.HR.eff('Comandante'));
+                const escort = Math.min(0.85, State.elite * 0.05 + 0.15 * Core.HR.eff('Comandante') + 0.6 * Core.War.escortFactor());
                 if (Math.random() < escort) {
                     UI.notify('🛡️ Tu escolta repelió un asalto del Golfo Negro a uno de tus convoyes.');
                     Sfx.burst(3);
@@ -668,6 +835,7 @@ Core.Rivals = {
                         State.stats.hijacked = (State.stats.hijacked || 0) + 1;
                         UI.notify(`¡El Golfo Negro asaltó tu cargamento de ${fmt(r.amount)} kg (${r.name})! Contrata élite para escoltar.`, 'bad');
                         Core.News.add(`Comando armado asalta convoy en carretera federal; se llevan ${fmt(r.amount)} kg`, 'bad');
+                        Core.Vendetta.add({ kind: 'convoy', rid: 'golfo', sev: 1 + (r.val > 1e6 ? 1 : 0), loot: r.val || 0, title: `El Golfo Negro asaltó "${r.name}"`, desc: `Se llevaron ${fmt(r.amount)} kg en la carretera.` });
                         Sfx.burst(4);
                     }
                 }
@@ -715,7 +883,8 @@ Core.Rivals = {
     spawnAttack(rid, target, share) {
         const R = State.rivals[rid];
         const power = Math.floor(R.power * (share || (0.15 + Math.random() * 0.2)) * Core.War.allyMult());
-        const time = 20 + (hasTech('war_3') ? 15 : 0);
+        const watch = [target].concat(Core.War.neighbors(target)).some(n => State.territories[n].owner === 'player' && State.territories[n].role === 'halcones');
+        const time = 20 + (hasTech('war_3') ? 15 : 0) + (watch ? 15 : 0);
         State.incoming.push({ id: now(), rid, target, power, left: time, total: time });
         Sfx.alert();
         UI.setBadge('war', '!');
@@ -757,11 +926,15 @@ Core.Rivals = {
             Core.War.boom(c.x, c.y, 1);
             Sfx.burst(5);
             if (inc.power > def) {
-                const escaped = Math.floor((t.elite || 0) / 2); // la mitad de la élite logra escapar
-                State.elite += escaped;
+                // con repliegue automático se salva la élite completa y 60% de los sicarios
+                const escaped = t.retreat ? (t.elite || 0) : Math.floor((t.elite || 0) / 2);
+                const savedSic = t.retreat ? Math.floor(t.troops * 0.6) : 0;
+                State.elite += escaped; State.army += savedSic;
+                Core.Vendetta.add({ kind: 'plaza', rid: inc.rid, sev: 2, title: `${C.leader} te quitó ${c.name}`, desc: `${C.name} entró a sangre y fuego a tu plaza.` });
                 t.owner = inc.rid; t.troops = 10; t.elite = 0; t.tanks = 0; t.up = { fort: 0, lab: 0, bodega: 0 };
                 State.stats.lostTerritories++;
-                UI.notify(`¡${C.name} tomó ${c.name}!${escaped ? ` ${escaped} de élite lograron escapar.` : ''}`, 'bad');
+                UI.notify(`¡${C.name} tomó ${c.name}!${escaped || savedSic ? ` Se replegaron ${savedSic ? fmt(savedSic) + ' sicarios y ' : ''}${escaped} de élite.` : ''}`, 'bad');
+                t.role = 'none'; t.retreat = false;
                 Core.News.add(`${C.leader} retoma ${c.name} tras intensa balacera`, 'bad', true);
                 setTimeout(() => Sfx.explosion(), 250);
             } else {
@@ -825,7 +998,9 @@ Core.Rivals = {
             if (inc.power > def) {
                 const lost = Math.floor(t.troops * 0.5), lostE = Math.floor((t.elite || 0) * 0.25);
                 t.troops -= lost; t.elite = (t.elite || 0) - lostE;
+                const cash0 = State.money.dirty;
                 UI.notify(`${label.charAt(0).toUpperCase() + label.slice(1)} saquearon ${c.name}: murieron ${lost} sicarios${lostE ? ` y ${lostE} de élite` : ''}. ${loot()}`, 'bad');
+                if (!inc.fbi) Core.Vendetta.add({ kind: 'saqueo', rid: inc.rid, sev: 1, loot: cash0 - State.money.dirty, title: `Saquearon ${c.name}`, desc: `Los remanentes de ${Config.rivals[inc.rid].name} destrozaron tu plaza.` });
                 Core.News.add(`Comando armado saquea ${c.name}; autoridades culpan a "células" del crimen organizado`, 'bad');
             } else {
                 const loss = Math.min(t.troops, Math.floor(t.troops * clamp(inc.power / def, 0, 1) * 0.2));

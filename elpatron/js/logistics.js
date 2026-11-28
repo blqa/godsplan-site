@@ -17,6 +17,7 @@ Core.Logistics = {
         if (d === 4 && State.shadow.lobby_us) c *= 0.25;
         if (d >= 3 && Core.Aguila.borderOn()) c *= 1.6;
         c *= Core.Family.mod('seizure');
+        if (d >= 2) c *= 1 - 0.3 * Core.War.escortFactor();
         return clamp(c, 0, 0.4);
     },
     // Avisos de entregas exitosas agrupados (para no llenar la pantalla)

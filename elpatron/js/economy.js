@@ -435,15 +435,17 @@ Core.Finance = {
             const lost = Math.ceil(State.army * 0.1);
             State.army -= lost;
             UI.notify(`Los cobradores de Don Usura mataron a ${lost} de tus sicarios.`, 'bad');
+            Core.Vendetta.add({ kind: 'usura', who: 'los cobradores de Don Usura', sev: 2, title: 'Don Usura mató a tu gente', desc: `Sus cobradores mataron a ${lost} de tus sicarios.` });
             Core.News.add('Aparecen cuerpos con mensaje: "Así pagan los que no pagan"', 'bad');
             Sfx.burst(3);
         } else if (L.anger < 60) {
             const v = State.fleet.find(x => !Core.Logistics.isBusy(x.uid));
-            if (v) { v.hp = 0; UI.notify(`Don Usura quemó tu ${Config.vehicles[v.type].name} "${v.name}".`, 'bad'); Sfx.explosion(); }
+            if (v) { v.hp = 0; UI.notify(`Don Usura quemó tu ${Config.vehicles[v.type].name} "${v.name}".`, 'bad'); Sfx.explosion(); Core.Vendetta.add({ kind: 'usura', who: 'los cobradores de Don Usura', sev: 1, title: 'Don Usura quemó tu vehículo', desc: `Le prendieron fuego a "${v.name}".` }); }
         } else {
             const take = Math.min(Math.floor(State.money.dirty * 0.3), Math.floor(L.debt));
             State.money.dirty -= take; L.debt -= take;
             UI.notify(`Don Usura se cobró a la fuerza $${fmt(take)}.`, 'bad');
+            Core.Vendetta.add({ kind: 'usura', who: 'los cobradores de Don Usura', sev: 2, loot: take, title: 'Don Usura te robó', desc: `Se llevó $${fmt(take)} de tu bodega.` });
             if (L.debt <= 1) { L.debt = 0; L.anger = 0; L.dueAt = 0; }
         }
         if (isVisible('finance')) this.renderLoan();

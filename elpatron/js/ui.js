@@ -17,6 +17,7 @@ const VIEWS = [
     { id: 'shadow', icon: '🏛️', name: 'GABINETE SOMBRA', short: 'Gabinete' },
     { id: 'aguila', icon: '🦅', name: 'EL ÁGUILA', short: 'EE.UU.' },
     { id: 'golpes', icon: '🎯', name: 'GOLPES', short: 'Golpes' },
+    { id: 'cuentas', icon: '🩸', name: 'AJUSTE DE CUENTAS', short: 'Cuentas' },
     { id: 'familia', icon: '👨‍👩‍👧', name: 'FAMILIA', short: 'Familia' },
     { id: 'lifestyle', icon: '💎', name: 'LUJOS', short: 'Lujos' },
     { id: 'news', icon: '📰', name: 'PERIÓDICO', short: 'Noticias' },
@@ -94,6 +95,7 @@ const UI = {
             case 'shadow': Core.Shadow.render(); break;
             case 'aguila': Core.Aguila.render(); break;
             case 'golpes': Core.Golpes.render(); break;
+            case 'cuentas': Core.Vendetta.render(); break;
             case 'familia': Core.Family.render(); break;
             case 'lifestyle': Core.Lifestyle.render(); break;
             case 'news': Core.News.render(); break;
@@ -185,7 +187,7 @@ const UI = {
                 <button class="action-btn btn-green" onclick="Core.Rivals.resolve(${inc.id}, 'reinforce')">🛡️ REFUERZOS</button>
                 <button class="action-btn" onclick="Core.Rivals.resolve(${inc.id}, 'fight')">⚔️ RESISTIR</button>
                 <button class="action-btn btn-blue" onclick="Core.Rivals.resolve(${inc.id}, 'negotiate')">💵 ${inc.fbi ? 'SOBORNAR' : 'NEGOCIAR'} $${fmt(Core.Rivals.negotiateCost(inc))}</button>
-                <button class="action-btn btn-red" onclick="Core.Rivals.resolve(${inc.id}, 'abandon')">${inc.remnant ? '🏳️ DEJAR QUE SAQUEEN' : '🏳️ ABANDONAR'}</button>`;
+                <button class="action-btn btn-red" onclick="Core.Rivals.resolve(${inc.id}, 'abandon')">${inc.remnant ? '🏳️ DEJAR QUE SAQUEEN' : '🏃 REPLEGARSE (salvar a todos)'}</button>`;
         }
     },
 

@@ -148,7 +148,7 @@ Core.Family = {
             const ch = Core.War.chance(Core.War.power(rs, re), en);
             Sfx.alert();
             UI.modal('🚨 SECUESTRARON A ' + who.toUpperCase(), `${enemy} se llevó a ${who} saliendo de ${isKid ? 'la escuela' : 'misa'}. Piden $${fmt(ransom)} (sucio o, si no alcanza, limpio).\n\nPuedes pagar o mandar a tu mejor gente (${fmt(rs)} sicarios + ${fmt(re)} de élite de todas tus plazas). Probabilidad de rescate: ${Math.round(ch * 100)}%.`, [
-                { text: `PAGAR $${fmt(ransom)}`, style: 'btn-blue', cb: () => { if (State.money.dirty >= ransom) State.money.dirty -= ransom; else if (!Core.pay('clean', ransom)) return false; F.happy = Math.max(0, F.happy - 10); UI.notify(`${who} regresó a casa, asustado pero bien.`); this.render(); } },
+                { text: `PAGAR $${fmt(ransom)}`, style: 'btn-blue', cb: () => { if (State.money.dirty >= ransom) State.money.dirty -= ransom; else if (!Core.pay('clean', ransom)) return false; F.happy = Math.max(0, F.happy - 10); UI.notify(`${who} regresó a casa, asustado pero bien.`); Core.Vendetta.add({ kind: 'familia', rid: rid || null, who: rid ? null : 'los secuestradores', sev: 2, loot: ransom, title: `Secuestraron a ${who}`, desc: `Pagaste $${fmt(ransom)} de rescate. Nadie toca a tu familia y se queda tan tranquilo.` }); this.render(); } },
                 { text: `RESCATE ARMADO (${Math.round(ch * 100)}%)`, style: 'btn-red', cb: () => {
                     const lost = Math.min(State.army, Math.floor(rs * (0.05 + Math.random() * 0.1)));
                     State.army -= lost; Core.Heat.add(20);
@@ -159,6 +159,7 @@ Core.Family = {
                         setTimeout(() => UI.modal('✔ RESCATE EXITOSO', `Tu gente entró a sangre y fuego. ${who} está a salvo.\nPerdiste ${lost} sicarios. Tu familia está orgullosa (+20).`, [{ text: 'NADIE TOCA A MI FAMILIA', style: 'btn-gold', cb: () => { } }]), 50);
                     } else {
                         if (isKid) F.kids = F.kids.filter(k => k !== who); else F.spouse = null;
+                        Core.Vendetta.add({ kind: 'familia', rid: rid || null, who: rid ? null : 'los secuestradores', sev: 3, member: who, title: `Mataron a ${who}`, desc: 'Esto no se perdona. Nunca.' });
                         F.happy = Math.max(0, F.happy - 40);
                         Core.News.add('Tragedia: muere familiar de capo en rescate fallido', 'bad', true);
                         setTimeout(() => UI.modal('✝️ LLEGASTE TARDE', `El rescate salió mal. Perdiste a ${who}.\nPerdiste ${lost} sicarios y tu familia quedó destrozada (−40).`, [{ text: '...', cb: () => { } }]), 50);
@@ -179,6 +180,7 @@ Core.Family = {
                 UI.notify(`${c.icon} Tu compadre ${c.name} te pasó un negocio: +$${fmt(d)} sucios.`);
             } else {
                 F.compadre = null; Core.Heat.add(30);
+                Core.Vendetta.add({ kind: 'compadre', who: c.name, sev: 2, title: `${c.name} te vendió`, desc: 'Tu compadre le contó todo a la prensa.' });
                 Sfx.error();
                 UI.modal('🐍 TU COMPADRE TE TRAICIONÓ', `${c.name} vio que tu familia se estaba desmoronando y te vendió a la prensa.\n\nPerdiste su bono y tu búsqueda sube +30.`, [{ text: 'NUNCA OLVIDO', style: 'btn-red', cb: () => { } }]);
             }

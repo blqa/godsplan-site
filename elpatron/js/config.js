@@ -219,9 +219,16 @@ Config.unlocks = {
     fronts: 4, rnd: 4, stocks: 4,
     lifestyle: 5,
     shadow: 8,
-    ending: 10, aguila: 10, golpes: 4, familia: 5
+    ending: 10, aguila: 10, golpes: 4, familia: 5, cuentas: 3
 };
-Config.unlockNames = { autosend: 'Auto-envío', stocks: 'Wall Street', contracts: 'Encargos', golpes: 'Golpes', familia: 'Familia' };
+Config.plazaRoles = {
+    none: { icon: '·', name: 'Sin rol', desc: '' },
+    bastion: { icon: '🛡️', name: 'Bastión', desc: '+30% defensa aquí' },
+    acopio: { icon: '📦', name: 'Centro de acopio', desc: '+4% capacidad de carga' },
+    halcones: { icon: '👁️', name: 'Red de halcones', desc: 'avisa 15 s antes de ataques aquí y en vecinas' },
+    cuartel: { icon: '🏚️', name: 'Cuartel', desc: '+100 espacio para tropas' }
+};
+Config.unlockNames = { autosend: 'Auto-envío', stocks: 'Wall Street', contracts: 'Encargos', golpes: 'Golpes', familia: 'Familia', cuentas: 'Ajuste de Cuentas' };
 
 /* ===== EL ÁGUILA: el gobierno de Estados Unidos (fin de juego) ===== */
 Config.aguila = {
