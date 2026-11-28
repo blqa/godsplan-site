@@ -254,9 +254,9 @@ Config.aguila = {
 /* ===== HISTORIA: capítulos con objetivos y recompensas ===== */
 Config.story = [
     {
-        title: 'Los Primeros Kilos', goal: 'Vende 50 kg de mercancía',
-        text: 'Mérida, 3:00 a.m.\nLa ciudad más tranquila del país. Aquí ningún cártel se ha atrevido a echar raíces.\nTienes una parcela, una mula y mucha hambre. Nadie conoce tu nombre... todavía.\n\nMueve tu primera carga y empieza a escribir tu leyenda.',
-        progress: () => [State.stats.kgSold, 50], reward: { dirty: 5000 }
+        title: 'Los Primeros Kilos', goal: 'Vende 30 kg de mercancía',
+        text: 'Mérida, 3:00 a.m.\nLa ciudad más tranquila del país. Aquí ningún cártel se ha atrevido a echar raíces.\nTienes una parcela, dos mulas y mucha hambre. Nadie conoce tu nombre... todavía.\n\nMueve tu primera carga y empieza a escribir tu leyenda.',
+        progress: () => [State.stats.kgSold, 30], reward: { dirty: 5000 }
     },
     {
         title: 'Dinero que Huele', goal: 'Lava $20,000',
@@ -305,8 +305,8 @@ Config.story = [
     },
     {
         title: 'El Rey de Reyes', goal: 'Cumple el Plan de Retiro',
-        text: 'No queda nadie arriba de ti.\nSolo falta lo más difícil: desaparecer con todo... y que tu nombre viva para siempre.\n\nPero al norte alguien ya escribió tu nombre en una lista. El Águila te está mirando (menú EL ÁGUILA).',
-        progress: () => [Core.Legacy.goalsMet(), 3], reward: {}
+        text: 'No queda nadie arriba de ti.\nSolo falta lo más difícil: desaparecer con todo... y que tu nombre viva para siempre.\n\nEl FBI ya te está cazando. Junta el dinero y completa las 5 misiones de tu Plan de Escape (menú RETIRO) antes de que te encuentren.\n\nY al norte alguien ya escribió tu nombre en una lista. El Águila te está mirando (menú EL ÁGUILA).',
+        progress: () => [Core.Legacy.goalsMet(), 4], reward: {}
     }
 ];
 

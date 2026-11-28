@@ -111,9 +111,26 @@ Core.War = {
         const c = Config.territories[id], t = State.territories[id];
         const r = State.rivals[t.owner];
         if (!r) return 0;
-        if (c.hq) return Config.rivals[t.owner].bossPower * dynMult() * (1 + r.power / 3000) + t.troops * 3;
-        return c.power * dynMult() * (1 + r.power / 2000) + t.troops * 2;
+        const ally = this.allyMult();
+        if (c.hq) return (Config.rivals[t.owner].bossPower * dynMult() * (1 + r.power / 3000) + t.troops * 3) * ally * this.phaseMult(id);
+        return (c.power * dynMult() * (1 + r.power / 2000) + t.troops * 2) * ally;
     },
+    /* ----- La Alianza: cada cártel que cae hace más fuertes a los que quedan ----- */
+    defeatedCount() { return Object.values(State.rivals).filter(R => R.defeated).length; },
+    allyMult() { return 1 + 0.2 * this.defeatedCount(); },
+    /* ----- Asedio a la guarida: 3 fases ----- */
+    PHASES: [
+        { name: 'LAS AFUERAS', desc: 'Limpias los halcones y retenes que rodean la guarida.', mult: 0.45 },
+        { name: 'LA FORTALEZA', desc: 'Rompes los muros y entras a la casa de seguridad.', mult: 0.75 },
+        { name: 'CARA A CARA', desc: 'El jefe y su escolta personal. Aquí se acaba todo.', mult: 1 }
+    ],
+    SIEGE_SECS: 360, // si tardas más que esto entre fases, el jefe se reorganiza
+    siegePhase(id) {
+        const s = State.siege[id];
+        if (!s || s.until < State.stats.playTime) return 1;
+        return s.phase;
+    },
+    phaseMult(id) { return this.PHASES[this.siegePhase(id) - 1].mult; },
     hqLocked(id) {
         const c = Config.territories[id], owner = State.territories[id].owner;
         return c.hq && State.territories.some(t => t.owner === owner && t.id !== id);
@@ -162,10 +179,10 @@ Core.War = {
         if (this.hqLocked(id)) return UI.notify('Primero quítale todas sus otras plazas.', 'bad');
         if (p.sic + p.eli < 5) return UI.notify('Manda mínimo 5 hombres (sicarios + élite).', 'bad');
         if (c.hq) {
-            const R = Config.rivals[t.owner];
+            const R = Config.rivals[t.owner], ph = this.siegePhase(id), P = this.PHASES[ph - 1];
             Sfx.alert();
-            UI.modal(`⚔️ ${R.leader.toUpperCase()} TE ESPERA`,
-                `${pick(R.taunts)}\n\nEstás por entrar a la guarida de ${R.name}.\nDefensa del jefe: ${fmt(this.enemyDefense(id))}\nTu ataque: ${fmt(this.power(p.sic, p.eli))} (${fmt(p.sic)} sicarios + ${fmt(p.eli)} élite)\nProbabilidad: ${Math.round(this.chance(this.power(p.sic, p.eli), this.enemyDefense(id)) * 100)}%`,
+            UI.modal(`⚔️ ${R.leader.toUpperCase()} TE ESPERA · FASE ${ph}/3`,
+                `${ph === 1 ? pick(R.taunts) + '\n\n' : ''}FASE ${ph}: ${P.name}\n${P.desc}\n\nDefensa de esta fase: ${fmt(this.enemyDefense(id))}\nTu ataque: ${fmt(this.power(p.sic, p.eli))} (${fmt(p.sic)} sicarios + ${fmt(p.eli)} élite)\nProbabilidad: ${Math.round(this.chance(this.power(p.sic, p.eli), this.enemyDefense(id)) * 100)}%`,
                 [{ text: '¡AL ATAQUE!', style: 'btn-red', cb: () => this.doAttack(id) }, { text: 'Retirarse', cb: () => { } }]);
             return;
         }
@@ -188,7 +205,26 @@ Core.War = {
         for (let i = 0; i < eli; i++) if (Math.random() < (won ? 0.02 : 0.08)) eliLost++;
         State.army -= sicLost; State.elite -= eliLost;
         const lossTxt = `Bajas: ${sicLost} sicarios${eliLost ? ` y ${eliLost} de élite` : ''}.`;
+        if (won && c.hq && this.siegePhase(id) < 3) {
+            // fase ganada: el asedio avanza, pero la guarida no cae todavía
+            const ph = this.siegePhase(id), R = Config.rivals[prevOwner];
+            State.siege[id] = { phase: ph + 1, until: State.stats.playTime + this.SIEGE_SECS };
+            t.troops = Math.floor(t.troops * 0.7);
+            State.rivals[prevOwner].power = Math.max(30, State.rivals[prevOwner].power * 0.85);
+            Sfx.explosion();
+            UI.modal(`✔ FASE ${ph} GANADA: ${this.PHASES[ph - 1].name}`,
+                `${lossTxt}\n\nSiguiente: FASE ${ph + 1} · ${this.PHASES[ph].name}\n${this.PHASES[ph].desc}\n\nTienes ${fmtTime(this.SIEGE_SECS)} para lanzar la siguiente fase antes de que ${R.leader} se reorganice. Y ojo: va a contraatacar.`,
+                [{ text: 'ENTENDIDO', style: 'btn-gold', cb: () => { } }]);
+            Core.News.add(`Asedio a la guarida de ${R.leader}: cae ${this.PHASES[ph - 1].name.toLowerCase()}`, 'bad', true);
+            // contraataque del jefe a una de tus plazas vecinas
+            const mine = this.neighbors(id).filter(n => State.territories[n].owner === 'player' && n !== Config.baseId && !State.incoming.some(i => i.target === n));
+            if (mine.length) Core.Rivals.spawnAttack(prevOwner, pick(mine), 0.35);
+            this.plan.sic = null; this.plan.eli = null;
+            this.calcBonuses(); this.refresh(true);
+            return;
+        }
         if (won) {
+            if (c.hq) delete State.siege[id];
             const gs = Math.round((sic - sicLost) * this.plan.keep), ge = Math.round((eli - eliLost) * this.plan.keep);
             t.owner = 'player';
             t.troops = gs; t.elite = ge; t.tanks = 0;
@@ -419,6 +455,12 @@ Core.War = {
         } else {
             const adj = this.neighbors(id).some(n => State.territories[n].owner === 'player');
             html += `<div class="row-between" style="margin-top:10px;"><span>DEFENSA ENEMIGA</span><b class="red">${fmt(this.enemyDefense(id))}</b></div>`;
+            if (this.defeatedCount()) html += `<p class="tiny red">🤝 La Alianza: +${Math.round((this.allyMult() - 1) * 100)}% de defensa por los cárteles que ya cayeron.</p>`;
+            if (c.hq) {
+                const ph = this.siegePhase(id), s = State.siege[id];
+                html += `<div class="tiny gold" style="margin-top:4px;">🏰 ASEDIO · FASE ${ph}/3: ${this.PHASES[ph - 1].name}</div><div class="tiny muted">${this.PHASES[ph - 1].desc}</div>`;
+                if (ph > 1 && s) html += `<div class="tiny red">⏳ Se reorganiza en ${fmtTime(s.until - State.stats.playTime)}</div>`;
+            }
             if (!adj) html += `<p class="tiny red">Sin frontera: conquista una plaza vecina primero.</p>`;
             else if (this.hqLocked(id)) html += `<p class="tiny red">🔒 Guarida protegida: quítale a ${Config.rivals[t.owner].leader} todas sus otras plazas.</p>`;
             else {
@@ -592,6 +634,15 @@ Core.Rivals = {
     },
 
     tick() {
+        // asedios que se enfriaron: el jefe se reorganiza
+        Object.keys(State.siege).forEach(id => {
+            const S = State.siege[id];
+            if (S.until >= State.stats.playTime) return;
+            const own = State.territories[id].owner;
+            // el jefe recupera UNA fase, no todo el asedio
+            if (S.phase > 2) { S.phase--; S.until = State.stats.playTime + Core.War.SIEGE_SECS; } else delete State.siege[id];
+            if (Config.rivals[own]) { UI.notify(`🏰 ${Config.rivals[own].leader} reforzó su guarida: el asedio regresa a la fase ${S.phase > 2 || State.siege[id] ? S.phase : 1}.`, 'bad'); Core.News.add(`${Config.rivals[own].leader} reconstruye sus defensas`); }
+        });
         if (State.stats.playTime < 240) return; // 4 minutos de gracia al iniciar
         this.alive().forEach(rid => {
             const R = State.rivals[rid], C = Config.rivals[rid];
@@ -636,7 +687,7 @@ Core.Rivals = {
             targets.sort((a, b) => Core.War.defenseOf(a.id) - Core.War.defenseOf(b.id));
             const target = rid === 'halcones' ? targets[0] : pick(targets); // los Halcones van por la más débil
             const ratio = R.power / Math.max(30, Core.War.defenseOf(target.id));
-            let chance = clamp(0.012 * C.aggression * ratio * (1 + 0.25 * (State.dynasty || 0)), 0, 0.12);
+            let chance = clamp(0.012 * C.aggression * ratio * (1 + 0.25 * (State.dynasty || 0)) * (1 + 0.5 * Core.War.defeatedCount()), 0, 0.15);
             if (State.heat > State.heatCap * 0.5) chance *= 1.5;
             if (hasTech('war_3')) chance *= 0.8;
             if (Math.random() < chance) this.spawnAttack(rid, target.id);
@@ -661,9 +712,9 @@ Core.Rivals = {
             Core.War.boom(Config.territories[t.id].x, Config.territories[t.id].y, 0.8);
         }
     },
-    spawnAttack(rid, target) {
+    spawnAttack(rid, target, share) {
         const R = State.rivals[rid];
-        const power = Math.floor(R.power * (0.15 + Math.random() * 0.2));
+        const power = Math.floor(R.power * (share || (0.15 + Math.random() * 0.2)) * Core.War.allyMult());
         const time = 20 + (hasTech('war_3') ? 15 : 0);
         State.incoming.push({ id: now(), rid, target, power, left: time, total: time });
         Sfx.alert();
@@ -749,7 +800,7 @@ Core.Rivals = {
     },
     resolveRemnant(inc, mode) {
         const t = State.territories[inc.target], c = Config.territories[inc.target];
-        const label = `los remanentes de ${Config.rivals[inc.rid].name}`;
+        const label = inc.fbi ? 'la fuerza de tarea del FBI' : `los remanentes de ${Config.rivals[inc.rid].name}`;
         // saqueo: pierden un nivel de mejora y un poco de dinero sucio
         const loot = () => {
             const ups = Object.keys(t.up).filter(k => t.up[k] > 0);
@@ -813,6 +864,12 @@ Core.Rivals = {
     defeat(rid) {
         const R = State.rivals[rid], C = Config.rivals[rid];
         R.defeated = true; R.power = 0;
+        // LA ALIANZA: los que quedan se unen y se hacen más fuertes
+        const rest = this.alive();
+        rest.forEach(id => { const X = State.rivals[id]; X.power = Math.round(X.power * 1.2 + 250 * dynMult()); X.truceUntil = 0; });
+        const allyTxt = rest.length === 2 ? `\n\n🤝 LA ALIANZA: ${Config.rivals[rest[0]].leader} y ${Config.rivals[rest[1]].leader} se reunieron en secreto. Ahora pelean juntos contra ti: son más fuertes, atacan más seguido y sus plazas defienden +${Math.round((Core.War.allyMult() - 1) * 100)}%.`
+            : rest.length === 1 ? `\n\n🔥 ${Config.rivals[rest[0]].leader} se quedó solo y absorbió lo que quedaba de los demás. Es el más peligroso de todos.` : '';
+        if (rest.length) Core.News.add(rest.length === 2 ? 'Los cárteles sobrevivientes pactan alianza contra "El Patrón"' : `${Config.rivals[rest[0]].leader} absorbe a los restos de sus aliados`, 'bad', true);
         State.territories.forEach(t => { if (t.owner === rid) { t.owner = 'player'; t.troops = 5; t.elite = 0; } });
         State.stats.bossesDefeated++;
         State.incoming = State.incoming.filter(i => i.rid !== rid);
@@ -820,7 +877,7 @@ Core.Rivals = {
         State.money.dirty += reward;
         Sfx.fanfare();
         Core.News.add(`CAE ${C.leader.toUpperCase()}: FIN DE ${C.name.toUpperCase()}`, 'bad', true);
-        UI.modal(`👑 ${C.leader.toUpperCase()} HA CAÍDO`, `${C.name} ya no existe. Sus plazas, sus hombres y su dinero ahora son tuyos.\n\nBotín: $${fmt(reward)} sucios.`, [{ text: 'CONTINUAR', style: 'btn-gold', cb: () => { } }]);
+        UI.modal(`👑 ${C.leader.toUpperCase()} HA CAÍDO`, `${C.name} ya no existe. Sus plazas, sus hombres y su dinero ahora son tuyos.\n\nBotín: $${fmt(reward)} sucios.${allyTxt}`, [{ text: 'CONTINUAR', style: 'btn-gold', cb: () => { } }]);
         Core.War.calcBonuses();
     },
     render() {

@@ -135,6 +135,7 @@ Core.Game = {
             Core.Rivals.tick();
             Core.Fronts.tick();
             Core.Aguila.tick();
+            Core.Escape.tick();
             Core.RnD.tick();
             Core.Finance.loanTick();
             Core.HR.tick();

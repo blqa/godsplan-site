@@ -52,7 +52,7 @@ function newState() {
         unlocked: ['ops', 'story', 'logistics', 'assets'],
         money: { dirty: 1500 + Legacy.points * 10000, clean: 500, offshore: 0 },
         inv: Object.assign(zeroP(), { chems: 0 }),
-        ops: Object.assign(zeroP(), { weed: 1, mobile: false }),
+        ops: Object.assign(zeroP(), { weed: 5, mobile: false }),
         opsStatus: { weed: true, meth: true, coke: true, heroin: true, fenta: true, mobile: true },
         labs: Object.assign(zeroP(), { weed: 1 }),
         autoChem: false,
@@ -63,8 +63,8 @@ function newState() {
         market: { weed: 1, meth: 1, coke: 1, heroin: 1, fenta: 1 },
         sat: zeroP(),
         stocks: { chem: { owned: 0, price: 100 }, tran: { owned: 0, price: 250 }, safe: { owned: 0, price: 500 } },
-        fleet: [{ uid: 1, type: 0, name: 'El Burro', hp: 100, km: 0, insured: false }],
-        nextUid: 2,
+        fleet: [{ uid: 1, type: 0, name: 'El Burro', hp: 100, km: 0, insured: false }, { uid: 2, type: 0, name: 'La Burra', hp: 100, km: 0, insured: false }],
+        nextUid: 3,
         routes: [],
         lieutenants: [], candidates: [], nextLtId: 1,
         territories: Config.territories.map(t => ({ id: t.id, owner: t.owner, troops: t.owner === 'player' ? t.troops : Math.round(t.troops * dm), elite: 0, tanks: 0, up: { fort: 0, lab: 0, bodega: 0 } })),
@@ -76,6 +76,8 @@ function newState() {
         loan: { debt: 0, dueAt: 0, anger: 0, lastPenalty: 0 },
         techs: [],
         research: {},
+        siege: {},
+        escape: { missions: {}, fbi: 0, nextOp: 0, started: false, alerted: false, bribes: 0 },
         achievements: [],
         story: { chapter: 0 },
         contracts: [], contractsUnlocked: false,
@@ -122,7 +124,7 @@ Core.Save = {
         // Merge con valores por defecto para que partidas viejas no truenen
         const merged = Object.assign(def, data);
         ['money', 'inv', 'ops', 'opsStatus', 'labs', 'military', 'militaryBought', 'market', 'sat', 'contacts', 'loan', 'story',
-            'automation', 'luxuries', 'investments', 'shadow', 'timers', 'stats', 'aguila', 'research'].forEach(k => {
+            'automation', 'luxuries', 'investments', 'shadow', 'timers', 'stats', 'aguila', 'research', 'siege', 'escape'].forEach(k => {
                 merged[k] = Object.assign(newState()[k], data[k] || {});
             });
         merged.stocks = Object.assign(newState().stocks, data.stocks || {});

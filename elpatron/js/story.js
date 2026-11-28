@@ -110,8 +110,8 @@ Core.Story = {
     render() {
         if (State.mode === 'libre') {
             const g = Core.Legacy.goalsMet();
-            setHTML('mini-story', `<b class="gold">🗺️ MODO LIBRE</b><br>Plan de retiro: ${g}/3 metas<br><span class="muted">$1B offshore · 14 plazas · 16 techs</span>`);
-            const bar = $('mini-story-bar'); if (bar) bar.style.width = (g / 3 * 100) + '%';
+            setHTML('mini-story', `<b class="gold">🗺️ MODO LIBRE</b><br>Plan de retiro: ${g}/4 metas<br><span class="muted">$1B offshore · 14 plazas · 16 techs · 5 misiones</span>`);
+            const bar = $('mini-story-bar'); if (bar) bar.style.width = (g / 4 * 100) + '%';
             return;
         }
         const c = this.current();
@@ -310,6 +310,7 @@ Core.Legacy = {
         if (State.money.offshore >= WIN_TARGET) n++;
         if (Core.War.owned().length >= Config.territories.length) n++;
         if (State.techs.length >= Config.techs.length) n++;
+        if (Core.Escape.allDone()) n++;
         return n;
     },
     render() {
@@ -317,14 +318,17 @@ Core.Legacy = {
         setText('end-money', `$${fmt(State.money.offshore)} / $1B`);
         setText('end-land', `${lands} / ${Config.territories.length}`);
         setText('end-tech', `${State.techs.length} / ${Config.techs.length}`);
-        $('btn-win').disabled = this.goalsMet() < 3;
+        setText('end-escape', `${Core.Escape.doneCount()} / ${Config.escape.missions.length}`);
+        setHTML('escape-wrap', Core.Escape.html());
+        UI.setBadge('ending', null);
+        $('btn-win').disabled = this.goalsMet() < 4;
         setText('legacy-current', Legacy.points);
         setText('legacy-gain', '+' + this.pointsFor());
         setText('legacy-runs', Legacy.runs);
         setText('legacy-dynasty', `Vas en la ${dynastyName(State.dynasty || 0)}${State.dynasty ? ` (cárteles x${dynMult().toFixed(1)} más duros)` : ''}. Tu próximo retiro abre la ${dynastyName(Legacy.runs + 1)}: cárteles x${dynastyMult(Legacy.runs + 1).toFixed(1)} más duros.${State.aguila.done ? ` 🦅 Pacto firmado: +${Config.aguila.PACT_LEGACY} Legado al ganar.` : ''}`);
     },
     winGame() {
-        if (this.goalsMet() < 3) return UI.notify('Aún no cumples todas las condiciones.', 'bad');
+        if (this.goalsMet() < 4) return UI.notify('Aún no cumples todas las condiciones.', 'bad');
         const pact = State.aguila.done ? Config.aguila.PACT_LEGACY : 0;
         const pts = this.pointsFor() + 25 + pact;
         Sfx.fanfare();
